@@ -1,0 +1,48 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Essai : chargement des cartes Vision</title>
+<!--
+  Essai des cartes servies par l'intégration : chaque fichier se charge, se charge une seconde
+  fois sous une autre adresse (comme une ancienne ressource /local encore déclarée) sans erreur,
+  et les anciens noms comvision-* restent utilisables.
+  Usage : python -m http.server 8792 à la racine du dépôt, puis ouvrir
+  http://localhost:8792/essai/cartes_chargement.test.html
+-->
+<pre id="sortie">…</pre>
+<script type="module">
+const base = "../custom_components/pc_parental/frontend/";
+const essai = Date.now();  // des exemplaires neufs à chaque passage, jamais ceux du cache
+const fichiers = ["vision-etiquettes-card.js", "vision-planning-card.js", "vision-processus-card.js",
+  "vision-maison-card.js", "vision-veille-card.js", "vision-dashboards-card.js", "vision-veille-panel.js"];
+const erreurs = [];
+window.addEventListener("error", (e) => erreurs.push(String(e.message)));
+window.addEventListener("unhandledrejection", (e) => erreurs.push(String(e.reason)));
+const lignes = [];
+let rates = 0;
+const verifier = (quoi, ok) => { rates += ok ? 0 : 1; lignes.push((ok ? "ok   " : "RATE ") + quoi); };
+
+for (const f of fichiers) {
+  try { await import(base + f + `?v=1&t=${essai}`); verifier(`${f} se charge`, true); }
+  catch (e) { verifier(`${f} se charge : ${e}`, false); }
+}
+// La même chose une seconde fois, sous une autre adresse : un second exemplaire du module.
+for (const f of fichiers) {
+  try { await import(base + f + `?v=ancienne&t=${essai}`); verifier(`${f} chargé deux fois sans erreur`, true); }
+  catch (e) { verifier(`${f} chargé deux fois : ${e}`, false); }
+}
+for (const n of ["vision-etiquettes-card", "vision-planning-card", "vision-processus-card", "vision-maison-card",
+  "vision-veille-card", "vision-dashboards-card", "vision-veille-panel"]) {
+  verifier(`élément ${n} défini`, !!customElements.get(n));
+}
+for (const n of ["comvision-etiquettes-card", "comvision-planning-card", "comvision-processus-card"]) {
+  const C = customElements.get(n);
+  verifier(`ancien nom ${n} toujours utilisable`, !!C && document.createElement(n) instanceof HTMLElement);
+}
+const types = (window.customCards || []).map((c) => c.type);
+verifier("chaque carte n'apparaît qu'une fois dans le sélecteur", new Set(types).size === types.length);
+verifier("aucun ancien nom dans le sélecteur", !types.some((t) => t.startsWith("comvision-")));
+verifier(`aucune erreur pendant les chargements (${erreurs.join(" | ") || "aucune"})`, erreurs.length === 0);
+lignes.push(`${rates} raté(s)`);
+document.getElementById("sortie").textContent = lignes.join("\n");
+window.resultat = { rates, lignes };
+</script>

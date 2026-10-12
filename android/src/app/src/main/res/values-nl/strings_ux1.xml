@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 1 (zone Android) : textes nouveaux, six langues. -->
+<resources>
+    <string name="liaison_question">Koppelen aan ‘%1$s’?</string>
+    <string name="liaison_question_texte">Vision heeft deze Home Assistant-server op het netwerk gevonden (%1$s). Er wordt niets naartoe gestuurd tot je kiest.</string>
+    <string name="liaison_se_relier">Koppelen</string>
+    <string name="liaison_pas_celui_ci">Niet deze</string>
+    <string name="liaison_ecarte">Server overgeslagen. Kies hieronder een andere methode.</string>
+    <string name="decouverte_recherche_delai">Home Assistant zoeken op het netwerk… (hoogstens %1$d s)</string>
+    <string name="liaison_autres_methodes">Andere methoden</string>
+    <string name="bienvenue_qr_titre">Koppelen met een QR-code</string>
+    <string name="liaison_autres_methodes_plus">Andere methoden ▸</string>
+    <string name="liaison_autres_masquer">Andere methoden verbergen ▾</string>
+    <string name="nonrelie_titre">Niet gekoppeld</string>
+    <string name="nonrelie_tele">Deze tv is nog niet aan Vision gekoppeld: er wordt niets beschermd.</string>
+    <string name="nonrelie_appareil">Dit apparaat is nog niet aan Vision gekoppeld: er wordt niets beschermd.</string>
+    <string name="nonrelie_carte_texte">Dit apparaat is aan geen enkele Vision-server gekoppeld: er geldt hier nog geen regel. Koppel het hieronder.</string>
+    <string name="nonrelie_relier">Koppelen</string>
+    <string name="statut_suspendue">Beveiliging opgeschort</string>
+    <string name="cat_etat_ouverte">Open</string>
+    <string name="cat_etat_fermee">Gesloten</string>
+    <string name="cat_etat_description">%1$s: %2$s</string>
+    <string name="a11y_retour">Terug</string>
+    <string name="a11y_actualiser">Vernieuwen</string>
+    <string name="a11y_allonger_5_s">%1$s: 5 seconden langer</string>
+    <string name="a11y_raccourcir_5_s">%1$s: 5 seconden korter</string>
+    <string name="a11y_retirer_case">%1$s verwijderen</string>
+    <string name="a11y_qr_deverrouillage">QR-code om te ontgrendelen, te scannen met het apparaat</string>
+    <string name="couleurs_contraste_faible">Laag contrast (%1$s:1): de tekst is moeilijk leesbaar. Mik op minstens 4,5:1, bijvoorbeeld lichte tekst op een donkere achtergrond.</string>
+    <!-- 1.87.1 : Musique, lancement d'une playlist sur la télé -->
+    <string name="party_lancement_playlist">‘%1$s’: wordt gestart…</string>
+</resources>

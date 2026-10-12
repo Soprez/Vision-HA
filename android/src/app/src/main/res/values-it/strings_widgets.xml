@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.88.0 : widgets interactifs (rôle, réglage, confirmation, affichage et détail), six langues. -->
+<resources>
+    <string name="wha_style_reglage">Regolazione (− / + o un elenco)</string>
+    <string name="wha_ligne_detail">%1$s: %2$s</string>
+    <string name="wha_plus_n">+%1$d</string>
+    <string name="wha_confirmer_question">Confermare «%1$s»?</string>
+    <string name="wha_confirmer_oui">Conferma</string>
+    <string name="wha_diminuer">Diminuisci %1$s</string>
+    <string name="wha_augmenter">Aumenta %1$s</string>
+    <string name="wha_choisir">Scegli per %1$s</string>
+    <string name="wha_detail_vide">Niente da mostrare.</string>
+    <string name="wha_detail_autres">… e altri %1$d</string>
+    <string name="editeurwidget_affichage">Visualizzazione</string>
+    <string name="editeurwidget_aff_ha">Come in Home Assistant</string>
+    <string name="editeurwidget_aff_valeur">Solo valore</string>
+    <string name="editeurwidget_aff_detail">Dettaglio</string>
+    <string name="editeurwidget_aff_valeur_detail">Valore + dettaglio</string>
+    <!-- 1.90.0 : « Au toucher » (détails, tableau de bord, rien). -->
+    <string name="editeurwidget_toucher">Al tocco</string>
+    <string name="editeurwidget_toucher_ha">Come in Home Assistant</string>
+    <string name="editeurwidget_toucher_role">Azione</string>
+    <string name="editeurwidget_toucher_details">Dettagli</string>
+    <string name="editeurwidget_toucher_vue">Plancia</string>
+    <string name="editeurwidget_toucher_rien">Niente</string>
+    <string name="editeurwidget_toucher_choisir">Scegli una plancia o una vista…</string>
+    <string name="editeurwidget_toucher_chemin">Percorso (ad esempio /lovelace/0)</string>
+    <string name="editeurwidget_toucher_aide">Apre l\'app di Home Assistant se è installata, altrimenti il browser.</string>
+    <string name="editeurwidget_toucher_chemin_faux">Il percorso deve iniziare con «/».</string>
+</resources>

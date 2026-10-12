@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.88.0 : widgets interactifs (rôle, réglage, confirmation, affichage et détail), six langues. -->
+<resources>
+    <string name="wha_style_reglage">Regler (− / + oder eine Liste)</string>
+    <string name="wha_ligne_detail">%1$s: %2$s</string>
+    <string name="wha_plus_n">+%1$d</string>
+    <string name="wha_confirmer_question">„%1$s“ bestätigen?</string>
+    <string name="wha_confirmer_oui">Bestätigen</string>
+    <string name="wha_diminuer">%1$s verringern</string>
+    <string name="wha_augmenter">%1$s erhöhen</string>
+    <string name="wha_choisir">Auswahl für %1$s</string>
+    <string name="wha_detail_vide">Nichts anzuzeigen.</string>
+    <string name="wha_detail_autres">… und %1$d weitere</string>
+    <string name="editeurwidget_affichage">Anzeige</string>
+    <string name="editeurwidget_aff_ha">Wie in Home Assistant</string>
+    <string name="editeurwidget_aff_valeur">Nur Wert</string>
+    <string name="editeurwidget_aff_detail">Details</string>
+    <string name="editeurwidget_aff_valeur_detail">Wert + Details</string>
+    <!-- 1.90.0 : « Au toucher » (détails, tableau de bord, rien). -->
+    <string name="editeurwidget_toucher">Beim Antippen</string>
+    <string name="editeurwidget_toucher_ha">Wie in Home Assistant</string>
+    <string name="editeurwidget_toucher_role">Aktion</string>
+    <string name="editeurwidget_toucher_details">Details</string>
+    <string name="editeurwidget_toucher_vue">Dashboard</string>
+    <string name="editeurwidget_toucher_rien">Nichts</string>
+    <string name="editeurwidget_toucher_choisir">Dashboard oder Ansicht wählen…</string>
+    <string name="editeurwidget_toucher_chemin">Pfad (zum Beispiel /lovelace/0)</string>
+    <string name="editeurwidget_toucher_aide">Öffnet die App von Home Assistant, wenn sie installiert ist, sonst den Browser.</string>
+    <string name="editeurwidget_toucher_chemin_faux">Der Pfad muss mit „/“ beginnen.</string>
+</resources>

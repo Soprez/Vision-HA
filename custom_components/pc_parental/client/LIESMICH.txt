@@ -1,0 +1,147 @@
+VISION — Windows-Agent
+======================
+
+Dieser Ordner wird auf jedem PC installiert, um den sich Vision kümmern soll. Windows 10 oder 11.
+
+Andere Sprachen: LISEZ-MOI.txt (Français), README.txt (English),
+LEEME.txt (Español), LEGGIMI.txt (Italiano), LEESMIJ.txt (Nederlands).
+Agent, Installationsprogramm und Deinstallationsprogramm sprechen die Sprache
+von Windows (Ordner „langues“; Englisch, wenn die Sprache fehlt).
+
+
+INSTALLATION (einmal pro PC)
+----------------------------
+Am einfachsten: Home Assistant stellt das Installationsprogramm bereit. Öffne
+auf dem PC PowerShell und füge die Zeile ein, die im Dashboard „Vision“,
+Abschnitt „PC installieren“, angezeigt wird. Sie sieht so aus:
+
+    irm http://DEIN-HA:8123/api/pc_parental/client/install -OutFile "$env:TEMP\install-cp.ps1"; & "$env:TEMP\install-cp.ps1"
+
+Sonst mit den Dateien aus diesem Ordner:
+
+1. Kopiere den ganzen Ordner auf den PC (Desktop, USB-Stick, egal wohin).
+
+2. Rechtsklick auf  install.ps1  ->  „Mit PowerShell ausführen“.
+   Windows fragt nach Administratorrechten: bestätigen.
+   (Wenn Windows das Skript nicht ausführt, öffne PowerShell als
+    Administrator, wechsle in diesen Ordner und tippe zuerst:
+        Set-ExecutionPolicy -Scope Process Bypass
+    dann  .\install.ps1 )
+
+In beiden Fällen fragt das Installationsprogramm zwei Dinge:
+     - die Adresse von Home Assistant   z. B. http://homeassistant.local:8123
+     - den Registrierungsschlüssel      angezeigt in Home Assistant,
+                                        Dashboard „Vision“,
+                                        Abschnitt „PC installieren“.
+
+Fertig. Der PC erscheint von selbst in Home Assistant, FREIGEGEBEN und
+   OHNE ZEITFENSTER. Seinen Zeitplan gibst du ihm danach in Home Assistant.
+
+Derselbe Schlüssel gilt für alle PCs.
+
+
+EINE NACHRICHT SENDEN
+---------------------
+Im Dashboard „Vision“, Karte des PCs, Abschnitt „Nachricht senden“: Text
+ins Feld Nachricht schreiben und Senden drücken. Auf dem PC erscheint eine
+Windows-Benachrichtigung, unterschrieben mit „Vision“, die im
+Benachrichtigungscenter bleibt.
+
+Empfänger können alle PCs sein, ein Label oder ein bestimmter PC. Labels
+werden im Feld „Labels“ jeder Karte gesetzt: Gib mehreren PCs dasselbe
+Label, und du erreichst sie alle auf einmal.
+
+Ein Ton kann gewählt werden: Standard, Nachricht, Mail, Erinnerung, SMS,
+hartnäckiger Alarm, hartnäckiger Anruf oder stumm. Die beiden hartnäckigen
+Töne wiederholen sich, solange die Benachrichtigung angezeigt wird.
+
+Für eine Automatisierung:
+
+    action: pc_parental.notify
+    data:
+      tag: betreut
+      message: Bring den Müll raus
+      son: Rappel
+
+Ohne pc oder tag geht die Nachricht an alle PCs. Die Option „urgent“ öffnet
+statt einer dezenten Benachrichtigung ein Dialogfenster über allem.
+Jeder PC hat außerdem eine eigene notify-Entität, die sich über Labels von
+Home Assistant ansprechen lässt.
+
+
+UPDATES
+-------
+Home Assistant stellt den Agenten bereit: Seine Fassung ist maßgeblich.
+Kommt eine neue Version mit der Integration, holt jeder PC sie selbst,
+prüft ihren Fingerabdruck, ersetzt sein Skript und startet neu. Nichts neu
+zu installieren, keine Datei zu kopieren. Die Texte aller Sprachen stecken
+im Agenten.
+
+Wenn du lieber selbst entscheidest: Schalte „Automatische Agent-Updates“
+im Dashboard aus. Jeder PC zeigt dann seine Version neben der
+veröffentlichten, mit einer Schaltfläche Installieren.
+
+ACHTUNG: Automatische Updates gibt es erst ab Agent-Version 1.1.0. Ein PC
+mit 1.0.0 kann sich nicht selbst aktualisieren: Starte das
+Installationsprogramm auf diesem Rechner einmal neu. Das ist ohne Risiko,
+der PC behält seine Identität und seine Zeitfenster.
+
+
+WAS DER AGENT TUT
+-----------------
+- Er meldet Home Assistant, ob jemand vor dem Bildschirm sitzt: aktiv,
+  inaktiv (eine Weile nichts berührt), Sitzung gesperrt oder offline.
+  Home Assistant zeigt das wie einen Messenger-Status.
+- Er zeigt Nachrichten aus Home Assistant als echte Windows-
+  Benachrichtigungen, unterschrieben mit „Vision“, im
+  Benachrichtigungscenter aufbewahrt. Eine dringende Nachricht öffnet
+  stattdessen ein Dialogfenster über allem, das sich selbst schließt.
+- Alle 20 Sekunden fragt er Home Assistant, ob dieser PC freigegeben oder
+  gesperrt ist.
+- Während eines gesperrten Zeitfensters wird die Sitzung gesperrt. Wird sie
+  mit dem Passwort wieder entsperrt, ist sie in der nächsten Sekunde
+  wieder gesperrt. Nichts geht verloren: Die Programme bleiben dahinter offen.
+- Vor einer Sperre warnt eine Meldung auf dem Bildschirm.
+- Programme auf der Liste „Gesperrte Programme“ werden laufend geschlossen.
+- Websites auf der Liste „Gesperrte Websites“ werden über die hosts-Datei
+  gesperrt.
+
+Ist Home Assistant nicht erreichbar, bleibt die letzte bekannte Anweisung
+2 Stunden gültig, danach bleibt der PC freigegeben: Ein Serverausfall darf
+den Computer nicht dauerhaft sperren.
+
+
+DAMIT ES WIRKT
+--------------
+Der Agent läuft unter dem Konto SYSTEM: Ein Standardkonto kann ihn weder
+beenden noch deinstallieren. Ist das Konto aber ADMINISTRATOR des PCs,
+lässt er sich umgehen. Prüfe das Konto:
+
+    Einstellungen > Konten > Andere Benutzer
+
+und stelle es bei Bedarf auf „Standardbenutzer“.
+
+
+EINEN PC ENTFERNEN
+------------------
+In Home Assistant: Schaltfläche „Diesen PC löschen“ unten auf der Karte
+des PCs, mit Bestätigung. Der PC, seine Zeitfenster und sein Gerät
+verschwinden.
+
+Der Agent bleibt auf dem Rechner: Er merkt, dass er nicht mehr bekannt
+ist, wendet keine Einschränkung mehr an und lässt den PC frei. Um ihn
+ganz zu entfernen, starte uninstall.ps1 auf diesem Rechner.
+
+
+DEINSTALLIEREN
+--------------
+Rechtsklick auf  uninstall.ps1  ->  „Mit PowerShell ausführen“, als
+Administrator. Das entfernt die geplante Aufgabe, bereinigt die
+hosts-Datei und löscht die Konfiguration. Der PC bleibt in Home Assistant
+sichtbar: Lösche ihn im Dashboard, wenn du ihn nicht mehr brauchst.
+
+
+BEI PROBLEMEN
+-------------
+Protokoll des Agenten:    C:\ProgramData\HAParental\agent.log
+Geplante Aufgabe:         Aufgabenplanung > „HA Controle Parental“

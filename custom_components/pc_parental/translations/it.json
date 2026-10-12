@@ -1,0 +1,2398 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vision",
+        "description": "Home Assistant si prenderà cura dei tuoi dispositivi: computer, telefoni e TV. Una volta aggiunta l'integrazione, ogni dispositivo si registra da solo installando il suo agente dalla plancia Vision.\n\nScegli un punto di partenza; ogni modulo si può poi attivare o disattivare in Configura → Moduli.",
+        "data": {
+          "prereglage": "Ciò che ti serve"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Vision è già installato."
+    }
+  },
+  "options": {
+    "step": {
+      "cle": {
+        "title": "Chiave di registrazione",
+        "description": "{changee}Solo per gli amministratori: la chiave non viene più mostrata da nessun'altra parte.\n\n**Chiave attuale**: `{cle}`\n\nRegistrazione di nuovi dispositivi: **{inscriptions}**.\n\n**PC** — in PowerShell, sul PC da configurare:\n```\n{commande}\n```\n\n**Telefono, tablet, TV** — blocco da incollare nell'app:\n```\n{android}\n```\n\nNon lasciare né il comando né il blocco su un dispositivo supervisionato. Cambiare la chiave non tocca i dispositivi già registrati.",
+        "data": {
+          "action": "Cosa vuoi fare?",
+          "cle": "Nuova chiave (se «Scelgo io la chiave»)"
+        }
+      },
+      "init": {
+        "title": "Vision",
+        "menu_options": {
+          "ajouter": "➕ Aggiungi un dispositivo",
+          "appairage": "Dispositivi da approvare ({attente})",
+          "roles": "Persone e ruoli",
+          "appareils": "Dispositivi esistenti",
+          "securite": "Sicurezza",
+          "modules": "Moduli",
+          "entites": "Entità Home Assistant",
+          "general": "Impostazioni generali",
+          "musique": "Musica",
+          "journal_musique": "Registro Musica",
+          "accueil": "Messaggi di benvenuto",
+          "vocabulaire": "Vocabolario",
+          "avance": "Avanzate",
+          "temps_gagne": "Tempo guadagnato (compiti)",
+          "regles_lieu": "Regole in base al luogo",
+          "soutien": "♥ Sostieni il progetto"
+        },
+        "description": "Cosa vuoi fare?"
+      },
+      "appairage": {
+        "title": "Dispositivi da approvare",
+        "description": "Il dispositivo da registrare mostra un QR e un codice. Controlla il codice, scegli la persona se sai chi è, poi approva: il dispositivo riceve il suo accesso da solo.\n\n{demandes}\n\nLe richieste di accesso, di tempo e di sblocco non sono qui: si decidono nella plancia di Vision.",
+        "data": {
+          "code": "Codice mostrato sul dispositivo",
+          "personne": "Persona (facoltativo)",
+          "decision": "Decisione"
+        }
+      },
+      "installer": {
+        "title": "Installa Vision su un dispositivo",
+        "description": "{installation}"
+      },
+      "inscriptions": {
+        "title": "Registrazione di nuovi dispositivi",
+        "description": "Registrazione di nuovi dispositivi: **{etat}**.\n\n«Consenti {minutes} min» apre le registrazioni e poi le richiude da sola, anche se nel frattempo Home Assistant si riavvia. Per un dispositivo già registrato (app reinstallata), usa piuttosto «Consenti una nuova registrazione» nella sua scheda; l'abbinamento tramite QR, approvato da un amministratore, non ha bisogno che le registrazioni siano aperte.",
+        "data": {
+          "inscriptions": "Cosa vuoi fare?"
+        }
+      },
+      "qr": {
+        "title": "Genera un QR di abbinamento",
+        "description": "Il dispositivo scansiona questo QR dall'app Vision e si collega da solo. Il QR vale una sola volta e scade dopo pochi minuti; non contiene la chiave di registrazione.\n\nPersona: puoi sceglierla ora o più tardi. Dispositivo: solo per **riprendere** un dispositivo già registrato (app reinstallata); altrimenti un dispositivo già registrato viene rifiutato.",
+        "data": {
+          "personne": "Persona (facoltativo)",
+          "appareil": "Riprendi questo dispositivo (facoltativo)"
+        }
+      },
+      "qr_affiche": {
+        "title": "QR di abbinamento",
+        "description": "![QR di abbinamento]({image})\n\nNell'app Vision del dispositivo: **Scansiona il QR di Home Assistant**. Valido {minutes} minuti, una sola volta. Non lasciarlo in vista di tutti: permette di registrare un dispositivo."
+      },
+      "deverrouillage": {
+        "title": "Richieste di sblocco",
+        "description": "{demandes} Sceglila, poi approvala (accorciando la durata se vuoi) o rifiutala.\n\n**Consegna**: «diretta», il dispositivo si sblocca da solo; «codice», leggi alla persona un codice di 6 cifre; «QR», la persona scansiona lo schermo.",
+        "data": {
+          "demande": "Richiesta",
+          "decision": "Decisione",
+          "minutes": "Durata concessa (minuti, al massimo quella richiesta)",
+          "remise": "Consegna"
+        }
+      },
+      "deverrouillage_resultat": {
+        "title": "Sblocco",
+        "description": "{resultat}"
+      },
+      "roles": {
+        "title": "Persone e ruoli",
+        "description": "Un ruolo è un insieme di funzioni; ogni persona ne ha uno, e i suoi dispositivi lo seguono.\n\n{resume}",
+        "menu_options": {
+          "roles_modifier": "Apri un ruolo: nome e funzioni",
+          "roles_personnes": "Scegli il ruolo di ogni persona",
+          "roles_creer": "Crea un ruolo",
+          "roles_appareils": "Eccezione: un ruolo solo per un dispositivo",
+          "roles_validation_appareil": "Eccezione: approvazione da più persone solo per un dispositivo"
+        }
+      },
+      "roles_modifier": {
+        "title": "I ruoli",
+        "description": "Scegli un ruolo per vedere e spuntare le sue funzioni.",
+        "data": {
+          "role": "Ruolo"
+        }
+      },
+      "roles_edition": {
+        "title": "Ruolo",
+        "description": "{erreur}Persone: {personnes}.\nDispositivi: {appareils}.\nSblocco: {deverrouillage}.\n\n★ = funzione riservata a un amministratore. Ogni modifica viene registrata; resta sempre almeno un dispositivo che può «Gestire» e «Approvare».",
+        "data": {
+          "nom": "Nome",
+          "fonctions": "Funzioni",
+          "pause_max": "Durata massima di sospensione della protezione (minuti)",
+          "validation": "Poi imposta l'approvazione da più persone (sblocco)",
+          "supprimer": "Elimina questo ruolo"
+        }
+      },
+      "roles_creer": {
+        "title": "Crea un ruolo",
+        "description": "{erreur}Il nuovo ruolo parte dalle funzioni del modello; poi le sistemi tu.",
+        "data": {
+          "nom": "Nome (es. Ragazzo, Insegnante, Ospite)",
+          "modele": "Basato su"
+        }
+      },
+      "roles_personnes": {
+        "title": "Ruolo di ogni persona",
+        "description": "Il ruolo di una persona vale su tutti i suoi dispositivi. Scegli una persona per cambiare il suo ruolo.",
+        "data": {
+          "personne": "Persona"
+        }
+      },
+      "roles_appareils": {
+        "title": "Ruolo solo per un dispositivo",
+        "description": "{erreur}Di solito un dispositivo segue il ruolo della sua persona. Qui imposti un'eccezione per un dispositivo.\n\n{resume}",
+        "data": {
+          "appareil": "Dispositivo",
+          "role": "Ruolo"
+        }
+      },
+      "roles_validation_appareil": {
+        "title": "Approvazione solo per un dispositivo",
+        "description": "Quante persone diverse devono approvare le richieste di sblocco di questo dispositivo. «In base al ruolo» toglie l'eccezione. Il codice di gestione digitato sul dispositivo funziona sempre da solo.\n\n{resume}",
+        "data": {
+          "appareil": "Dispositivo",
+          "validation_mode": "Sblocco: quante persone devono approvare",
+          "validation_n": "Numero di persone (se «numero fisso»)",
+          "validation_actions": "Solo per queste richieste (nessuna spuntata = tutte)",
+          "validation_au_dela_de": "Solo oltre (minuti; 0 = sempre)",
+          "validation_repli": "Dopo X min senza risposta dagli altri, basta una sola approvazione (0 = la richiesta scade)"
+        }
+      },
+      "securite": {
+        "title": "Sicurezza",
+        "menu_options": {
+          "deverrouillage": "Richieste di sblocco",
+          "inscriptions": "Registrazione di nuovi dispositivi (apri, chiudi, 5 min)",
+          "code_gestion": "Codice di gestione dei PC (sblocca un messaggio bloccante)"
+        }
+      },
+      "avance": {
+        "title": "Avanzate",
+        "description": "Per i casi particolari. Di solito basta la procedura guidata «Aggiungi un dispositivo».",
+        "menu_options": {
+          "installer": "Link di installazione e QR",
+          "qr": "Genera a mano un QR di abbinamento",
+          "cle": "Chiave di registrazione",
+          "sauvegarde": "Backup e ripristino",
+          "appareils_essai": "Dispositivi Android di prova"
+        }
+      },
+      "appareils": {
+        "title": "Dispositivi esistenti",
+        "menu_options": {
+          "appareils_relier": "Ricollega un dispositivo (app reinstallata, PC ripristinato)",
+          "roles_appareils": "Cambia il ruolo di un dispositivo",
+          "roles_validation_appareil": "Approvazione da più persone, per un dispositivo"
+        }
+      },
+      "appareils_relier": {
+        "title": "Ricollega un dispositivo",
+        "description": "Mantiene la sua scheda, le sue regole e la sua persona; riceve un nuovo accesso.",
+        "data": {
+          "appareil": "Dispositivo"
+        }
+      },
+      "ajouter": {
+        "title": "Aggiungi un dispositivo (1/4)",
+        "description": "Quale dispositivo vuoi aggiungere?",
+        "data": {
+          "genre": "Dispositivo"
+        }
+      },
+      "ajouter_qui": {
+        "title": "Per chi? (2/4)",
+        "description": "Il dispositivo prende il ruolo della persona scelta. Per la TV del soggiorno: «schermo condiviso».",
+        "data": {
+          "personne": "Persona"
+        }
+      },
+      "ajouter_reprise": {
+        "title": "Un nuovo dispositivo? (2/4)",
+        "description": "{personne} ha già un dispositivo di questo tipo in Vision. È un nuovo dispositivo, o lo stesso reinstallato? Se è lo stesso, mantiene le sue regole.",
+        "data": {
+          "reprise": "Risposta"
+        }
+      },
+      "ajouter_installer_telephone": {
+        "title": "Installa Vision (3/4)",
+        "description": "{qui}\n\nSul telefono o sul tablet, scansiona questo QR con la fotocamera, poi installa Vision (versione {version}). Se Android lo chiede, consenti l'installazione dal browser.\n\n![QR di installazione]({qr})\n\nOppure apri questo link sul dispositivo: {lien}\n\nPoi apri Vision e segui i passaggi. Tocca **Avanti** quando è installato."
+      },
+      "ajouter_installer_tele": {
+        "title": "Installa Vision (3/4)",
+        "description": "{qui}\n\nSulla TV, apri l'app **Downloader** (installala dallo store della TV se serve) e digita questo indirizzo:\n\n## {court}\n\nInstalla Vision (versione {version}), aprila e segui i passaggi fino alla schermata che mostra **un codice**. A quel punto tocca **Avanti**."
+      },
+      "ajouter_installer_pc": {
+        "title": "Installa Vision (3/4)",
+        "description": "{qui}\n\nSul PC, apri **PowerShell** (tasto Windows, digita «PowerShell», Invio), incolla il comando qui sotto e premi Invio. Accetta la richiesta di amministratore.\n\nIl comando installa Vision **e** collega il PC: non c'è altro da digitare. Funziona una sola volta e per {minutes} minuti.\n\nTocca **Avanti** quando PowerShell dice «registrato».",
+        "data": {
+          "commande": "Comando da copiare"
+        }
+      },
+      "ajouter_relier_telephone": {
+        "title": "Collega (4/4)",
+        "description": "{qui}\n\nIn Vision, sul dispositivo, tocca **Scansiona il QR di Home Assistant** e inquadra questo QR:\n\n![QR di abbinamento]({image})\n\nValido {minutes} minuti, una sola volta. Tocca **Avanti** quando il dispositivo dice che è collegato."
+      },
+      "ajouter_relier_tele": {
+        "title": "Collega (4/4)",
+        "description": "{qui}\n\nDigita il codice mostrato sulla TV.",
+        "data": {
+          "code": "Codice mostrato sulla TV"
+        }
+      },
+      "ajouter_relier_pc": {
+        "title": "Collega (4/4)",
+        "description": "{qui}\n\nIl PC si collega da solo alla fine dell'installazione. Tocca **Avanti** per controllare."
+      },
+      "ajouter_fini": {
+        "title": "Fatto",
+        "description": "## ✅ {nom} è collegato a {personne}\n\nRuolo: **{role}**.{reprise}\n\n{etat}"
+      },
+      "roles_edition_validation": {
+        "title": "Approvazione da più persone",
+        "description": "Per il ruolo **{role}**: quante persone devono approvare uno sblocco.",
+        "data": {
+          "validation_mode": "Quante persone devono approvare",
+          "validation_n": "Numero di persone (se «numero fisso»)",
+          "validation_actions": "Solo per queste richieste (nessuna spuntata = tutte)",
+          "validation_au_dela_de": "Solo oltre (minuti; 0 = sempre)",
+          "validation_repli": "Dopo X min senza risposta dagli altri, basta una sola approvazione (0 = la richiesta scade)"
+        }
+      },
+      "roles_personne_role": {
+        "title": "Ruolo di {personne}",
+        "description": "{erreur}I suoi dispositivi: {appareils}.",
+        "data": {
+          "role": "Ruolo"
+        }
+      },
+      "general": {
+        "title": "Impostazioni generali",
+        "description": "Il nome del luogo compare nelle app, nella plancia e nelle notifiche. Esempi: Scuola, Ufficio, Club.",
+        "data": {
+          "lieu": "Nome del luogo",
+          "personnes_affichage": "Persone «schermo condiviso»"
+        },
+        "data_description": {
+          "personnes_affichage": "Le persone di Home Assistant create per una TV o uno schermo condiviso, non per qualcuno in particolare. Vuoto: quella che si chiama «Affichage»."
+        }
+      },
+      "accueil": {
+        "title": "Messaggi di benvenuto",
+        "description": "{erreur}Il messaggio mostrato in alto nell'app, su ogni dispositivo, nella sua lingua. Scrivi un messaggio per riga; le variabili qui sotto vengono compilate al momento della visualizzazione. Niente scritto: «Ciao!» («Buonasera!» dalle 18).\n\nModalità «In base al momento della giornata»: inizia una riga con `mattina:`, `pomeriggio:`, `sera:` o `notte:` (oppure `morning:`, `afternoon:`, `evening:`, `night:`) per riservarla a quel momento (mattina 5–12, pomeriggio 12–18, sera 18–22, notte 22–5); una riga senza prefisso vale sempre. Modalità «Casuale»: i prefissi vengono ignorati.\n\nPer esperti (sezione Avanzate): un modello Jinja di Home Assistant sostituisce i messaggi, con le stesse variabili, per esempio `{exemple}`. Se dà errore, o un testo vuoto o più lungo di 200 caratteri, si mostra il messaggio normale.\n\n**Variabili** (valore attuale)\n{aide}\n\n**Anteprima** (ciò che è salvato)\n{apercu}",
+        "data": {
+          "messages": "Messaggi (uno per riga)",
+          "mode": "Scelta del messaggio",
+          "meteo": "Entità meteo"
+        },
+        "data_description": {
+          "meteo": "Vuoto: la prima entità meteo trovata."
+        },
+        "sections": {
+          "avance": {
+            "name": "Avanzate (per esperti)",
+            "description": "Un modello Jinja di Home Assistant, valutato a ogni visualizzazione.",
+            "data": {
+              "modele": "Modello Jinja"
+            },
+            "data_description": {
+              "modele": "Vuoto: i messaggi qui sopra."
+            }
+          }
+        }
+      },
+      "modules": {
+        "title": "Moduli",
+        "description": "{erreur}Spunta ciò che ti serve: il resto sparisce ovunque (Home Assistant, app, TV, PC). Le sue impostazioni restano salvate per dopo; le sue entità vengono disattivate senza perdere la cronologia. La base (dispositivi, persone e ruoli, gestione a distanza, aggiornamenti) resta sempre attiva.",
+        "data": {
+          "prereglage": "Preimpostazione",
+          "modules": "Moduli"
+        }
+      },
+      "modules_protections": {
+        "title": "Disattivare le protezioni?",
+        "description": "⚠️ Senza le protezioni contro l'aggiramento, una persona seguita può disinstallare Vision, diventare amministratore del suo PC o aprire le impostazioni protette, e così togliere tutte le regole. {concernes}: {appareils}.\n\nDisattivale solo se ti fidi di tutte le persone che usano questi dispositivi.",
+        "data": {
+          "je_comprends": "Ho capito, disattiva le protezioni"
+        }
+      },
+      "entites": {
+        "title": "Entità Home Assistant",
+        "description": "I widget Home Assistant dell'app Vision: ogni dispositivo vede solo le entità date alla sua persona (più le sue eccezioni) e può usare solo le azioni spuntate qui. Sola lettura per impostazione predefinita; serrature e allarmi non si comandano mai da un dispositivo.\n\n{resume}",
+        "menu_options": {
+          "entites_personnes": "Entità di ogni persona",
+          "entites_appareils": "Eccezioni per dispositivo",
+          "entites_actions": "Azioni consentite"
+        }
+      },
+      "entites_personnes": {
+        "title": "Entità di ogni persona",
+        "description": "Scegli una persona per cambiare l'elenco delle entità che vede sui suoi dispositivi.",
+        "data": {
+          "personne": "Persona"
+        }
+      },
+      "entites_personne_liste": {
+        "title": "Entità di {personne}",
+        "description": "Le entità che {personne} vede nell'app (con la funzione di ruolo «Vedere le entità Home Assistant del proprio elenco»). Niente si può comandare senza «Azioni consentite».",
+        "data": {
+          "entites": "Entità"
+        }
+      },
+      "entites_appareils": {
+        "title": "Eccezioni per dispositivo",
+        "description": "Scegli un dispositivo per aggiungergli o togliergli entità rispetto all'elenco della sua persona.",
+        "data": {
+          "appareil": "Dispositivo"
+        }
+      },
+      "entites_appareil_liste": {
+        "title": "Eccezioni di «{appareil}»",
+        "description": "Persona: {personne}. Il suo elenco: {liste}.\n\n«In più» si aggiunge a questo elenco; «In meno» ne viene tolto (e ha la precedenza). Un dispositivo senza persona vede solo «In più».",
+        "data": {
+          "plus": "In più",
+          "moins": "In meno"
+        }
+      },
+      "entites_actions": {
+        "title": "Azioni consentite",
+        "description": "{pilotables} Spunta cosa possono fare i dispositivi (serve anche la funzione di ruolo «Comandare le entità consentite»); niente spuntato = sola lettura. Serrature e allarmi non vengono mai proposti."
+      },
+      "sauvegarde": {
+        "title": "Backup e ripristino",
+        "description": "Tutta la configurazione di Vision: ruoli, persone, dispositivi e le loro regole, moduli, luogo, widget, salvaschermo. I file restano in Home Assistant (cartella «vision_sauvegardes» della configurazione) e finiscono nei suoi backup. Ogni notte viene fatto un backup automatico.\n\nBackup disponibili:\n{liste}",
+        "menu_options": {
+          "sauvegarde_creer": "Fai un backup ora",
+          "sauvegarde_restaurer": "Ripristina un backup"
+        }
+      },
+      "sauvegarde_creer": {
+        "title": "Fai un backup ora",
+        "description": "Salva la configurazione attuale di Vision. Vengono tenuti gli ultimi 20 backup fatti qui.\n\nGià presenti:\n{liste}"
+      },
+      "sauvegarde_restaurer": {
+        "title": "Ripristina un backup",
+        "description": "Sostituisce tutta la configurazione attuale di Vision con quella del backup scelto. Lo stato attuale viene salvato prima, così puoi tornare indietro. Un dispositivo collegato dopo la data del backup dovrà essere ricollegato.",
+        "data": {
+          "sauvegarde": "Backup",
+          "confirmer": "Sostituisco la configurazione attuale con questo backup"
+        }
+      },
+      "temps_gagne": {
+        "title": "Tempo guadagnato",
+        "description": "Un compito spuntato in una lista di cose da fare di Home Assistant dà tempo in più sui dispositivi della persona. I compiti già spuntati quando imposti questa regola non contano, e un compito tolto e rispuntato conta una sola volta. Lascia vuota la lista per togliere l'impostazione di una persona.\n\nImpostazioni attuali:\n{resume}",
+        "data": {
+          "personne": "Persona",
+          "liste": "Lista di cose da fare",
+          "minutes": "Minuti per compito spuntato",
+          "max": "Al massimo, al giorno"
+        }
+      },
+      "regles_lieu": {
+        "title": "Regole in base al luogo",
+        "description": "Finché la persona è nella zona scelta (in base alla sua posizione in Home Assistant), le categorie spuntate sono bloccate sui suoi dispositivi. Quando esce dalla zona, tutto torna come prima. Non spuntare nessuna categoria per togliere la regola di questa persona in questa zona.\n\nRegole attuali:\n{resume}",
+        "data": {
+          "personne": "Persona",
+          "zone": "Zona",
+          "etiquettes": "Categorie bloccate in questa zona"
+        }
+      },
+      "vocabulaire": {
+        "title": "Vocabolario",
+        "description": "Le parole che Vision usa per i ruoli (dashboard, notifiche, messaggi inviati ai dispositivi), nella lingua di Home Assistant. Svuota un campo per tornare alla parola predefinita ({defauts}). Al massimo {longueur} caratteri.\n\nIl nome del luogo (ora: {nom_lieu}) si imposta in «Impostazioni generali».\n\n**Anteprima** (ciò che è salvato)\n{apercu}",
+        "data": {
+          "decideur": "Decisore (uno)",
+          "decideurs": "Decisori (più di uno)",
+          "demandeur": "Richiedente (uno)",
+          "demandeurs": "Richiedenti (più di uno)"
+        },
+        "data_description": {
+          "decideur": "Chi accetta o rifiuta le richieste.",
+          "demandeur": "Chi fa le richieste."
+        }
+      },
+      "musique": {
+        "title": "Musica",
+        "description": "Lettori Music Assistant proposti come altoparlanti in Musica. Sono tutti selezionati per impostazione predefinita.",
+        "data": {
+          "enceintes": "Altoparlanti proposti",
+          "masquer_hors_ligne": "Nascondi gli altoparlanti offline (altrimenti: in grigio)",
+          "arret_auto": "Arresto automatico della riproduzione",
+          "arret_auto_perso": "Durata personalizzata (min)"
+        },
+        "data_description": {
+          "arret_auto": "Senza alcuna azione sulla musica o sul dispositivo per questo tempo, la riproduzione si ferma (avviso 1 min prima).",
+          "arret_auto_perso": "Usata se scegli «Personalizzato»."
+        }
+      },
+      "journal_musique": {
+        "title": "Registro Musica",
+        "description": "Ultimi comandi Musica (chi, cosa, da dove):\n\n{journal}",
+        "data": {
+          "jours": "Conserva il registro per"
+        }
+      },
+      "appareils_essai": {
+        "title": "Dispositivi Android di prova",
+        "description": "Strumento di prova: questi dispositivi Android ricevono la versione di prova dell'app prima degli altri. Lascia vuoto se non provi l'app.",
+        "data": {
+          "appareils_essai": "Dispositivi Android di prova"
+        },
+        "data_description": {
+          "appareils_essai": "Ricevono la versione di prova dell'app (essai.apk) prima degli altri."
+        }
+      },
+      "code_gestion": {
+        "data": {
+          "action": "Cosa fare?",
+          "code": "Nuovo codice",
+          "confirmation": "Lo stesso codice, ancora una volta"
+        },
+        "description": "{etat}\n\nQuesto codice sblocca, su un PC, un messaggio bloccante «fino allo sblocco». Si imposta solo qui (amministratori): la finestra Vision del PC non permette più di sceglierlo. Home Assistant ne conserva solo l'impronta e lo verifica da sé; il PC non ne conserva nulla. Dopo {essais} codici errati su un PC, i suoi tentativi vengono sospesi per {minutes} minuti; dopo {total} codici errati in 24 h in tutto il luogo, il codice viene bloccato finché non viene cambiato qui.\n\nDa 6 a 32 caratteri. Il codice digitato su un PC passa per la sessione del Richiedente: non digitarlo davanti a lui e cambialo se hai un dubbio. Un messaggio bloccante si sblocca anche da Home Assistant (azione «Sblocca un messaggio»), senza codice.",
+        "title": "Codice di gestione dei PC"
+      },
+      "soutien": {
+        "description": "Vision è gratuito e open source. Se vuoi ringraziare il progetto, puoi offrirgli un caffè: {lien}\n\nIn cambio appare un badge «Sostenitore» e l'occhio di Vision ogni tanto fa l'occhiolino, con un piccolo cuore, sul salvaschermo e in «Informazioni». È solo decorativo: nessuna funzione è bloccata.\n\nIl codice ricevuto via e-mail viene verificato qui, offline: non viene inviato nulla da nessuna parte.",
+        "menu_options": {
+          "soutien_cafe": "Ho offerto un caffè (sul mio onore)",
+          "soutien_code": "Ho un codice"
+        },
+        "title": "Sostieni il progetto"
+      },
+      "soutien_actif": {
+        "description": "♥ Grazie! Il badge «Sostenitore» è mostrato sui dispositivi di questo luogo.\n\nPagina delle donazioni: {lien}",
+        "menu_options": {
+          "soutien_code": "Inserisci un altro codice",
+          "soutien_retirer": "Rimuovi il badge"
+        },
+        "title": "Sostieni il progetto"
+      },
+      "soutien_code": {
+        "data": {
+          "code": "Codice di sostegno"
+        },
+        "description": "Incolla il codice ricevuto via e-mail (spazi, trattini e a capo vengono ignorati). Viene verificato qui, offline.",
+        "title": "Ho un codice"
+      }
+    },
+    "error": {
+      "cle_invalide": "La chiave deve avere da 12 a 64 caratteri, senza spazi, e non può essere un esempio pubblicato.",
+      "code_inconnu": "Codice sconosciuto o scaduto: rifai la richiesta sul dispositivo.",
+      "qr_impossible": "Impossibile generare il QR (indirizzo di Home Assistant sconosciuto, o troppi QR in corso).",
+      "deverrouillage_demande": "Questa richiesta non è più in attesa (già decisa, annullata o scaduta).",
+      "deverrouillage_minutes": "Durata non valida: al massimo quella richiesta.",
+      "deverrouillage_remise": "Consegna sconosciuta.",
+      "deverrouillage_decision": "Decisione sconosciuta.",
+      "biometrie_parent": "La biometria si può consentire solo su un dispositivo il cui ruolo ha la funzione «Impronta o volto».",
+      "appareil_inconnu": "Dispositivo sconosciuto.",
+      "role_refuse": "Rifiutato: guarda il messaggio in alto.",
+      "deverrouillage_deja_vote": "Hai già approvato questa richiesta: serve l'approvazione di un'altra persona.",
+      "ajout_pas_encore": "Non ancora collegato. Completa il passaggio sul dispositivo, poi tocca di nuovo Avanti.",
+      "ajout_expire": "Il tempo è scaduto: ecco un nuovo QR (o un nuovo comando).",
+      "modules_dependances": "Mancano dei moduli di cui altri hanno bisogno (dettagli qui sopra).",
+      "modules_confirmer": "Spunta la casella per confermare, o chiudi questa finestra per tenere le protezioni.",
+      "confirmer_restauration": "Spunta la casella per confermare: la configurazione attuale sarà sostituita.",
+      "sauvegarde_introuvable": "Questo backup non esiste più. Scegline un altro.",
+      "sauvegarde_illisible": "Questo backup non si può leggere o viene da una versione più recente di Vision. Non è stato cambiato nulla.",
+      "temps_gagne_personne": "Scegli una persona.",
+      "temps_gagne_liste": "Scegli una lista di cose da fare (entità «todo»).",
+      "temps_gagne_minutes": "I minuti per compito vanno da 1 a 240, e il limite giornaliero non può essere più piccolo di un compito.",
+      "regles_lieu_personne": "Scegli una persona.",
+      "regles_lieu_zone": "Scegli una zona di Home Assistant.",
+      "regles_lieu_trop": "Ci sono già 40 regole di luogo: togline una prima di aggiungerne un'altra.",
+      "accueil_modele_invalide": "Il modello Jinja non è valido: controlla la sintassi (il dettaglio è in alto nella schermata).",
+      "vocabulaire_trop_long": "Troppo lungo: al massimo 30 caratteri.",
+      "code_court": "Da 6 a 32 caratteri.",
+      "code_different": "I due codici non coincidono.",
+      "soutien_format": "Non è un codice completo: verifica che sia stato copiato per intero.",
+      "soutien_signature": "Questo codice non è valido (firma rifiutata). Ricopialo dall'e-mail.",
+      "soutien_version": "Questo codice proviene da una versione più recente di Vision: aggiorna Vision.",
+      "soutien_vide": "Incolla il codice ricevuto via e-mail."
+    },
+    "abort": {
+      "not_loaded": "Vision non è caricato: riprova tra un attimo.",
+      "ajout_impossible": "Per ora non è possibile: {raison}",
+      "entites_rien_a_piloter": "Nessuna entità comandabile è data a una persona o a un dispositivo: scegli prima delle entità (luci, interruttori, script, scene, pulsanti, tapparelle, termostati).",
+      "sauvegarde_faite": "Backup fatto: {sauvegarde}. Si trova nella cartella «{dossier}» della configurazione di Home Assistant.",
+      "sauvegarde_restauree": "Configurazione ripristinata dal backup del {sauvegarde}. Lo stato precedente è stato salvato: {avant}.",
+      "aucune_sauvegarde": "Ancora nessun backup. Comincia con «Fai un backup ora».",
+      "temps_gagne_ok": "Tempo guadagnato salvato.\n\n{resume}",
+      "temps_gagne_coupe": "Il modulo «Tempo guadagnato» (o «Tempo di utilizzo») è disattivato: attivalo in Configura → Moduli.",
+      "regles_lieu_ok": "Regola salvata.\n\n{resume}",
+      "regles_lieu_coupe": "Il modulo «Regole in base al luogo» (o «Blocco delle app» e «Filtro web») è disattivato: attivalo in Configura → Moduli.",
+      "accueil_ok": "Messaggi di benvenuto salvati.\n\n**Anteprima**\n{apercu}",
+      "vocabulaire_ok": "Vocabolario salvato.\n\n**Anteprima**\n{apercu}",
+      "essai_aucun_android": "Nessun dispositivo Android in Vision: niente da impostare.",
+      "soutien_merci": "♥ Grazie per il tuo sostegno! Il badge appare sui dispositivi al loro prossimo controllo.",
+      "soutien_retire": "Badge rimosso."
+    }
+  },
+  "selector": {
+    "action": {
+      "options": {
+        "garder": "Tieni questa chiave e chiudi",
+        "nouvelle": "Genera una nuova chiave",
+        "choisir": "Scelgo io la chiave"
+      }
+    },
+    "decision": {
+      "options": {
+        "valider": "Approva",
+        "refuser": "Rifiuta"
+      }
+    },
+    "inscriptions": {
+      "options": {
+        "temporaire": "Consenti 5 min (si richiude da sola)",
+        "ouvrir": "Apri finché non le chiudo",
+        "fermer": "Chiudi ora",
+        "garder": "Non cambiare niente"
+      }
+    },
+    "decision_deverrouillage": {
+      "options": {
+        "approuver": "Approva",
+        "refuser": "Rifiuta"
+      }
+    },
+    "remise": {
+      "options": {
+        "directe": "Diretta (il dispositivo si sblocca da solo)",
+        "code": "Codice di 6 cifre",
+        "qr": "QR da scansionare"
+      }
+    },
+    "validation_mode": {
+      "options": {
+        "role": "In base al ruolo",
+        "une": "Una sola persona",
+        "toutes": "Tutte le persone che approvano",
+        "n": "Numero fisso di persone"
+      }
+    },
+    "validation_actions": {
+      "options": {
+        "parent": "Sospendi la protezione",
+        "reglages": "Impostazioni protette",
+        "app": "App"
+      }
+    },
+    "genre": {
+      "options": {
+        "telephone": "📱 Un telefono o un tablet",
+        "tele": "📺 Una TV Android",
+        "pc": "💻 Un PC Windows"
+      }
+    },
+    "prereglage": {
+      "options": {
+        "simple": "Semplice: fasce orarie, tempo di utilizzo, richieste, messaggi",
+        "famille": "Consigliato: Semplice, più blocco delle app, filtro web, sblocco, sospensione della protezione, salvaschermo, schermata Home, protezioni, «Blocca tutto»",
+        "tout": "Tutto: tutti i moduli"
+      }
+    },
+    "prereglage_options": {
+      "options": {
+        "simple": "Semplice: fasce orarie, tempo di utilizzo, richieste, messaggi",
+        "famille": "Consigliato: Semplice, più blocco delle app, filtro web, sblocco, sospensione della protezione, salvaschermo, schermata Home, protezioni, «Blocca tutto»",
+        "tout": "Tutto: tutti i moduli",
+        "garder": "Tengo la mia scelta (caselle qui sotto)"
+      }
+    },
+    "action_lot": {
+      "options": {
+        "ajouter": "Aggiungi",
+        "retirer": "Togli"
+      }
+    },
+    "bloquant": {
+      "options": {
+        "non": "No",
+        "lu": "Fino alla lettura",
+        "parent": "Fino allo sblocco (codice di gestione o amministratore)"
+      }
+    },
+    "decision_elements": {
+      "options": {
+        "bloquer": "Blocca",
+        "autoriser": "Consenti",
+        "neutre": "Rimetti da classificare",
+        "retirer": "Togli"
+      }
+    },
+    "decision_maison": {
+      "options": {
+        "bloquer": "Blocca per tutti",
+        "autoriser": "Consenti per tutti",
+        "neutre": "Rimetti da classificare"
+      }
+    },
+    "decision_processus": {
+      "options": {
+        "valider": "Approva la proposta",
+        "garder": "Tieni",
+        "hors_demarrage": "Togli dall'avvio",
+        "nuisible": "Dannoso",
+        "desinstaller": "Disinstalla",
+        "neutre": "Rimetti da classificare"
+      }
+    },
+    "filtre_processus": {
+      "options": {
+        "a_classer": "Da classificare",
+        "propositions": "Proposte",
+        "decides": "Decisi",
+        "tous": "Tutti"
+      }
+    },
+    "genre_element": {
+      "options": {
+        "sites": "Sito",
+        "apps": "Software"
+      }
+    },
+    "jours": {
+      "options": {
+        "lun": "Lunedì",
+        "mar": "Martedì",
+        "mer": "Mercoledì",
+        "jeu": "Giovedì",
+        "ven": "Venerdì",
+        "sam": "Sabato",
+        "dim": "Domenica"
+      }
+    },
+    "portee": {
+      "options": {
+        "session": "Blocca la sessione",
+        "etiquettes": "Blocca delle categorie"
+      }
+    },
+    "position_message": {
+      "options": {
+        "plein_ecran": "Schermo intero",
+        "centre": "Centro",
+        "haut": "In alto",
+        "bas": "In basso",
+        "gauche": "A sinistra",
+        "droite": "A destra",
+        "haut_gauche": "In alto a sinistra",
+        "haut_droite": "In alto a destra",
+        "bas_gauche": "In basso a sinistra",
+        "bas_droite": "In basso a destra"
+      }
+    },
+    "taille_message": {
+      "options": {
+        "petite": "Piccola",
+        "moyenne": "Media",
+        "grande": "Grande"
+      }
+    },
+    "type_message": {
+      "options": {
+        "texte": "Testo",
+        "image": "Immagine",
+        "audio": "Audio",
+        "video": "Video"
+      }
+    },
+    "accueil_mode": {
+      "options": {
+        "aleatoire": "Casuale (cambia ogni 30 minuti)",
+        "moment": "In base al momento della giornata"
+      }
+    },
+    "jours_journal_musique": {
+      "options": {
+        "1": "1 giorno",
+        "7": "7 giorni",
+        "30": "30 giorni"
+      }
+    },
+    "code_gestion_action": {
+      "options": {
+        "changer": "Scegli un nuovo codice",
+        "garder": "Non cambiare nulla",
+        "retirer": "Rimuovi il codice (allora sbloccano solo Home Assistant e il limite di sicurezza)"
+      }
+    },
+    "reveil_source": {
+      "options": {
+        "ma": "Music Assistant",
+        "sonnerie": "Suoneria",
+        "url": "Radio, podcast o stream (indirizzo)",
+        "video": "Video"
+      }
+    },
+    "reveil_type": {
+      "options": {
+        "entite": "Orario letto da un'entità",
+        "hebdo": "Ogni settimana (orario + giorni)",
+        "manuel": "Solo su comando",
+        "modele": "Orario calcolato da un modello",
+        "ponctuel": "Una sola volta (data)"
+      }
+    },
+    "arret_auto": {
+      "options": {
+        "0": "Disattivato",
+        "30": "30 min",
+        "60": "1 h",
+        "120": "2 h",
+        "240": "4 h",
+        "perso": "Personalizzato"
+      }
+    }
+  },
+  "services": {
+    "lock": {
+      "name": "Blocca",
+      "description": "Blocca il dispositivo, scavalcando il programma.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        },
+        "minutes": {
+          "name": "Durata",
+          "description": "Durata in minuti. Lascia 0 per mantenerlo fino al prossimo cambio del programma."
+        }
+      }
+    },
+    "unlock": {
+      "name": "Sblocca",
+      "description": "Consente l'uso del dispositivo, scavalcando il programma.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        },
+        "minutes": {
+          "name": "Durata",
+          "description": "Durata in minuti. Lascia 0 per mantenerlo fino al prossimo cambio del programma."
+        }
+      }
+    },
+    "reset": {
+      "name": "Torna al programma",
+      "description": "Toglie l'eccezione in corso e ridà il controllo al programma.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        }
+      }
+    },
+    "create_pc": {
+      "name": "Crea un dispositivo",
+      "description": "Crea un dispositivo a mano. Non serve se installi l'agente: il dispositivo si registra da solo.",
+      "fields": {
+        "nom": {
+          "name": "Nome",
+          "description": "Il nome mostrato in Home Assistant."
+        }
+      }
+    },
+    "delete_pc": {
+      "name": "Elimina un dispositivo",
+      "description": "Toglie un dispositivo e tutte le sue fasce orarie.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        }
+      }
+    },
+    "add_schedule": {
+      "name": "Aggiungi una fascia oraria",
+      "description": "Aggiunge una fascia oraria durante la quale il dispositivo è bloccato.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        },
+        "nom": {
+          "name": "Nome della fascia oraria",
+          "description": "Il nome che distingue questa fascia oraria dalle altre («Nanna», «Compiti»)."
+        },
+        "debut": {
+          "name": "Inizio",
+          "description": "L'ora in cui comincia la fascia oraria."
+        },
+        "fin": {
+          "name": "Fine",
+          "description": "L'ora in cui finisce; se è prima dell'inizio, finisce il giorno dopo."
+        },
+        "jours": {
+          "name": "Giorni",
+          "description": "Giorni in cui vale la fascia oraria."
+        },
+        "active": {
+          "name": "Attiva",
+          "description": "Se spenta, la fascia oraria esiste ma non blocca nulla."
+        },
+        "portee": {
+          "name": "Questa fascia oraria blocca",
+          "description": "session = il dispositivo è bloccato; etiquettes = sono bloccate solo le categorie indicate."
+        },
+        "etiquettes": {
+          "name": "Categorie da bloccare",
+          "description": "Etichette di Home Assistant. Obbligatorie quando la fascia oraria blocca delle categorie, a meno che non indichi degli elementi."
+        },
+        "elements": {
+          "name": "Elementi indicati",
+          "description": "Siti o software indicati per nome, senza passare da una categoria. Elenco di { genre: sites|apps, nom: … }."
+        },
+        "couleur": {
+          "name": "Colore (scheda programma)",
+          "description": "Formato #RRGGBB; vuoto = colore automatico."
+        }
+      }
+    },
+    "remove_schedule": {
+      "name": "Elimina una fascia oraria",
+      "description": "Elimina una fascia oraria in base al nome o al suo id.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        },
+        "nom": {
+          "name": "Nome della fascia oraria",
+          "description": "Il nome della fascia oraria da eliminare."
+        },
+        "id": {
+          "name": "Id della fascia oraria",
+          "description": "Il suo numero, se più fasce orarie hanno lo stesso nome."
+        }
+      }
+    },
+    "update_schedule": {
+      "name": "Modifica una fascia oraria",
+      "description": "Modifica una fascia oraria esistente (trovata tramite il suo id): nome, orari, giorni, portata, categorie, attivazione, colore. Cambiano solo i campi indicati.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        },
+        "id": {
+          "name": "Id della fascia oraria",
+          "description": "Il numero della fascia oraria da modificare."
+        },
+        "nom": {
+          "name": "Nome della fascia oraria",
+          "description": "Il nuovo nome della fascia oraria."
+        },
+        "debut": {
+          "name": "Inizio",
+          "description": "Il nuovo orario di inizio."
+        },
+        "fin": {
+          "name": "Fine",
+          "description": "Il nuovo orario di fine."
+        },
+        "jours": {
+          "name": "Giorni",
+          "description": "Giorni in cui vale la fascia oraria."
+        },
+        "active": {
+          "name": "Fascia oraria attiva",
+          "description": "Se spenta, la fascia oraria esiste ma non blocca nulla."
+        },
+        "portee": {
+          "name": "Questa fascia oraria blocca",
+          "description": "session = il dispositivo è bloccato; etiquettes = sono bloccate solo le categorie indicate."
+        },
+        "etiquettes": {
+          "name": "Categorie da bloccare",
+          "description": "Etichette di Home Assistant che la fascia oraria blocca."
+        },
+        "elements": {
+          "name": "Elementi indicati",
+          "description": "Elenco di { genre: sites|apps, nom: … }. Elenco vuoto per toglierli tutti."
+        },
+        "sauf": {
+          "name": "Tranne su",
+          "description": "I dispositivi della persona che questa fascia oraria lascia stare, per nome. Elenco vuoto perché valga ovunque."
+        },
+        "couleur": {
+          "name": "Colore (scheda programma)",
+          "description": "Formato #RRGGBB; vuoto = colore automatico."
+        }
+      }
+    },
+    "set_apps": {
+      "name": "Imposta i software bloccati",
+      "description": "Sostituisce i software bloccati su questo dispositivo. I siti bloccati e le regole per categoria di Vision non vengono toccati. Indica i nomi degli eseguibili, senza «.exe». Ciò che non è bloccato resta consentito.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        },
+        "liste": {
+          "name": "Software",
+          "description": "Nomi degli eseguibili, senza «.exe»."
+        }
+      }
+    },
+    "set_sites": {
+      "name": "Imposta i siti bloccati",
+      "description": "Sostituisce i siti bloccati su questo dispositivo (solo il nome di dominio, per esempio «tiktok.com»). I software bloccati e le regole per categoria di Vision non vengono toccati. Ciò che non è bloccato resta consentito.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        },
+        "liste": {
+          "name": "Siti",
+          "description": "Nomi di dominio, per esempio «tiktok.com»."
+        }
+      }
+    },
+    "build_dashboard": {
+      "name": "Rigenera la plancia",
+      "description": "Ricostruisce la plancia Vision a partire dai dispositivi e dalle fasce orarie attuali."
+    },
+    "update_agent": {
+      "name": "Aggiorna l'agente",
+      "description": "Chiede l'aggiornamento dell'agente al suo prossimo contatto. Se non indichi un Dispositivo, la richiesta vale per tutti i dispositivi.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Lascia vuoto per tutti i dispositivi."
+        }
+      }
+    },
+    "notify": {
+      "name": "Invia un messaggio ai dispositivi",
+      "description": "Mostra una notifica sul dispositivo o sul telefono. Senza «Dispositivo» né «Etichetta», il messaggio va a tutti i dispositivi.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome di un dispositivo preciso."
+        },
+        "tag": {
+          "name": "Etichetta",
+          "description": "Raggiunge in un colpo tutti i dispositivi con questa etichetta di Home Assistant, proprio come si raggrupperebbero delle prese. Funziona anche il nome dell'etichetta, per un'automazione scritta a mano."
+        },
+        "message": {
+          "name": "Messaggio",
+          "description": "Il testo mostrato."
+        },
+        "titre": {
+          "name": "Titolo",
+          "description": "Il titolo sopra il messaggio."
+        },
+        "son": {
+          "name": "Suono",
+          "description": "Suono riprodotto da Windows all'arrivo del messaggio."
+        },
+        "urgent": {
+          "name": "Urgente",
+          "description": "Di solito è una notifica discreta, conservata nel centro notifiche. Se urgente, si apre una finestra sopra tutto quello che c'è sullo schermo."
+        }
+      }
+    },
+    "rename_pc": {
+      "name": "Rinomina un dispositivo",
+      "description": "Cambia il nome di un dispositivo in Home Assistant. Il nome del computer Windows non viene modificato.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome attuale."
+        },
+        "nom": {
+          "name": "Nuovo nome",
+          "description": "Il nome mostrato in Home Assistant."
+        }
+      }
+    },
+    "set_tags": {
+      "name": "Classifica un sito o un software",
+      "description": "Sostituisce in un colpo le etichette di un elemento. Sono le etichette di Home Assistant: quelle di Impostazioni → Aree, etichette e zone.",
+      "fields": {
+        "genre": {
+          "name": "Tipo",
+          "description": "Un sito o un software."
+        },
+        "nom": {
+          "name": "Nome",
+          "description": "Dominio («youtube.com») o eseguibile, senza «.exe»."
+        },
+        "etiquettes": {
+          "name": "Etichette",
+          "description": "Elenco vuoto per toglierle tutte."
+        }
+      }
+    },
+    "tag_items": {
+      "name": "Classifica in blocco",
+      "description": "Aggiunge (o toglie) le stesse etichette su più siti e software in un solo gesto. È questo che svuota la coda.",
+      "fields": {
+        "elements": {
+          "name": "Elementi",
+          "description": "Elenco di { genre: sites|apps, nom: … }."
+        },
+        "etiquettes": {
+          "name": "Etichette",
+          "description": "Le etichette di Home Assistant da aggiungere o togliere."
+        },
+        "action": {
+          "name": "Azione",
+          "description": "Aggiungi queste etichette, o toglile."
+        }
+      }
+    },
+    "create_tag": {
+      "name": "Crea un'etichetta",
+      "description": "Crea un'etichetta di Home Assistant usabile subito, ancora prima che sia servita a classificare qualcosa.",
+      "fields": {
+        "etiquette": {
+          "name": "Nome",
+          "description": "Il nome della nuova etichetta."
+        }
+      }
+    },
+    "delete_tag": {
+      "name": "Elimina un'etichetta",
+      "description": "Toglie l'etichetta da Home Assistant e da tutto ciò che la portava, comprese le regole e le fasce orarie che non bloccherebbero più nulla.",
+      "fields": {
+        "etiquette": {
+          "name": "Etichetta",
+          "description": "L'etichetta da eliminare."
+        }
+      }
+    },
+    "set_pc_tag": {
+      "name": "Blocca un'etichetta su un dispositivo",
+      "description": "Se acceso, tutto ciò che porta questa etichetta è bloccato su questo dispositivo. Se spento, il dispositivo non dice più nulla al riguardo — che non vuol dire «consentito».",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        },
+        "etiquette": {
+          "name": "Etichetta",
+          "description": "L'etichetta di Home Assistant interessata."
+        },
+        "bloquer": {
+          "name": "Blocca",
+          "description": "Acceso: tutto ciò che porta l'etichetta è bloccato su questo dispositivo."
+        }
+      }
+    },
+    "set_house_tag": {
+      "name": "Decidi su un'etichetta per tutti",
+      "description": "Vieta o consente un'etichetta su tutti i computer insieme. «Neutro» rimette la decisione da prendere — che non vuol dire «consentito».",
+      "fields": {
+        "etiquette": {
+          "name": "Etichetta",
+          "description": "L'etichetta di Home Assistant interessata."
+        },
+        "decision": {
+          "name": "Decisione",
+          "description": "Ciò che vale da ora in poi su tutti i computer."
+        }
+      }
+    },
+    "set_pc_labels": {
+      "name": "Etichette di un dispositivo",
+      "description": "Mette esattamente queste etichette di Home Assistant sul computer. Sono quelle che lo raggruppano con gli altri (per esempio Soggiorno, Camere) per le notifiche — non quelle che classificano siti e software.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        },
+        "etiquettes": {
+          "name": "Etichette",
+          "description": "Elenco vuoto per toglierle tutte."
+        }
+      }
+    },
+    "decider_elements": {
+      "name": "Decidi per tutti",
+      "description": "Blocca, consente o rimette da classificare uno o più siti e software, per tutti. «Togli» annulla solo un elemento aggiunto a mano: ciò che un computer ha rilevato tornerà al prossimo contatto.",
+      "fields": {
+        "elements": {
+          "name": "Elementi",
+          "description": "Elenco di {genre: apps|sites, nom}."
+        },
+        "decision": {
+          "name": "Decisione",
+          "description": "Ciò che vale da ora in poi per tutti."
+        }
+      }
+    },
+    "processus_lister": {
+      "name": "Elenca i processi",
+      "description": "Restituisce gli elementi rilevati sui PC (avvio, attività pianificate, servizi, processi) con editore, firma, percorso e memoria. Per il classificatore: chiamalo chiedendo una risposta.",
+      "fields": {
+        "filtre": {
+          "name": "Filtro",
+          "description": "Quali elementi restituire."
+        },
+        "limite": {
+          "name": "Limite",
+          "description": "Quanti elementi al massimo."
+        },
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Solo gli elementi rilevati su questo dispositivo."
+        }
+      }
+    },
+    "processus_proposer": {
+      "name": "Proponi una classificazione",
+      "description": "Lascia un verdetto su uno o più elementi. Non cambia nulla sui PC: un amministratore deve approvare.",
+      "fields": {
+        "propositions": {
+          "name": "Proposte",
+          "description": "Elenco di {cle, verdict (garder | hors_demarrage | nuisible), raison, confiance 0-100}."
+        },
+        "par": {
+          "name": "Autore",
+          "description": "Chi propone (mostrato all'amministratore che approva)."
+        }
+      }
+    },
+    "processus_decider": {
+      "name": "Decidi",
+      "description": "Decide per tutti. «Approva la proposta» riprende la proposta, «Rimetti da classificare» la rimette da classificare e la fa ripristinare dall'agente.",
+      "fields": {
+        "cles": {
+          "name": "Chiavi",
+          "description": "Le chiavi degli elementi, come le restituisce «Elenca i processi»."
+        },
+        "decision": {
+          "name": "Decisione",
+          "description": "Ciò che vale da ora in poi per tutti."
+        },
+        "confirmation": {
+          "name": "Conferma",
+          "description": "Obbligatoria per «Disinstalla», che non si può annullare: una sola chiave alla volta, e l'interruttore «Disinstallazione da parte dell'agente» acceso."
+        }
+      }
+    },
+    "fermer_categorie": {
+      "name": "Blocca una categoria",
+      "description": "Blocca una o più categorie per una persona, su tutti i suoi dispositivi, spiegando perché. Ciò che è sempre consentito per nome resta consentito. Da chiamare da un'automazione.",
+      "fields": {
+        "personne": {
+          "name": "Persona",
+          "description": "La persona interessata."
+        },
+        "categorie": {
+          "name": "Categorie",
+          "description": "Le categorie da bloccare (Giochi, Video, Social network…)."
+        },
+        "raison": {
+          "name": "Motivo",
+          "description": "Ciò che la persona leggerà sul suo schermo («Media del 5,5 su 10»)."
+        },
+        "source": {
+          "name": "Origine",
+          "description": "Il nome di ciò che blocca («media», «compiti»). Una categoria resta bloccata finché un'origine la blocca; «Sblocca» con la stessa origine toglie solo quella. Vuoto: l'origine predefinita."
+        }
+      }
+    },
+    "ouvrir_categorie": {
+      "name": "Sblocca una categoria",
+      "description": "Sblocca le categorie bloccate da un'automazione. Senza categoria, sblocca tutte quelle di questa origine per questa persona.",
+      "fields": {
+        "personne": {
+          "name": "Persona",
+          "description": "La persona interessata."
+        },
+        "categorie": {
+          "name": "Categorie",
+          "description": "Le categorie da sbloccare. Vuoto: tutte quelle che questa origine ha bloccato."
+        },
+        "source": {
+          "name": "Origine",
+          "description": "La stessa origine usata per il blocco. I blocchi delle altre origini restano. Vuoto: l'origine predefinita."
+        }
+      }
+    },
+    "ajouter_temps": {
+      "name": "Aggiungi tempo",
+      "description": "Consente l'uso dei dispositivi di una persona per un certo tempo, scavalcando il programma. Un tempo già concesso e ancora in corso viene allungato. Se non indichi un dispositivo, vale per tutti quelli della persona, compresi quelli condivisi.",
+      "fields": {
+        "personne": {
+          "name": "Persona",
+          "description": "La persona a cui dare tempo."
+        },
+        "minutes": {
+          "name": "Durata",
+          "description": "Quanti minuti aggiungere."
+        },
+        "appareils": {
+          "name": "Dispositivi",
+          "description": "I dispositivi interessati, con il loro nome in Home Assistant. Vuoto: tutti quelli della persona."
+        }
+      }
+    },
+    "bilan_hebdo": {
+      "name": "Riepilogo della settimana",
+      "description": "Invia subito il riepilogo degli ultimi sette giorni (tempo di utilizzo, app più usate, richieste), come l'invio automatico di ogni domenica alle 19:00.",
+      "fields": {
+        "remettre_a_zero": {
+          "name": "Riparti da zero",
+          "description": "Azzera i contatori della settimana (richieste, accessi concessi e rifiutati, tempo aggiunto), come l'invio della domenica."
+        }
+      }
+    },
+    "concentration": {
+      "name": "Concentrazione",
+      "description": "Per un po' (i compiti), solo le app scelte restano aperte sui dispositivi della persona. Vision, il telefono, i messaggi, l'orologio e la calcolatrice restano sempre aperti. Se non indichi delle app, Vision riprende l'ultima scelta fatta per questa persona.",
+      "fields": {
+        "personne": {
+          "name": "Persona",
+          "description": "La persona interessata."
+        },
+        "minutes": {
+          "name": "Durata in minuti",
+          "description": "Quanto dura la modalità concentrazione."
+        },
+        "applis": {
+          "name": "App tenute",
+          "description": "I nomi delle app da tenere aperte, come li conosce Vision («com.google.android.apps.docs», «word»)."
+        },
+        "appareils": {
+          "name": "Dispositivi",
+          "description": "I nomi dei dispositivi interessati; vuoto per tutti i dispositivi della persona."
+        },
+        "arreter": {
+          "name": "Ferma",
+          "description": "Ferma la modalità concentrazione in corso invece di avviarne una."
+        }
+      }
+    },
+    "limiter_temps": {
+      "name": "Limita il tempo di un software",
+      "description": "Tot minuti al giorno per un software o un'app, su tutti i dispositivi della persona. Finito il tempo, resta bloccato fino al giorno dopo. 0 toglie il limite.",
+      "fields": {
+        "personne": {
+          "name": "Persona",
+          "description": "La persona interessata."
+        },
+        "logiciel": {
+          "name": "Software",
+          "description": "Il nome del programma come lo conosce Vision («roblox», «com.supercell.brawlstars»)."
+        },
+        "minutes": {
+          "name": "Minuti al giorno",
+          "description": "0 per togliere il limite."
+        }
+      }
+    },
+    "partager_appareil": {
+      "name": "Condividi un dispositivo",
+      "description": "Indica a chi appartiene un dispositivo oltre alla sua persona principale. La condivisione non sposta nessuna regola: dice presso chi compare il dispositivo e chi può ricevere tempo su di esso. Senza persone e senza «Tutti i dispositivi», il dispositivo non è più condiviso.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        },
+        "personnes": {
+          "name": "Persone",
+          "description": "Quelle che lo usano anche loro."
+        },
+        "tout_le_monde": {
+          "name": "Tutti i dispositivi",
+          "description": "Il dispositivo è di tutti (la TV del soggiorno)."
+        }
+      }
+    },
+    "valider_appairage": {
+      "name": "Approva un abbinamento",
+      "description": "Approva la richiesta del dispositivo che mostra questo codice (abbinamento tramite QR). Riceve il suo accesso; se qui non scegli una persona, resta senza persona. Solo per gli amministratori.",
+      "fields": {
+        "code": {
+          "name": "Codice",
+          "description": "Il codice breve mostrato sul dispositivo."
+        },
+        "personne": {
+          "name": "Persona",
+          "description": "Di chi è il dispositivo (facoltativo)."
+        }
+      }
+    },
+    "refuser_appairage": {
+      "name": "Rifiuta un abbinamento",
+      "description": "Rifiuta la richiesta del dispositivo che mostra questo codice. Solo per gli amministratori.",
+      "fields": {
+        "code": {
+          "name": "Codice",
+          "description": "Il codice breve mostrato sul dispositivo."
+        }
+      }
+    },
+    "envoyer": {
+      "name": "Invia un messaggio ricco",
+      "description": "Testo, immagine, suono o video su una TV o un PC, posizionato dove vuoi, eventualmente bloccante, con una conferma di ricezione (evento pc_parental_message). Solo per gli amministratori. Vedi docs/messages.md.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        },
+        "tag": {
+          "name": "Etichetta",
+          "description": "Raggiunge tutti i dispositivi con questa etichetta di Home Assistant."
+        },
+        "type": {
+          "name": "Tipo",
+          "description": "Ricavato dal contenuto multimediale se manca."
+        },
+        "titre": {
+          "name": "Titolo",
+          "description": "Il titolo sopra il messaggio."
+        },
+        "message": {
+          "name": "Messaggio",
+          "description": "Il testo, o la didascalia di un contenuto multimediale."
+        },
+        "media": {
+          "name": "Contenuto multimediale",
+          "description": "Un contenuto multimediale locale di Home Assistant (cartella /media)."
+        },
+        "position": {
+          "name": "Posizione",
+          "description": "Altrimenti, l'impostazione «Posizione dei messaggi» del dispositivo."
+        },
+        "taille": {
+          "name": "Dimensione",
+          "description": "Altrimenti, l'impostazione «Dimensione dei messaggi» del dispositivo."
+        },
+        "duree": {
+          "name": "Durata di visualizzazione",
+          "description": "In secondi; 0 = finché non viene chiuso."
+        },
+        "son": {
+          "name": "Suono",
+          "description": "Suono riprodotto da Windows all'arrivo del messaggio."
+        },
+        "bloquant": {
+          "name": "Bloccante",
+          "description": "No; fino alla lettura = schermo intero fino a «Ho letto»; fino allo sblocco = schermo intero finché qualcuno non lo toglie con il codice di gestione, o un amministratore lo toglie (pc_parental.liberer_message…)."
+        },
+        "limite": {
+          "name": "Limite di sicurezza",
+          "description": "Solo per «bloccante fino allo sblocco»; oltre questo tempo si toglie da solo (registrato)."
+        },
+        "expire": {
+          "name": "Scadenza",
+          "description": "Dopo questo tempo, il messaggio non consegnato o non letto scade."
+        }
+      }
+    },
+    "liberer_message": {
+      "name": "Sblocca un messaggio bloccante",
+      "description": "Toglie un messaggio bloccante fino allo sblocco su un dispositivo (al contatto successivo). Solo per gli amministratori.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo come appare in Home Assistant."
+        },
+        "id": {
+          "name": "Messaggio",
+          "description": "Il suo numero; senza numero, tutti i messaggi bloccanti del dispositivo."
+        }
+      }
+    },
+    "approuver_deverrouillage": {
+      "name": "Approva uno sblocco",
+      "description": "Approva la richiesta di sblocco di un dispositivo (azione e durata richieste, o meno). Consegna diretta (il dispositivo la riceve da solo), tramite codice (restituito) o tramite QR (restituito). Solo per gli amministratori.",
+      "fields": {
+        "demande": {
+          "name": "Richiesta",
+          "description": "L'identificativo della richiesta."
+        },
+        "minutes": {
+          "name": "Minuti",
+          "description": "Al massimo quelli richiesti."
+        },
+        "remise": {
+          "name": "Consegna",
+          "description": "Come la persona riceve lo sblocco."
+        }
+      }
+    },
+    "refuser_deverrouillage": {
+      "name": "Rifiuta uno sblocco",
+      "description": "Rifiuta la richiesta di sblocco. Solo per gli amministratori.",
+      "fields": {
+        "demande": {
+          "name": "Richiesta",
+          "description": "L'identificativo della richiesta."
+        }
+      }
+    },
+    "nouvelle_cle_deverrouillage": {
+      "name": "Nuova chiave di sblocco",
+      "description": "Sostituisce la chiave che firma le approvazioni di sblocco; quelle in corso non valgono più. I dispositivi ricevono la nuova chiave al contatto successivo. Solo per gli amministratori."
+    },
+    "pause_generale": {
+      "name": "Blocca tutto",
+      "description": "Blocca in un colpo tutti i dispositivi seguiti per un certo tempo; i dispositivi di chi decide restano consentiti. «Consenti di nuovo» li consente prima della fine. Solo per gli amministratori.",
+      "fields": {
+        "minutes": {
+          "name": "Durata",
+          "description": "Quanti minuti (da 1 a 240)."
+        }
+      }
+    },
+    "fin_pause_generale": {
+      "name": "Consenti di nuovo",
+      "description": "Consente di nuovo i dispositivi che «Blocca tutto» teneva bloccati: tornano al loro programma. Un blocco manuale precedente viene mantenuto. Solo per gli amministratori."
+    },
+    "musique_vider_suite": {
+      "name": "Musica — svuota la coda",
+      "description": "Rimuove tutti i brani dopo quello in corso dalla coda di Music Assistant del diffusore scelto (il brano in corso continua) e disattiva l'aggiunta automatica. Solo per gli amministratori.",
+      "fields": {
+        "entity_id": {
+          "name": "Diffusore",
+          "description": "Il lettore Music Assistant di cui si svuota la coda."
+        }
+      }
+    },
+    "reveil_activer": {
+      "description": "Attiva una sveglia (come il suo interruttore).",
+      "fields": {
+        "reveil": {
+          "description": "ID, entità della sveglia (switch.vision_reveil_…) o nome esatto.",
+          "name": "Sveglia"
+        }
+      },
+      "name": "Sveglia — attiva"
+    },
+    "reveil_arreter": {
+      "description": "Ferma la suoneria su tutti i dispositivi (una sveglia, o tutte quelle di un Richiedente).",
+      "fields": {
+        "demandeur": {
+          "description": "In assenza di sveglia, la persona i cui dispositivi suonano.",
+          "name": "Richiedente"
+        },
+        "reveil": {
+          "description": "ID, entità della sveglia (switch.vision_reveil_…) o nome esatto.",
+          "name": "Sveglia"
+        }
+      },
+      "name": "Sveglia — ferma"
+    },
+    "reveil_creer": {
+      "description": "Crea una sveglia per un Richiedente. Viene programmata sui suoi dispositivi, che suonano da soli anche se Home Assistant o la rete non funzionano. Restituisce l'ID della sveglia. Richiede il modulo «Sveglia».",
+      "fields": {
+        "actif": {
+          "description": "Una sveglia disattivata non è impostata su nessun dispositivo.",
+          "name": "Attiva"
+        },
+        "allumer_tv": {
+          "description": "Usa il metodo di accensione scelto per le TV interessate.",
+          "name": "Accendi la TV"
+        },
+        "appareils": {
+          "description": "Dispositivi Vision del Richiedente che suonano (nome o ID). Predefinito: i suoi telefoni e tablet.",
+          "name": "Dispositivi"
+        },
+        "attribut": {
+          "description": "Leggi questo attributo invece dello stato (facoltativo).",
+          "name": "Attributo"
+        },
+        "bornes": {
+          "description": "Intervallo in cui l'orario calcolato è accettato, [min, max] (predefinito 05:00 – 10:00).",
+          "name": "Limiti"
+        },
+        "date": {
+          "description": "Per ponctuel.",
+          "name": "Data"
+        },
+        "decalage": {
+          "description": "Minuti aggiunti all'orario letto (negativo = prima), per entite e modele.",
+          "name": "Scostamento"
+        },
+        "demandeur": {
+          "description": "La persona da svegliare (person.* o il suo nome).",
+          "name": "Richiedente"
+        },
+        "entite": {
+          "description": "Per entite (sensore timestamp, input_datetime, calendario).",
+          "name": "Entità con data e ora"
+        },
+        "heure": {
+          "description": "Per hebdo e ponctuel.",
+          "name": "Orario"
+        },
+        "impose": {
+          "description": "Il Richiedente non può né modificarla né disattivarla (può posticiparla e fermarla).",
+          "name": "Imposta"
+        },
+        "jours": {
+          "description": "Per hebdo (0 = lunedì … 6 = domenica, o mon, tue…). Predefinito da lunedì a venerdì.",
+          "name": "Giorni"
+        },
+        "lecteur": {
+          "description": "Altoparlante che riproduce la sorgente Music Assistant (facoltativo).",
+          "name": "Lettore Music Assistant"
+        },
+        "libelle": {
+          "description": "Nome visualizzato della sorgente (facoltativo).",
+          "name": "Etichetta della sorgente"
+        },
+        "modele": {
+          "description": "Per modele; deve restituire una data e un orario.",
+          "name": "Modello"
+        },
+        "nom": {
+          "description": "Etichetta della sveglia (predefinito «Sveglia»).",
+          "name": "Nome"
+        },
+        "repetition": {
+          "description": "{minutes, max} — predefinito 9 min, 3 volte.",
+          "name": "Posticipo"
+        },
+        "repli": {
+          "description": "Usato se l'orario calcolato manca o è fuori dai limiti. Senza ripiego, l'occorrenza viene saltata e viene emesso vision_reveil_echec.",
+          "name": "Orario di ripiego"
+        },
+        "source": {
+          "description": "sonnerie (suoneria), url (radio, podcast, stream), ma (Music Assistant), video. La suoneria locale resta il ripiego.",
+          "name": "Sorgente"
+        },
+        "type": {
+          "description": "hebdo (orario + giorni), ponctuel (una data), entite (orario letto da un'entità con data e ora), modele (modello che restituisce data e orario), manuel (suona solo su comando).",
+          "name": "Attivazione"
+        },
+        "uri": {
+          "description": "Indirizzo http(s) dello stream, o brano / playlist / radio di Music Assistant.",
+          "name": "Indirizzo o contenuto"
+        },
+        "volume": {
+          "description": "{debut: %, fin: %, montee_s: seconds} — predefinito 10 → 60 % in 180 s.",
+          "name": "Volume"
+        }
+      },
+      "name": "Sveglia — crea"
+    },
+    "reveil_desactiver": {
+      "description": "Disattiva una sveglia; i suoi dispositivi la disinseriscono al prossimo controllo.",
+      "fields": {
+        "reveil": {
+          "description": "ID, entità della sveglia (switch.vision_reveil_…) o nome esatto.",
+          "name": "Sveglia"
+        }
+      },
+      "name": "Sveglia — disattiva"
+    },
+    "reveil_installer_modeles": {
+      "description": "Copia i blueprint forniti con il modulo (per esempio «Sveglia nei giorni di scuola») nella cartella dei blueprint di Home Assistant (automazioni). Una copia esistente non viene mai sovrascritta. Solo amministratori.",
+      "name": "Sveglia — installa i modelli"
+    },
+    "reveil_lister": {
+      "description": "Restituisce le sveglie visibili (prossima occorrenza, stato, dispositivi sincronizzati) e le impostazioni del modulo.",
+      "fields": {
+        "demandeur": {
+          "description": "Solo le sveglie di questa persona.",
+          "name": "Richiedente"
+        }
+      },
+      "name": "Sveglia — elenca"
+    },
+    "reveil_modifier": {
+      "description": "Modifica una sveglia; cambiano solo i campi indicati. Stessi campi di «Sveglia — crea».",
+      "fields": {
+        "actif": {
+          "description": "Una sveglia disattivata non è impostata su nessun dispositivo.",
+          "name": "Attiva"
+        },
+        "allumer_tv": {
+          "description": "Usa il metodo di accensione scelto per le TV interessate.",
+          "name": "Accendi la TV"
+        },
+        "appareils": {
+          "description": "Dispositivi Vision del Richiedente che suonano (nome o ID). Predefinito: i suoi telefoni e tablet.",
+          "name": "Dispositivi"
+        },
+        "attribut": {
+          "description": "Leggi questo attributo invece dello stato (facoltativo).",
+          "name": "Attributo"
+        },
+        "bornes": {
+          "description": "Intervallo in cui l'orario calcolato è accettato, [min, max] (predefinito 05:00 – 10:00).",
+          "name": "Limiti"
+        },
+        "date": {
+          "description": "Per ponctuel.",
+          "name": "Data"
+        },
+        "decalage": {
+          "description": "Minuti aggiunti all'orario letto (negativo = prima), per entite e modele.",
+          "name": "Scostamento"
+        },
+        "demandeur": {
+          "description": "Cambia Richiedente (i suoi dispositivi non seguono).",
+          "name": "Richiedente"
+        },
+        "entite": {
+          "description": "Per entite (sensore timestamp, input_datetime, calendario).",
+          "name": "Entità con data e ora"
+        },
+        "heure": {
+          "description": "Per hebdo e ponctuel.",
+          "name": "Orario"
+        },
+        "impose": {
+          "description": "Il Richiedente non può né modificarla né disattivarla (può posticiparla e fermarla).",
+          "name": "Imposta"
+        },
+        "jours": {
+          "description": "Per hebdo (0 = lunedì … 6 = domenica, o mon, tue…). Predefinito da lunedì a venerdì.",
+          "name": "Giorni"
+        },
+        "lecteur": {
+          "description": "Altoparlante che riproduce la sorgente Music Assistant (facoltativo).",
+          "name": "Lettore Music Assistant"
+        },
+        "libelle": {
+          "description": "Nome visualizzato della sorgente (facoltativo).",
+          "name": "Etichetta della sorgente"
+        },
+        "modele": {
+          "description": "Per modele; deve restituire una data e un orario.",
+          "name": "Modello"
+        },
+        "nom": {
+          "description": "Etichetta della sveglia.",
+          "name": "Nome"
+        },
+        "repetition": {
+          "description": "{minutes, max} — predefinito 9 min, 3 volte.",
+          "name": "Posticipo"
+        },
+        "repli": {
+          "description": "Usato se l'orario calcolato manca o è fuori dai limiti. Senza ripiego, l'occorrenza viene saltata e viene emesso vision_reveil_echec.",
+          "name": "Orario di ripiego"
+        },
+        "reveil": {
+          "description": "ID, entità della sveglia (switch.vision_reveil_…) o nome esatto.",
+          "name": "Sveglia"
+        },
+        "source": {
+          "description": "sonnerie (suoneria), url (radio, podcast, stream), ma (Music Assistant), video. La suoneria locale resta il ripiego.",
+          "name": "Sorgente"
+        },
+        "type": {
+          "description": "hebdo (orario + giorni), ponctuel (una data), entite (orario letto da un'entità con data e ora), modele (modello che restituisce data e orario), manuel (suona solo su comando).",
+          "name": "Attivazione"
+        },
+        "uri": {
+          "description": "Indirizzo http(s) dello stream, o brano / playlist / radio di Music Assistant.",
+          "name": "Indirizzo o contenuto"
+        },
+        "volume": {
+          "description": "{debut: %, fin: %, montee_s: seconds} — predefinito 10 → 60 % in 180 s.",
+          "name": "Volume"
+        }
+      },
+      "name": "Sveglia — modifica"
+    },
+    "reveil_regler": {
+      "description": "Impostazioni del luogo per il modulo Sveglia. Solo amministratori e automazioni.",
+      "fields": {
+        "arret_auto_min": {
+          "description": "Il dispositivo si ferma da solo dopo questo tempo (predefinito 30 min).",
+          "name": "Arresto automatico"
+        },
+        "fenetre_apres_min": {
+          "description": "E si spegne questo tempo dopo l'ultima (predefinito 30 min).",
+          "name": "Finestra dopo"
+        },
+        "fenetre_avant_min": {
+          "description": "binary_sensor.vision_fenetre_reveil si accende questo tempo prima della prima occorrenza (predefinito 60 min).",
+          "name": "Finestra prima"
+        },
+        "heure_evaluation": {
+          "description": "Rivalutazione giornaliera delle sveglie calcolate (predefinito 20:00).",
+          "name": "Orario di valutazione"
+        },
+        "horizon_h": {
+          "description": "Ore di occorrenze inviate in anticipo ai dispositivi (predefinito 48 h).",
+          "name": "Orizzonte"
+        },
+        "ordre_ttl_min": {
+          "description": "Un ordine «suona» più vecchio non viene più consegnato (predefinito 15 min).",
+          "name": "Validità di un ordine «suona»"
+        },
+        "synchro_avant_min": {
+          "description": "Tempo prima dell'orario in cui viene segnalato un dispositivo non sincronizzato (predefinito 10 min).",
+          "name": "Controllo sincronizzazione"
+        }
+      },
+      "name": "Sveglia — impostazioni del modulo"
+    },
+    "reveil_reporter": {
+      "description": "Posticipa la sveglia che suona, su tutti i suoi dispositivi.",
+      "fields": {
+        "minutes": {
+          "description": "Predefinito: la durata di posticipo della sveglia.",
+          "name": "Minuti"
+        },
+        "reveil": {
+          "description": "ID, entità della sveglia (switch.vision_reveil_…) o nome esatto.",
+          "name": "Sveglia"
+        }
+      },
+      "name": "Sveglia — posticipa"
+    },
+    "reveil_reprendre": {
+      "description": "Annulla il salto di una data (predefinito: la prima data saltata).",
+      "fields": {
+        "date": {
+          "description": "La data da ripristinare.",
+          "name": "Data"
+        },
+        "reveil": {
+          "description": "ID, entità della sveglia (switch.vision_reveil_…) o nome esatto.",
+          "name": "Sveglia"
+        }
+      },
+      "name": "Sveglia — ripristina un'occorrenza"
+    },
+    "reveil_sauter": {
+      "description": "Annulla una singola occorrenza (predefinito: la prossima) senza modificare la sveglia. «Sveglia — ripristina» la annulla.",
+      "fields": {
+        "date": {
+          "description": "La data da saltare (predefinito: la prossima occorrenza).",
+          "name": "Data"
+        },
+        "reveil": {
+          "description": "ID, entità della sveglia (switch.vision_reveil_…) o nome esatto.",
+          "name": "Sveglia"
+        }
+      },
+      "name": "Sveglia — salta un'occorrenza"
+    },
+    "reveil_sonner": {
+      "description": "Suona subito, non appena i dispositivi si collegano (su un telefono in sospensione profonda, senza tempi garantiti). Indica una sveglia o un Richiedente.",
+      "fields": {
+        "appareils": {
+          "description": "Predefinito: i dispositivi della sveglia, o i telefoni e tablet del Richiedente.",
+          "name": "Dispositivi"
+        },
+        "demandeur": {
+          "description": "In assenza di sveglia, la persona i cui dispositivi suonano.",
+          "name": "Richiedente"
+        },
+        "lecteur": {
+          "description": "Altoparlante che riproduce la sorgente Music Assistant (facoltativo).",
+          "name": "Lettore Music Assistant"
+        },
+        "libelle": {
+          "description": "Nome visualizzato della sorgente (facoltativo).",
+          "name": "Etichetta della sorgente"
+        },
+        "reveil": {
+          "description": "ID, entità della sveglia (switch.vision_reveil_…) o nome esatto.",
+          "name": "Sveglia"
+        },
+        "source": {
+          "description": "sonnerie (suoneria), url (radio, podcast, stream), ma (Music Assistant), video. La suoneria locale resta il ripiego.",
+          "name": "Sorgente"
+        },
+        "uri": {
+          "description": "Indirizzo http(s) dello stream, o brano / playlist / radio di Music Assistant.",
+          "name": "Indirizzo o contenuto"
+        }
+      },
+      "name": "Sveglia — suona ora"
+    },
+    "reveil_supprimer": {
+      "description": "Elimina una sveglia, le sue entità e il suo dispositivo Home Assistant.",
+      "fields": {
+        "reveil": {
+          "description": "ID, entità della sveglia (switch.vision_reveil_…) o nome esatto.",
+          "name": "Sveglia"
+        }
+      },
+      "name": "Sveglia — elimina"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "agent": {
+        "name": "Agente"
+      },
+      "compte_administrateur": {
+        "name": "Account amministratore"
+      },
+      "pause_generale_en_cours": {
+        "name": "Tutto bloccato"
+      },
+      "fenetre_reveil": {
+        "name": "Finestra sveglie"
+      }
+    },
+    "button": {
+      "autoriser_ce_logiciel": {
+        "name": "Consenti questo software"
+      },
+      "autoriser_ce_site": {
+        "name": "Consenti questo sito"
+      },
+      "autoriser_une_reinscription": {
+        "name": "Consenti una nuova registrazione"
+      },
+      "bloquer_ce_logiciel": {
+        "name": "Blocca questo software"
+      },
+      "bloquer_ce_programme": {
+        "name": "Blocca questo programma"
+      },
+      "bloquer_ce_site": {
+        "name": "Blocca questo sito"
+      },
+      "creer_l_appareil": {
+        "name": "Crea il dispositivo"
+      },
+      "creer_la_plage": {
+        "name": "Crea la fascia oraria"
+      },
+      "envoyer_le_message": {
+        "name": "Invia il messaggio"
+      },
+      "epargner_cette_adresse": {
+        "name": "Escludi questo indirizzo"
+      },
+      "fin_de_la_pause_generale": {
+        "name": "Consenti di nuovo"
+      },
+      "inscrire_comme_logiciel": {
+        "name": "Aggiungi come software"
+      },
+      "inscrire_comme_site": {
+        "name": "Aggiungi come sito"
+      },
+      "laisser_passer_ce_site": {
+        "name": "Dai un pass a questo sito"
+      },
+      "ne_plus_epargner_cette_adresse": {
+        "name": "Non escludere più questo indirizzo"
+      },
+      "ouvrir_30_min": {
+        "name": "Consenti 30 min"
+      },
+      "page_precedente": {
+        "name": "Pagina precedente"
+      },
+      "page_suivante": {
+        "name": "Pagina successiva"
+      },
+      "pause_generale_30_min": {
+        "name": "Blocca tutto 30 min"
+      },
+      "rafraichir_la_frequentation": {
+        "name": "Aggiorna la popolarità"
+      },
+      "rafraichir_la_liste_noire": {
+        "name": "Aggiorna la lista di blocco"
+      },
+      "refermer_ce_site": {
+        "name": "Blocca di nuovo questo sito"
+      },
+      "regenerer_le_tableau_de_bord": {
+        "name": "Rigenera la plancia"
+      },
+      "remettre_a_trier": {
+        "name": "Rimetti da classificare"
+      },
+      "retirer_ce_logiciel_de_la_liste": {
+        "name": "Togli questo software dall'elenco"
+      },
+      "retirer_ce_site_de_la_liste": {
+        "name": "Togli questo sito dall'elenco"
+      },
+      "revenir_au_planning": {
+        "name": "Torna al programma"
+      },
+      "sans_regle_ce_logiciel": {
+        "name": "Nessuna regola: questo software"
+      },
+      "sans_regle_ce_site": {
+        "name": "Nessuna regola: questo sito"
+      },
+      "supprimer_cet_appareil": {
+        "name": "Elimina questo dispositivo"
+      },
+      "supprimer_l_appareil_cible": {
+        "name": "Elimina il dispositivo selezionato"
+      },
+      "supprimer_la_plage": {
+        "name": "Elimina la fascia oraria"
+      },
+      "verrouiller_maintenant": {
+        "name": "Blocca ora"
+      }
+    },
+    "notify": {
+      "message_a_l_ecran": {
+        "name": "Messaggio sullo schermo"
+      }
+    },
+    "number": {
+      "attente_apres_un_refus": {
+        "name": "Attesa dopo un rifiuto"
+      },
+      "avertir_avant_fermeture": {
+        "name": "Avvisa prima del blocco"
+      },
+      "duree_du_laissez_passer": {
+        "name": "Durata del pass"
+      },
+      "duree_max_de_pause": {
+        "name": "Durata massima della sospensione"
+      },
+      "inactif_apres": {
+        "name": "Inattivo dopo"
+      },
+      "rafraichir_la_liste_noire_toutes_les": {
+        "name": "Aggiorna la lista di blocco ogni"
+      }
+    },
+    "select": {
+      "adresse_du_site": {
+        "name": "Indirizzo del sito"
+      },
+      "appareil_cible": {
+        "name": "Dispositivo selezionato"
+      },
+      "cette_plage_ferme": {
+        "name": "Questa fascia oraria blocca"
+      },
+      "destinataire_du_message": {
+        "name": "Destinatario del messaggio"
+      },
+      "ecran_de_veille_radio": {
+        "name": "Salvaschermo: radio"
+      },
+      "ecran_de_veille_theme": {
+        "name": "Salvaschermo: tema"
+      },
+      "filtre_dns_des_pc": {
+        "name": "Filtro DNS dei PC"
+      },
+      "jours_de_la_plage": {
+        "name": "Giorni della fascia oraria"
+      },
+      "logiciel_autorise": {
+        "name": "Software consentito"
+      },
+      "logiciel_bloque": {
+        "name": "Software bloccato"
+      },
+      "logiciel_constate": {
+        "name": "Software rilevato"
+      },
+      "ouvert_par": {
+        "name": "Aperto da"
+      },
+      "plage_a_supprimer": {
+        "name": "Fascia oraria da eliminare"
+      },
+      "plage_ferme": {
+        "name": "Fascia oraria {nom}: blocca"
+      },
+      "plage_jours": {
+        "name": "Fascia oraria {nom}: giorni"
+      },
+      "position_des_messages": {
+        "name": "Posizione dei messaggi"
+      },
+      "resultats_par_page": {
+        "name": "Risultati per pagina"
+      },
+      "role_de_l_appareil": {
+        "name": "Ruolo del dispositivo"
+      },
+      "site_autorise": {
+        "name": "Sito consentito"
+      },
+      "site_bloque": {
+        "name": "Sito bloccato"
+      },
+      "site_constate": {
+        "name": "Sito rilevato"
+      },
+      "son_de_la_notification": {
+        "name": "Suono della notifica"
+      },
+      "taille_des_messages": {
+        "name": "Dimensione dei messaggi"
+      },
+      "utilisateur": {
+        "name": "Utente"
+      }
+    },
+    "sensor": {
+      "a_classer": {
+        "name": "Da classificare"
+      },
+      "bloques_sur_cet_appareil": {
+        "name": "Bloccati su questo dispositivo"
+      },
+      "dans_la_liste_noire": {
+        "name": "Nella lista di blocco"
+      },
+      "etat": {
+        "name": "Stato",
+        "state": {
+          "ouvert": "Consentito",
+          "ferme": "Bloccato"
+        }
+      },
+      "exceptions": {
+        "name": "Eccezioni"
+      },
+      "fermetures_automatisation": {
+        "name": "Blocchi da automazione {prenom}"
+      },
+      "liste_noire": {
+        "name": "Lista di blocco"
+      },
+      "musique_derniere_commande": {
+        "name": "Musica — ultimo comando"
+      },
+      "plages": {
+        "name": "Fasce orarie"
+      },
+      "presence": {
+        "name": "Presenza",
+        "state": {
+          "actif": "In uso",
+          "inactif": "Inattivo",
+          "verrouille": "Bloccato",
+          "hors_ligne": "Offline"
+        }
+      },
+      "prochain_changement": {
+        "name": "Prossimo cambio"
+      },
+      "session_ouverte": {
+        "name": "Sessione aperta"
+      },
+      "sites_bloques_aujourd_hui": {
+        "name": "Siti bloccati oggi"
+      },
+      "sites_dangereux_bloques": {
+        "name": "Siti pericolosi bloccati"
+      },
+      "temps_d_ecran": {
+        "name": "Tempo di utilizzo"
+      },
+      "reveil_appareils": {
+        "name": "Dispositivi"
+      },
+      "reveil_etat": {
+        "name": "Stato",
+        "state": {
+          "arme": "Impostata",
+          "arrete": "Fermata",
+          "echec": "Errore",
+          "inactif": "Inattiva",
+          "non_synchronise": "Non sincronizzata",
+          "reporte": "Posticipata",
+          "sonne": "Suona"
+        }
+      },
+      "reveil_prochain": {
+        "name": "Prossima"
+      },
+      "reveil_source": {
+        "name": "Sorgente"
+      }
+    },
+    "switch": {
+      "acces_a_l_appareil": {
+        "name": "Accesso al dispositivo"
+      },
+      "avis_virustotal": {
+        "name": "Verdetti VirusTotal"
+      },
+      "bloquer_categorie": {
+        "name": "Blocca «{categorie}»"
+      },
+      "desinstallation_par_l_agent": {
+        "name": "Disinstallazione da parte dell'agente"
+      },
+      "frequentation_des_sites": {
+        "name": "Popolarità dei siti"
+      },
+      "inscription_de_nouveaux_appareils": {
+        "name": "Registrazione di nuovi dispositivi"
+      },
+      "liste_noire_des_sites_dangereux": {
+        "name": "Lista di blocco dei siti pericolosi"
+      },
+      "mise_a_jour_automatique_des_agents": {
+        "name": "Aggiornamento automatico degli agenti"
+      },
+      "plage": {
+        "name": "Fascia oraria {libelle}"
+      },
+      "veille_vrai_rendu_des_cartes": {
+        "name": "Salvaschermo: vera resa delle schede"
+      }
+    },
+    "text": {
+      "cle_virustotal": {
+        "name": "Chiave VirusTotal"
+      },
+      "ecran_de_veille_cameras": {
+        "name": "Salvaschermo: telecamere"
+      },
+      "ecran_de_veille_courbe": {
+        "name": "Salvaschermo: grafico"
+      },
+      "ecran_de_veille_entites": {
+        "name": "Salvaschermo: entità"
+      },
+      "ecran_de_veille_flux_secondaire": {
+        "name": "Salvaschermo: flusso secondario"
+      },
+      "ecran_de_veille_musique": {
+        "name": "Salvaschermo: musica"
+      },
+      "ecran_de_veille_nuit": {
+        "name": "Salvaschermo: notte"
+      },
+      "etiquettes": {
+        "name": "Categorie"
+      },
+      "liste_autorises": {
+        "name": "Consentiti (eccezioni)"
+      },
+      "liste_bloques": {
+        "name": "Bloccati"
+      },
+      "nom": {
+        "name": "Nome"
+      },
+      "plage_etiquettes": {
+        "name": "Fascia oraria {nom}: categorie"
+      },
+      "saisie_adresse": {
+        "name": "Indirizzo da escludere"
+      },
+      "saisie_ajout": {
+        "name": "Sito o software da aggiungere"
+      },
+      "saisie_etiquettes_plage": {
+        "name": "Categorie da bloccare (separate da virgole)"
+      },
+      "saisie_message": {
+        "name": "Messaggio da inviare"
+      },
+      "saisie_nom_pc": {
+        "name": "Nome del nuovo dispositivo"
+      },
+      "saisie_nom_plage": {
+        "name": "Nome della nuova fascia oraria"
+      },
+      "saisie_recherche": {
+        "name": "Cerca nella lista di blocco"
+      }
+    },
+    "time": {
+      "debut_nouvelle_plage": {
+        "name": "Inizio della nuova fascia oraria"
+      },
+      "fin_nouvelle_plage": {
+        "name": "Fine della nuova fascia oraria"
+      },
+      "plage_debut": {
+        "name": "Fascia oraria {nom}: inizio"
+      },
+      "plage_fin": {
+        "name": "Fascia oraria {nom}: fine"
+      }
+    },
+    "update": {
+      "agent": {
+        "name": "Agente"
+      }
+    }
+  },
+  "exceptions": {
+    "adresse_deja_epargnee": {
+      "message": "«{adresse}» è già escluso su questo dispositivo."
+    },
+    "adresse_http": {
+      "message": "L'indirizzo deve cominciare con http:// o https://."
+    },
+    "adresse_manquante": {
+      "message": "Scegli un indirizzo rilevato, o scrivilo in «Indirizzo da escludere»."
+    },
+    "adresse_pas_epargnee": {
+      "message": "«{adresse}» non era escluso su questo dispositivo."
+    },
+    "ajout_vide": {
+      "message": "Scrivi prima un nome in «Sito o software da aggiungere»."
+    },
+    "appareil_cible_manquant": {
+      "message": "Scegli prima un dispositivo in «Dispositivo selezionato»."
+    },
+    "aucun_appareil": {
+      "message": "Nessun dispositivo registrato."
+    },
+    "aucun_laissez_passer": {
+      "message": "Nessun pass in corso per «{site}»."
+    },
+    "camera_inconnue": {
+      "message": "Telecamera sconosciuta: «{camera}»."
+    },
+    "derniere_page": {
+      "message": "Sei già sull'ultima pagina."
+    },
+    "destinataire_vide": {
+      "message": "Nessun dispositivo corrisponde a questo destinatario."
+    },
+    "element_constate": {
+      "message": "«{nom}» non è stato aggiunto a mano: è stato rilevato su un computer."
+    },
+    "element_manquant": {
+      "message": "Scegli prima un elemento nell'elenco."
+    },
+    "entite_inconnue": {
+      "message": "Entità sconosciuta: «{entite}»."
+    },
+    "etiquette_disparue": {
+      "message": "Questa categoria non esiste più."
+    },
+    "format_nuit": {
+      "message": "Formato atteso: «23:00-07:00» (o vuoto per mai)."
+    },
+    "heure_debut_manquante": {
+      "message": "Inserisci l'ora di inizio."
+    },
+    "heure_fin_manquante": {
+      "message": "Inserisci l'ora di fine."
+    },
+    "jours_illisibles": {
+      "message": "{detail}"
+    },
+    "message_en_attente": {
+      "message": "Messaggio messo in attesa, ma questi dispositivi non rispondono: {appareils}. Comparirà quando tornano, entro un quarto d'ora."
+    },
+    "message_vide": {
+      "message": "Scrivi prima un messaggio in «Messaggio da inviare»."
+    },
+    "nom_appareil_manquant": {
+      "message": "Compila «Nome del nuovo dispositivo»."
+    },
+    "nom_plage_manquant": {
+      "message": "Compila «Nome della nuova fascia oraria»."
+    },
+    "plage_a_supprimer_manquante": {
+      "message": "Scegli nell'elenco la fascia oraria da eliminare."
+    },
+    "plage_debut_egal_fin": {
+      "message": "L'inizio e la fine di una fascia oraria devono essere diversi."
+    },
+    "plage_disparue": {
+      "message": "Questa fascia oraria non esiste più."
+    },
+    "plage_etiquettes_manquantes": {
+      "message": "Indica almeno una categoria in «Categorie da bloccare», o scegli «Blocca la sessione»."
+    },
+    "plage_etiquettes_vides": {
+      "message": "Questa fascia oraria blocca delle categorie: svuotare l'elenco non bloccherebbe più nulla. Prima rimettila su «Blocca la sessione», oppure eliminala."
+    },
+    "plage_sans_etiquette": {
+      "message": "Indica prima le categorie di questa fascia oraria: una fascia oraria che non blocca nessuna categoria non blocca nulla."
+    },
+    "plage_sans_jour": {
+      "message": "Una fascia oraria senza nessun giorno non vale mai. Per sospenderla, spegni il suo interruttore."
+    },
+    "premiere_page": {
+      "message": "Sei già sulla prima pagina."
+    },
+    "programme_intouchable": {
+      "message": "«{programme}» fa funzionare Windows o Vision: bloccarlo romperebbe il computer senza proteggere nessuno."
+    },
+    "programme_manquant": {
+      "message": "Scegli prima un programma in «Aperto da». L'elenco resta vuoto finché non viene colta una connessione in corso: un sito aperto e chiuso tra due rilevazioni non lascia traccia di chi l'ha aperto."
+    },
+    "rien_selectionne": {
+      "message": "Non hai selezionato niente qui sopra."
+    },
+    "role_inconnu": {
+      "message": "Ruolo sconosciuto: {role}"
+    },
+    "site_manquant": {
+      "message": "Scegli prima un sito nell'elenco."
+    },
+    "tableau_echec": {
+      "message": "Non è stato possibile generare la plancia. Guarda il registro di Home Assistant."
+    },
+    "virustotal_sans_cle": {
+      "message": "Inserisci prima la tua chiave in «Chiave VirusTotal». Puoi crearla su virustotal.com, nel tuo profilo."
+    },
+    "reveil_appareil": {
+      "message": "«{valeur}» non è un dispositivo di {demandeur}."
+    },
+    "reveil_aucun_appareil": {
+      "message": "Nessun dispositivo per {demandeur}."
+    },
+    "reveil_bornes": {
+      "message": "Limiti non validi: {valeur} (due orari, il più presto per primo)."
+    },
+    "reveil_cible": {
+      "message": "Indica una sveglia o un Richiedente."
+    },
+    "reveil_date": {
+      "message": "Data non valida: {valeur} (atteso AAAA-MM-GG)."
+    },
+    "reveil_demandeur": {
+      "message": "Richiedente non trovato: {valeur}."
+    },
+    "reveil_entite": {
+      "message": "Una sveglia «entità» richiede un'entità con data e ora."
+    },
+    "reveil_heure": {
+      "message": "Orario non valido per «{champ}»: {valeur} (atteso HH:MM)."
+    },
+    "reveil_introuvable": {
+      "message": "Sveglia «{valeur}» non trovata."
+    },
+    "reveil_jours": {
+      "message": "Giorni non validi: {valeur}."
+    },
+    "reveil_modele": {
+      "message": "Una sveglia «modello» richiede un modello."
+    },
+    "reveil_nombre": {
+      "message": "Valore rifiutato per «{champ}»: {valeur}."
+    },
+    "reveil_reglage": {
+      "message": "Impostazione sconosciuta: {valeur}."
+    },
+    "reveil_source": {
+      "message": "Sorgente sconosciuta: {valeur}."
+    },
+    "reveil_source_lecteur": {
+      "message": "Il lettore deve essere un'entità media_player: {valeur}."
+    },
+    "reveil_source_uri": {
+      "message": "Questa sorgente richiede un indirizzo o un contenuto."
+    },
+    "reveil_type": {
+      "message": "Tipo di attivazione sconosciuto: {valeur}."
+    }
+  },
+  "musique": {
+    "fin_1": "The End 🎬",
+    "fin_2": "The Show Must Go On… aggiungi un brano 🎭",
+    "fin_3": "Silence Is Golden 🤫",
+    "fin_4": "Bis! 👏",
+    "fin_5": "Play It Again 🎹",
+    "fin_6": "Stop! In the Name of Love ✋",
+    "fin_7": "One More Time 🔁",
+    "fin_8": "Don't Stop Me Now 🎤",
+    "fin_action": "Aggiungi un brano per riaccendere la festa"
+  }
+}

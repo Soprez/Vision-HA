@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: MIT -->
+<resources>
+    <!--
+      Lot Accueil (point 10) : l'écran plein d'un message Vision (MessageActivity). Fenêtre transparente et sans
+      animation de transition du système : c'est l'appli qui fait entrer le fond (fondu) et la carte (fondu, glissement,
+      agrandissement) avec Anim.kt, sans fenêtre opaque qui surgirait d'un coup avant l'animation.
+    -->
+    <style name="Vision.Message" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <!-- Plein écran sous des barres transparentes dès la création de la fenêtre (pas de redimensionnement après coup). -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+    </style>
+</resources>

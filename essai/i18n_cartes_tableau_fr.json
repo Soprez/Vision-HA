@@ -1,0 +1,1112 @@
+{
+ "views": [
+  {
+   "max_columns": 2,
+   "path": "maison",
+   "sections": [
+    {
+     "cards": [
+      {
+       "chemin": "/vision-maison",
+       "grid_options": {
+        "columns": "full"
+       },
+       "mode": "maison",
+       "type": "custom:vision-maison-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Tout fermer",
+       "heading_style": "title",
+       "icon": "mdi:lock-alert-outline",
+       "type": "heading"
+      },
+      {
+       "content": "{% if is_state('binary_sensor.x', 'on') %}**Tout est fermé jusqu'à {{ state_attr('binary_sensor.x', 'fin_heure') }}** : les appareils protégés restent fermés jusque-là. « Rouvrir » y met fin plus tôt.{% else %}Rien n'est fermé d'un coup en ce moment. « Tout fermer » ferme tous les appareils protégés pendant 30 minutes, après confirmation.{% endif %}",
+       "type": "markdown"
+      },
+      {
+       "cards": [
+        {
+         "entity": "button.x",
+         "hold_action": {
+          "action": "more-info"
+         },
+         "icon": "mdi:lock-clock",
+         "name": "Tout fermer 30 min",
+         "show_state": false,
+         "tap_action": {
+          "action": "perform-action",
+          "confirmation": {
+           "text": "Tout fermer : tous les appareils protégés seront fermés pendant 30 minutes. Continuer ?"
+          },
+          "perform_action": "button.x",
+          "target": {
+           "entity_id": "button.x"
+          }
+         },
+         "type": "button"
+        },
+        {
+         "entity": "button.x",
+         "hold_action": {
+          "action": "more-info"
+         },
+         "icon": "mdi:lock-open-variant-outline",
+         "name": "Rouvrir",
+         "show_state": false,
+         "tap_action": {
+          "action": "perform-action",
+          "perform_action": "button.x",
+          "target": {
+           "entity_id": "button.x"
+          }
+         },
+         "type": "button"
+        }
+       ],
+       "type": "horizontal-stack"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "title": "Aujourd'hui",
+   "type": "sections"
+  },
+  {
+   "back_path": "/vision-maison/maison",
+   "icon": "mdi:account",
+   "max_columns": 3,
+   "path": "personne-lou",
+   "sections": [
+    {
+     "cards": [
+      {
+       "chemin": "/vision-maison",
+       "grid_options": {
+        "columns": "full"
+       },
+       "mode": "personne",
+       "personne": "person.lou",
+       "type": "custom:vision-maison-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Planning de Lou",
+       "heading_style": "subtitle",
+       "icon": "mdi:calendar-clock",
+       "type": "heading"
+      },
+      {
+       "entity": "sensor.x",
+       "title": "Planning",
+       "type": "custom:vision-planning-card"
+      },
+      {
+       "entity": "sensor.x",
+       "icon": "mdi:calendar-arrow-right",
+       "name": "Prochain changement",
+       "type": "tile"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "subview": true,
+   "title": "Lou",
+   "type": "sections"
+  },
+  {
+   "back_path": "/vision-maison/maison",
+   "icon": "mdi:account",
+   "max_columns": 3,
+   "path": "personne-mia",
+   "sections": [
+    {
+     "cards": [
+      {
+       "chemin": "/vision-maison",
+       "grid_options": {
+        "columns": "full"
+       },
+       "mode": "personne",
+       "personne": "person.mia",
+       "type": "custom:vision-maison-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "subview": true,
+   "title": "Mia",
+   "type": "sections"
+  },
+  {
+   "back_path": "/vision-maison/maison",
+   "icon": "mdi:account",
+   "max_columns": 3,
+   "path": "personne-noa",
+   "sections": [
+    {
+     "cards": [
+      {
+       "chemin": "/vision-maison",
+       "grid_options": {
+        "columns": "full"
+       },
+       "mode": "personne",
+       "personne": "person.noa",
+       "type": "custom:vision-maison-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Planning de Noa",
+       "heading_style": "subtitle",
+       "icon": "mdi:calendar-clock",
+       "type": "heading"
+      },
+      {
+       "entity": "sensor.x",
+       "title": "Planning",
+       "type": "custom:vision-planning-card"
+      },
+      {
+       "entity": "sensor.x",
+       "icon": "mdi:calendar-arrow-right",
+       "name": "Prochain changement",
+       "type": "tile"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "subview": true,
+   "title": "Noa",
+   "type": "sections"
+  },
+  {
+   "back_path": "/vision-maison/maison",
+   "icon": "mdi:account",
+   "max_columns": 3,
+   "path": "personne-robin",
+   "sections": [
+    {
+     "cards": [
+      {
+       "chemin": "/vision-maison",
+       "grid_options": {
+        "columns": "full"
+       },
+       "mode": "personne",
+       "personne": "person.robin",
+       "type": "custom:vision-maison-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Planning de Robin",
+       "heading_style": "subtitle",
+       "icon": "mdi:calendar-clock",
+       "type": "heading"
+      },
+      {
+       "entity": "sensor.x",
+       "title": "Planning",
+       "type": "custom:vision-planning-card"
+      },
+      {
+       "entity": "sensor.x",
+       "icon": "mdi:calendar-arrow-right",
+       "name": "Prochain changement",
+       "type": "tile"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "subview": true,
+   "title": "Robin",
+   "type": "sections"
+  },
+  {
+   "back_path": "/vision-maison/maison",
+   "icon": "mdi:account",
+   "max_columns": 3,
+   "path": "personne-autres",
+   "sections": [
+    {
+     "cards": [
+      {
+       "chemin": "/vision-maison",
+       "grid_options": {
+        "columns": "full"
+       },
+       "mode": "personne",
+       "personne": "autres",
+       "type": "custom:vision-maison-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "card_mod": {
+        "style": "ha-icon, ha-state-icon { color: #3DDC84; }"
+       },
+       "heading": "Télé du salon",
+       "heading_style": "subtitle",
+       "icon": "mdi:android",
+       "type": "heading"
+      },
+      {
+       "entity": "sensor.x",
+       "title": "Planning",
+       "type": "custom:vision-planning-card"
+      },
+      {
+       "entity": "sensor.x",
+       "icon": "mdi:calendar-arrow-right",
+       "name": "Prochain changement",
+       "type": "tile"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "subview": true,
+   "title": "Sans personne",
+   "type": "sections"
+  },
+  {
+   "max_columns": 2,
+   "path": "listes",
+   "sections": [
+    {
+     "cards": [
+      {
+       "grid_options": {
+        "columns": "full"
+       },
+       "title": "Trancher : sites, logiciels et étiquettes",
+       "type": "custom:vision-etiquettes-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "cards": [
+        {
+         "content": "**La décision commune passe d'abord, et sans appel.** Ce qui est *bloqué* pour tout le monde est fermé partout : ni une autorisation posée sur une machine, ni une étiquette, ni un laissez-passer ne le rouvre.\n\n<details><summary>En savoir plus</summary>\n\nC'est la seule décision irrévocable — c'est ce qui lui donne son sens.\n\n**Le PC décide ensuite, et le plus restrictif l'emporte.** *Autorisé* veut dire *admis par défaut*, pas *intouchable* : YouTube peut être autorisé pour tout le monde et fermé sur un PC précis en période d'école. Une étiquette coupée sur la machine, ou une plage en cours, ferme donc un site autorisé.\n\nLes étiquettes sont celles de Home Assistant (**Paramètres → Zones et étiquettes**) : même liste, mêmes couleurs. Une étiquette vaut pour les sites comme pour les logiciels — bloquer « Vidéo » ferme les deux d'un coup.\n\n_Carte vide ? Recharge la page (Ctrl+F5) : la carte est fournie par l'intégration Vision et se charge toute seule._\n\n</details>",
+         "type": "markdown"
+        }
+       ],
+       "type": "vertical-stack"
+      },
+      {
+       "cards": [
+        {
+         "heading": "Inscrire soi-même",
+         "heading_style": "subtitle",
+         "icon": "mdi:playlist-plus",
+         "type": "heading"
+        },
+        {
+         "content": "Presque tout arrive tout seul : ce qu'une machine voit entre dans la liste au relevé suivant. N'inscris ici que ce que tu veux trancher **avant** qu'il n'arrive.",
+         "type": "markdown"
+        },
+        {
+         "entities": [
+          {
+           "entity": "text.x",
+           "name": "Nom à inscrire"
+          },
+          {
+           "entity": "button.x",
+           "name": "Comme un site"
+          },
+          {
+           "entity": "button.x",
+           "name": "Comme un logiciel"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Reste à classer"
+          }
+         ],
+         "type": "entities"
+        }
+       ],
+       "type": "vertical-stack"
+      }
+     ],
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "cards": [
+        {
+         "heading": "Exceptions, machine par machine",
+         "heading_style": "subtitle",
+         "icon": "mdi:door-open",
+         "type": "heading"
+        },
+        {
+         "content": "La décision redevient ici machine par machine, et elle l'emporte sur celle prise pour tous les appareils — sauf sur un nom **banni pour tout le monde**, que rien ne rouvre.\n\n<details><summary>En savoir plus</summary>\n\n**Épargner une adresse** vise un endroit précis à l'intérieur d'un site fermé et le laisse ouvert. **Laisser passer** rouvre le site entier pour la durée choisie, puis le referme tout seul.\n\n**Ouvert par** dit quel programme a été surpris en train de parler à ce site — souvent le navigateur, et alors sans intérêt ; parfois un logiciel qu'on ne connaît pas, et c'est là que ça compte. **Bloquer ce programme** coupe la source plutôt que la fuite, pour tous les appareils.\n\n</details>",
+         "type": "markdown"
+        },
+        {
+         "entities": [
+          {
+           "entity": "select.x",
+           "name": "Quel site"
+          },
+          {
+           "entity": "select.x",
+           "name": "Sur quel appareil"
+          },
+          {
+           "entity": "select.x",
+           "name": "Ouvert par"
+          },
+          {
+           "entity": "select.x",
+           "name": "Adresse constatée"
+          },
+          {
+           "entity": "text.x",
+           "name": "…ou adresse à écrire"
+          },
+          {
+           "entity": "number.x",
+           "name": "Durée"
+          }
+         ],
+         "type": "entities"
+        },
+        {
+         "cards": [
+          {
+           "entity": "button.x",
+           "icon": "mdi:application-cog-outline",
+           "name": "Bloquer ce programme",
+           "show_state": false,
+           "type": "button"
+          },
+          {
+           "entity": "button.x",
+           "icon": "mdi:door-open",
+           "name": "Épargner",
+           "show_state": false,
+           "type": "button"
+          },
+          {
+           "entity": "button.x",
+           "icon": "mdi:door-closed",
+           "name": "Ne plus épargner",
+           "show_state": false,
+           "type": "button"
+          }
+         ],
+         "type": "horizontal-stack"
+        },
+        {
+         "cards": [
+          {
+           "entity": "button.x",
+           "icon": "mdi:timer-play",
+           "name": "Laisser passer",
+           "show_state": false,
+           "type": "button"
+          },
+          {
+           "entity": "button.x",
+           "icon": "mdi:timer-off",
+           "name": "Refermer",
+           "show_state": false,
+           "type": "button"
+          }
+         ],
+         "type": "horizontal-stack"
+        },
+        {
+         "content": "## \n{% set lignes = state_attr('sensor.x', 'lignes') %}{% if lignes %}{{ state_attr('sensor.x', 'entete') }}\n{% for l in lignes %}{{ l }}\n{% endfor %}{% set p = state_attr('sensor.x', 'page') %}{% if p %}\n_Page {{ p }} sur {{ state_attr('sensor.x', 'pages') }} — {{ state_attr('sensor.x', 'total') }} au total_{% endif %}{% else %}_aucune porte ouverte sur cet appareil_{% endif %}",
+         "type": "markdown"
+        }
+       ],
+       "type": "vertical-stack"
+      }
+     ],
+     "type": "grid"
+    }
+   ],
+   "title": "Autorisations",
+   "type": "sections"
+  },
+  {
+   "max_columns": 3,
+   "path": "statistiques",
+   "sections": [
+    {
+     "cards": [
+      {
+       "heading": "Temps d'écran, 7 derniers jours",
+       "icon": "mdi:chart-bar",
+       "type": "heading"
+      },
+      {
+       "chart_type": "bar",
+       "days_to_show": 7,
+       "entities": [
+        "sensor.x",
+        "sensor.x",
+        "sensor.x",
+        "sensor.x"
+       ],
+       "hide_legend": false,
+       "period": "day",
+       "stat_types": [
+        "change"
+       ],
+       "type": "statistics-graph"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Sites bloqués, jour par jour",
+       "heading_style": "title",
+       "icon": "mdi:chart-line",
+       "type": "heading"
+      },
+      {
+       "content": "Le total des tentatives vers un site bloqué, par machine. Rien n'est notifié nulle part : un site coupé est simplement injoignable. C'est ici que ça se lit.",
+       "type": "markdown"
+      },
+      {
+       "entities": [
+        {
+         "entity": "sensor.x"
+        },
+        {
+         "entity": "sensor.x"
+        },
+        {
+         "entity": "sensor.x"
+        },
+        {
+         "entity": "sensor.x"
+        }
+       ],
+       "hours_to_show": 720,
+       "type": "history-graph"
+      },
+      {
+       "content": "<details><summary>En savoir plus</summary>\n\n| Appareil | 30 derniers jours | Total | Aujourd'hui |\n|---|---|---|---|\n| **PC-NOA** | `{{ state_attr('sensor.x', 'courbe') }}` | {{ state_attr('sensor.x', 'total_30_jours') }} | {{ states('sensor.x') }} |\n| **PIXEL-ROBIN** | `{{ state_attr('sensor.x', 'courbe') }}` | {{ state_attr('sensor.x', 'total_30_jours') }} | {{ states('sensor.x') }} |\n| **TEL-LOU** | `{{ state_attr('sensor.x', 'courbe') }}` | {{ state_attr('sensor.x', 'total_30_jours') }} | {{ states('sensor.x') }} |\n| **Télé du salon** | `{{ state_attr('sensor.x', 'courbe') }}` | {{ state_attr('sensor.x', 'total_30_jours') }} | {{ states('sensor.x') }} |\n\n</details>",
+       "type": "markdown"
+      }
+     ],
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "cards": [
+        {
+         "heading": "PC-NOA",
+         "heading_style": "subtitle",
+         "icon": "mdi:chart-box-outline",
+         "type": "heading"
+        },
+        {
+         "cards": [
+          {
+           "entity": "sensor.x",
+           "name": "Temps d'écran",
+           "type": "tile"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Sites bloqués aujourd'hui",
+           "type": "tile"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Tentatives retenues",
+           "type": "tile"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Présence",
+           "type": "tile"
+          }
+         ],
+         "columns": 2,
+         "square": false,
+         "type": "grid"
+        },
+        {
+         "content": "{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}{% else %}_aucune tentative retenue_{% endif %}",
+         "type": "markdown"
+        }
+       ],
+       "type": "vertical-stack"
+      }
+     ],
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "cards": [
+        {
+         "heading": "PIXEL-ROBIN",
+         "heading_style": "subtitle",
+         "icon": "mdi:chart-box-outline",
+         "type": "heading"
+        },
+        {
+         "cards": [
+          {
+           "entity": "sensor.x",
+           "name": "Temps d'écran",
+           "type": "tile"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Sites bloqués aujourd'hui",
+           "type": "tile"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Tentatives retenues",
+           "type": "tile"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Présence",
+           "type": "tile"
+          }
+         ],
+         "columns": 2,
+         "square": false,
+         "type": "grid"
+        },
+        {
+         "content": "{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}{% else %}_aucune tentative retenue_{% endif %}",
+         "type": "markdown"
+        }
+       ],
+       "type": "vertical-stack"
+      }
+     ],
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "cards": [
+        {
+         "heading": "TEL-LOU",
+         "heading_style": "subtitle",
+         "icon": "mdi:chart-box-outline",
+         "type": "heading"
+        },
+        {
+         "cards": [
+          {
+           "entity": "sensor.x",
+           "name": "Temps d'écran",
+           "type": "tile"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Sites bloqués aujourd'hui",
+           "type": "tile"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Tentatives retenues",
+           "type": "tile"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Présence",
+           "type": "tile"
+          }
+         ],
+         "columns": 2,
+         "square": false,
+         "type": "grid"
+        },
+        {
+         "content": "{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}{% else %}_aucune tentative retenue_{% endif %}",
+         "type": "markdown"
+        }
+       ],
+       "type": "vertical-stack"
+      }
+     ],
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "cards": [
+        {
+         "heading": "Télé du salon",
+         "heading_style": "subtitle",
+         "icon": "mdi:chart-box-outline",
+         "type": "heading"
+        },
+        {
+         "cards": [
+          {
+           "entity": "sensor.x",
+           "name": "Temps d'écran",
+           "type": "tile"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Sites bloqués aujourd'hui",
+           "type": "tile"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Tentatives retenues",
+           "type": "tile"
+          },
+          {
+           "entity": "sensor.x",
+           "name": "Présence",
+           "type": "tile"
+          }
+         ],
+         "columns": 2,
+         "square": false,
+         "type": "grid"
+        },
+        {
+         "content": "{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}{% else %}_aucune tentative retenue_{% endif %}",
+         "type": "markdown"
+        }
+       ],
+       "type": "vertical-stack"
+      }
+     ],
+     "type": "grid"
+    }
+   ],
+   "title": "Activité",
+   "type": "sections"
+  },
+  {
+   "max_columns": 2,
+   "path": "message",
+   "sections": [
+    {
+     "cards": [
+      {
+       "type": "custom:vision-messages-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "content": "<details><summary>Envoyer un message depuis une automatisation</summary>\n\nUne vraie notification, sur l'ordinateur comme sur le téléphone, signée « Vision » et conservée dans le centre de notifications. Si un appareil est éteint, elle attend et se périme au bout d'un quart d'heure.\n\nLe destinataire peut être **tous les appareils**, une **étiquette** (tous les appareils qui la portent), ou un appareil précis. Ce sont les **étiquettes de Home Assistant** — les mêmes que pour une prise : pose-les dans le champ *Étiquettes* de la carte, ou depuis la fiche de l'appareil.\n\n**Dans une automatisation** :\n\n```yaml\naction: pc_parental.notify\ndata:\n  tag: salon\n  message: Sors la poubelle\n  son: Rappel\n```\nSans `pc` ni `tag`, le message part à tous. Chaque appareil a aussi son entité `notify`, ciblable par les libellés de Home Assistant.\n\n</details>",
+       "type": "markdown"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "title": "Messages",
+   "type": "sections"
+  },
+  {
+   "max_columns": 3,
+   "path": "protection",
+   "sections": [
+    {
+     "cards": [
+      {
+       "heading": "Sur les appareils",
+       "icon": "mdi:cellphone-check",
+       "type": "heading"
+      },
+      {
+       "mode": "protections",
+       "type": "custom:vision-maison-card"
+      }
+     ],
+     "column_span": 3,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Liste noire et filtre DNS",
+       "heading_style": "title",
+       "icon": "mdi:shield-alert",
+       "type": "heading"
+      },
+      {
+       "cards": [
+        {
+         "entity": "switch.x",
+         "name": "Liste noire",
+         "type": "tile"
+        },
+        {
+         "entity": "select.x",
+         "name": "Filtre DNS des appareils",
+         "type": "tile"
+        },
+        {
+         "entity": "sensor.x",
+         "name": "Domaines connus",
+         "type": "tile"
+        },
+        {
+         "entity": "number.x",
+         "name": "Rafraîchir toutes les",
+         "type": "tile"
+        },
+        {
+         "entity": "button.x",
+         "name": "Rafraîchir maintenant",
+         "type": "tile"
+        }
+       ],
+       "columns": 2,
+       "square": false,
+       "type": "grid"
+      },
+      {
+       "content": "{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}{% else %}_liste non chargée_{% endif %}{% set p = state_attr('sensor.x', 'probleme') %}{% if p %}\n\n⚠️ {{ p }}{% endif %}",
+       "type": "markdown"
+      },
+      {
+       "content": "Deux protections qui se complètent, et qui ne remplacent pas tes règles.\n\n<details><summary>En savoir plus</summary>\n\nLa **liste noire** est téléchargée auprès de sources publiques (logiciels malveillants, hameçonnage), au rythme choisi ci-dessus. Vision en connaît tous les domaines, ce qui lui permet de te prévenir, et en bloque une partie par le fichier `hosts`. La date de la dernière fois est dans *Domaines connus* : « automatique » ne veut rien dire tant qu'on ne voit pas si ça a marché.\n\nLe **filtre DNS** encaisse le reste : des millions de domaines, posés sur les cartes réseau de chaque appareil. Il ne fonctionne que parce que Vision désactive déjà le DNS chiffré des navigateurs.\n\n⚠️ Un site bloqué ne dit rien sur l'appareil : ni page d'explication, ni notification. Il est simplement injoignable. La tentative remonte **ici**, datée.\n\n</details>",
+       "type": "markdown"
+      }
+     ],
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Recherche d'un domaine",
+       "heading_style": "title",
+       "icon": "mdi:magnify",
+       "type": "heading"
+      },
+      {
+       "entities": [
+        {
+         "entity": "text.x",
+         "name": "Chercher dans la liste"
+        },
+        {
+         "entity": "sensor.x",
+         "name": "Trouvés"
+        }
+       ],
+       "type": "entities"
+      },
+      {
+       "card": {
+        "icon": "mdi:close-circle-outline",
+        "name": "Effacer la recherche",
+        "show_state": false,
+        "tap_action": {
+         "action": "perform-action",
+         "data": {
+          "value": ""
+         },
+         "perform_action": "text.x",
+         "target": {
+          "entity_id": "text.x"
+         }
+        },
+        "type": "button"
+       },
+       "conditions": [
+        {
+         "condition": "state",
+         "entity": "text.x",
+         "state_not": [
+          "",
+          "unknown",
+          "unavailable"
+         ]
+        }
+       ],
+       "type": "conditional"
+      },
+      {
+       "content": "{% set q = state_attr('sensor.x', 'recherche') %}{% if q %}**Recherche en cours : « {{ q }} »**\n\n{% endif %}{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}{% set t = state_attr('sensor.x', 'total') %}{% set m = state_attr('sensor.x', 'montres') %}{% if state_attr('sensor.x', 'tronque') %}\n_… et {{ t - m }} autres. Écris un morceau de nom ci-dessus pour chercher._{% endif %}{% else %}_rien ne correspond_{% endif %}",
+       "type": "markdown"
+      }
+     ],
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Fréquentation et VirusTotal",
+       "heading_style": "title",
+       "icon": "mdi:chart-bar",
+       "type": "heading"
+      },
+      {
+       "entities": [
+        {
+         "entity": "switch.x",
+         "name": "Fréquentation des sites"
+        },
+        {
+         "entity": "button.x",
+         "name": "Recharger le classement"
+        },
+        {
+         "entity": "text.x",
+         "name": "Clé VirusTotal"
+        },
+        {
+         "entity": "switch.x",
+         "name": "Avis VirusTotal"
+        }
+       ],
+       "type": "entities"
+      },
+      {
+       "content": "{% set e = state_attr('switch.x', 'erreur') %}{% set n = state_attr('switch.x', 'domaines_classes') | int(0) %}**Fréquentation** : {% if e %}⚠️ {{ e }}{% elif n %}{{ n }} domaines classés{% elif is_state('switch.x', 'on') %}classement pas encore chargé{% else %}éteinte{% endif %}\n\n{% set e = state_attr('switch.x', 'erreur') %}**VirusTotal** : {% if e %}⚠️ {{ e }}{% elif is_state('switch.x', 'on') %}{{ state_attr('switch.x', 'verdicts_connus') | int(0) }} avis reçus, {{ state_attr('switch.x', 'requetes_restantes_aujourdhui') | int(0) }} requêtes restantes aujourd'hui{% elif not state_attr('switch.x', 'cle_posee') %}pas de clé{% else %}éteint{% endif %}",
+       "type": "markdown"
+      },
+      {
+       "content": "La **fréquentation** est le classement mondial des sites les plus visités.\n\n<details><summary>En savoir plus</summary>\n\n**Fréquenté ne veut pas dire convenable** : les sites pour adultes sont parmi les plus visités au monde. Ce qu'elle apporte est l'inverse : un domaine que personne ne visite, contacté par un programme qu'on ne connaît pas, se voit enfin au milieu de deux cents autres lignes. Rien n'est bloqué à partir de là : c'est une colonne, pas une règle.\n\n**VirusTotal** répond sur les *logiciels* : une signature prouve qu'un éditeur a engagé son certificat, pas qu'il est honnête.\n\nCe qui part est l'**empreinte** du fichier, jamais le fichier. Mais une empreinte apprend quand même à un tiers *quels programmes tournent ici* : c'est le prix, et il vaut mieux le décider que le subir. Rien ne part tant que l'interrupteur est éteint.\n\nLe palier gratuit donne quatre requêtes par minute : Vision fait la queue et regarde d'abord ce qui n'est pas signé.\n\n</details>",
+       "type": "markdown"
+      }
+     ],
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Ce qui démarre tout seul",
+       "heading_style": "title",
+       "icon": "mdi:cog-transfer-outline",
+       "type": "heading"
+      },
+      {
+       "grid_options": {
+        "columns": "full"
+       },
+       "title": "Démarrage, tâches, services et processus",
+       "type": "custom:vision-processus-card"
+      },
+      {
+       "cards": [
+        {
+         "entity": "switch.x",
+         "name": "Désinstallation par l'agent",
+         "type": "tile"
+        }
+       ],
+       "columns": 2,
+       "square": false,
+       "type": "grid"
+      },
+      {
+       "content": "L'agent relève toutes les dix minutes ce qui tourne sur l'appareil, ce qui démarre avec Windows, les tâches planifiées et les services qui ne sont pas de Microsoft.\n\n<details><summary>En savoir plus</summary>\n\nUn classeur propose un verdict ; **rien ne change sur un PC avant qu'un décideur ait validé**.\n\n- **Garder** : on n'y touche pas.\n- **Hors démarrage** : le programme ne se lance plus tout seul, mais se lance toujours quand on le lance. C'est ce qu'on fait aux launchers de jeux et aux utilitaires de clavier ou de souris.\n- **Nuisible** : le processus est arrêté quand il se montre.\n- **Désinstaller** 🗑 : le logiciel est retiré de l'appareil. Le bouton n'apparaît que si « Désinstallation par l'agent » est allumée, il se décide un logiciel à la fois, et il demande confirmation : **cela ne se défait pas**. L'agent lance le désinstalleur officiel du logiciel, en silencieux, et dit ici s'il a réussi. Quand un logiciel n'a pas de désinstallation silencieuse connue, l'agent ne tente rien et répond « à retirer à la main ». Windows, les logiciels Microsoft, les pilotes, l'anti-triche des jeux et l'agent Vision ne se désinstallent jamais par là.\n\nL'anti-triche d'un jeu (Vanguard, BattlEye, Denuvo) n'est jamais touché : il doit démarrer avec Windows, sinon le jeu refuse de se lancer.\n\n« ↺ » remet un élément à classer et **fait restaurer par l'agent** ce qu'il avait changé.\n\n_Carte vide ? Recharge la page (Ctrl+F5) : la carte est fournie par l'intégration Vision et se charge toute seule._\n\n</details>",
+       "type": "markdown"
+      }
+     ],
+     "column_span": 3,
+     "type": "grid"
+    }
+   ],
+   "title": "Protection",
+   "type": "sections"
+  },
+  {
+   "max_columns": 3,
+   "path": "veille",
+   "sections": [
+    {
+     "cards": [
+      {
+       "grid_options": {
+        "columns": "full"
+       },
+       "type": "custom:vision-dashboards-card"
+      },
+      {
+       "content": "_Carte vide ? Recharge la page (Ctrl+F5) : la carte est fournie par l'intégration Vision et se charge toute seule._",
+       "type": "markdown"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Sur chaque appareil",
+       "heading_style": "title",
+       "icon": "mdi:palette-outline",
+       "type": "heading"
+      },
+      {
+       "content": "Le thème, la musique ou la radio et le mode nuit se règlent sur chaque appareil (Vision → Réglages) : chaque télé, chaque téléphone a les siens. Ici, on choisit seulement les tableaux de bord et les cartes rendus disponibles.",
+       "type": "markdown"
+      }
+     ],
+     "type": "grid"
+    }
+   ],
+   "title": "Écran de veille",
+   "type": "sections"
+  },
+  {
+   "max_columns": 3,
+   "path": "appareils",
+   "sections": [
+    {
+     "cards": [
+      {
+       "heading": "Installer Vision sur un appareil",
+       "heading_style": "title",
+       "icon": "mdi:download",
+       "type": "heading"
+      },
+      {
+       "content": "**Téléphone, tablette, télé Android** : aucune version de la nouvelle appli n'est publiée avec l'intégration pour l'instant (`android/installation.apk` et `installation.json`).\n\n<details><summary>En savoir plus</summary>\n\n**PC Windows** — dans **PowerShell**, sur le PC à équiper :\n\n```\nirm http://homeassistant.local:8123/api/pc_parental/client/install -OutFile \"$env:TEMP\\install-cp.ps1\"; & \"$env:TEMP\\install-cp.ps1\"\n```\n\n(installateur : http://homeassistant.local:8123/api/pc_parental/client/install)\n\nL'installateur demande l'autorisation administrateur puis la **clé d'inscription** (*Vision → Configurer → Avancé*). Plus simple : *Vision → Configurer → Ajouter un appareil* donne une commande qui relie le PC sans clé.\n\n⚠️ Ferme les inscriptions quand tous les appareils sont équipés.\n\n</details>",
+       "type": "markdown"
+      },
+      {
+       "content": "L'appareil apparaît ici tout seul, **ouvert et sans plage** : associe-le à un profil avec le sélecteur « Utilisateur » (le choix fait dans l'appli n'est qu'une proposition), puis ajoute-lui ses plages.\n\n<details><summary>En savoir plus</summary>\n\n**Mises à jour** : Home Assistant héberge l'agent et l'appli. Quand une nouvelle version arrive avec l'intégration, chaque appareil se met à jour tout seul — ou au bouton *Installer* de la ligne « Version de l'agent » si tu préfères garder la main. Un PC resté en **1.0.0** ne sait pas encore le faire : relance l'installateur une fois sur cette machine, il gardera son identité et ses plages.\n\nPour retirer un appareil, la section **Retirer un appareil** ci-contre suffit — l'agent se désinstalle tout seul. Si la machine ne doit plus jamais parler à Home Assistant, on peut aussi y lancer :\n\n```\nirm http://homeassistant.local:8123/api/pc_parental/client/uninstall -OutFile \"$env:TEMP\\desinstall-cp.ps1\"; & \"$env:TEMP\\desinstall-cp.ps1\"\n```\n\n</details>",
+       "type": "markdown"
+      },
+      {
+       "entities": [
+        {
+         "entity": "switch.x",
+         "name": "Inscription de nouveaux appareils"
+        },
+        {
+         "entity": "switch.x",
+         "name": "Mise à jour automatique des agents"
+        },
+        {
+         "entity": "number.x",
+         "name": "Avertir avant fermeture"
+        },
+        {
+         "entity": "number.x",
+         "name": "Inactif après"
+        },
+        {
+         "entity": "text.x",
+         "name": "Nom du nouvel appareil"
+        },
+        {
+         "entity": "button.x",
+         "name": "Créer l'appareil à la main"
+        }
+       ],
+       "type": "entities"
+      }
+     ],
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "cards": [
+        {
+         "heading": "Retirer un appareil",
+         "heading_style": "title",
+         "icon": "mdi:delete-outline",
+         "type": "heading"
+        },
+        {
+         "content": "Un appareil se retire depuis la page de sa personne (onglet « Aujourd'hui », puis la personne) : **Retirer…**, sous l'appareil.\n\n<details><summary>En savoir plus</summary>\n\nVision montre ce qui sera perdu et demande de taper le nom de l'appareil pour confirmer.\n\nSon agent l'apprend au prochain contact : il rend la machine libre — fichier `hosts`, DNS, sonde — confirme, puis s'efface lui-même. Rien à faire sur place.\n\n⚠️ Cela efface aussi ses plages, ses règles et son historique. Un appareil éteint garde sa consigne trois mois : il se désinstallera au premier allumage.\n\n</details>",
+         "type": "markdown"
+        }
+       ],
+       "type": "vertical-stack"
+      }
+     ],
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "type": "custom:vision-apparence-card"
+      }
+     ],
+     "type": "grid"
+    }
+   ],
+   "title": "Appareils",
+   "type": "sections"
+  },
+  {
+   "max_columns": 2,
+   "path": "widgets",
+   "sections": [
+    {
+     "cards": [
+      {
+       "type": "custom:vision-widgets-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "title": "Widgets HA",
+   "type": "sections"
+  }
+ ]
+}

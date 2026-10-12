@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Banc anti-débordement Vision</title>
+<style>
+  /* Les variables du thème par défaut de Home Assistant (clair), puis (sombre) quand ?theme=sombre. */
+  :root { --primary-color:#03a9f4; --accent-color:#ff9800; --text-primary-color:#fff; --primary-text-color:#212121;
+          --secondary-text-color:#727272; --disabled-text-color:#bdbdbd; --divider-color:rgba(0,0,0,.12);
+          --card-background-color:#fff; --ha-card-background:#fff; --primary-background-color:#fafafa;
+          --secondary-background-color:#f5f5f5; --error-color:#db4437; --warning-color:#ffa600; --success-color:#43a047;
+          --info-color:#039be5; --ha-card-border-radius:12px; --ha-card-border-color:#e0e0e0;
+          font-family:Roboto, "Segoe UI", Arial, sans-serif; font-size:14px; color-scheme:light; }
+  :root[data-theme="sombre"] { --primary-text-color:#e1e1e1; --secondary-text-color:#9b9b9b; --disabled-text-color:#6f6f6f;
+          --divider-color:rgba(225,225,225,.12); --card-background-color:#1c1c1c; --ha-card-background:#1c1c1c;
+          --primary-background-color:#111111; --secondary-background-color:#282828; --ha-card-border-color:#2c2c2c;
+          color-scheme:dark; }
+  /* La vue de Home Assistant : 8 px autour de la carte (vue « sections » pleine largeur, ou panneau). */
+  body { background:var(--primary-background-color); color:var(--primary-text-color); margin:0; padding:8px; }
+  #zone { display:block; width:100%; box-sizing:border-box; }
+  #zone > * { display:block; }  /* comme hui-card / un panneau : un bloc */
+</style>
+<script>
+  // Banc anti-débordement (recette visuelle du lot 1) : une carte Vision, des données servies par le vrai Vision,
+  // un Home Assistant simulé qui répond aux lectures et ne fait rien des écritures.
+  const params = new URLSearchParams(location.search);
+  document.documentElement.dataset.theme = params.get("theme") || "clair";
+  document.documentElement.lang = params.get("langue") || "fr";
+  // ha-card : comme celle de Home Assistant (bloc, fond, bord arrondi de 1 px), sans marge intérieure.
+  customElements.define("ha-card", class extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({ mode: "open" }).innerHTML = `<style>:host{display:block;position:relative;box-sizing:border-box;
+        background:var(--ha-card-background,var(--card-background-color));color:var(--primary-text-color);
+        border:1px solid var(--ha-card-border-color,var(--divider-color));border-radius:var(--ha-card-border-radius,12px)}</style><slot></slot>`;
+    }
+  });
+  customElements.define("ha-icon", class extends HTMLElement {
+    constructor() { super(); this.style.display = "inline-block"; this.style.width = "24px"; this.style.height = "24px"; }
+  });
+</script>
+</head><body>
+<div id="zone"></div>
+<script type="module">
+  const carte = params.get("carte");
+  const langue = params.get("langue") || "fr";
+  const donnees = await (await fetch("donnees/" + langue + "/" + params.get("donnees") + ".json")).json();
+  window.__donnees = donnees;
+  window.__lectures = { en_cours: 0, faites: 0 };
+  const hass = {
+    states: donnees.__etats || {}, user: { is_admin: true, name: "Bartholomäus" }, language: langue,
+    locale: { language: langue }, themes: { darkMode: params.get("theme") === "sombre" },
+    callApi: async (methode, chemin) => {
+      if (methode !== "GET") return new Promise(() => {});  // une écriture n'aboutit jamais ici : rien ne bouge
+      window.__lectures.en_cours++;
+      try { return JSON.parse(JSON.stringify(donnees[chemin.split("?")[0]] || {})); }
+      finally { window.__lectures.en_cours--; window.__lectures.faites++; }
+    },
+    callService: async () => new Promise(() => {}),
+    callWS: async () => ({}),
+  };
+  await import("./" + params.get("fichier") + ".js");
+  const el = document.createElement(carte);
+  const config = JSON.parse(params.get("config") || "{}");
+  if (config.entity === "__auto") config.entity = donnees.__entite;
+  if (el.setConfig) el.setConfig(config);
+  el.hass = hass;
+  if ("narrow" in config) el.narrow = config.narrow;
+  document.getElementById("zone").appendChild(el);
+  window.__carte = el;
+  window.__pret = true;
+</script>
+</body></html>

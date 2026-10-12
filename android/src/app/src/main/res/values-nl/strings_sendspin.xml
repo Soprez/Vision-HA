@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Client Sendspin natif (2026-10-12) : l'interrupteur du lecteur de musique, réglages de la télé, Décideurs. -->
+<resources>
+    <string name="reglagestv_lecteur_musique">Muziekspeler</string>
+    <string name="reglagestv_lecteur_classique">Klassiek</string>
+    <string name="reglagestv_lecteur_sendspin">Sendspin (proef)</string>
+    <string name="reglagestv_lecteur_note">Hoe deze tv Music Assistant afspeelt. Sendspin: verliesvrij geluid, exacte positie, geen stilte tussen nummers. Het volume stel je altijd in op de tv.</string>
+    <!-- La Party : volume du groupe et détail par enceinte (règles du projet). -->
+    <string name="party_volume_groupe_pourcent">Groep %1$d%%</string>
+    <string name="party_volume_enceintes">Speakers</string>
+    <string name="party_volume_enceintes_titre">Volume per speaker</string>
+    <string name="party_volume_sur_tele">Ingesteld op de tv</string>
+    <string name="party_volume_moins_de">%1$s zachter</string>
+    <string name="party_volume_plus_de">%1$s harder</string>
+    <!-- L'appairage avec Music Assistant (PIN à l'écran). -->
+    <string name="appairage_titre">Koppelen met Music Assistant</string>
+    <string name="appairage_pin_phrase">Voer deze code in Music Assistant in om deze tv te koppelen.</string>
+    <string name="appairage_geste_phrase">Music Assistant vraagt deze tv te koppelen. Toestaan?</string>
+    <string name="appairage_autoriser">Toestaan</string>
+</resources>

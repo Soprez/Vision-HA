@@ -1,0 +1,947 @@
+# Les noms et descriptions des services, de leurs champs et des listes d'options sont dans
+# translations/<langue>.json (sections « services » et « selector »).
+lock:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    minutes:
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 1440
+          unit_of_measurement: min
+          mode: box
+unlock:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    minutes:
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 1440
+          unit_of_measurement: min
+          mode: box
+reset:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+create_pc:
+  fields:
+    nom:
+      required: true
+      selector:
+        text: null
+delete_pc:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+add_schedule:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    nom:
+      required: true
+      selector:
+        text: null
+    debut:
+      required: true
+      selector:
+        time: null
+    fin:
+      required: true
+      selector:
+        time: null
+    jours:
+      default:
+      - lun
+      - mar
+      - mer
+      - jeu
+      - ven
+      - sam
+      - dim
+      selector:
+        select:
+          multiple: true
+          options:
+          - lun
+          - mar
+          - mer
+          - jeu
+          - ven
+          - sam
+          - dim
+          translation_key: jours
+    active:
+      default: true
+      selector:
+        boolean: null
+    portee:
+      default: session
+      selector:
+        select:
+          options:
+          - session
+          - etiquettes
+          translation_key: portee
+    etiquettes:
+      selector:
+        label:
+          multiple: true
+    elements:
+      example: '[{"genre": "sites", "nom": "discord.com"}]'
+      selector:
+        object: null
+    couleur:
+      example: '#e5405e'
+      selector:
+        text: null
+remove_schedule:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    nom:
+      selector:
+        text: null
+    id:
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 100000
+update_schedule:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    id:
+      required: true
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 100000
+    nom:
+      selector:
+        text: null
+    debut:
+      selector:
+        time: null
+    fin:
+      selector:
+        time: null
+    jours:
+      selector:
+        select:
+          multiple: true
+          options:
+          - lun
+          - mar
+          - mer
+          - jeu
+          - ven
+          - sam
+          - dim
+          translation_key: jours
+    active:
+      selector:
+        boolean: null
+    portee:
+      selector:
+        select:
+          options:
+          - session
+          - etiquettes
+          translation_key: portee
+    etiquettes:
+      selector:
+        label:
+          multiple: true
+    elements:
+      selector:
+        object: null
+    sauf:
+      selector:
+        text:
+          multiple: true
+    couleur:
+      example: '#e5405e'
+      selector:
+        text: null
+set_apps:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    liste:
+      required: true
+      selector:
+        object: null
+set_sites:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    liste:
+      required: true
+      selector:
+        object: null
+build_dashboard: {}
+update_agent:
+  fields:
+    pc:
+      selector:
+        text: null
+notify:
+  fields:
+    pc:
+      example: PC du salon
+      selector:
+        text: null
+    tag:
+      example: salon
+      selector:
+        label: null
+    message:
+      required: true
+      example: Sors la poubelle, le camion passe demain matin.
+      selector:
+        text:
+          multiline: true
+    titre:
+      default: Vision
+      selector:
+        text: null
+    son:
+      default: Par défaut
+      selector:
+        select:
+          options:
+          - Par défaut
+          - Message
+          - Courrier
+          - Rappel
+          - SMS
+          - Alarme (insistant)
+          - Appel (insistant)
+          - Silencieux
+    urgent:
+      default: false
+      selector:
+        boolean: null
+rename_pc:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    nom:
+      required: true
+      example: PC du salon
+      selector:
+        text: null
+set_tags:
+  fields:
+    genre:
+      required: true
+      selector:
+        select:
+          options:
+          - sites
+          - apps
+          translation_key: genre_element
+    nom:
+      required: true
+      example: youtube.com
+      selector:
+        text: null
+    etiquettes:
+      required: true
+      selector:
+        label:
+          multiple: true
+tag_items:
+  fields:
+    elements:
+      required: true
+      example: '[{"genre": "sites", "nom": "twitch.tv"}, {"genre": "apps", "nom":
+        "steam"}]'
+      selector:
+        object: null
+    etiquettes:
+      required: true
+      selector:
+        label:
+          multiple: true
+    action:
+      default: ajouter
+      selector:
+        select:
+          options:
+          - ajouter
+          - retirer
+          translation_key: action_lot
+create_tag:
+  fields:
+    etiquette:
+      required: true
+      example: Jeux
+      selector:
+        text: null
+delete_tag:
+  fields:
+    etiquette:
+      required: true
+      selector:
+        label: null
+set_pc_tag:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    etiquette:
+      required: true
+      selector:
+        label: null
+    bloquer:
+      required: true
+      selector:
+        boolean: null
+set_house_tag:
+  fields:
+    etiquette:
+      required: true
+      selector:
+        label: null
+    decision:
+      required: true
+      selector:
+        select:
+          options:
+          - bloquer
+          - autoriser
+          - neutre
+          translation_key: decision_maison
+set_pc_labels:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    etiquettes:
+      required: true
+      selector:
+        label:
+          multiple: true
+decider_elements:
+  fields:
+    elements:
+      required: true
+      selector:
+        object: null
+    decision:
+      required: true
+      selector:
+        select:
+          options:
+          - bloquer
+          - autoriser
+          - neutre
+          - retirer
+          translation_key: decision_elements
+processus_lister:
+  fields:
+    filtre:
+      default: a_classer
+      selector:
+        select:
+          options:
+          - a_classer
+          - propositions
+          - decides
+          - tous
+          translation_key: filtre_processus
+    limite:
+      default: 60
+      selector:
+        number:
+          min: 1
+          max: 500
+    pc:
+      selector:
+        text: null
+processus_proposer:
+  fields:
+    propositions:
+      required: true
+      selector:
+        object: null
+    par:
+      default: classeur
+      selector:
+        text: null
+processus_decider:
+  fields:
+    cles:
+      required: true
+      selector:
+        object: null
+    decision:
+      required: true
+      selector:
+        select:
+          options:
+          - valider
+          - garder
+          - hors_demarrage
+          - nuisible
+          - desinstaller
+          - neutre
+          translation_key: decision_processus
+    confirmation:
+      selector:
+        boolean: null
+fermer_categorie:
+  fields:
+    personne:
+      required: true
+      selector:
+        entity:
+          domain: person
+    categorie:
+      required: true
+      selector:
+        text:
+          multiple: true
+    raison:
+      selector:
+        text: null
+    source:
+      example: moyenne
+      selector:
+        text: null
+ouvrir_categorie:
+  fields:
+    personne:
+      required: true
+      selector:
+        entity:
+          domain: person
+    categorie:
+      selector:
+        text:
+          multiple: true
+    source:
+      example: moyenne
+      selector:
+        text: null
+ajouter_temps:
+  fields:
+    personne:
+      required: true
+      selector:
+        entity:
+          domain: person
+    minutes:
+      required: true
+      default: 30
+      selector:
+        number:
+          min: 5
+          max: 720
+          step: 5
+          unit_of_measurement: min
+          mode: box
+    appareils:
+      selector:
+        text:
+          multiple: true
+bilan_hebdo:
+  fields:
+    remettre_a_zero:
+      default: false
+      selector:
+        boolean: null
+concentration:
+  fields:
+    personne:
+      required: true
+      selector:
+        entity:
+          domain: person
+    minutes:
+      default: 60
+      selector:
+        number:
+          min: 1
+          max: 360
+          unit_of_measurement: min
+    applis:
+      example: com.google.android.apps.docs
+      selector:
+        text:
+          multiple: true
+    appareils:
+      selector:
+        text:
+          multiple: true
+    arreter:
+      default: false
+      selector:
+        boolean: null
+limiter_temps:
+  fields:
+    personne:
+      required: true
+      selector:
+        entity:
+          domain: person
+    logiciel:
+      required: true
+      example: roblox
+      selector:
+        text: null
+    minutes:
+      required: true
+      default: 60
+      selector:
+        number:
+          min: 0
+          max: 1440
+          step: 5
+          unit_of_measurement: min
+          mode: box
+partager_appareil:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    personnes:
+      selector:
+        entity:
+          domain: person
+          multiple: true
+    tout_le_monde:
+      default: false
+      selector:
+        boolean: null
+valider_appairage:
+  fields:
+    code:
+      required: true
+      selector:
+        text: null
+    personne:
+      selector:
+        entity:
+          domain: person
+refuser_appairage:
+  fields:
+    code:
+      required: true
+      selector:
+        text: null
+envoyer:
+  fields:
+    pc:
+      example: Télé du salon
+      selector:
+        text: null
+    tag:
+      selector:
+        label: null
+    type:
+      selector:
+        select:
+          options:
+          - texte
+          - image
+          - audio
+          - video
+          translation_key: type_message
+    titre:
+      default: Vision
+      selector:
+        text: null
+    message:
+      selector:
+        text:
+          multiline: true
+    media:
+      example: media-source://media_source/local/annonces/diner.jpg
+      selector:
+        text: null
+    position:
+      selector:
+        select:
+          options:
+          - plein_ecran
+          - centre
+          - haut
+          - bas
+          - gauche
+          - droite
+          - haut_gauche
+          - haut_droite
+          - bas_gauche
+          - bas_droite
+          translation_key: position_message
+    taille:
+      selector:
+        select:
+          options:
+          - petite
+          - moyenne
+          - grande
+          translation_key: taille_message
+    duree:
+      default: 30
+      selector:
+        number:
+          min: 0
+          max: 3600
+          unit_of_measurement: s
+    son:
+      default: Par défaut
+      selector:
+        select:
+          options:
+          - Par défaut
+          - Message
+          - Courrier
+          - Rappel
+          - SMS
+          - Alarme (insistant)
+          - Appel (insistant)
+          - Silencieux
+    bloquant:
+      default: non
+      selector:
+        select:
+          options:
+          - non
+          - lu
+          - parent
+          translation_key: bloquant
+    limite:
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 240
+          unit_of_measurement: min
+    expire:
+      default: 15
+      selector:
+        number:
+          min: 1
+          max: 10080
+          unit_of_measurement: min
+liberer_message:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    id:
+      selector:
+        number:
+          min: 1
+          max: 1000000
+          mode: box
+approuver_deverrouillage:
+  fields:
+    demande:
+      required: true
+      selector:
+        text: null
+    minutes:
+      selector:
+        number:
+          min: 1
+          max: 240
+    remise:
+      default: directe
+      selector:
+        select:
+          options:
+          - directe
+          - code
+          - qr
+          translation_key: remise
+refuser_deverrouillage:
+  fields:
+    demande:
+      required: true
+      selector:
+        text: null
+nouvelle_cle_deverrouillage: {}
+pause_generale:
+  fields:
+    minutes:
+      required: true
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 240
+          step: 1
+          unit_of_measurement: min
+          mode: box
+fin_pause_generale: {}
+musique_vider_suite:
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          integration: music_assistant
+          domain: media_player
+reveil_creer:
+  fields:
+    demandeur:
+      required: true
+      selector:
+        entity:
+          domain: person
+    nom:
+      example: Collège
+      selector:
+        text: null
+    type: &id001
+      selector:
+        select:
+          translation_key: reveil_type
+          options:
+          - hebdo
+          - ponctuel
+          - entite
+          - modele
+          - manuel
+    heure: &id002
+      example: 07:00
+      selector:
+        time: null
+    jours: &id003
+      example: lun,mar,mer,jeu,ven
+      selector:
+        object: null
+    date: &id004
+      selector:
+        date: null
+    entite: &id005
+      selector:
+        entity: null
+    attribut: &id006
+      selector:
+        text: null
+    modele: &id007
+      selector:
+        template: null
+    decalage: &id008
+      selector:
+        number:
+          min: -720
+          max: 720
+          unit_of_measurement: min
+          mode: box
+    bornes: &id009
+      example: '["05:00", "10:00"]'
+      selector:
+        object: null
+    repli: &id010
+      selector:
+        time: null
+    appareils: &id011
+      selector:
+        object: null
+    source: &id012
+      selector:
+        select:
+          translation_key: reveil_source
+          options:
+          - sonnerie
+          - url
+          - ma
+          - video
+    uri: &id013
+      selector:
+        text: null
+    lecteur: &id014
+      selector:
+        entity:
+          domain: media_player
+    libelle: &id015
+      selector:
+        text: null
+    volume: &id016
+      selector:
+        object: null
+    repetition: &id017
+      selector:
+        object: null
+    impose: &id018
+      selector:
+        boolean: null
+    allumer_tv: &id019
+      selector:
+        boolean: null
+    actif: &id020
+      selector:
+        boolean: null
+reveil_modifier:
+  fields:
+    reveil: &id021
+      required: true
+      selector:
+        entity:
+          integration: pc_parental
+          domain: switch
+    demandeur:
+      selector:
+        entity:
+          domain: person
+    nom:
+      selector:
+        text: null
+    type: *id001
+    heure: *id002
+    jours: *id003
+    date: *id004
+    entite: *id005
+    attribut: *id006
+    modele: *id007
+    decalage: *id008
+    bornes: *id009
+    repli: *id010
+    appareils: *id011
+    source: *id012
+    uri: *id013
+    lecteur: *id014
+    libelle: *id015
+    volume: *id016
+    repetition: *id017
+    impose: *id018
+    allumer_tv: *id019
+    actif: *id020
+reveil_activer:
+  fields:
+    reveil: *id021
+reveil_desactiver:
+  fields:
+    reveil: *id021
+reveil_sauter:
+  fields:
+    reveil: *id021
+    date:
+      selector:
+        date: null
+reveil_reprendre:
+  fields:
+    reveil: *id021
+    date:
+      selector:
+        date: null
+reveil_sonner:
+  fields:
+    reveil: &id022
+      selector:
+        entity:
+          integration: pc_parental
+          domain: switch
+    demandeur: &id023
+      selector:
+        entity:
+          domain: person
+    appareils:
+      selector:
+        object: null
+    source: *id012
+    uri: *id013
+    lecteur: *id014
+    libelle: *id015
+reveil_reporter:
+  fields:
+    reveil: *id021
+    minutes:
+      selector:
+        number:
+          min: 1
+          max: 60
+          unit_of_measurement: min
+          mode: box
+reveil_arreter:
+  fields:
+    reveil: *id022
+    demandeur: *id023
+reveil_supprimer:
+  fields:
+    reveil: *id021
+reveil_lister:
+  fields:
+    demandeur:
+      selector:
+        entity:
+          domain: person
+reveil_regler:
+  fields:
+    heure_evaluation:
+      selector:
+        time: null
+    arret_auto_min:
+      selector:
+        number:
+          min: 1
+          max: 120
+          unit_of_measurement: min
+    fenetre_avant_min:
+      selector:
+        number:
+          min: 0
+          max: 240
+          unit_of_measurement: min
+    fenetre_apres_min:
+      selector:
+        number:
+          min: 0
+          max: 240
+          unit_of_measurement: min
+    synchro_avant_min:
+      selector:
+        number:
+          min: 1
+          max: 60
+          unit_of_measurement: min
+    ordre_ttl_min:
+      selector:
+        number:
+          min: 1
+          max: 120
+          unit_of_measurement: min
+    horizon_h:
+      selector:
+        number:
+          min: 24
+          max: 96
+          unit_of_measurement: h
+reveil_installer_modeles: {}

@@ -1,0 +1,2398 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vision",
+        "description": "Home Assistant gaat op je apparaten letten: computers, telefoons en tv's. Zodra de integratie is toegevoegd, registreert elk apparaat zich vanzelf wanneer je de agent installeert via het Vision-dashboard.\n\nKies een startpunt; elke module kun je daarna aan- of uitzetten in Configureren → Modules.",
+        "data": {
+          "prereglage": "Wat je nodig hebt"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Vision is al geïnstalleerd."
+    }
+  },
+  "options": {
+    "step": {
+      "cle": {
+        "title": "Registratiesleutel",
+        "description": "{changee}Alleen voor beheerders: de sleutel wordt nergens anders meer getoond.\n\n**Huidige sleutel**: `{cle}`\n\nRegistratie van nieuwe apparaten: **{inscriptions}**.\n\n**pc** — in PowerShell, op de pc die je wilt instellen:\n```\n{commande}\n```\n\n**Telefoon, tablet, tv** — blok om in de app te plakken:\n```\n{android}\n```\n\nLaat de opdracht of het blok niet achter op een gevolgd apparaat. Een nieuwe sleutel verandert niets voor apparaten die al geregistreerd zijn.",
+        "data": {
+          "action": "Wat wil je doen?",
+          "cle": "Nieuwe sleutel (bij “Mijn sleutel kiezen”)"
+        }
+      },
+      "init": {
+        "title": "Vision",
+        "menu_options": {
+          "ajouter": "➕ Apparaat toevoegen",
+          "appairage": "Goed te keuren apparaten ({attente})",
+          "roles": "Personen en rollen",
+          "appareils": "Bestaande apparaten",
+          "securite": "Beveiliging",
+          "modules": "Modules",
+          "entites": "Home Assistant-entiteiten",
+          "general": "Algemene instellingen",
+          "musique": "Muziek",
+          "journal_musique": "Muzieklogboek",
+          "accueil": "Welkomstberichten",
+          "vocabulaire": "Woordenschat",
+          "avance": "Geavanceerd",
+          "temps_gagne": "Verdiende tijd (taken)",
+          "regles_lieu": "Regels per plek",
+          "soutien": "♥ Steun het project"
+        },
+        "description": "Wat wil je doen?"
+      },
+      "appairage": {
+        "title": "Goed te keuren apparaten",
+        "description": "Het apparaat dat zich wil registreren toont een QR-code en een code. Controleer de code, kies de persoon als je weet wie het is en keur goed: het apparaat krijgt vanzelf toegang.\n\n{demandes}\n\nVerzoeken om toegang, tijd en ontgrendeling staan hier niet: die beslis je op het Vision-dashboard.",
+        "data": {
+          "code": "Code op het apparaat",
+          "personne": "Persoon (optioneel)",
+          "decision": "Beslissing"
+        }
+      },
+      "installer": {
+        "title": "Vision op een apparaat installeren",
+        "description": "{installation}"
+      },
+      "inscriptions": {
+        "title": "Registratie van nieuwe apparaten",
+        "description": "Registratie van nieuwe apparaten: **{etat}**.\n\n“{minutes} min toestaan” zet de registratie open en sluit die daarna vanzelf weer, ook als Home Assistant intussen opnieuw opstart. Voor een apparaat dat al geregistreerd is (app opnieuw geïnstalleerd) gebruik je liever “Opnieuw registreren toestaan” op de pagina van dat apparaat; koppelen met een QR-code, goedgekeurd door een beheerder, werkt ook als de registratie dicht is.",
+        "data": {
+          "inscriptions": "Wat wil je doen?"
+        }
+      },
+      "qr": {
+        "title": "Koppel-QR-code maken",
+        "description": "Het apparaat scant deze QR-code in de Vision-app en koppelt zich vanzelf. De QR-code werkt maar één keer en verloopt na een paar minuten; de registratiesleutel staat er niet in.\n\nPersoon: kies nu of later. Apparaat: alleen om een apparaat dat al geregistreerd is **over te nemen** (app opnieuw geïnstalleerd); anders wordt een al geregistreerd apparaat geweigerd.",
+        "data": {
+          "personne": "Persoon (optioneel)",
+          "appareil": "Dit apparaat overnemen (optioneel)"
+        }
+      },
+      "qr_affiche": {
+        "title": "Koppel-QR-code",
+        "description": "![Koppel-QR-code]({image})\n\nIn de Vision-app op het apparaat: **QR-code van Home Assistant scannen**. {minutes} minuten geldig, maar één keer. Laat hem niet open staan waar iedereen hem kan zien: er kan een apparaat mee geregistreerd worden."
+      },
+      "deverrouillage": {
+        "title": "Ontgrendelverzoeken",
+        "description": "{demandes} Kies er een en keur hem goed (met een kortere tijd als je wilt) of weiger hem.\n\n**Levering**: “direct”, het apparaat ontgrendelt vanzelf; “code”, je leest de persoon een code van 6 cijfers voor; “QR”, de persoon scant het scherm.",
+        "data": {
+          "demande": "Verzoek",
+          "decision": "Beslissing",
+          "minutes": "Toegekende tijd (minuten, hoogstens wat gevraagd is)",
+          "remise": "Levering"
+        }
+      },
+      "deverrouillage_resultat": {
+        "title": "Ontgrendelen",
+        "description": "{resultat}"
+      },
+      "roles": {
+        "title": "Personen en rollen",
+        "description": "Een rol is een set functies; elke persoon heeft er een, en zijn of haar apparaten volgen die rol.\n\n{resume}",
+        "menu_options": {
+          "roles_modifier": "Rol openen: naam en functies",
+          "roles_personnes": "De rol van elke persoon kiezen",
+          "roles_creer": "Rol aanmaken",
+          "roles_appareils": "Uitzondering: een eigen rol voor één apparaat",
+          "roles_validation_appareil": "Uitzondering: goedkeuring door meerdere personen voor één apparaat"
+        }
+      },
+      "roles_modifier": {
+        "title": "Rollen",
+        "description": "Kies een rol om de functies te zien en aan te vinken.",
+        "data": {
+          "role": "Rol"
+        }
+      },
+      "roles_edition": {
+        "title": "Rol",
+        "description": "{erreur}Personen: {personnes}.\nApparaten: {appareils}.\nOntgrendelen: {deverrouillage}.\n\n★ = functie alleen voor een beheerder. Elke wijziging wordt gelogd; er blijft altijd minstens één apparaat dat kan “Beheren” en “Goedkeuren”.",
+        "data": {
+          "nom": "Naam",
+          "fonctions": "Functies",
+          "pause_max": "Maximale opschorting van de bescherming (minuten)",
+          "validation": "Daarna goedkeuring door meerdere personen instellen (ontgrendelen)",
+          "supprimer": "Deze rol verwijderen"
+        }
+      },
+      "roles_creer": {
+        "title": "Rol aanmaken",
+        "description": "{erreur}De nieuwe rol neemt de functies van het voorbeeld over; die pas je daarna aan.",
+        "data": {
+          "nom": "Naam (bv. Tiener, Leraar, Gast)",
+          "modele": "Gebaseerd op"
+        }
+      },
+      "roles_personnes": {
+        "title": "Rol van elke persoon",
+        "description": "De rol van een persoon geldt op al zijn of haar apparaten. Kies een persoon om de rol te wijzigen.",
+        "data": {
+          "personne": "Persoon"
+        }
+      },
+      "roles_appareils": {
+        "title": "Eigen rol voor één apparaat",
+        "description": "{erreur}Meestal volgt een apparaat de rol van zijn persoon. Hier stel je een uitzondering in voor één apparaat.\n\n{resume}",
+        "data": {
+          "appareil": "Apparaat",
+          "role": "Rol"
+        }
+      },
+      "roles_validation_appareil": {
+        "title": "Eigen goedkeuring voor één apparaat",
+        "description": "Hoeveel verschillende personen de ontgrendelverzoeken van dit apparaat moeten goedkeuren. “Volgens de rol” haalt de afwijking weg. De beheercode die op het apparaat wordt ingetypt, werkt altijd op zichzelf.\n\n{resume}",
+        "data": {
+          "appareil": "Apparaat",
+          "validation_mode": "Ontgrendelen: hoeveel personen moeten goedkeuren",
+          "validation_n": "Aantal personen (bij “vast aantal”)",
+          "validation_actions": "Alleen voor deze verzoeken (niets aangevinkt = alle)",
+          "validation_au_dela_de": "Alleen boven (minuten; 0 = altijd)",
+          "validation_repli": "Na X min zonder antwoord van de anderen is één goedkeuring genoeg (0 = het verzoek verloopt)"
+        }
+      },
+      "securite": {
+        "title": "Beveiliging",
+        "menu_options": {
+          "deverrouillage": "Ontgrendelverzoeken",
+          "inscriptions": "Registratie van nieuwe apparaten (openen, sluiten, 5 min)",
+          "code_gestion": "Beheercode voor pc's (geeft een blokkerend bericht vrij)"
+        }
+      },
+      "avance": {
+        "title": "Geavanceerd",
+        "description": "Voor bijzondere gevallen. De assistent “Apparaat toevoegen” is meestal genoeg.",
+        "menu_options": {
+          "installer": "Installatielinks en QR-codes",
+          "qr": "Zelf een koppel-QR-code maken",
+          "cle": "Registratiesleutel",
+          "sauvegarde": "Back-up en herstel",
+          "appareils_essai": "Android-testapparaten"
+        }
+      },
+      "appareils": {
+        "title": "Bestaande apparaten",
+        "menu_options": {
+          "appareils_relier": "Apparaat opnieuw koppelen (app opnieuw geïnstalleerd, pc opnieuw ingesteld)",
+          "roles_appareils": "Rol van een apparaat wijzigen",
+          "roles_validation_appareil": "Goedkeuring door meerdere personen, voor één apparaat"
+        }
+      },
+      "appareils_relier": {
+        "title": "Apparaat opnieuw koppelen",
+        "description": "Het houdt zijn gegevens, zijn regels en zijn persoon; het krijgt nieuwe toegang.",
+        "data": {
+          "appareil": "Apparaat"
+        }
+      },
+      "ajouter": {
+        "title": "Apparaat toevoegen (1/4)",
+        "description": "Welk apparaat wil je toevoegen?",
+        "data": {
+          "genre": "Apparaat"
+        }
+      },
+      "ajouter_qui": {
+        "title": "Voor wie? (2/4)",
+        "description": "Het apparaat krijgt de rol van de persoon die je kiest. Voor een tv in de woonkamer: “gedeeld scherm”.",
+        "data": {
+          "personne": "Persoon"
+        }
+      },
+      "ajouter_reprise": {
+        "title": "Een nieuw apparaat? (2/4)",
+        "description": "{personne} heeft al zo'n apparaat in Vision. Is dit een nieuw apparaat, of hetzelfde, opnieuw geïnstalleerd? Als het hetzelfde is, houdt het zijn regels.",
+        "data": {
+          "reprise": "Antwoord"
+        }
+      },
+      "ajouter_installer_telephone": {
+        "title": "Vision installeren (3/4)",
+        "description": "{qui}\n\nScan op de telefoon of tablet deze QR-code met de camera en installeer daarna Vision (versie {version}). Als Android erom vraagt, sta installeren vanuit de browser toe.\n\n![Installatie-QR-code]({qr})\n\nOf open deze link op het apparaat: {lien}\n\nOpen daarna Vision en volg de stappen. Tik op **Volgende** als het geïnstalleerd is."
+      },
+      "ajouter_installer_tele": {
+        "title": "Vision installeren (3/4)",
+        "description": "{qui}\n\nOpen op de tv de app **Downloader** (installeer die zo nodig uit de store van de tv) en typ dit adres:\n\n## {court}\n\nInstalleer Vision (versie {version}), open de app en volg de stappen tot het scherm **een code** toont. Tik op dat moment op **Volgende**."
+      },
+      "ajouter_installer_pc": {
+        "title": "Vision installeren (3/4)",
+        "description": "{qui}\n\nOpen op de pc **PowerShell** (Windows-toets, typ “PowerShell”, Enter), plak de opdracht hieronder en druk op Enter. Accepteer de vraag om beheerdersrechten.\n\nDe opdracht installeert Vision **en** koppelt de pc: verder hoef je niets te typen. Hij werkt maar één keer en {minutes} minuten lang.\n\nTik op **Volgende** als PowerShell “geregistreerd” meldt.",
+        "data": {
+          "commande": "Opdracht om te kopiëren"
+        }
+      },
+      "ajouter_relier_telephone": {
+        "title": "Koppelen (4/4)",
+        "description": "{qui}\n\nTik in Vision, op het apparaat, op **QR-code van Home Assistant scannen** en richt op deze QR-code:\n\n![Koppel-QR-code]({image})\n\n{minutes} minuten geldig, maar één keer. Tik op **Volgende** als het apparaat meldt dat het gekoppeld is."
+      },
+      "ajouter_relier_tele": {
+        "title": "Koppelen (4/4)",
+        "description": "{qui}\n\nTyp de code die op de tv staat.",
+        "data": {
+          "code": "Code op de tv"
+        }
+      },
+      "ajouter_relier_pc": {
+        "title": "Koppelen (4/4)",
+        "description": "{qui}\n\nDe pc koppelt zich vanzelf aan het eind van de installatie. Tik op **Volgende** om het te controleren."
+      },
+      "ajouter_fini": {
+        "title": "Klaar",
+        "description": "## ✅ {nom} is gekoppeld aan {personne}\n\nRol: **{role}**.{reprise}\n\n{etat}"
+      },
+      "roles_edition_validation": {
+        "title": "Goedkeuring door meerdere personen",
+        "description": "Voor de rol **{role}**: hoeveel personen een ontgrendeling moeten goedkeuren.",
+        "data": {
+          "validation_mode": "Hoeveel personen moeten goedkeuren",
+          "validation_n": "Aantal personen (bij “vast aantal”)",
+          "validation_actions": "Alleen voor deze verzoeken (niets aangevinkt = alle)",
+          "validation_au_dela_de": "Alleen boven (minuten; 0 = altijd)",
+          "validation_repli": "Na X min zonder antwoord van de anderen is één goedkeuring genoeg (0 = het verzoek verloopt)"
+        }
+      },
+      "roles_personne_role": {
+        "title": "Rol van {personne}",
+        "description": "{erreur}Apparaten: {appareils}.",
+        "data": {
+          "role": "Rol"
+        }
+      },
+      "general": {
+        "title": "Algemene instellingen",
+        "description": "De naam van de plek verschijnt in de apps, op het dashboard en in meldingen. Voorbeelden: School, Kantoor, Club.",
+        "data": {
+          "lieu": "Naam van de plek",
+          "personnes_affichage": "Personen voor “gedeeld scherm”"
+        },
+        "data_description": {
+          "personnes_affichage": "De Home Assistant-personen die gemaakt zijn voor een tv of een gedeeld scherm, niet voor iemand in het bijzonder. Leeg: de persoon die “Affichage” heet."
+        }
+      },
+      "accueil": {
+        "title": "Welkomstberichten",
+        "description": "{erreur}Het bericht bovenaan in de app, op elk apparaat, in de eigen taal. Schrijf één bericht per regel; de variabelen hieronder worden ingevuld bij het tonen. Niets geschreven: ‘Hallo!’ (‘Goedenavond!’ vanaf 18 uur).\n\nModus ‘Afhankelijk van het moment van de dag’: begin een regel met `ochtend:`, `middag:`, `avond:` of `nacht:` (of `morning:`, `afternoon:`, `evening:`, `night:`) om hem voor dat moment te bewaren (ochtend 5–12 uur, middag 12–18 uur, avond 18–22 uur, nacht 22–5 uur); een regel zonder voorvoegsel geldt altijd. Modus ‘Willekeurig’: voorvoegsels worden genegeerd.\n\nVoor experts (sectie Geavanceerd): een Jinja-sjabloon van Home Assistant vervangt de berichten, met dezelfde variabelen, bijvoorbeeld `{exemple}`. Bij een fout, een lege tekst of meer dan 200 tekens wordt het gewone bericht getoond.\n\n**Variabelen** (huidige waarde)\n{aide}\n\n**Voorbeeld** (wat is opgeslagen)\n{apercu}",
+        "data": {
+          "messages": "Berichten (één per regel)",
+          "mode": "Keuze van het bericht",
+          "meteo": "Weerentiteit"
+        },
+        "data_description": {
+          "meteo": "Leeg: de eerste gevonden weerentiteit."
+        },
+        "sections": {
+          "avance": {
+            "name": "Geavanceerd (voor experts)",
+            "description": "Een Jinja-sjabloon van Home Assistant, bij elke weergave uitgevoerd.",
+            "data": {
+              "modele": "Jinja-sjabloon"
+            },
+            "data_description": {
+              "modele": "Leeg: de berichten hierboven."
+            }
+          }
+        }
+      },
+      "modules": {
+        "title": "Modules",
+        "description": "{erreur}Vink aan wat je nodig hebt: de rest verdwijnt overal (Home Assistant, apps, tv's, pc's). De instellingen ervan worden bewaard voor later; de entiteiten worden uitgeschakeld zonder dat de geschiedenis verloren gaat. De basis (apparaten, personen en rollen, beheer op afstand, updates) blijft altijd aan.",
+        "data": {
+          "prereglage": "Voorinstelling",
+          "modules": "Modules"
+        }
+      },
+      "modules_protections": {
+        "title": "Beveiligingen uitzetten?",
+        "description": "⚠️ Zonder de beveiligingen tegen omzeiling kan een gevolgde persoon Vision verwijderen, beheerder van zijn of haar pc worden of de beveiligde instellingen openen, en zo alle regels opheffen. {concernes}: {appareils}.\n\nZet ze alleen uit als je iedereen vertrouwt die deze apparaten gebruikt.",
+        "data": {
+          "je_comprends": "Ik begrijp het en zet de beveiligingen uit"
+        }
+      },
+      "entites": {
+        "title": "Home Assistant-entiteiten",
+        "description": "De Home Assistant-widgets in de Vision-app: elk apparaat ziet alleen de entiteiten die aan zijn persoon zijn gegeven (plus zijn uitzonderingen) en kan alleen de acties gebruiken die hier zijn aangevinkt. Standaard alleen-lezen; sloten en alarmen kun je nooit vanaf een apparaat bedienen.\n\n{resume}",
+        "menu_options": {
+          "entites_personnes": "Entiteiten van elke persoon",
+          "entites_appareils": "Uitzonderingen per apparaat",
+          "entites_actions": "Toegestane acties"
+        }
+      },
+      "entites_personnes": {
+        "title": "Entiteiten van elke persoon",
+        "description": "Kies een persoon om de lijst te wijzigen met entiteiten die hij of zij op de eigen apparaten ziet.",
+        "data": {
+          "personne": "Persoon"
+        }
+      },
+      "entites_personne_liste": {
+        "title": "Entiteiten van {personne}",
+        "description": "De entiteiten die {personne} in de app ziet (met de rolfunctie “Home Assistant-entiteiten uit de eigen lijst zien”). Zonder “Toegestane acties” is niets te bedienen.",
+        "data": {
+          "entites": "Entiteiten"
+        }
+      },
+      "entites_appareils": {
+        "title": "Uitzonderingen per apparaat",
+        "description": "Kies een apparaat om er entiteiten aan toe te voegen of van weg te halen, ten opzichte van de lijst van zijn persoon.",
+        "data": {
+          "appareil": "Apparaat"
+        }
+      },
+      "entites_appareil_liste": {
+        "title": "Uitzonderingen voor “{appareil}”",
+        "description": "Persoon: {personne}. Lijst van deze persoon: {liste}.\n\n“Extra” komt bij deze lijst; “Weggehaald” gaat eraf (en wint). Een apparaat zonder persoon ziet alleen “Extra”.",
+        "data": {
+          "plus": "Extra",
+          "moins": "Weggehaald"
+        }
+      },
+      "entites_actions": {
+        "title": "Toegestane acties",
+        "description": "{pilotables} Vink aan wat de apparaten mogen doen (de rolfunctie “Toegestane entiteiten bedienen” is ook nodig); niets aangevinkt = alleen-lezen. Sloten en alarmen worden nooit aangeboden."
+      },
+      "sauvegarde": {
+        "title": "Back-up en herstel",
+        "description": "De hele configuratie van Vision: rollen, personen, apparaten en hun regels, modules, plek, widgets, schermbeveiliging. De bestanden blijven in Home Assistant (map “vision_sauvegardes” in de configuratie) en zitten ook in de eigen back-ups van Home Assistant. Elke nacht wordt automatisch een back-up gemaakt.\n\nBeschikbare back-ups:\n{liste}",
+        "menu_options": {
+          "sauvegarde_creer": "Nu een back-up maken",
+          "sauvegarde_restaurer": "Back-up terugzetten"
+        }
+      },
+      "sauvegarde_creer": {
+        "title": "Nu een back-up maken",
+        "description": "Bewaart de huidige configuratie van Vision. De laatste 20 back-ups die hier gemaakt zijn, worden bewaard.\n\nAl aanwezig:\n{liste}"
+      },
+      "sauvegarde_restaurer": {
+        "title": "Back-up terugzetten",
+        "description": "Vervangt de hele huidige configuratie van Vision door die uit de gekozen back-up. Van de huidige stand wordt eerst een back-up gemaakt, zodat je terug kunt. Een apparaat dat na de datum van de back-up is gekoppeld, moet opnieuw gekoppeld worden.",
+        "data": {
+          "sauvegarde": "Back-up",
+          "confirmer": "Ik vervang de huidige configuratie door deze back-up"
+        }
+      },
+      "temps_gagne": {
+        "title": "Verdiende tijd",
+        "description": "Een taak die in een takenlijst van Home Assistant wordt afgevinkt, geeft extra tijd op de apparaten van de persoon. Taken die al afgevinkt waren toen je dit instelde tellen niet mee, en een taak die je uitvinkt en weer afvinkt telt maar één keer. Laat de lijst leeg om de instelling van een persoon weg te halen.\n\nHuidige instellingen:\n{resume}",
+        "data": {
+          "personne": "Persoon",
+          "liste": "Takenlijst",
+          "minutes": "Minuten per afgevinkte taak",
+          "max": "Hoogstens, per dag"
+        }
+      },
+      "regles_lieu": {
+        "title": "Regels per plek",
+        "description": "Zolang de persoon in de gekozen zone is (volgens zijn of haar locatie in Home Assistant), zijn de aangevinkte categorieën geblokkeerd op zijn of haar apparaten. Gaat de persoon de zone uit, dan wordt alles weer zoals het was. Vink geen enkele categorie aan om de regel van deze persoon voor deze zone weg te halen.\n\nHuidige regels:\n{resume}",
+        "data": {
+          "personne": "Persoon",
+          "zone": "Zone",
+          "etiquettes": "Geblokkeerde categorieën in deze zone"
+        }
+      },
+      "vocabulaire": {
+        "title": "Woordenschat",
+        "description": "De woorden die Vision voor de rollen gebruikt (dashboard, meldingen, berichten naar de apparaten), in de taal van Home Assistant. Maak een veld leeg om het standaardwoord terug te nemen ({defauts}). Hoogstens {longueur} tekens.\n\nDe naam van de plaats (nu: {nom_lieu}) stel je in bij „Algemene instellingen”.\n\n**Voorbeeld** (wat is opgeslagen)\n{apercu}",
+        "data": {
+          "decideur": "Beslisser (één)",
+          "decideurs": "Beslissers (meerdere)",
+          "demandeur": "Aanvrager (één)",
+          "demandeurs": "Aanvragers (meerdere)"
+        },
+        "data_description": {
+          "decideur": "Wie aanvragen goedkeurt of weigert.",
+          "demandeur": "Wie aanvragen doet."
+        }
+      },
+      "musique": {
+        "title": "Muziek",
+        "description": "Music Assistant-spelers die als luidsprekers in Muziek worden aangeboden. Standaard zijn ze allemaal geselecteerd.",
+        "data": {
+          "enceintes": "Aangeboden luidsprekers",
+          "masquer_hors_ligne": "Offline luidsprekers verbergen (anders: grijs weergegeven)",
+          "arret_auto": "Automatisch stoppen van het afspelen",
+          "arret_auto_perso": "Eigen duur (min)"
+        },
+        "data_description": {
+          "arret_auto": "Zonder actie op de muziek of het apparaat gedurende deze tijd stopt het afspelen (waarschuwing 1 min vooraf).",
+          "arret_auto_perso": "Gebruikt als je „Eigen” kiest."
+        }
+      },
+      "journal_musique": {
+        "title": "Muzieklogboek",
+        "description": "Laatste Muziek-opdrachten (wie, wat, vanwaar):\n\n{journal}",
+        "data": {
+          "jours": "Logboek bewaren gedurende"
+        }
+      },
+      "appareils_essai": {
+        "title": "Android-testapparaten",
+        "description": "Testhulpmiddel: deze Android-apparaten krijgen de testversie van de app eerder dan de andere. Laat leeg als je de app niet test.",
+        "data": {
+          "appareils_essai": "Android-testapparaten"
+        },
+        "data_description": {
+          "appareils_essai": "Zij krijgen de testversie van de app (essai.apk) eerder dan de anderen."
+        }
+      },
+      "code_gestion": {
+        "data": {
+          "action": "Wat wil je doen?",
+          "code": "Nieuwe code",
+          "confirmation": "Dezelfde code, nog een keer"
+        },
+        "description": "{etat}\n\nDeze code geeft op een pc een blokkerend bericht \"tot vrijgave\" vrij. Hij wordt alleen hier ingesteld (beheerders): het Vision-venster van de pc laat niet meer toe hem te kiezen. Home Assistant bewaart alleen de vingerafdruk en controleert hem zelf; de pc bewaart er niets van. Na {essais} foute codes op een pc worden de pogingen daar {minutes} minuten opgeschort; na {total} foute codes in 24 u op de hele plek wordt de code vergrendeld tot hij hier wordt gewijzigd.\n\n6 tot 32 tekens. De code die op een pc wordt getypt, loopt via de sessie van de Aanvrager: typ hem niet in diens bijzijn en wijzig hem als je twijfelt. Een blokkerend bericht kan ook zonder code vanuit Home Assistant worden vrijgegeven (actie \"Een bericht vrijgeven\").",
+        "title": "Beheercode voor pc's"
+      },
+      "soutien": {
+        "description": "Vision is gratis en open source. Wil je het project bedanken, dan kun je het een koffie trakteren: {lien}\n\nIn ruil verschijnt er een badge \"Supporter\" en knipoogt het Vision-oog af en toe, met een klein hartje, op de schermbeveiliging en bij \"Over\". Het is puur decoratief: er wordt geen functie afgeschermd.\n\nDe code die je per e-mail ontvangt, wordt hier offline gecontroleerd: er wordt nergens iets naartoe gestuurd.",
+        "menu_options": {
+          "soutien_cafe": "Ik heb een koffie getrakteerd (op mijn erewoord)",
+          "soutien_code": "Ik heb een code"
+        },
+        "title": "Steun het project"
+      },
+      "soutien_actif": {
+        "description": "♥ Bedankt! De badge \"Supporter\" wordt getoond op de apparaten van deze plek.\n\nDonatiepagina: {lien}",
+        "menu_options": {
+          "soutien_code": "Een andere code invoeren",
+          "soutien_retirer": "Badge verwijderen"
+        },
+        "title": "Steun het project"
+      },
+      "soutien_code": {
+        "data": {
+          "code": "Steuncode"
+        },
+        "description": "Plak de code die je per e-mail hebt ontvangen (spaties, streepjes en regeleinden worden genegeerd). Hij wordt hier offline gecontroleerd.",
+        "title": "Ik heb een code"
+      }
+    },
+    "error": {
+      "cle_invalide": "De sleutel moet 12 tot 64 tekens lang zijn, zonder spaties, en mag geen gepubliceerd voorbeeld zijn.",
+      "code_inconnu": "Onbekende of verlopen code: start het verzoek opnieuw op het apparaat.",
+      "qr_impossible": "De QR-code kon niet worden gemaakt (adres van Home Assistant onbekend, of te veel QR-codes tegelijk).",
+      "deverrouillage_demande": "Dit verzoek staat niet meer open (al beslist, geannuleerd of verlopen).",
+      "deverrouillage_minutes": "Ongeldige tijd: hoogstens wat gevraagd is.",
+      "deverrouillage_remise": "Onbekende levering.",
+      "deverrouillage_decision": "Onbekende beslissing.",
+      "biometrie_parent": "Biometrie kan alleen worden toegestaan op een apparaat waarvan de rol de functie “Vingerafdruk of gezicht” heeft.",
+      "appareil_inconnu": "Onbekend apparaat.",
+      "role_refuse": "Geweigerd: zie het bericht bovenaan.",
+      "deverrouillage_deja_vote": "Je hebt dit verzoek al goedgekeurd: er moet nog iemand anders goedkeuren.",
+      "ajout_pas_encore": "Nog niet gekoppeld. Maak de stap op het apparaat af en tik dan opnieuw op Volgende.",
+      "ajout_expire": "De tijd is om: hier is een nieuwe QR-code (of een nieuwe opdracht).",
+      "modules_dependances": "Er ontbreken modules die andere modules nodig hebben (details hierboven).",
+      "modules_confirmer": "Vink het vakje aan om te bevestigen, of sluit dit venster om de beveiligingen te houden.",
+      "confirmer_restauration": "Vink het vakje aan om te bevestigen: de huidige configuratie wordt vervangen.",
+      "sauvegarde_introuvable": "Deze back-up bestaat niet meer. Kies een andere.",
+      "sauvegarde_illisible": "Deze back-up is onleesbaar of komt van een nieuwere versie van Vision. Er is niets veranderd.",
+      "temps_gagne_personne": "Kies een persoon.",
+      "temps_gagne_liste": "Kies een takenlijst (een “todo”-entiteit).",
+      "temps_gagne_minutes": "De minuten per taak gaan van 1 tot 240, en het maximum per dag mag niet kleiner zijn dan één taak.",
+      "regles_lieu_personne": "Kies een persoon.",
+      "regles_lieu_zone": "Kies een zone van Home Assistant.",
+      "regles_lieu_trop": "Er zijn al 40 regels per plek: haal er een weg voordat je een nieuwe toevoegt.",
+      "accueil_modele_invalide": "Het Jinja-sjabloon is ongeldig: controleer de syntaxis (details bovenaan het scherm).",
+      "vocabulaire_trop_long": "Te lang: hoogstens 30 tekens.",
+      "code_court": "6 tot 32 tekens.",
+      "code_different": "De twee codes komen niet overeen.",
+      "soutien_format": "Dit is geen volledige code: controleer of hij helemaal is gekopieerd.",
+      "soutien_signature": "Deze code is ongeldig (handtekening geweigerd). Kopieer hem opnieuw uit de e-mail.",
+      "soutien_version": "Deze code komt uit een nieuwere versie van Vision: werk Vision bij.",
+      "soutien_vide": "Plak de code die je per e-mail hebt ontvangen."
+    },
+    "abort": {
+      "not_loaded": "Vision is niet geladen: probeer het zo opnieuw.",
+      "ajout_impossible": "Nu even niet mogelijk: {raison}",
+      "entites_rien_a_piloter": "Er is geen bedienbare entiteit aan een persoon of apparaat gegeven: kies eerst entiteiten (lampen, schakelaars, scripts, scènes, knoppen, rolluiken, thermostaten).",
+      "sauvegarde_faite": "Back-up gemaakt: {sauvegarde}. Hij staat in de map “{dossier}” van de configuratie van Home Assistant.",
+      "sauvegarde_restauree": "Configuratie teruggezet uit de back-up van {sauvegarde}. De vorige stand is bewaard: {avant}.",
+      "aucune_sauvegarde": "Nog geen back-ups. Begin met “Nu een back-up maken”.",
+      "temps_gagne_ok": "Verdiende tijd opgeslagen.\n\n{resume}",
+      "temps_gagne_coupe": "De module “Verdiende tijd” (of “Schermtijd”) staat uit: zet hem aan in Configureren → Modules.",
+      "regles_lieu_ok": "Regel opgeslagen.\n\n{resume}",
+      "regles_lieu_coupe": "De module “Regels per plek” (of “Apps blokkeren” en “Webfilter”) staat uit: zet hem aan in Configureren → Modules.",
+      "accueil_ok": "Welkomstberichten opgeslagen.\n\n**Voorbeeld**\n{apercu}",
+      "vocabulaire_ok": "Woordenschat opgeslagen.\n\n**Voorbeeld**\n{apercu}",
+      "essai_aucun_android": "Geen Android-apparaat in Vision: niets in te stellen.",
+      "soutien_merci": "♥ Bedankt voor je steun! De badge verschijnt op de apparaten bij hun volgende controle.",
+      "soutien_retire": "Badge verwijderd."
+    }
+  },
+  "selector": {
+    "action": {
+      "options": {
+        "garder": "Deze sleutel houden en sluiten",
+        "nouvelle": "Nieuwe sleutel maken",
+        "choisir": "Mijn sleutel kiezen"
+      }
+    },
+    "decision": {
+      "options": {
+        "valider": "Goedkeuren",
+        "refuser": "Weigeren"
+      }
+    },
+    "inscriptions": {
+      "options": {
+        "temporaire": "5 min toestaan (sluit vanzelf)",
+        "ouvrir": "Openzetten tot ik het sluit",
+        "fermer": "Nu sluiten",
+        "garder": "Niets veranderen"
+      }
+    },
+    "decision_deverrouillage": {
+      "options": {
+        "approuver": "Goedkeuren",
+        "refuser": "Weigeren"
+      }
+    },
+    "remise": {
+      "options": {
+        "directe": "Direct (het apparaat ontgrendelt vanzelf)",
+        "code": "Code van 6 cijfers",
+        "qr": "QR-code om te scannen"
+      }
+    },
+    "validation_mode": {
+      "options": {
+        "role": "Volgens de rol",
+        "une": "Eén persoon",
+        "toutes": "Iedereen die goedkeurt",
+        "n": "Vast aantal personen"
+      }
+    },
+    "validation_actions": {
+      "options": {
+        "parent": "Bescherming opschorten",
+        "reglages": "Beveiligde instellingen",
+        "app": "Apps"
+      }
+    },
+    "genre": {
+      "options": {
+        "telephone": "📱 Een telefoon of tablet",
+        "tele": "📺 Een Android-tv",
+        "pc": "💻 Een Windows-pc"
+      }
+    },
+    "prereglage": {
+      "options": {
+        "simple": "Eenvoudig: tijdvakken, schermtijd, verzoeken, berichten",
+        "famille": "Aanbevolen: Eenvoudig, plus apps blokkeren, webfilter, ontgrendelen, bescherming opschorten, schermbeveiliging, startscherm, beveiligingen, “Alles blokkeren”",
+        "tout": "Alles: alle modules"
+      }
+    },
+    "prereglage_options": {
+      "options": {
+        "simple": "Eenvoudig: tijdvakken, schermtijd, verzoeken, berichten",
+        "famille": "Aanbevolen: Eenvoudig, plus apps blokkeren, webfilter, ontgrendelen, bescherming opschorten, schermbeveiliging, startscherm, beveiligingen, “Alles blokkeren”",
+        "tout": "Alles: alle modules",
+        "garder": "Mijn keuze houden (vakjes hieronder)"
+      }
+    },
+    "action_lot": {
+      "options": {
+        "ajouter": "Toevoegen",
+        "retirer": "Weghalen"
+      }
+    },
+    "bloquant": {
+      "options": {
+        "non": "Nee",
+        "lu": "Tot het gelezen is",
+        "parent": "Tot vrijgave (beheercode of beheerder)"
+      }
+    },
+    "decision_elements": {
+      "options": {
+        "bloquer": "Blokkeren",
+        "autoriser": "Toestaan",
+        "neutre": "Opnieuw te sorteren",
+        "retirer": "Weghalen"
+      }
+    },
+    "decision_maison": {
+      "options": {
+        "bloquer": "Blokkeren voor iedereen",
+        "autoriser": "Toestaan voor iedereen",
+        "neutre": "Opnieuw te sorteren"
+      }
+    },
+    "decision_processus": {
+      "options": {
+        "valider": "Voorstel goedkeuren",
+        "garder": "Behouden",
+        "hors_demarrage": "Uit het opstarten halen",
+        "nuisible": "Schadelijk",
+        "desinstaller": "De-installeren",
+        "neutre": "Opnieuw te sorteren"
+      }
+    },
+    "filtre_processus": {
+      "options": {
+        "a_classer": "Te sorteren",
+        "propositions": "Voorstellen",
+        "decides": "Beslist",
+        "tous": "Alle"
+      }
+    },
+    "genre_element": {
+      "options": {
+        "sites": "Site",
+        "apps": "Software"
+      }
+    },
+    "jours": {
+      "options": {
+        "lun": "Maandag",
+        "mar": "Dinsdag",
+        "mer": "Woensdag",
+        "jeu": "Donderdag",
+        "ven": "Vrijdag",
+        "sam": "Zaterdag",
+        "dim": "Zondag"
+      }
+    },
+    "portee": {
+      "options": {
+        "session": "Sessie vergrendelen",
+        "etiquettes": "Categorieën blokkeren"
+      }
+    },
+    "position_message": {
+      "options": {
+        "plein_ecran": "Volledig scherm",
+        "centre": "Midden",
+        "haut": "Boven",
+        "bas": "Onder",
+        "gauche": "Links",
+        "droite": "Rechts",
+        "haut_gauche": "Linksboven",
+        "haut_droite": "Rechtsboven",
+        "bas_gauche": "Linksonder",
+        "bas_droite": "Rechtsonder"
+      }
+    },
+    "taille_message": {
+      "options": {
+        "petite": "Klein",
+        "moyenne": "Middel",
+        "grande": "Groot"
+      }
+    },
+    "type_message": {
+      "options": {
+        "texte": "Tekst",
+        "image": "Afbeelding",
+        "audio": "Audio",
+        "video": "Video"
+      }
+    },
+    "accueil_mode": {
+      "options": {
+        "aleatoire": "Willekeurig (wisselt elke 30 minuten)",
+        "moment": "Afhankelijk van het moment van de dag"
+      }
+    },
+    "jours_journal_musique": {
+      "options": {
+        "1": "1 dag",
+        "7": "7 dagen",
+        "30": "30 dagen"
+      }
+    },
+    "code_gestion_action": {
+      "options": {
+        "changer": "Een nieuwe code kiezen",
+        "garder": "Niets wijzigen",
+        "retirer": "Code verwijderen (dan geven alleen Home Assistant en de veiligheidslimiet vrij)"
+      }
+    },
+    "reveil_source": {
+      "options": {
+        "ma": "Music Assistant",
+        "sonnerie": "Beltoon",
+        "url": "Radio, podcast of stream (adres)",
+        "video": "Video"
+      }
+    },
+    "reveil_type": {
+      "options": {
+        "entite": "Tijd gelezen uit een entiteit",
+        "hebdo": "Elke week (tijd + dagen)",
+        "manuel": "Alleen op commando",
+        "modele": "Tijd berekend door een sjabloon",
+        "ponctuel": "Eenmalig (datum)"
+      }
+    },
+    "arret_auto": {
+      "options": {
+        "0": "Uit",
+        "30": "30 min",
+        "60": "1 u",
+        "120": "2 u",
+        "240": "4 u",
+        "perso": "Eigen"
+      }
+    }
+  },
+  "services": {
+    "lock": {
+      "name": "Vergrendelen",
+      "description": "Vergrendelt het apparaat, los van de planning.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        },
+        "minutes": {
+          "name": "Duur",
+          "description": "Duur in minuten. Laat 0 staan om het vol te houden tot de volgende wissel in de planning."
+        }
+      }
+    },
+    "unlock": {
+      "name": "Ontgrendelen",
+      "description": "Geeft het apparaat vrij, los van de planning.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        },
+        "minutes": {
+          "name": "Duur",
+          "description": "Duur in minuten. Laat 0 staan om het vol te houden tot de volgende wissel in de planning."
+        }
+      }
+    },
+    "reset": {
+      "name": "Terug naar planning",
+      "description": "Heft de huidige afwijking op en laat de planning het weer overnemen.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        }
+      }
+    },
+    "create_pc": {
+      "name": "Apparaat aanmaken",
+      "description": "Maakt zelf een apparaat aan. Niet nodig als je de agent installeert: het apparaat registreert zich dan vanzelf.",
+      "fields": {
+        "nom": {
+          "name": "Naam",
+          "description": "De naam die in Home Assistant wordt getoond."
+        }
+      }
+    },
+    "delete_pc": {
+      "name": "Apparaat verwijderen",
+      "description": "Verwijdert een apparaat en al zijn tijdvakken.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        }
+      }
+    },
+    "add_schedule": {
+      "name": "Tijdvak toevoegen",
+      "description": "Voegt een tijdvak toe waarin het apparaat vergrendeld is.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        },
+        "nom": {
+          "name": "Naam van het tijdvak",
+          "description": "De naam die dit tijdvak van de andere onderscheidt (“Bedtijd”, “Huiswerk”)."
+        },
+        "debut": {
+          "name": "Begin",
+          "description": "Het tijdstip waarop het tijdvak begint."
+        },
+        "fin": {
+          "name": "Einde",
+          "description": "Het tijdstip waarop het eindigt; ligt het vóór het begin, dan eindigt het de volgende dag."
+        },
+        "jours": {
+          "name": "Dagen",
+          "description": "Dagen waarop het tijdvak geldt."
+        },
+        "active": {
+          "name": "Actief",
+          "description": "Staat het uit, dan bestaat het tijdvak wel maar blokkeert het niets."
+        },
+        "portee": {
+          "name": "Dit tijdvak blokkeert",
+          "description": "session = het apparaat is vergrendeld; etiquettes = alleen de genoemde categorieën zijn geblokkeerd."
+        },
+        "etiquettes": {
+          "name": "Te blokkeren categorieën",
+          "description": "Home Assistant-labels. Verplicht als het tijdvak categorieën blokkeert, tenzij het items bij naam noemt."
+        },
+        "elements": {
+          "name": "Items bij naam",
+          "description": "Sites of software die bij naam worden aangewezen, zonder categorie. Lijst van { genre: sites|apps, nom: … }."
+        },
+        "couleur": {
+          "name": "Kleur (planningskaart)",
+          "description": "Formaat #RRGGBB; leeg = automatische kleur."
+        }
+      }
+    },
+    "remove_schedule": {
+      "name": "Tijdvak verwijderen",
+      "description": "Verwijdert een tijdvak aan de hand van zijn naam of zijn id.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        },
+        "nom": {
+          "name": "Naam van het tijdvak",
+          "description": "De naam van het tijdvak dat je wilt verwijderen."
+        },
+        "id": {
+          "name": "Id van het tijdvak",
+          "description": "Het nummer, als meerdere tijdvakken dezelfde naam hebben."
+        }
+      }
+    },
+    "update_schedule": {
+      "name": "Tijdvak wijzigen",
+      "description": "Wijzigt een bestaand tijdvak (gevonden via zijn id): naam, tijden, dagen, bereik, categorieën, aan/uit, kleur. Alleen de velden die je invult veranderen.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        },
+        "id": {
+          "name": "Id van het tijdvak",
+          "description": "Het nummer van het tijdvak dat je wilt wijzigen."
+        },
+        "nom": {
+          "name": "Naam van het tijdvak",
+          "description": "De nieuwe naam van het tijdvak."
+        },
+        "debut": {
+          "name": "Begin",
+          "description": "Het nieuwe begintijdstip."
+        },
+        "fin": {
+          "name": "Einde",
+          "description": "Het nieuwe eindtijdstip."
+        },
+        "jours": {
+          "name": "Dagen",
+          "description": "Dagen waarop het tijdvak geldt."
+        },
+        "active": {
+          "name": "Tijdvak actief",
+          "description": "Staat het uit, dan bestaat het tijdvak wel maar blokkeert het niets."
+        },
+        "portee": {
+          "name": "Dit tijdvak blokkeert",
+          "description": "session = het apparaat is vergrendeld; etiquettes = alleen de genoemde categorieën zijn geblokkeerd."
+        },
+        "etiquettes": {
+          "name": "Te blokkeren categorieën",
+          "description": "Home Assistant-labels die het tijdvak blokkeert."
+        },
+        "elements": {
+          "name": "Items bij naam",
+          "description": "Lijst van { genre: sites|apps, nom: … }. Lege lijst om ze allemaal weg te halen."
+        },
+        "sauf": {
+          "name": "Behalve op",
+          "description": "De apparaten van de persoon waarop dit tijdvak niet geldt, bij naam. Lege lijst om het overal te laten gelden."
+        },
+        "couleur": {
+          "name": "Kleur (planningskaart)",
+          "description": "Formaat #RRGGBB; leeg = automatische kleur."
+        }
+      }
+    },
+    "set_apps": {
+      "name": "Geblokkeerde software instellen",
+      "description": "Vervangt de geblokkeerde software op dit apparaat. Geblokkeerde sites en de categorieregels van Vision blijven ongewijzigd. Geef de namen van de programmabestanden, zonder “.exe”. Wat niet geblokkeerd is, blijft toegestaan.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        },
+        "liste": {
+          "name": "Software",
+          "description": "Namen van programmabestanden, zonder “.exe”."
+        }
+      }
+    },
+    "set_sites": {
+      "name": "Geblokkeerde sites instellen",
+      "description": "Vervangt de geblokkeerde sites op dit apparaat (alleen de domeinnaam, bijvoorbeeld “tiktok.com”). Geblokkeerde software en de categorieregels van Vision blijven ongewijzigd. Wat niet geblokkeerd is, blijft toegestaan.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        },
+        "liste": {
+          "name": "Sites",
+          "description": "Domeinnamen, bijvoorbeeld “tiktok.com”."
+        }
+      }
+    },
+    "build_dashboard": {
+      "name": "Dashboard opnieuw opbouwen",
+      "description": "Bouwt het Vision-dashboard opnieuw op met de huidige apparaten en tijdvakken."
+    },
+    "update_agent": {
+      "name": "Agent bijwerken",
+      "description": "Vraagt de update van de agent aan voor zijn volgende contactmoment. Zonder opgegeven Apparaat geldt het verzoek voor alle apparaten.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Laat leeg voor alle apparaten."
+        }
+      }
+    },
+    "notify": {
+      "name": "Bericht naar apparaten sturen",
+      "description": "Toont een melding op het apparaat of de telefoon. Zonder “Apparaat” en zonder “Label” gaat het bericht naar alle apparaten.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van één bepaald apparaat."
+        },
+        "tag": {
+          "name": "Label",
+          "description": "Richt zich in één keer op alle apparaten met dit Home Assistant-label, net zoals je stopcontacten zou groeperen. De naam van het label werkt ook, voor een automatisering die je zelf schrijft."
+        },
+        "message": {
+          "name": "Bericht",
+          "description": "De tekst die wordt getoond."
+        },
+        "titre": {
+          "name": "Titel",
+          "description": "De titel boven het bericht."
+        },
+        "son": {
+          "name": "Geluid",
+          "description": "Geluid dat Windows afspeelt als het bericht binnenkomt."
+        },
+        "urgent": {
+          "name": "Dringend",
+          "description": "Standaard een rustige melding die in het meldingencentrum blijft staan. Bij dringend opent er een venster boven alles wat op het scherm staat."
+        }
+      }
+    },
+    "rename_pc": {
+      "name": "Apparaat hernoemen",
+      "description": "Wijzigt de naam van een apparaat in Home Assistant. De naam van de Windows-computer blijft hetzelfde.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Huidige naam."
+        },
+        "nom": {
+          "name": "Nieuwe naam",
+          "description": "De naam die in Home Assistant wordt getoond."
+        }
+      }
+    },
+    "set_tags": {
+      "name": "Site of software een label geven",
+      "description": "Vervangt in één keer alle labels van een item. Dit zijn de labels van Home Assistant: die van Instellingen → Ruimtes, labels en zones.",
+      "fields": {
+        "genre": {
+          "name": "Soort",
+          "description": "Een site of software."
+        },
+        "nom": {
+          "name": "Naam",
+          "description": "Domein (“youtube.com”) of programmabestand, zonder “.exe”."
+        },
+        "etiquettes": {
+          "name": "Labels",
+          "description": "Lege lijst om ze allemaal weg te halen."
+        }
+      }
+    },
+    "tag_items": {
+      "name": "Labels in één keer geven",
+      "description": "Zet (of haalt) dezelfde labels op meerdere sites en software in één keer. Zo wordt de wachtrij leeg.",
+      "fields": {
+        "elements": {
+          "name": "Items",
+          "description": "Lijst van { genre: sites|apps, nom: … }."
+        },
+        "etiquettes": {
+          "name": "Labels",
+          "description": "De Home Assistant-labels die je wilt toevoegen of weghalen."
+        },
+        "action": {
+          "name": "Actie",
+          "description": "Deze labels toevoegen, of weghalen."
+        }
+      }
+    },
+    "create_tag": {
+      "name": "Label aanmaken",
+      "description": "Maakt een Home Assistant-label aan dat je meteen kunt gebruiken, nog voordat er iets mee gesorteerd is.",
+      "fields": {
+        "etiquette": {
+          "name": "Naam",
+          "description": "De naam van het nieuwe label."
+        }
+      }
+    },
+    "delete_tag": {
+      "name": "Label verwijderen",
+      "description": "Haalt het label weg uit Home Assistant en van alles wat het had, ook uit regels en tijdvakken die dan niets meer zouden blokkeren.",
+      "fields": {
+        "etiquette": {
+          "name": "Label",
+          "description": "Het label dat je wilt verwijderen."
+        }
+      }
+    },
+    "set_pc_tag": {
+      "name": "Label blokkeren op een apparaat",
+      "description": "Aan: alles met dit label is geblokkeerd op dit apparaat. Uit: het apparaat zegt er niets meer over — en dat is niet hetzelfde als “toegestaan”.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        },
+        "etiquette": {
+          "name": "Label",
+          "description": "Het Home Assistant-label waar het om gaat."
+        },
+        "bloquer": {
+          "name": "Blokkeren",
+          "description": "Aan: alles met het label is geblokkeerd op dit apparaat."
+        }
+      }
+    },
+    "set_house_tag": {
+      "name": "Over een label beslissen voor iedereen",
+      "description": "Verbiedt of staat een label toe op alle computers tegelijk. “Opnieuw te sorteren” legt de beslissing weer open — en dat is niet hetzelfde als “toegestaan”.",
+      "fields": {
+        "etiquette": {
+          "name": "Label",
+          "description": "Het Home Assistant-label waar het om gaat."
+        },
+        "decision": {
+          "name": "Beslissing",
+          "description": "Wat vanaf nu geldt op alle computers."
+        }
+      }
+    },
+    "set_pc_labels": {
+      "name": "Labels van een apparaat",
+      "description": "Zet precies deze Home Assistant-labels op de computer. Dit zijn de labels die hem met andere groeperen (bijvoorbeeld Woonkamer, Slaapkamers) voor meldingen — niet de labels die sites en software sorteren.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        },
+        "etiquettes": {
+          "name": "Labels",
+          "description": "Lege lijst om ze allemaal weg te halen."
+        }
+      }
+    },
+    "decider_elements": {
+      "name": "Beslissen voor iedereen",
+      "description": "Blokkeert, staat toe of zet een of meer sites en software opnieuw bij “te sorteren”, voor iedereen. “Weghalen” maakt alleen iets ongedaan dat met de hand is toegevoegd: wat een computer heeft gezien, komt bij de volgende controle terug.",
+      "fields": {
+        "elements": {
+          "name": "Items",
+          "description": "Lijst van {genre: apps|sites, nom}."
+        },
+        "decision": {
+          "name": "Beslissing",
+          "description": "Wat vanaf nu geldt voor iedereen."
+        }
+      }
+    },
+    "processus_lister": {
+      "name": "Processen weergeven",
+      "description": "Geeft de items die op de pc's zijn gezien (opstarten, geplande taken, services, processen) met uitgever, handtekening, locatie en geheugen. Voor het sorteren: roep het aan en vraag om een antwoord.",
+      "fields": {
+        "filtre": {
+          "name": "Filter",
+          "description": "Welke items je wilt krijgen."
+        },
+        "limite": {
+          "name": "Limiet",
+          "description": "Hoeveel items hoogstens."
+        },
+        "pc": {
+          "name": "Apparaat",
+          "description": "Alleen de items die op dit apparaat zijn gezien."
+        }
+      }
+    },
+    "processus_proposer": {
+      "name": "Sortering voorstellen",
+      "description": "Geeft een oordeel over een of meer items. Verandert niets op de pc's: een beheerder moet goedkeuren.",
+      "fields": {
+        "propositions": {
+          "name": "Voorstellen",
+          "description": "Lijst van {cle, verdict (garder | hors_demarrage | nuisible), raison, confiance 0-100}."
+        },
+        "par": {
+          "name": "Auteur",
+          "description": "Wie het voorstelt (getoond aan de beheerder die goedkeurt)."
+        }
+      }
+    },
+    "processus_decider": {
+      "name": "Beslissen",
+      "description": "Beslist voor iedereen. “Voorstel goedkeuren” neemt het voorstel over, “Opnieuw te sorteren” zet het item terug bij te sorteren en laat de agent het herstellen.",
+      "fields": {
+        "cles": {
+          "name": "Sleutels",
+          "description": "De sleutels van de items, zoals “Processen weergeven” ze teruggeeft."
+        },
+        "decision": {
+          "name": "Beslissing",
+          "description": "Wat vanaf nu geldt voor iedereen."
+        },
+        "confirmation": {
+          "name": "Bevestiging",
+          "description": "Verplicht voor “De-installeren”, dat niet ongedaan kan worden: één sleutel tegelijk, en de schakelaar “Verwijderen door de agent” moet aan staan."
+        }
+      }
+    },
+    "fermer_categorie": {
+      "name": "Categorie blokkeren",
+      "description": "Blokkeert een of meer categorieën voor een persoon, op al zijn of haar apparaten, met de reden erbij. Wat bij naam altijd is toegestaan, blijft open. Bedoeld om vanuit een automatisering aan te roepen.",
+      "fields": {
+        "personne": {
+          "name": "Persoon",
+          "description": "De persoon om wie het gaat."
+        },
+        "categorie": {
+          "name": "Categorieën",
+          "description": "De categorieën die je wilt blokkeren (Games, Video's, Sociale media…)."
+        },
+        "raison": {
+          "name": "Reden",
+          "description": "Wat de persoon op het scherm leest (“Gemiddelde 5,5 van de 10”)."
+        },
+        "source": {
+          "name": "Bron",
+          "description": "De naam van wat blokkeert (“gemiddelde”, “huiswerk”). Een categorie blijft geblokkeerd zolang een bron haar blokkeert; “Categorie weer toestaan” met dezelfde bron heft alleen die bron op. Leeg: de standaardbron."
+        }
+      }
+    },
+    "ouvrir_categorie": {
+      "name": "Categorie weer toestaan",
+      "description": "Staat categorieën weer toe die door een automatisering zijn geblokkeerd. Zonder categorie worden alle categorieën van deze bron voor deze persoon weer toegestaan.",
+      "fields": {
+        "personne": {
+          "name": "Persoon",
+          "description": "De persoon om wie het gaat."
+        },
+        "categorie": {
+          "name": "Categorieën",
+          "description": "De categorieën die je weer wilt toestaan. Leeg: alle categorieën die deze bron heeft geblokkeerd."
+        },
+        "source": {
+          "name": "Bron",
+          "description": "Dezelfde bron als bij het blokkeren. Blokkades van andere bronnen blijven staan. Leeg: de standaardbron."
+        }
+      }
+    },
+    "ajouter_temps": {
+      "name": "Tijd toevoegen",
+      "description": "Geeft de apparaten van een persoon een tijdje vrij, los van de planning. Tijd die al is toegekend en nog loopt, wordt verlengd. Zonder opgegeven apparaat geldt het voor alle apparaten van de persoon, gedeelde apparaten inbegrepen.",
+      "fields": {
+        "personne": {
+          "name": "Persoon",
+          "description": "De persoon die tijd krijgt."
+        },
+        "minutes": {
+          "name": "Duur",
+          "description": "Hoeveel minuten erbij."
+        },
+        "appareils": {
+          "name": "Apparaten",
+          "description": "De apparaten waar het om gaat, met hun naam in Home Assistant. Leeg: alle apparaten van de persoon."
+        }
+      }
+    },
+    "bilan_hebdo": {
+      "name": "Weekoverzicht",
+      "description": "Stuurt meteen het overzicht van de afgelopen zeven dagen (schermtijd, meest gebruikte apps, verzoeken), zoals de automatische verzending elke zondag om 19.00 uur.",
+      "fields": {
+        "remettre_a_zero": {
+          "name": "Opnieuw beginnen bij nul",
+          "description": "Zet de tellers van de week op nul (verzoeken, toegekende en geweigerde toegang, toegevoegde tijd), net als bij het versturen op zondag."
+        }
+      }
+    },
+    "concentration": {
+      "name": "Focus",
+      "description": "Een tijdje (voor huiswerk) blijven alleen de gekozen apps open op de apparaten van de persoon. Vision, de telefoon, berichten, de klok en de rekenmachine blijven altijd open. Zonder opgegeven apps neemt Vision de laatste keuze voor deze persoon over.",
+      "fields": {
+        "personne": {
+          "name": "Persoon",
+          "description": "De persoon om wie het gaat."
+        },
+        "minutes": {
+          "name": "Duur in minuten",
+          "description": "Hoe lang de focusmodus duurt."
+        },
+        "applis": {
+          "name": "Apps die open blijven",
+          "description": "De namen van de apps die open blijven, zoals Vision ze kent (“com.google.android.apps.docs”, “word”)."
+        },
+        "appareils": {
+          "name": "Apparaten",
+          "description": "De namen van de apparaten waar het om gaat; leeg voor alle apparaten van de persoon."
+        },
+        "arreter": {
+          "name": "Stoppen",
+          "description": "Stopt de huidige focusmodus in plaats van een nieuwe te starten."
+        }
+      }
+    },
+    "limiter_temps": {
+      "name": "Tijd voor software beperken",
+      "description": "Zoveel minuten per dag voor software of een app, op alle apparaten van de persoon. Is de tijd op, dan is het geblokkeerd tot de volgende dag. 0 haalt de limiet weg.",
+      "fields": {
+        "personne": {
+          "name": "Persoon",
+          "description": "De persoon om wie het gaat."
+        },
+        "logiciel": {
+          "name": "Software",
+          "description": "De naam van het programma zoals Vision het kent (“roblox”, “com.supercell.brawlstars”)."
+        },
+        "minutes": {
+          "name": "Minuten per dag",
+          "description": "0 om de limiet weg te halen."
+        }
+      }
+    },
+    "partager_appareil": {
+      "name": "Apparaat delen",
+      "description": "Geeft aan van wie een apparaat nog meer is, naast de hoofdpersoon. Delen verplaatst geen regels; het bepaalt bij wie het apparaat verschijnt en wie er tijd op kan krijgen. Zonder persoon en zonder “Alle apparaten” is het apparaat niet meer gedeeld.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        },
+        "personnes": {
+          "name": "Personen",
+          "description": "Wie het ook gebruikt."
+        },
+        "tout_le_monde": {
+          "name": "Alle apparaten",
+          "description": "Het apparaat is van iedereen (de tv in de woonkamer)."
+        }
+      }
+    },
+    "valider_appairage": {
+      "name": "Koppeling goedkeuren",
+      "description": "Keurt het verzoek goed van het apparaat dat deze code toont (koppelen met QR-code). Het krijgt toegang; als je hier geen persoon kiest, blijft het zonder persoon. Alleen voor beheerders.",
+      "fields": {
+        "code": {
+          "name": "Code",
+          "description": "De korte code op het apparaat."
+        },
+        "personne": {
+          "name": "Persoon",
+          "description": "Van wie het apparaat is (optioneel)."
+        }
+      }
+    },
+    "refuser_appairage": {
+      "name": "Koppeling weigeren",
+      "description": "Weigert het verzoek van het apparaat dat deze code toont. Alleen voor beheerders.",
+      "fields": {
+        "code": {
+          "name": "Code",
+          "description": "De korte code op het apparaat."
+        }
+      }
+    },
+    "envoyer": {
+      "name": "Uitgebreid bericht sturen",
+      "description": "Tekst, afbeelding, geluid of video op een tv of pc, geplaatst waar je wilt, eventueel blokkerend, met een ontvangstbevestiging (event pc_parental_message). Alleen voor beheerders. Zie docs/messages.md.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        },
+        "tag": {
+          "name": "Label",
+          "description": "Richt zich op alle apparaten met dit Home Assistant-label."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Wordt afgeleid uit de media als het ontbreekt."
+        },
+        "titre": {
+          "name": "Titel",
+          "description": "De titel boven het bericht."
+        },
+        "message": {
+          "name": "Bericht",
+          "description": "De tekst, of het onderschrift bij een mediabestand."
+        },
+        "media": {
+          "name": "Media",
+          "description": "Een lokaal mediabestand van Home Assistant (map /media)."
+        },
+        "position": {
+          "name": "Positie",
+          "description": "Anders de instelling “Positie van berichten” van het apparaat."
+        },
+        "taille": {
+          "name": "Grootte",
+          "description": "Anders de instelling “Grootte van berichten” van het apparaat."
+        },
+        "duree": {
+          "name": "Weergaveduur",
+          "description": "In seconden; 0 = tot het gesloten wordt."
+        },
+        "son": {
+          "name": "Geluid",
+          "description": "Geluid dat Windows afspeelt als het bericht binnenkomt."
+        },
+        "bloquant": {
+          "name": "Blokkerend",
+          "description": "Nee; tot het gelezen is = volledig scherm tot “Ik heb het gelezen”; tot vrijgave = volledig scherm tot iemand het opheft met de beheercode, of een beheerder het opheft (pc_parental.liberer_message…)."
+        },
+        "limite": {
+          "name": "Veiligheidslimiet",
+          "description": "Alleen bij blokkerend tot vrijgave; daarna wordt het vanzelf opgeheven (gelogd)."
+        },
+        "expire": {
+          "name": "Vervaltijd",
+          "description": "Een bericht dat niet is afgeleverd of niet is gelezen, vervalt daarna."
+        }
+      }
+    },
+    "liberer_message": {
+      "name": "Blokkerend bericht vrijgeven",
+      "description": "Heft op een apparaat een bericht op dat blokkeert tot vrijgave (bij de volgende controle). Alleen voor beheerders.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat zoals het in Home Assistant staat."
+        },
+        "id": {
+          "name": "Bericht",
+          "description": "Het nummer; zonder nummer alle blokkerende berichten van het apparaat."
+        }
+      }
+    },
+    "approuver_deverrouillage": {
+      "name": "Ontgrendeling goedkeuren",
+      "description": "Keurt het ontgrendelverzoek van een apparaat goed (de gevraagde actie en tijd, of minder). Directe levering (het apparaat krijgt het vanzelf), met een code (wordt teruggegeven) of met een QR-code (wordt teruggegeven). Alleen voor beheerders.",
+      "fields": {
+        "demande": {
+          "name": "Verzoek",
+          "description": "Het id van het verzoek."
+        },
+        "minutes": {
+          "name": "Minuten",
+          "description": "Hoogstens wat gevraagd is."
+        },
+        "remise": {
+          "name": "Levering",
+          "description": "Hoe de persoon de ontgrendeling krijgt."
+        }
+      }
+    },
+    "refuser_deverrouillage": {
+      "name": "Ontgrendeling weigeren",
+      "description": "Weigert het ontgrendelverzoek. Alleen voor beheerders.",
+      "fields": {
+        "demande": {
+          "name": "Verzoek",
+          "description": "Het id van het verzoek."
+        }
+      }
+    },
+    "nouvelle_cle_deverrouillage": {
+      "name": "Nieuwe ontgrendelsleutel",
+      "description": "Vervangt de sleutel die goedkeuringen voor ontgrendelen ondertekent; lopende goedkeuringen werken dan niet meer. De apparaten krijgen de nieuwe sleutel bij de volgende controle. Alleen voor beheerders."
+    },
+    "pause_generale": {
+      "name": "Alles blokkeren",
+      "description": "Blokkeert in één keer alle gevolgde apparaten voor een tijdje; de apparaten van wie beslist blijven toegestaan. “Weer toestaan” staat ze vóór het einde toe. Alleen voor beheerders.",
+      "fields": {
+        "minutes": {
+          "name": "Duur",
+          "description": "Hoeveel minuten (1 tot 240)."
+        }
+      }
+    },
+    "fin_pause_generale": {
+      "name": "Weer toestaan",
+      "description": "Staat de apparaten weer toe die “Alles blokkeren” geblokkeerd hield: ze gaan terug naar hun planning. Een handmatige blokkade van daarvoor blijft staan. Alleen voor beheerders."
+    },
+    "musique_vider_suite": {
+      "name": "Muziek — wachtrij leegmaken",
+      "description": "Verwijdert alle nummers na het huidige uit de Music Assistant-wachtrij van de gekozen speaker (het huidige nummer speelt door) en zet automatisch toevoegen uit. Alleen voor beheerders.",
+      "fields": {
+        "entity_id": {
+          "name": "Speaker",
+          "description": "De Music Assistant-speler waarvan de wachtrij wordt leeggemaakt."
+        }
+      }
+    },
+    "reveil_activer": {
+      "description": "Schakelt een wekker in (zoals de schakelaar).",
+      "fields": {
+        "reveil": {
+          "description": "ID, wekkerentiteit (switch.vision_reveil_…) of exacte naam.",
+          "name": "Wekker"
+        }
+      },
+      "name": "Wekker — inschakelen"
+    },
+    "reveil_arreter": {
+      "description": "Stopt het afgaan op alle apparaten (één wekker, of alle wekkers van een Aanvrager).",
+      "fields": {
+        "demandeur": {
+          "description": "Zonder wekker: de persoon wiens apparaten afgaan.",
+          "name": "Aanvrager"
+        },
+        "reveil": {
+          "description": "ID, wekkerentiteit (switch.vision_reveil_…) of exacte naam.",
+          "name": "Wekker"
+        }
+      },
+      "name": "Wekker — stoppen"
+    },
+    "reveil_creer": {
+      "description": "Maakt een wekker aan voor een Aanvrager. Hij wordt ingepland op diens apparaten, die zelf afgaan, ook als Home Assistant of het netwerk uitvalt. Geeft de ID van de wekker terug. Vereist de module \"Wekker\".",
+      "fields": {
+        "actif": {
+          "description": "Een uitgeschakelde wekker staat op geen enkel apparaat ingesteld.",
+          "name": "Ingeschakeld"
+        },
+        "allumer_tv": {
+          "description": "De gekozen inschakelmethode voor de betreffende tv's gebruiken.",
+          "name": "Tv aanzetten"
+        },
+        "appareils": {
+          "description": "Vision-apparaten van de Aanvrager die afgaan (naam of ID). Standaard: diens telefoons en tablets.",
+          "name": "Apparaten"
+        },
+        "attribut": {
+          "description": "Dit attribuut lezen in plaats van de status (optioneel).",
+          "name": "Attribuut"
+        },
+        "bornes": {
+          "description": "Bereik waarin de berekende tijd wordt geaccepteerd, [min, max] (standaard 05:00 – 10:00).",
+          "name": "Grenzen"
+        },
+        "date": {
+          "description": "Voor ponctuel.",
+          "name": "Datum"
+        },
+        "decalage": {
+          "description": "Minuten opgeteld bij de gelezen tijd (negatief = eerder), voor entite en modele.",
+          "name": "Verschuiving"
+        },
+        "demandeur": {
+          "description": "De persoon die gewekt moet worden (person.* of diens naam).",
+          "name": "Aanvrager"
+        },
+        "entite": {
+          "description": "Voor entite (timestamp-sensor, input_datetime, agenda).",
+          "name": "Tijdstempel-entiteit"
+        },
+        "heure": {
+          "description": "Voor hebdo en ponctuel.",
+          "name": "Tijd"
+        },
+        "impose": {
+          "description": "De Aanvrager kan hem niet wijzigen of uitschakelen (wel uitstellen en stoppen).",
+          "name": "Opgelegd"
+        },
+        "jours": {
+          "description": "Voor hebdo (0 = maandag … 6 = zondag, of mon, tue…). Standaard maandag t/m vrijdag.",
+          "name": "Dagen"
+        },
+        "lecteur": {
+          "description": "Luidspreker die de Music Assistant-bron afspeelt (optioneel).",
+          "name": "Music Assistant-speler"
+        },
+        "libelle": {
+          "description": "Weergegeven naam van de bron (optioneel).",
+          "name": "Bronlabel"
+        },
+        "modele": {
+          "description": "Voor modele; moet een datum en tijd opleveren.",
+          "name": "Sjabloon"
+        },
+        "nom": {
+          "description": "Label van de wekker (standaard \"Wekker\").",
+          "name": "Naam"
+        },
+        "repetition": {
+          "description": "{minutes, max} — standaard 9 min, 3 keer.",
+          "name": "Sluimeren"
+        },
+        "repli": {
+          "description": "Gebruikt als de berekende tijd ontbreekt of buiten de grenzen valt. Zonder terugvaltijd wordt dit moment overgeslagen en wordt vision_reveil_echec verstuurd.",
+          "name": "Terugvaltijd"
+        },
+        "source": {
+          "description": "sonnerie (beltoon), url (radio, podcast, stream), ma (Music Assistant), video. De lokale beltoon blijft de terugval.",
+          "name": "Bron"
+        },
+        "type": {
+          "description": "hebdo (tijd + dagen), ponctuel (één datum), entite (tijd gelezen uit een tijdstempel-entiteit), modele (sjabloon dat een datum en tijd oplevert), manuel (gaat alleen af op commando).",
+          "name": "Trigger"
+        },
+        "uri": {
+          "description": "http(s)-adres van de stream, of Music Assistant-nummer / -playlist / -radio.",
+          "name": "Adres of medium"
+        },
+        "volume": {
+          "description": "{debut: %, fin: %, montee_s: seconds} — standaard 10 → 60 % in 180 s.",
+          "name": "Volume"
+        }
+      },
+      "name": "Wekker — aanmaken"
+    },
+    "reveil_desactiver": {
+      "description": "Schakelt een wekker uit; de apparaten zetten hem bij hun volgende controle uit.",
+      "fields": {
+        "reveil": {
+          "description": "ID, wekkerentiteit (switch.vision_reveil_…) of exacte naam.",
+          "name": "Wekker"
+        }
+      },
+      "name": "Wekker — uitschakelen"
+    },
+    "reveil_installer_modeles": {
+      "description": "Plaatst de blueprints die met de module worden meegeleverd (bijvoorbeeld \"Wekken op schooldagen\") in de blueprintmap van Home Assistant (automatiseringen). Een bestaande kopie wordt nooit overschreven. Alleen beheerders.",
+      "name": "Wekker — sjablonen installeren"
+    },
+    "reveil_lister": {
+      "description": "Geeft de zichtbare wekkers terug (volgende keer, status, gesynchroniseerde apparaten) en de module-instellingen.",
+      "fields": {
+        "demandeur": {
+          "description": "Alleen de wekkers van deze persoon.",
+          "name": "Aanvrager"
+        }
+      },
+      "name": "Wekker — weergeven"
+    },
+    "reveil_modifier": {
+      "description": "Wijzigt een wekker; alleen de opgegeven velden veranderen. Dezelfde velden als \"Wekker — aanmaken\".",
+      "fields": {
+        "actif": {
+          "description": "Een uitgeschakelde wekker staat op geen enkel apparaat ingesteld.",
+          "name": "Ingeschakeld"
+        },
+        "allumer_tv": {
+          "description": "De gekozen inschakelmethode voor de betreffende tv's gebruiken.",
+          "name": "Tv aanzetten"
+        },
+        "appareils": {
+          "description": "Vision-apparaten van de Aanvrager die afgaan (naam of ID). Standaard: diens telefoons en tablets.",
+          "name": "Apparaten"
+        },
+        "attribut": {
+          "description": "Dit attribuut lezen in plaats van de status (optioneel).",
+          "name": "Attribuut"
+        },
+        "bornes": {
+          "description": "Bereik waarin de berekende tijd wordt geaccepteerd, [min, max] (standaard 05:00 – 10:00).",
+          "name": "Grenzen"
+        },
+        "date": {
+          "description": "Voor ponctuel.",
+          "name": "Datum"
+        },
+        "decalage": {
+          "description": "Minuten opgeteld bij de gelezen tijd (negatief = eerder), voor entite en modele.",
+          "name": "Verschuiving"
+        },
+        "demandeur": {
+          "description": "Aanvrager wijzigen (diens apparaten gaan niet mee).",
+          "name": "Aanvrager"
+        },
+        "entite": {
+          "description": "Voor entite (timestamp-sensor, input_datetime, agenda).",
+          "name": "Tijdstempel-entiteit"
+        },
+        "heure": {
+          "description": "Voor hebdo en ponctuel.",
+          "name": "Tijd"
+        },
+        "impose": {
+          "description": "De Aanvrager kan hem niet wijzigen of uitschakelen (wel uitstellen en stoppen).",
+          "name": "Opgelegd"
+        },
+        "jours": {
+          "description": "Voor hebdo (0 = maandag … 6 = zondag, of mon, tue…). Standaard maandag t/m vrijdag.",
+          "name": "Dagen"
+        },
+        "lecteur": {
+          "description": "Luidspreker die de Music Assistant-bron afspeelt (optioneel).",
+          "name": "Music Assistant-speler"
+        },
+        "libelle": {
+          "description": "Weergegeven naam van de bron (optioneel).",
+          "name": "Bronlabel"
+        },
+        "modele": {
+          "description": "Voor modele; moet een datum en tijd opleveren.",
+          "name": "Sjabloon"
+        },
+        "nom": {
+          "description": "Label van de wekker.",
+          "name": "Naam"
+        },
+        "repetition": {
+          "description": "{minutes, max} — standaard 9 min, 3 keer.",
+          "name": "Sluimeren"
+        },
+        "repli": {
+          "description": "Gebruikt als de berekende tijd ontbreekt of buiten de grenzen valt. Zonder terugvaltijd wordt dit moment overgeslagen en wordt vision_reveil_echec verstuurd.",
+          "name": "Terugvaltijd"
+        },
+        "reveil": {
+          "description": "ID, wekkerentiteit (switch.vision_reveil_…) of exacte naam.",
+          "name": "Wekker"
+        },
+        "source": {
+          "description": "sonnerie (beltoon), url (radio, podcast, stream), ma (Music Assistant), video. De lokale beltoon blijft de terugval.",
+          "name": "Bron"
+        },
+        "type": {
+          "description": "hebdo (tijd + dagen), ponctuel (één datum), entite (tijd gelezen uit een tijdstempel-entiteit), modele (sjabloon dat een datum en tijd oplevert), manuel (gaat alleen af op commando).",
+          "name": "Trigger"
+        },
+        "uri": {
+          "description": "http(s)-adres van de stream, of Music Assistant-nummer / -playlist / -radio.",
+          "name": "Adres of medium"
+        },
+        "volume": {
+          "description": "{debut: %, fin: %, montee_s: seconds} — standaard 10 → 60 % in 180 s.",
+          "name": "Volume"
+        }
+      },
+      "name": "Wekker — wijzigen"
+    },
+    "reveil_regler": {
+      "description": "Instellingen van de plek voor de module Wekker. Alleen beheerders en automatiseringen.",
+      "fields": {
+        "arret_auto_min": {
+          "description": "Het apparaat stopt vanzelf na deze tijd (standaard 30 min).",
+          "name": "Automatisch stoppen"
+        },
+        "fenetre_apres_min": {
+          "description": "En gaat zo lang na de laatste uit (standaard 30 min).",
+          "name": "Venster na"
+        },
+        "fenetre_avant_min": {
+          "description": "binary_sensor.vision_fenetre_reveil gaat zo lang vóór de eerste keer aan (standaard 60 min).",
+          "name": "Venster voor"
+        },
+        "heure_evaluation": {
+          "description": "Dagelijkse herberekening van de berekende wekkers (standaard 20:00).",
+          "name": "Evaluatietijd"
+        },
+        "horizon_h": {
+          "description": "Uren aan wekmomenten die vooraf naar de apparaten worden gestuurd (standaard 48 u).",
+          "name": "Horizon"
+        },
+        "ordre_ttl_min": {
+          "description": "Een eerder \"afgaan\"-commando wordt niet meer afgeleverd (standaard 15 min).",
+          "name": "Geldigheid van een \"afgaan\"-commando"
+        },
+        "synchro_avant_min": {
+          "description": "Tijd vóór het wektijdstip waarop een niet-gesynchroniseerd apparaat wordt gemeld (standaard 10 min).",
+          "name": "Synchronisatiecontrole"
+        }
+      },
+      "name": "Wekker — module-instellingen"
+    },
+    "reveil_reporter": {
+      "description": "Stelt de afgaande wekker uit op al zijn apparaten.",
+      "fields": {
+        "minutes": {
+          "description": "Standaard: de sluimertijd van de wekker.",
+          "name": "Minuten"
+        },
+        "reveil": {
+          "description": "ID, wekkerentiteit (switch.vision_reveil_…) of exacte naam.",
+          "name": "Wekker"
+        }
+      },
+      "name": "Wekker — sluimeren"
+    },
+    "reveil_reprendre": {
+      "description": "Maakt het overslaan van een datum ongedaan (standaard: de eerste overgeslagen datum).",
+      "fields": {
+        "date": {
+          "description": "De datum die hervat moet worden.",
+          "name": "Datum"
+        },
+        "reveil": {
+          "description": "ID, wekkerentiteit (switch.vision_reveil_…) of exacte naam.",
+          "name": "Wekker"
+        }
+      },
+      "name": "Wekker — een keer hervatten"
+    },
+    "reveil_sauter": {
+      "description": "Annuleert één keer (standaard: de volgende) zonder de wekker te wijzigen. \"Wekker — hervatten\" maakt dit ongedaan.",
+      "fields": {
+        "date": {
+          "description": "De over te slaan datum (standaard: de volgende keer).",
+          "name": "Datum"
+        },
+        "reveil": {
+          "description": "ID, wekkerentiteit (switch.vision_reveil_…) of exacte naam.",
+          "name": "Wekker"
+        }
+      },
+      "name": "Wekker — een keer overslaan"
+    },
+    "reveil_sonner": {
+      "description": "Gaat meteen af zodra de apparaten controleren (op een telefoon in diepe slaap zonder gegarandeerde vertraging). Geef een wekker of een Aanvrager op.",
+      "fields": {
+        "appareils": {
+          "description": "Standaard: de apparaten van de wekker, of de telefoons en tablets van de Aanvrager.",
+          "name": "Apparaten"
+        },
+        "demandeur": {
+          "description": "Zonder wekker: de persoon wiens apparaten afgaan.",
+          "name": "Aanvrager"
+        },
+        "lecteur": {
+          "description": "Luidspreker die de Music Assistant-bron afspeelt (optioneel).",
+          "name": "Music Assistant-speler"
+        },
+        "libelle": {
+          "description": "Weergegeven naam van de bron (optioneel).",
+          "name": "Bronlabel"
+        },
+        "reveil": {
+          "description": "ID, wekkerentiteit (switch.vision_reveil_…) of exacte naam.",
+          "name": "Wekker"
+        },
+        "source": {
+          "description": "sonnerie (beltoon), url (radio, podcast, stream), ma (Music Assistant), video. De lokale beltoon blijft de terugval.",
+          "name": "Bron"
+        },
+        "uri": {
+          "description": "http(s)-adres van de stream, of Music Assistant-nummer / -playlist / -radio.",
+          "name": "Adres of medium"
+        }
+      },
+      "name": "Wekker — nu laten afgaan"
+    },
+    "reveil_supprimer": {
+      "description": "Verwijdert een wekker, zijn entiteiten en zijn Home Assistant-apparaat.",
+      "fields": {
+        "reveil": {
+          "description": "ID, wekkerentiteit (switch.vision_reveil_…) of exacte naam.",
+          "name": "Wekker"
+        }
+      },
+      "name": "Wekker — verwijderen"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "agent": {
+        "name": "Agent"
+      },
+      "compte_administrateur": {
+        "name": "Beheerdersaccount"
+      },
+      "pause_generale_en_cours": {
+        "name": "Alles geblokkeerd"
+      },
+      "fenetre_reveil": {
+        "name": "Wekkervenster"
+      }
+    },
+    "button": {
+      "autoriser_ce_logiciel": {
+        "name": "Deze software toestaan"
+      },
+      "autoriser_ce_site": {
+        "name": "Deze site toestaan"
+      },
+      "autoriser_une_reinscription": {
+        "name": "Opnieuw registreren toestaan"
+      },
+      "bloquer_ce_logiciel": {
+        "name": "Deze software blokkeren"
+      },
+      "bloquer_ce_programme": {
+        "name": "Dit programma blokkeren"
+      },
+      "bloquer_ce_site": {
+        "name": "Deze site blokkeren"
+      },
+      "creer_l_appareil": {
+        "name": "Apparaat aanmaken"
+      },
+      "creer_la_plage": {
+        "name": "Tijdvak aanmaken"
+      },
+      "envoyer_le_message": {
+        "name": "Bericht versturen"
+      },
+      "epargner_cette_adresse": {
+        "name": "Dit adres uitzonderen"
+      },
+      "fin_de_la_pause_generale": {
+        "name": "Weer toestaan"
+      },
+      "inscrire_comme_logiciel": {
+        "name": "Toevoegen als software"
+      },
+      "inscrire_comme_site": {
+        "name": "Toevoegen als site"
+      },
+      "laisser_passer_ce_site": {
+        "name": "Uitzondering voor deze site"
+      },
+      "ne_plus_epargner_cette_adresse": {
+        "name": "Dit adres niet meer uitzonderen"
+      },
+      "ouvrir_30_min": {
+        "name": "30 min toestaan"
+      },
+      "page_precedente": {
+        "name": "Vorige pagina"
+      },
+      "page_suivante": {
+        "name": "Volgende pagina"
+      },
+      "pause_generale_30_min": {
+        "name": "Alles blokkeren 30 min"
+      },
+      "rafraichir_la_frequentation": {
+        "name": "Populariteit vernieuwen"
+      },
+      "rafraichir_la_liste_noire": {
+        "name": "Blokkeerlijst vernieuwen"
+      },
+      "refermer_ce_site": {
+        "name": "Deze site weer blokkeren"
+      },
+      "regenerer_le_tableau_de_bord": {
+        "name": "Dashboard opnieuw opbouwen"
+      },
+      "remettre_a_trier": {
+        "name": "Opnieuw te sorteren"
+      },
+      "retirer_ce_logiciel_de_la_liste": {
+        "name": "Deze software uit de lijst halen"
+      },
+      "retirer_ce_site_de_la_liste": {
+        "name": "Deze site uit de lijst halen"
+      },
+      "revenir_au_planning": {
+        "name": "Terug naar planning"
+      },
+      "sans_regle_ce_logiciel": {
+        "name": "Geen regel: deze software"
+      },
+      "sans_regle_ce_site": {
+        "name": "Geen regel: deze site"
+      },
+      "supprimer_cet_appareil": {
+        "name": "Dit apparaat verwijderen"
+      },
+      "supprimer_l_appareil_cible": {
+        "name": "Gekozen apparaat verwijderen"
+      },
+      "supprimer_la_plage": {
+        "name": "Tijdvak verwijderen"
+      },
+      "verrouiller_maintenant": {
+        "name": "Nu vergrendelen"
+      }
+    },
+    "notify": {
+      "message_a_l_ecran": {
+        "name": "Bericht op het scherm"
+      }
+    },
+    "number": {
+      "attente_apres_un_refus": {
+        "name": "Wachttijd na een weigering"
+      },
+      "avertir_avant_fermeture": {
+        "name": "Waarschuwen voor het blokkeren"
+      },
+      "duree_du_laissez_passer": {
+        "name": "Duur van de uitzondering"
+      },
+      "duree_max_de_pause": {
+        "name": "Maximale opschortingsduur"
+      },
+      "inactif_apres": {
+        "name": "Inactief na"
+      },
+      "rafraichir_la_liste_noire_toutes_les": {
+        "name": "Blokkeerlijst vernieuwen elke"
+      }
+    },
+    "select": {
+      "adresse_du_site": {
+        "name": "Adres van de site"
+      },
+      "appareil_cible": {
+        "name": "Gekozen apparaat"
+      },
+      "cette_plage_ferme": {
+        "name": "Dit tijdvak blokkeert"
+      },
+      "destinataire_du_message": {
+        "name": "Ontvanger van het bericht"
+      },
+      "ecran_de_veille_radio": {
+        "name": "Schermbeveiliging: radio"
+      },
+      "ecran_de_veille_theme": {
+        "name": "Schermbeveiliging: thema"
+      },
+      "filtre_dns_des_pc": {
+        "name": "DNS-filter van de pc's"
+      },
+      "jours_de_la_plage": {
+        "name": "Dagen van het tijdvak"
+      },
+      "logiciel_autorise": {
+        "name": "Toegestane software"
+      },
+      "logiciel_bloque": {
+        "name": "Geblokkeerde software"
+      },
+      "logiciel_constate": {
+        "name": "Gevonden software"
+      },
+      "ouvert_par": {
+        "name": "Geopend door"
+      },
+      "plage_a_supprimer": {
+        "name": "Te verwijderen tijdvak"
+      },
+      "plage_ferme": {
+        "name": "Tijdvak {nom} blokkeert"
+      },
+      "plage_jours": {
+        "name": "Tijdvak {nom} dagen"
+      },
+      "position_des_messages": {
+        "name": "Positie van berichten"
+      },
+      "resultats_par_page": {
+        "name": "Resultaten per pagina"
+      },
+      "role_de_l_appareil": {
+        "name": "Rol van het apparaat"
+      },
+      "site_autorise": {
+        "name": "Toegestane site"
+      },
+      "site_bloque": {
+        "name": "Geblokkeerde site"
+      },
+      "site_constate": {
+        "name": "Gevonden site"
+      },
+      "son_de_la_notification": {
+        "name": "Meldingsgeluid"
+      },
+      "taille_des_messages": {
+        "name": "Grootte van berichten"
+      },
+      "utilisateur": {
+        "name": "Gebruiker"
+      }
+    },
+    "sensor": {
+      "a_classer": {
+        "name": "Te sorteren"
+      },
+      "bloques_sur_cet_appareil": {
+        "name": "Geblokkeerd op dit apparaat"
+      },
+      "dans_la_liste_noire": {
+        "name": "In de blokkeerlijst"
+      },
+      "etat": {
+        "name": "Status",
+        "state": {
+          "ouvert": "Toegestaan",
+          "ferme": "Geblokkeerd"
+        }
+      },
+      "exceptions": {
+        "name": "Uitzonderingen"
+      },
+      "fermetures_automatisation": {
+        "name": "Geblokkeerd door automatiseringen {prenom}"
+      },
+      "liste_noire": {
+        "name": "Blokkeerlijst"
+      },
+      "musique_derniere_commande": {
+        "name": "Muziek — laatste opdracht"
+      },
+      "plages": {
+        "name": "Tijdvakken"
+      },
+      "presence": {
+        "name": "Aanwezigheid",
+        "state": {
+          "actif": "In gebruik",
+          "inactif": "Inactief",
+          "verrouille": "Vergrendeld",
+          "hors_ligne": "Offline"
+        }
+      },
+      "prochain_changement": {
+        "name": "Volgende wijziging"
+      },
+      "session_ouverte": {
+        "name": "Aangemelde sessie"
+      },
+      "sites_bloques_aujourd_hui": {
+        "name": "Vandaag geblokkeerde sites"
+      },
+      "sites_dangereux_bloques": {
+        "name": "Geblokkeerde gevaarlijke sites"
+      },
+      "temps_d_ecran": {
+        "name": "Schermtijd"
+      },
+      "reveil_appareils": {
+        "name": "Apparaten"
+      },
+      "reveil_etat": {
+        "name": "Status",
+        "state": {
+          "arme": "Ingesteld",
+          "arrete": "Gestopt",
+          "echec": "Mislukt",
+          "inactif": "Inactief",
+          "non_synchronise": "Niet gesynchroniseerd",
+          "reporte": "Uitgesteld",
+          "sonne": "Gaat af"
+        }
+      },
+      "reveil_prochain": {
+        "name": "Volgende"
+      },
+      "reveil_source": {
+        "name": "Bron"
+      }
+    },
+    "switch": {
+      "acces_a_l_appareil": {
+        "name": "Toegang tot het apparaat"
+      },
+      "avis_virustotal": {
+        "name": "VirusTotal-oordelen"
+      },
+      "bloquer_categorie": {
+        "name": "“{categorie}” blokkeren"
+      },
+      "desinstallation_par_l_agent": {
+        "name": "Verwijderen door de agent"
+      },
+      "frequentation_des_sites": {
+        "name": "Populariteit van sites"
+      },
+      "inscription_de_nouveaux_appareils": {
+        "name": "Registratie van nieuwe apparaten"
+      },
+      "liste_noire_des_sites_dangereux": {
+        "name": "Blokkeerlijst van gevaarlijke sites"
+      },
+      "mise_a_jour_automatique_des_agents": {
+        "name": "Automatische updates van de agents"
+      },
+      "plage": {
+        "name": "Tijdvak {libelle}"
+      },
+      "veille_vrai_rendu_des_cartes": {
+        "name": "Schermbeveiliging: echte weergave van kaarten"
+      }
+    },
+    "text": {
+      "cle_virustotal": {
+        "name": "VirusTotal-sleutel"
+      },
+      "ecran_de_veille_cameras": {
+        "name": "Schermbeveiliging: camera's"
+      },
+      "ecran_de_veille_courbe": {
+        "name": "Schermbeveiliging: grafiek"
+      },
+      "ecran_de_veille_entites": {
+        "name": "Schermbeveiliging: entiteiten"
+      },
+      "ecran_de_veille_flux_secondaire": {
+        "name": "Schermbeveiliging: tweede stream"
+      },
+      "ecran_de_veille_musique": {
+        "name": "Schermbeveiliging: muziek"
+      },
+      "ecran_de_veille_nuit": {
+        "name": "Schermbeveiliging: nacht"
+      },
+      "etiquettes": {
+        "name": "Categorieën"
+      },
+      "liste_autorises": {
+        "name": "Toegestaan (uitzonderingen)"
+      },
+      "liste_bloques": {
+        "name": "Geblokkeerd"
+      },
+      "nom": {
+        "name": "Naam"
+      },
+      "plage_etiquettes": {
+        "name": "Tijdvak {nom} categorieën"
+      },
+      "saisie_adresse": {
+        "name": "Uit te zonderen adres"
+      },
+      "saisie_ajout": {
+        "name": "Toe te voegen site of software"
+      },
+      "saisie_etiquettes_plage": {
+        "name": "Te blokkeren categorieën (gescheiden door komma's)"
+      },
+      "saisie_message": {
+        "name": "Te versturen bericht"
+      },
+      "saisie_nom_pc": {
+        "name": "Naam van het nieuwe apparaat"
+      },
+      "saisie_nom_plage": {
+        "name": "Naam van het nieuwe tijdvak"
+      },
+      "saisie_recherche": {
+        "name": "Zoeken in de blokkeerlijst"
+      }
+    },
+    "time": {
+      "debut_nouvelle_plage": {
+        "name": "Begin van het nieuwe tijdvak"
+      },
+      "fin_nouvelle_plage": {
+        "name": "Einde van het nieuwe tijdvak"
+      },
+      "plage_debut": {
+        "name": "Tijdvak {nom} begin"
+      },
+      "plage_fin": {
+        "name": "Tijdvak {nom} einde"
+      }
+    },
+    "update": {
+      "agent": {
+        "name": "Agent"
+      }
+    }
+  },
+  "exceptions": {
+    "adresse_deja_epargnee": {
+      "message": "“{adresse}” is al uitgezonderd op dit apparaat."
+    },
+    "adresse_http": {
+      "message": "Het adres moet beginnen met http:// of https://."
+    },
+    "adresse_manquante": {
+      "message": "Kies een adres dat gezien is, of typ het in “Uit te zonderen adres”."
+    },
+    "adresse_pas_epargnee": {
+      "message": "“{adresse}” was niet uitgezonderd op dit apparaat."
+    },
+    "ajout_vide": {
+      "message": "Typ eerst een naam in “Toe te voegen site of software”."
+    },
+    "appareil_cible_manquant": {
+      "message": "Kies eerst een apparaat in “Gekozen apparaat”."
+    },
+    "aucun_appareil": {
+      "message": "Geen apparaat geregistreerd."
+    },
+    "aucun_laissez_passer": {
+      "message": "Er loopt geen uitzondering voor “{site}”."
+    },
+    "camera_inconnue": {
+      "message": "Onbekende camera: “{camera}”."
+    },
+    "derniere_page": {
+      "message": "Je bent al op de laatste pagina."
+    },
+    "destinataire_vide": {
+      "message": "Er is geen apparaat dat bij deze ontvanger past."
+    },
+    "element_constate": {
+      "message": "“{nom}” is niet met de hand toegevoegd: het is op een computer gezien."
+    },
+    "element_manquant": {
+      "message": "Kies eerst een item in de lijst."
+    },
+    "entite_inconnue": {
+      "message": "Onbekende entiteit: “{entite}”."
+    },
+    "etiquette_disparue": {
+      "message": "Deze categorie bestaat niet meer."
+    },
+    "format_nuit": {
+      "message": "Verwacht formaat: “23:00-07:00” (of leeg voor nooit)."
+    },
+    "heure_debut_manquante": {
+      "message": "Vul de begintijd in."
+    },
+    "heure_fin_manquante": {
+      "message": "Vul de eindtijd in."
+    },
+    "jours_illisibles": {
+      "message": "{detail}"
+    },
+    "message_en_attente": {
+      "message": "Bericht staat klaar, maar deze apparaten reageren niet: {appareils}. Het verschijnt zodra ze terug zijn, binnen een kwartier."
+    },
+    "message_vide": {
+      "message": "Schrijf eerst een bericht in “Te versturen bericht”."
+    },
+    "nom_appareil_manquant": {
+      "message": "Vul “Naam van het nieuwe apparaat” in."
+    },
+    "nom_plage_manquant": {
+      "message": "Vul “Naam van het nieuwe tijdvak” in."
+    },
+    "plage_a_supprimer_manquante": {
+      "message": "Kies in de lijst het tijdvak dat je wilt verwijderen."
+    },
+    "plage_debut_egal_fin": {
+      "message": "Het begin en het einde van een tijdvak moeten verschillen."
+    },
+    "plage_disparue": {
+      "message": "Dit tijdvak bestaat niet meer."
+    },
+    "plage_etiquettes_manquantes": {
+      "message": "Noem minstens één categorie in “Te blokkeren categorieën”, of kies “Sessie vergrendelen”."
+    },
+    "plage_etiquettes_vides": {
+      "message": "Dit tijdvak blokkeert categorieën: als je de lijst leegmaakt, blokkeert het niets meer. Zet het eerst terug op “Sessie vergrendelen”, of verwijder het."
+    },
+    "plage_sans_etiquette": {
+      "message": "Noem eerst de categorieën van dit tijdvak: een tijdvak dat geen categorie blokkeert, blokkeert niets."
+    },
+    "plage_sans_jour": {
+      "message": "Een tijdvak zonder dagen geldt nooit. Om het even stil te zetten, zet je de schakelaar uit."
+    },
+    "premiere_page": {
+      "message": "Je bent al op de eerste pagina."
+    },
+    "programme_intouchable": {
+      "message": "“{programme}” houdt Windows of Vision draaiende: als je het blokkeert, gaat de computer stuk zonder dat het iemand beschermt."
+    },
+    "programme_manquant": {
+      "message": "Kies eerst een programma in “Geopend door”. De lijst blijft leeg zolang er nog geen verbinding is betrapt terwijl die openstond: een site die tussen twee controles wordt geopend en weer gesloten, laat geen spoor na van wie hem opende."
+    },
+    "rien_selectionne": {
+      "message": "Hierboven is niets geselecteerd."
+    },
+    "role_inconnu": {
+      "message": "Onbekende rol: {role}"
+    },
+    "site_manquant": {
+      "message": "Kies eerst een site in de lijst."
+    },
+    "tableau_echec": {
+      "message": "Het dashboard kon niet worden gemaakt. Kijk in het logboek van Home Assistant."
+    },
+    "virustotal_sans_cle": {
+      "message": "Vul eerst je sleutel in bij “VirusTotal-sleutel”. Je maakt er een aan op virustotal.com, in je profiel."
+    },
+    "reveil_appareil": {
+      "message": "\"{valeur}\" is geen apparaat van {demandeur}."
+    },
+    "reveil_aucun_appareil": {
+      "message": "Geen apparaat voor {demandeur}."
+    },
+    "reveil_bornes": {
+      "message": "Ongeldige grenzen: {valeur} (twee tijden, de vroegste eerst)."
+    },
+    "reveil_cible": {
+      "message": "Geef een wekker of een Aanvrager op."
+    },
+    "reveil_date": {
+      "message": "Ongeldige datum: {valeur} (verwacht JJJJ-MM-DD)."
+    },
+    "reveil_demandeur": {
+      "message": "Aanvrager niet gevonden: {valeur}."
+    },
+    "reveil_entite": {
+      "message": "Een wekker van het type \"entiteit\" heeft een tijdstempel-entiteit nodig."
+    },
+    "reveil_heure": {
+      "message": "Ongeldige tijd voor \"{champ}\": {valeur} (verwacht HH:MM)."
+    },
+    "reveil_introuvable": {
+      "message": "Wekker \"{valeur}\" niet gevonden."
+    },
+    "reveil_jours": {
+      "message": "Ongeldige dagen: {valeur}."
+    },
+    "reveil_modele": {
+      "message": "Een wekker van het type \"sjabloon\" heeft een sjabloon nodig."
+    },
+    "reveil_nombre": {
+      "message": "Waarde geweigerd voor \"{champ}\": {valeur}."
+    },
+    "reveil_reglage": {
+      "message": "Onbekende instelling: {valeur}."
+    },
+    "reveil_source": {
+      "message": "Onbekende bron: {valeur}."
+    },
+    "reveil_source_lecteur": {
+      "message": "De speler moet een media_player-entiteit zijn: {valeur}."
+    },
+    "reveil_source_uri": {
+      "message": "Deze bron heeft een adres of een medium nodig."
+    },
+    "reveil_type": {
+      "message": "Onbekend triggertype: {valeur}."
+    }
+  },
+  "musique": {
+    "fin_1": "The End 🎬",
+    "fin_2": "The Show Must Go On… voeg een nummer toe 🎭",
+    "fin_3": "Silence Is Golden 🤫",
+    "fin_4": "Encore! 👏",
+    "fin_5": "Play It Again 🎹",
+    "fin_6": "Stop! In the Name of Love ✋",
+    "fin_7": "One More Time 🔁",
+    "fin_8": "Don't Stop Me Now 🎤",
+    "fin_action": "Voeg een nummer toe om het feest weer op gang te brengen"
+  }
+}

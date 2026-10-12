@@ -1,0 +1,95 @@
+<!doctype html>
+<!-- Prototype Sendspin (étape 1 de l'étude « lecteur natif », 2026-10-12) : sendspin-js 5.0.0 (Apache-2.0,
+     github.com/Sendspin/sendspin-js), en un seul fichier (rollup), dans une WebView cachée de Vision. Debug seulement. -->
+<html><head><meta charset="utf-8"><script src="sendspin.iife.js"></script></head><body><script>
+"use strict";
+const prm = new URLSearchParams(location.search);
+const V = window.Vision || { etat: (s) => console.log(s), evenement: (s) => console.log(s) };
+const t0 = performance.now();
+
+// Règle de l'auteur (2026-10-12) : « l'appli ne gère pas le volume ; le volume de l'appli est à 100 %, après c'est la télé
+// qui gère ». Sortie toujours à 100 % (gain 1,0, jamais muette) ; volume et sourdine venant de MA ignorés ; l'état
+// renvoyé à MA dit toujours 100 % sans sourdine. ?volume=aucune (défaut) : aucune commande annoncée à MA ;
+// ?volume=neutralise : commandes annoncées mais sans effet (variante d'essai).
+const MODE_VOLUME = prm.get("volume") || "aucune";
+if (MODE_VOLUME === "aucune") globalThis.VISION_COMMANDES_PLAYER = [];
+let volumesIgnores = 0;
+function ev(nom, d) { try { V.evenement(JSON.stringify(Object.assign({ ev: nom, t: Math.round(performance.now() - t0) }, d || {}))); } catch (e) {} }
+
+// Mesure de l'enchaînement : chaque tampon programmé (heure de début, durée, niveau), pour trouver les trous.
+const prog = [];
+const niveaux = [];  // niveau des derniers tampons non muets : MA baisse-t-il le son dans le flux ?
+let trous = 0, trouMaxMs = 0, premierSonT = null, silencesLongs = 0, silenceCourant = 0;
+const startOrig = AudioBufferSourceNode.prototype.start;
+AudioBufferSourceNode.prototype.start = function (when, offset, duration) {
+  try {
+    const b = this.buffer;
+    if (b && b.duration > 0) {
+      const ch = b.getChannelData(0); let s = 0; for (let i = 0; i < ch.length; i += 8) s += ch[i] * ch[i];
+      const rms = Math.sqrt(s / Math.ceil(ch.length / 8));
+      if (rms >= 1e-4) { niveaux.push(rms); if (niveaux.length > 40) niveaux.shift(); }
+      const w = when || this.context.currentTime;
+      const prec = prog[prog.length - 1];
+      if (prec) {
+        const ecart = (w - (prec.w + prec.d)) * 1000;
+        if (ecart > 5) { trous++; trouMaxMs = Math.max(trouMaxMs, ecart); ev("trou", { ms: Math.round(ecart), titre: titre }); }
+      }
+      if (rms < 1e-4) { silenceCourant += b.duration; } else { if (silenceCourant > 0.5) { silencesLongs++; ev("silence", { s: +silenceCourant.toFixed(2), titre: titre }); } silenceCourant = 0; }
+      prog.push({ w: w, d: b.duration }); if (prog.length > 50) prog.shift();
+      if (premierSonT === null && rms >= 1e-4) { premierSonT = performance.now(); ev("premier_son", {}); }
+    }
+  } catch (e) {}
+  return startOrig.apply(this, arguments);
+};
+
+let titre = null, meta = {}, groupe = {}, pin = null, appairage = null;
+const player = new Sendspin.SendspinPlayer({
+  baseUrl: prm.get("serveur"),
+  clientName: prm.get("nom"),
+  productName: "Vision",
+  codecs: (prm.get("codecs") || "flac").split(","),
+  correctionMode: "sync",
+  useHardwareVolume: true,  // gain de sortie forcé à 1,0 par la bibliothèque
+  onVolumeCommand: (v, m) => { volumesIgnores++; ev("volume_ignore", { volume: v, muet: m }); },
+  getExternalVolume: () => ({ volume: 100, muted: false }),
+  onPairingPin: (p) => { pin = p; ev("pin", { pin: p }); },
+  onPairing: (e, d) => { appairage = e; ev("appairage", { etape: e, detail: d || null }); },
+  onStateChange: (s) => {
+    const m = (s.serverState && s.serverState.metadata) || null;
+    if (m) {
+      Object.assign(meta, m);
+      if (m.title !== undefined && m.title !== titre) { titre = m.title; premierSonT = null; ev("titre", { titre: m.title, artiste: meta.artist, pochette: meta.artwork_url }); }
+    }
+    if (s.groupState) Object.assign(groupe, s.groupState);
+  },
+});
+// Les messages de la bibliothèque (codec, flux, clear, fin) : relayés pour le journal.
+const logOrig = console.log;
+console.log = function () { const t = Array.from(arguments).join(" "); if (t.indexOf("Sendspin") >= 0) ev("journal", { texte: t }); return logOrig.apply(console, arguments); };
+window.addEventListener("error", (e) => ev("erreur", { texte: String(e.message) }));
+window.addEventListener("unhandledrejection", (e) => ev("erreur", { texte: String(e.reason) }));
+
+setInterval(() => {
+  let mem = null; try { if (performance.memory) mem = Math.round(performance.memory.usedJSHeapSize / 1048576 * 10) / 10; } catch (e) {}
+  const si = player.syncInfo, ts = player.timeSyncInfo, tp = player.trackProgress;
+  try { V.etat(JSON.stringify({
+    connecte: player.isConnected, lit: player.isPlaying, format: player.currentFormat, mode_volume: MODE_VOLUME, volumes_ignores: volumesIgnores,
+    niveau_dbfs: niveaux.length ? Math.round(20 * Math.log10(niveaux.reduce((a, b) => a + b, 0) / niveaux.length) * 10) / 10 : null,
+    position_ms: tp ? Math.round(tp.positionMs) : null, duree_ms: tp ? tp.durationMs : null,
+    titre: titre, artiste: meta.artist || null, album: meta.album || null, pochette: meta.artwork_url || null,
+    groupe: groupe.group_name || null, etat_groupe: groupe.playback_state || null,
+    synchro: ts.synced, erreur_horloge_ms: Math.round(ts.error / 100) / 10, ecart_sync_ms: Math.round(si.syncErrorMs * 10) / 10,
+    latence_sortie_ms: Math.round(si.outputLatencyMs), resync: si.resyncCount, correction: si.correctionMethod,
+    trous: trous, trou_max_ms: Math.round(trouMaxMs), silences_longs: silencesLongs, tas_js_mo: mem, pin: pin, appairage: appairage,
+    client_id: player.clientId,
+  })); } catch (e) {}
+}, 1000);
+
+(async () => {
+  ev("demarrage", {});
+  try { await player.unlock(); } catch (e) { ev("erreur", { texte: "unlock " + e }); }
+  try { await player.connect(); ev("connecte", {}); } catch (e) { ev("erreur", { texte: "connect " + e }); }
+})();
+window.ouvrirAppairage = () => player.openPairingWindow();
+window.commande = (c, p) => player.sendCommand(c, p || {});
+</script></body></html>

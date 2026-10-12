@@ -1,0 +1,45 @@
+{
+  "version": "2.4.2",
+  "date": "2026-10-12",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Ordinateurs : l'écran de veille Vision est retiré (agent 1.91.0) ; les télés et téléphones gardent le leur.",
+        "en": "Computers: the Vision screensaver is removed (agent 1.91.0); TVs and phones keep theirs.",
+        "de": "Computer: Der Vision-Bildschirmschoner entfällt (Agent 1.91.0); Fernseher und Handys behalten ihren.",
+        "es": "Ordenadores: se retira el salvapantallas de Vision (agente 1.91.0); teles y teléfonos conservan el suyo.",
+        "it": "Computer: il salvaschermo Vision è rimosso (agente 1.91.0); TV e telefoni mantengono il loro.",
+        "nl": "Computers: de Vision-schermbeveiliging is verwijderd (agent 1.91.0); tv's en telefoons houden die van hen."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Les ordinateurs effacent d'eux-mêmes ce que l'écran de veille laissait (Windows n'y renvoie plus).",
+        "en": "Computers clean up what the screensaver left behind on their own (Windows no longer points to it).",
+        "de": "Computer räumen selbst auf, was der Bildschirmschoner hinterließ (Windows verweist nicht mehr darauf).",
+        "es": "Los ordenadores borran solos lo que dejaba el salvapantallas (Windows ya no remite a él).",
+        "it": "I computer cancellano da soli ciò che il salvaschermo lasciava (Windows non vi rimanda più).",
+        "nl": "Computers ruimen zelf op wat de schermbeveiliging achterliet (Windows verwijst er niet meer naar)."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Ses interrupteurs « Écran de veille Vision » disparaissent de Home Assistant.",
+        "en": "Its “Vision screensaver” switches disappear from Home Assistant.",
+        "de": "Die Schalter „Vision-Bildschirmschoner“ verschwinden aus Home Assistant.",
+        "es": "Sus interruptores «Salvapantallas de Vision» desaparecen de Home Assistant.",
+        "it": "I suoi interruttori «Salvaschermo Vision» scompaiono da Home Assistant.",
+        "nl": "De schakelaars ‘Vision-schermbeveiliging’ verdwijnen uit Home Assistant."
+      }
+    }
+  ]
+}

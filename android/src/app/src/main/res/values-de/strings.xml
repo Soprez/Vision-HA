@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vision</string>
+    <string name="widget_ha_label">Vision · Home Assistant</string>
+    <string name="widget_ha_description">Eine auf diesem Gerät erlaubte Home-Assistant-Entität: Wert, Taste, Schalter, Anzeige, Diagramm oder Wetter.</string>
+    <string name="accessibility_desc">Vision wendet die in Home Assistant festgelegten Regeln an: gesperrte Apps, Zeitfenster und Sperren.</string>
+    <string name="admin_desc">Verhindert, dass Vision ohne Verwaltungscode deinstalliert wird.</string>
+    <string name="musique_fin_action">Füg einen Titel hinzu, damit die Party weitergeht</string>
+    <!-- 1.86.2 (retour d'essai) : Musique, file vide et musique arrêtée. Même liste et même ordre que Home Assistant
+         (translations/*.json, section « musique », fin_1 à fin_8) : HA tire le numéro, chaque écran montre la même phrase.
+         Des titres de chansons courts, jamais de paroles. -->
+    <string-array name="musique_fin_clins">
+        <item>The End 🎬</item>
+        <item>The Show Must Go On… füg einen Titel hinzu 🎭</item>
+        <item>Silence Is Golden 🤫</item>
+        <item>Zugabe! 👏</item>
+        <item>Play It Again 🎹</item>
+        <item>Stop! In the Name of Love ✋</item>
+        <item>One More Time 🔁</item>
+        <item>Don\'t Stop Me Now 🎤</item>
+    </string-array>
+    <!-- Le nom du lieu tant que Home Assistant n'en a envoyé aucun : neutre (jamais « Maison »). -->
+    <string name="lieu_defaut">Ort</string>
+    <string name="soutien_titre">Projekt unterstützen</string>
+    <string name="soutien_badge">♥ Unterstützer</string>
+    <string name="soutien_carte">☕ Spendier uns einen Kaffee</string>
+    <string name="soutien_merci">Danke! Dieser Ort unterstützt Vision.</string>
+    <string name="soutien_explication">Das Unterstützer-Abzeichen ist rein dekorativ: Nichts wird freigeschaltet, Vision macht für alle genau dasselbe.</string>
+    <string name="soutien_comment">Zum Einschalten: in Home Assistant Einstellungen → Geräte &amp; Dienste → Vision → Konfigurieren → Projekt unterstützen.</string>
+    <string name="soutien_adresse">Spendenseite: %1$s</string>
+    <string name="soutien_ouvrir">Spendenseite öffnen</string>
+    <string name="soutien_fermer">Schließen</string>
+    <string name="reglagestv_a_propos">Info</string>
+    <string name="reglagestv_version">Version</string>
+    <string name="mus_aide_tele">OK: abspielen, als Nächstes, verschieben, entfernen · Zurück: beenden</string>
+    <string name="mus_aide_deplacer">Hoch / runter: verschieben · OK: bestätigen · Zurück: abbrechen</string>
+    <string name="mus_musique_charge">Einen Moment: Die Musik wird geladen.</string>
+    <string name="mus_demande_en_cours">Einen Moment: Die vorherige Anfrage läuft noch.</string>
+    <string name="mus_oui">ja</string>
+    <string name="mus_non">nein</string>
+    <string name="mus_similaires_desc">Mit ähnlichen Titeln weitermachen, wenn die Warteschlange leer ist: %1$s</string>
+    <string name="mus_ok_changer">%1$s. OK zum Ändern</string>
+    <string name="mus_fond_floute_bouton">Startbildschirm-Hintergrund: unscharfes Cover — %1$s</string>
+    <string name="mus_fond_floute_desc">Unscharfes Cover als Startbildschirm-Hintergrund: %1$s</string>
+    <string name="mus_fond_floute">Unscharfes Cover als Startbildschirm-Hintergrund</string>
+    <string name="mus_aide">Hilfe</string>
+    <string name="mus_hors_ligne">" · offline"</string>
+    <string name="mus_hors_ma">" · nicht in Music Assistant"</string>
+    <string name="mus_enchainement_titres">Übergänge zwischen Titeln</string>
+    <string name="mus_sans_blanc">Lückenlos</string>
+    <string name="mus_fondu_s">Überblenden %1$d s</string>
+    <string name="mus_titre_par_titre_aide">Dieser Player spielt Titel für Titel: Eine kurze Pause ist möglich. Der Flussmodus wird in Music Assistant eingestellt (Einstellungen → Player).</string>
+    <string name="mus_type">Typ</string>
+    <string name="mus_tout">Alles</string>
+    <string name="mus_titres">Titel</string>
+    <string name="mus_albums">Alben</string>
+    <string name="mus_playlists">Playlists</string>
+    <string name="mus_artistes">Künstler</string>
+    <string name="mus_radios">Radios</string>
+    <string name="mus_autres">Sonstiges</string>
+    <string name="mus_plateforme">Plattform</string>
+    <string name="mus_toutes">Alle</string>
+    <string name="mus_auto_ma">Automatisch (Music Assistant)</string>
+    <string name="mus_auto_ma_desc">Von Music Assistant automatisch erstellte Playlist</string>
+    <string name="mus_lire">Abspielen</string>
+    <string name="mus_ensuite">Als Nächstes</string>
+    <string name="mus_plus_choix">Weitere Optionen: %1$s</string>
+    <string name="mus_ajouter_n_titre">%1$d Titel hinzufügen?</string>
+    <string name="mus_ajouter_n_message">„%1$s“ hat %2$d Titel: Sie werden alle ans Ende der Warteschlange gestellt.</string>
+    <string name="mus_ajouter_les_n">Die %1$d Titel hinzufügen</string>
+    <string name="mus_ench_inconnu">Übergänge: unbekannt</string>
+    <string name="mus_ench_fondu">Übergänge: %1$d s Überblendung</string>
+    <string name="mus_ench_sans_blanc">Übergänge: lückenlos</string>
+    <string name="mus_ench_titre">Übergänge: Titel für Titel</string>
+    <string name="accueil_raison_origine">Ursprünglichen Startbildschirm öffnen</string>
+    <string name="accueil_raison_rendre">Ursprünglichen Startbildschirm zurückgeben</string>
+    <string name="accueil_raison_force">Die Home-Taste dem ursprünglichen Startbildschirm überlassen</string>
+    <string name="actions_raison_infos">App-Infos: deinstallieren, Daten löschen, Berechtigungen</string>
+
+
+</resources>

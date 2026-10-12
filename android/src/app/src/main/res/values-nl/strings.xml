@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vision</string>
+    <string name="widget_ha_label">Vision · Home Assistant</string>
+    <string name="widget_ha_description">Een Home Assistant-entiteit die op dit apparaat is toegestaan: waarde, knop, schakelaar, meter, grafiek of weer.</string>
+    <string name="accessibility_desc">Vision past de regels toe die in Home Assistant zijn ingesteld: geblokkeerde apps, tijdvakken en vergrendeling.</string>
+    <string name="admin_desc">Voorkomt dat Vision zonder beheercode wordt verwijderd.</string>
+    <string name="musique_fin_action">Voeg een nummer toe om het feest weer op gang te brengen</string>
+    <!-- 1.86.2 (retour d'essai) : Musique, file vide et musique arrêtée. Même liste et même ordre que Home Assistant
+         (translations/*.json, section « musique », fin_1 à fin_8) : HA tire le numéro, chaque écran montre la même phrase.
+         Des titres de chansons courts, jamais de paroles. -->
+    <string-array name="musique_fin_clins">
+        <item>The End 🎬</item>
+        <item>The Show Must Go On… voeg een nummer toe 🎭</item>
+        <item>Silence Is Golden 🤫</item>
+        <item>Encore! 👏</item>
+        <item>Play It Again 🎹</item>
+        <item>Stop! In the Name of Love ✋</item>
+        <item>One More Time 🔁</item>
+        <item>Don\'t Stop Me Now 🎤</item>
+    </string-array>
+    <!-- Le nom du lieu tant que Home Assistant n'en a envoyé aucun : neutre (jamais « Maison »). -->
+    <string name="lieu_defaut">Plek</string>
+    <string name="soutien_titre">Het project steunen</string>
+    <string name="soutien_badge">♥ Supporter</string>
+    <string name="soutien_carte">☕ Trakteer ons op koffie</string>
+    <string name="soutien_merci">Bedankt! Deze plek steunt Vision.</string>
+    <string name="soutien_explication">De supportersbadge is puur decoratief: er wordt niets ontgrendeld, Vision doet precies hetzelfde voor iedereen.</string>
+    <string name="soutien_comment">Inschakelen: in Home Assistant, Instellingen → Apparaten &amp; diensten → Vision → Configureren → Het project steunen.</string>
+    <string name="soutien_adresse">Donatiepagina: %1$s</string>
+    <string name="soutien_ouvrir">Donatiepagina openen</string>
+    <string name="soutien_fermer">Sluiten</string>
+    <string name="reglagestv_a_propos">Over</string>
+    <string name="reglagestv_version">Versie</string>
+    <string name="mus_aide_tele">OK: afspelen, hierna, verplaatsen, verwijderen · Terug: afsluiten</string>
+    <string name="mus_aide_deplacer">Omhoog / omlaag: verplaatsen · OK: bevestigen · Terug: annuleren</string>
+    <string name="mus_musique_charge">Even geduld: de muziek wordt geladen.</string>
+    <string name="mus_demande_en_cours">Even geduld: het vorige verzoek loopt nog.</string>
+    <string name="mus_oui">ja</string>
+    <string name="mus_non">nee</string>
+    <string name="mus_similaires_desc">Doorgaan met vergelijkbare nummers als de wachtrij leeg is: %1$s</string>
+    <string name="mus_ok_changer">%1$s. OK om te wijzigen</string>
+    <string name="mus_fond_floute_bouton">Achtergrond startscherm: vervaagde hoes — %1$s</string>
+    <string name="mus_fond_floute_desc">Vervaagde hoes als achtergrond van het startscherm: %1$s</string>
+    <string name="mus_fond_floute">Vervaagde hoes als achtergrond van het startscherm</string>
+    <string name="mus_aide">Hulp</string>
+    <string name="mus_hors_ligne">" · offline"</string>
+    <string name="mus_hors_ma">" · niet in Music Assistant"</string>
+    <string name="mus_enchainement_titres">Overgang tussen nummers</string>
+    <string name="mus_sans_blanc">Zonder pauze</string>
+    <string name="mus_fondu_s">Overgang %1$d s</string>
+    <string name="mus_titre_par_titre_aide">Deze speler speelt nummer voor nummer: een korte pauze is mogelijk. De stroommodus stel je in Music Assistant in (Instellingen → Spelers).</string>
+    <string name="mus_type">Soort</string>
+    <string name="mus_tout">Alles</string>
+    <string name="mus_titres">Nummers</string>
+    <string name="mus_albums">Albums</string>
+    <string name="mus_playlists">Afspeellijsten</string>
+    <string name="mus_artistes">Artiesten</string>
+    <string name="mus_radios">Radio\'s</string>
+    <string name="mus_autres">Overig</string>
+    <string name="mus_plateforme">Platform</string>
+    <string name="mus_toutes">Alle</string>
+    <string name="mus_auto_ma">Automatisch (Music Assistant)</string>
+    <string name="mus_auto_ma_desc">Afspeellijst automatisch gemaakt door Music Assistant</string>
+    <string name="mus_lire">Afspelen</string>
+    <string name="mus_ensuite">Hierna</string>
+    <string name="mus_plus_choix">Meer keuzes: %1$s</string>
+    <string name="mus_ajouter_n_titre">%1$d nummers toevoegen?</string>
+    <string name="mus_ajouter_n_message">\"%1$s\" heeft %2$d nummers: ze komen allemaal achteraan in de wachtrij.</string>
+    <string name="mus_ajouter_les_n">De %1$d nummers toevoegen</string>
+    <string name="mus_ench_inconnu">Overgang: onbekend</string>
+    <string name="mus_ench_fondu">Overgang: %1$d s overvloeien</string>
+    <string name="mus_ench_sans_blanc">Overgang: zonder pauze</string>
+    <string name="mus_ench_titre">Overgang: nummer voor nummer</string>
+    <string name="accueil_raison_origine">Oorspronkelijk startscherm openen</string>
+    <string name="accueil_raison_rendre">Oorspronkelijk startscherm teruggeven</string>
+    <string name="accueil_raison_force">De home-knop aan het oorspronkelijke startscherm laten</string>
+    <string name="actions_raison_infos">App-info: verwijderen, gegevens wissen, machtigingen</string>
+
+
+</resources>

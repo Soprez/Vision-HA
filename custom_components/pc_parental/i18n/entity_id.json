@@ -1,0 +1,41 @@
+{
+  "_doc": "Lot 1 UX : noms d'entités renommés. L'entity_id d'une installation neuve garde l'ancien nom (dans la langue des entity_id de Home Assistant) : aucun entity_id ne change. Ne pas traduire, ne pas modifier.",
+  "binary_sensor": {
+    "pause_generale_en_cours": {
+      "fr": "Pause générale en cours",
+      "en": "General pause on",
+      "de": "Allgemeine Pause läuft",
+      "es": "Pausa general en curso",
+      "it": "Pausa generale in corso",
+      "nl": "Algemene pauze bezig"
+    }
+  },
+  "button": {
+    "fin_de_la_pause_generale": {
+      "fr": "Fin de la pause générale",
+      "en": "End the general pause",
+      "de": "Allgemeine Pause beenden",
+      "es": "Terminar la pausa general",
+      "it": "Fine della pausa generale",
+      "nl": "Algemene pauze beëindigen"
+    },
+    "pause_generale_30_min": {
+      "fr": "Pause générale 30 min",
+      "en": "General pause 30 min",
+      "de": "Allgemeine Pause 30 Min.",
+      "es": "Pausa general 30 min",
+      "it": "Pausa generale 30 min",
+      "nl": "Algemene pauze 30 min"
+    }
+  },
+  "number": {
+    "duree_max_de_pause": {
+      "fr": "Durée max de pause",
+      "en": "Maximum pause length",
+      "de": "Maximale Pausendauer",
+      "es": "Duración máxima de pausa",
+      "it": "Durata massima della pausa",
+      "nl": "Maximale pauzeduur"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 1 (zone Android) : textes nouveaux, six langues. -->
+<resources>
+    <string name="liaison_question">Link to “%1$s”?</string>
+    <string name="liaison_question_texte">Vision found this Home Assistant server on the network (%1$s). Nothing is sent to it until you choose.</string>
+    <string name="liaison_se_relier">Link</string>
+    <string name="liaison_pas_celui_ci">Not this one</string>
+    <string name="liaison_ecarte">Server set aside. Use another method below.</string>
+    <string name="decouverte_recherche_delai">Looking for Home Assistant on the network… (%1$d s at most)</string>
+    <string name="liaison_autres_methodes">Other methods</string>
+    <string name="bienvenue_qr_titre">Link with a QR code</string>
+    <string name="liaison_autres_methodes_plus">Other methods ▸</string>
+    <string name="liaison_autres_masquer">Hide other methods ▾</string>
+    <string name="nonrelie_titre">Not linked</string>
+    <string name="nonrelie_tele">This TV isn\'t linked to Vision yet: nothing is protected on it.</string>
+    <string name="nonrelie_appareil">This device isn\'t linked to Vision yet: nothing is protected on it.</string>
+    <string name="nonrelie_carte_texte">This device isn\'t linked to any Vision server: no rule applies here yet. Link it below.</string>
+    <string name="nonrelie_relier">Link</string>
+    <string name="statut_suspendue">Protection suspended</string>
+    <string name="cat_etat_ouverte">Open</string>
+    <string name="cat_etat_fermee">Blocked</string>
+    <string name="cat_etat_description">%1$s: %2$s</string>
+    <string name="a11y_retour">Back</string>
+    <string name="a11y_actualiser">Refresh</string>
+    <string name="a11y_allonger_5_s">%1$s: 5 seconds longer</string>
+    <string name="a11y_raccourcir_5_s">%1$s: 5 seconds shorter</string>
+    <string name="a11y_retirer_case">Remove %1$s</string>
+    <string name="a11y_qr_deverrouillage">Unlock QR code, to scan with the device</string>
+    <string name="couleurs_contraste_faible">Low contrast (%1$s:1): text will be hard to read. Aim for at least 4.5:1, for example a lighter text on a dark background.</string>
+    <!-- 1.87.1 : Musique, lancement d'une playlist sur la télé -->
+    <string name="party_lancement_playlist">“%1$s”: starting…</string>
+</resources>

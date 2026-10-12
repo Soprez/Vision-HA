@@ -1,0 +1,50 @@
+{
+  "version": "2.4.0",
+  "date": "2026-10-12",
+  "points": [
+    {
+      "cibles": ["ha", "telephone"],
+      "texte": {
+        "fr": "Widgets HA interactifs : interrupteurs, boutons et réglages se commandent depuis l'appli.",
+        "en": "Interactive HA widgets: switches, buttons and settings can be controlled from the app.",
+        "de": "Interaktive HA-Widgets: Schalter, Tasten und Einstellungen lassen sich in der App bedienen.",
+        "es": "Widgets de HA interactivos: interruptores, botones y ajustes se controlan desde la app.",
+        "it": "Widget HA interattivi: interruttori, pulsanti e regolazioni si comandano dall'app.",
+        "nl": "Interactieve HA-widgets: schakelaars, knoppen en instellingen bedien je vanuit de app."
+      }
+    },
+    {
+      "cibles": ["ha", "telephone"],
+      "texte": {
+        "fr": "Chaque widget choisit qui peut agir, demande une confirmation si besoin et peut être pour tout le monde.",
+        "en": "Each widget sets who may act, asks for confirmation if needed and can be shared with everyone.",
+        "de": "Jedes Widget legt fest, wer handeln darf, fragt bei Bedarf nach und kann für alle sein.",
+        "es": "Cada widget elige quién puede actuar, pide confirmación si hace falta y puede ser para todos.",
+        "it": "Ogni widget sceglie chi può agire, chiede conferma se serve e può essere per tutti.",
+        "nl": "Elke widget bepaalt wie mag bedienen, vraagt zo nodig om bevestiging en kan voor iedereen zijn."
+      }
+    },
+    {
+      "cibles": ["ha"],
+      "texte": {
+        "fr": "Tableau Vision réorganisé : utilisez « Régénérer » pour l'obtenir (retouches manuelles perdues).",
+        "en": "Reorganised Vision dashboard: use “Regenerate” to get it (manual edits are lost).",
+        "de": "Neu geordnetes Vision-Dashboard: mit „Neu erstellen“ übernehmen (manuelle Änderungen gehen verloren).",
+        "es": "Panel de Vision reorganizado: use «Regenerar» para obtenerlo (se pierden los cambios manuales).",
+        "it": "Pannello Vision riorganizzato: usa «Rigenera» per ottenerlo (le modifiche manuali si perdono).",
+        "nl": "Vernieuwd Vision-dashboard: gebruik „Opnieuw maken” (handmatige wijzigingen gaan verloren)."
+      }
+    },
+    {
+      "cibles": ["ha", "telephone", "tele"],
+      "texte": {
+        "fr": "Musique : le son d'une télé Vision reste à plein volume et les pochettes s'affichent dans la file.",
+        "en": "Music: a Vision TV keeps full software volume and cover art shows in the queue.",
+        "de": "Musik: Ein Vision-Fernseher bleibt auf voller Lautstärke, Cover erscheinen in der Warteschlange.",
+        "es": "Música: una tele Vision mantiene el volumen al máximo y las carátulas aparecen en la cola.",
+        "it": "Musica: una TV Vision resta al volume massimo e le copertine compaiono nella coda.",
+        "nl": "Muziek: een Vision-tv blijft op vol volume en hoezen verschijnen in de wachtrij."
+      }
+    }
+  ]
+}

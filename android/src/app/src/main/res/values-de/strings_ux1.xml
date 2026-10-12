@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 1 (zone Android) : textes nouveaux, six langues. -->
+<resources>
+    <string name="liaison_question">Mit „%1$s“ verbinden?</string>
+    <string name="liaison_question_texte">Vision hat diesen Home-Assistant-Server im Netzwerk gefunden (%1$s). Bis du dich entscheidest, wird nichts an ihn gesendet.</string>
+    <string name="liaison_se_relier">Verbinden</string>
+    <string name="liaison_pas_celui_ci">Nicht dieser</string>
+    <string name="liaison_ecarte">Server übergangen. Wähle unten eine andere Methode.</string>
+    <string name="decouverte_recherche_delai">Suche nach Home Assistant im Netzwerk … (höchstens %1$d s)</string>
+    <string name="liaison_autres_methodes">Andere Methoden</string>
+    <string name="bienvenue_qr_titre">Per QR-Code verbinden</string>
+    <string name="liaison_autres_methodes_plus">Andere Methoden ▸</string>
+    <string name="liaison_autres_masquer">Andere Methoden ausblenden ▾</string>
+    <string name="nonrelie_titre">Nicht verbunden</string>
+    <string name="nonrelie_tele">Dieser Fernseher ist noch nicht mit Vision verbunden: Nichts darauf ist geschützt.</string>
+    <string name="nonrelie_appareil">Dieses Gerät ist noch nicht mit Vision verbunden: Nichts darauf ist geschützt.</string>
+    <string name="nonrelie_carte_texte">Dieses Gerät ist mit keinem Vision-Server verbunden: Hier gilt noch keine Regel. Verbinde es unten.</string>
+    <string name="nonrelie_relier">Verbinden</string>
+    <string name="statut_suspendue">Schutz ausgesetzt</string>
+    <string name="cat_etat_ouverte">Offen</string>
+    <string name="cat_etat_fermee">Gesperrt</string>
+    <string name="cat_etat_description">%1$s: %2$s</string>
+    <string name="a11y_retour">Zurück</string>
+    <string name="a11y_actualiser">Aktualisieren</string>
+    <string name="a11y_allonger_5_s">%1$s: 5 Sekunden länger</string>
+    <string name="a11y_raccourcir_5_s">%1$s: 5 Sekunden kürzer</string>
+    <string name="a11y_retirer_case">%1$s entfernen</string>
+    <string name="a11y_qr_deverrouillage">QR-Code zum Entsperren, mit dem Gerät scannen</string>
+    <string name="couleurs_contraste_faible">Geringer Kontrast (%1$s:1): Der Text ist schwer lesbar. Ziel ist mindestens 4,5:1, zum Beispiel heller Text auf dunklem Hintergrund.</string>
+    <!-- 1.87.1 : Musique, lancement d'une playlist sur la télé -->
+    <string name="party_lancement_playlist">„%1$s“: wird gestartet…</string>
+</resources>

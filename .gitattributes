@@ -1,0 +1,12 @@
+# Une seule fin de ligne pour tous : LF, sur Windows comme dans les sessions Linux.
+* text=auto eol=lf
+
+# Binaires
+*.png binary
+*.jpg binary
+*.apk binary
+*.jks binary
+*.bundle binary
+
+# Patches : JSON, comparés par empreinte sha256 octet par octet
+outils/vision-*.json -text

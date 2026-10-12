@@ -1,0 +1,58 @@
+# Vision — rien de secret, de signé, de construit ni de personnel n'entre dans ce dépôt.
+# Nothing secret, signed, built or personal goes into this repository.
+
+# --- Secrets et signature
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.key
+*.pem
+!android/src/app/src/main/res/raw/isrg_root_x1.pem
+!android/src/app/src/main/res/raw/isrg_root_x2.pem
+keystore.properties
+*signature*.properties
+local.properties
+secrets.yaml
+.env
+.env.*
+*.token
+id_rsa*
+id_ed25519*
+
+# --- Données d'une installation Home Assistant
+.storage/
+home-assistant_v2.db*
+*.log
+captures/
+
+# --- Construit : APK, archives, caches
+*.apk
+*.aab
+*.zip
+*.tgz
+*.b64
+*.bundle
+*.patch
+build/
+.gradle/
+.kotlin/
+.cxx/
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv*/
+
+# --- Éditeurs et systèmes
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# --- Notes de travail internes
+REMISE-*
+BACKLOG*
+NOTES-REPRISE-*

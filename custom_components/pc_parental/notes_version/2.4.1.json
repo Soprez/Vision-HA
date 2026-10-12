@@ -1,0 +1,49 @@
+{
+  "version": "2.4.1",
+  "date": "2026-10-12",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Party : un groupe d'enceintes se règle d'un coup ; le détail par enceinte reste possible.",
+        "en": "Party: a speaker group is adjusted in one go; per-speaker control is still available.",
+        "de": "Party: Eine Lautsprechergruppe wird auf einmal geregelt; einzeln geht es weiterhin.",
+        "es": "Fiesta: un grupo de altavoces se ajusta de una vez; el ajuste por altavoz sigue disponible.",
+        "it": "Festa: un gruppo di altoparlanti si regola in un colpo; resta la regolazione per altoparlante.",
+        "nl": "Feest: een groep speakers regel je in één keer; per speaker kan nog steeds."
+      }
+    },
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "Télé : nouveau lecteur de musique Sendspin en essai (Réglages, réservé aux Décideurs).",
+        "en": "TV: new Sendspin music player on trial (Settings, Deciders only).",
+        "de": "TV: neuer Sendspin-Musikplayer im Test (Einstellungen, nur Entscheider).",
+        "es": "TV: nuevo reproductor de música Sendspin en prueba (Ajustes, solo responsables).",
+        "it": "TV: nuovo lettore musicale Sendspin in prova (Impostazioni, solo decisori).",
+        "nl": "TV: nieuwe Sendspin-muziekspeler op proef (Instellingen, alleen beslissers)."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Party : une télé Vision d'un groupe reste à 100 % ; son son se règle sur la télé.",
+        "en": "Party: a Vision TV in a group stays at 100%; its sound is set on the TV.",
+        "de": "Party: Ein Vision-TV in einer Gruppe bleibt bei 100 %; der Ton wird am TV geregelt.",
+        "es": "Fiesta: una tele Vision de un grupo queda al 100 %; su sonido se ajusta en la tele.",
+        "it": "Festa: una TV Vision in un gruppo resta al 100%; il suono si regola sulla TV.",
+        "nl": "Feest: een Vision-tv in een groep blijft op 100%; het geluid regel je op de tv."
+      }
+    }
+  ]
+}

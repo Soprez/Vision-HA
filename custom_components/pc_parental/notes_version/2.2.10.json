@@ -1,0 +1,48 @@
+{
+  "version": "2.2.10",
+  "date": "2026-10-10",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "La musique ne repart plus toute seule quand la file est finie.",
+        "en": "Music no longer restarts on its own when the queue ends.",
+        "de": "Die Musik startet nicht mehr von selbst neu, wenn die Warteschlange zu Ende ist.",
+        "es": "La música ya no vuelve a empezar sola al terminar la cola.",
+        "it": "La musica non riparte più da sola quando la coda finisce.",
+        "nl": "Muziek start niet meer vanzelf opnieuw als de wachtrij op is."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Nouveau : vider la suite de la file sans couper le titre en cours.",
+        "en": "New: clear the rest of the queue without stopping the current track.",
+        "de": "Neu: den Rest der Warteschlange leeren, ohne den laufenden Titel zu stoppen.",
+        "es": "Nuevo: vaciar el resto de la cola sin cortar la canción actual.",
+        "it": "Novità: svuota il resto della coda senza fermare il brano in corso.",
+        "nl": "Nieuw: de rest van de wachtrij leegmaken zonder het huidige nummer te stoppen."
+      }
+    },
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "Après un transfert vers la télé, aucun titre inattendu ne s'ajoute.",
+        "en": "After moving music to the TV, no unexpected tracks are added.",
+        "de": "Nach dem Umschalten auf den Fernseher kommen keine unerwarteten Titel mehr hinzu.",
+        "es": "Al pasar la música a la tele, ya no se añaden canciones inesperadas.",
+        "it": "Dopo il passaggio alla TV, non si aggiungono brani inattesi.",
+        "nl": "Na het overzetten naar de tv worden geen onverwachte nummers meer toegevoegd."
+      }
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 1 (zone Android) : textes nouveaux, six langues. -->
+<resources>
+    <string name="liaison_question">Se relier à « %1$s » ?</string>
+    <string name="liaison_question_texte">Vision a trouvé ce serveur Home Assistant sur le réseau (%1$s). Rien ne lui est envoyé tant que tu n\'as pas choisi.</string>
+    <string name="liaison_se_relier">Se relier</string>
+    <string name="liaison_pas_celui_ci">Pas celui-ci</string>
+    <string name="liaison_ecarte">Serveur écarté. Choisis une autre méthode ci-dessous.</string>
+    <string name="decouverte_recherche_delai">Recherche de Home Assistant sur le réseau… (%1$d s au plus)</string>
+    <string name="liaison_autres_methodes">Autres méthodes</string>
+    <string name="bienvenue_qr_titre">Relier par QR code</string>
+    <string name="liaison_autres_methodes_plus">Autres méthodes ▸</string>
+    <string name="liaison_autres_masquer">Masquer les autres méthodes ▾</string>
+    <string name="nonrelie_titre">Non relié</string>
+    <string name="nonrelie_tele">Cette TV n\'est pas encore reliée à Vision : rien n\'y est protégé.</string>
+    <string name="nonrelie_appareil">Cet appareil n\'est pas encore relié à Vision : rien n\'y est protégé.</string>
+    <string name="nonrelie_carte_texte">Cet appareil n\'est relié à aucun serveur Vision : aucune règle ne s\'y applique encore. Relie-le ci-dessous.</string>
+    <string name="nonrelie_relier">Relier</string>
+    <string name="statut_suspendue">Protection suspendue</string>
+    <string name="cat_etat_ouverte">Ouverte</string>
+    <string name="cat_etat_fermee">Fermée</string>
+    <string name="cat_etat_description">%1$s : %2$s</string>
+    <string name="a11y_retour">Retour</string>
+    <string name="a11y_actualiser">Actualiser</string>
+    <string name="a11y_allonger_5_s">%1$s : 5 secondes de plus</string>
+    <string name="a11y_raccourcir_5_s">%1$s : 5 secondes de moins</string>
+    <string name="a11y_retirer_case">Retirer %1$s</string>
+    <string name="a11y_qr_deverrouillage">QR code de déverrouillage, à scanner avec l\'appareil</string>
+    <string name="couleurs_contraste_faible">Contraste faible (%1$s:1) : le texte sera difficile à lire. Vise au moins 4,5:1, par exemple un texte clair sur un fond sombre.</string>
+    <!-- 1.87.1 : Musique, lancement d'une playlist sur la télé -->
+    <string name="party_lancement_playlist">« %1$s » : lancement…</string>
+</resources>

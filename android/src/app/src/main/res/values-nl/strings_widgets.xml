@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.88.0 : widgets interactifs (rôle, réglage, confirmation, affichage et détail), six langues. -->
+<resources>
+    <string name="wha_style_reglage">Instelling (− / + of een lijst)</string>
+    <string name="wha_ligne_detail">%1$s: %2$s</string>
+    <string name="wha_plus_n">+%1$d</string>
+    <string name="wha_confirmer_question">‘%1$s’ bevestigen?</string>
+    <string name="wha_confirmer_oui">Bevestigen</string>
+    <string name="wha_diminuer">%1$s verlagen</string>
+    <string name="wha_augmenter">%1$s verhogen</string>
+    <string name="wha_choisir">Kiezen voor %1$s</string>
+    <string name="wha_detail_vide">Niets te tonen.</string>
+    <string name="wha_detail_autres">… en nog %1$d</string>
+    <string name="editeurwidget_affichage">Weergave</string>
+    <string name="editeurwidget_aff_ha">Zoals in Home Assistant</string>
+    <string name="editeurwidget_aff_valeur">Alleen waarde</string>
+    <string name="editeurwidget_aff_detail">Details</string>
+    <string name="editeurwidget_aff_valeur_detail">Waarde + details</string>
+    <!-- 1.90.0 : « Au toucher » (détails, tableau de bord, rien). -->
+    <string name="editeurwidget_toucher">Bij aantikken</string>
+    <string name="editeurwidget_toucher_ha">Zoals in Home Assistant</string>
+    <string name="editeurwidget_toucher_role">Actie</string>
+    <string name="editeurwidget_toucher_details">Details</string>
+    <string name="editeurwidget_toucher_vue">Dashboard</string>
+    <string name="editeurwidget_toucher_rien">Niets</string>
+    <string name="editeurwidget_toucher_choisir">Kies een dashboard of weergave…</string>
+    <string name="editeurwidget_toucher_chemin">Pad (bijvoorbeeld /lovelace/0)</string>
+    <string name="editeurwidget_toucher_aide">Opent de Home Assistant-app als die geïnstalleerd is, anders de browser.</string>
+    <string name="editeurwidget_toucher_chemin_faux">Het pad moet met ‘/’ beginnen.</string>
+</resources>

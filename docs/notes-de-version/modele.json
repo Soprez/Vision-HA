@@ -1,0 +1,26 @@
+{
+  "version": "X.Y.Z",
+  "date": "AAAA-MM-JJ",
+  "titre": {
+    "fr": "Quoi de neuf dans Vision X.Y",
+    "en": "What's new in Vision X.Y",
+    "de": "",
+    "es": "",
+    "it": "",
+    "nl": ""
+  },
+  "points": [
+    {
+      "public": "tous",
+      "appareils": ["telephone", "tele", "pc", "ha"],
+      "textes": {
+        "fr": "Une phrase simple, sans jargon, au plus une ligne.",
+        "en": "One simple sentence, no jargon, one line at most.",
+        "de": "",
+        "es": "",
+        "it": "",
+        "nl": ""
+      }
+    }
+  ]
+}

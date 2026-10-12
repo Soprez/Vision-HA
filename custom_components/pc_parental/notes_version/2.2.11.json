@@ -1,0 +1,65 @@
+{
+  "version": "2.2.11",
+  "date": "2026-10-10",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "public": "decideurs",
+      "texte": {
+        "fr": "Nouvel écran Journal Musique : qui a lancé quoi, et quand.",
+        "en": "New Music Log screen: who played what, and when.",
+        "de": "Neuer Bildschirm Musikprotokoll: wer was wann abgespielt hat.",
+        "es": "Nueva pantalla Registro de música: quién puso qué y cuándo.",
+        "it": "Nuova schermata Registro musica: chi ha avviato cosa e quando.",
+        "nl": "Nieuw scherm Muzieklogboek: wie wat afspeelde, en wanneer."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "public": "decideurs",
+      "texte": {
+        "fr": "Les commandes de musique apparaissent dans le journal de Home Assistant.",
+        "en": "Music commands now appear in the Home Assistant logbook.",
+        "de": "Musikbefehle erscheinen jetzt im Logbuch von Home Assistant.",
+        "es": "Las órdenes de música aparecen en el registro de Home Assistant.",
+        "it": "I comandi musicali compaiono nel registro di Home Assistant.",
+        "nl": "Muziekopdrachten verschijnen nu in het logboek van Home Assistant."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Au-delà de 50 titres, Vision demande avant de tout ajouter.",
+        "en": "Above 50 tracks, Vision asks before adding them all.",
+        "de": "Ab 50 Titeln fragt Vision nach, bevor alle hinzugefügt werden.",
+        "es": "Con más de 50 canciones, Vision pregunta antes de añadirlas todas.",
+        "it": "Oltre 50 brani, Vision chiede prima di aggiungerli tutti.",
+        "nl": "Boven 50 nummers vraagt Vision eerst voordat alles wordt toegevoegd."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Les playlists automatiques affichent leur nombre de titres.",
+        "en": "Automatic playlists show how many tracks they contain.",
+        "de": "Automatische Playlists zeigen ihre Titelanzahl.",
+        "es": "Las listas automáticas muestran cuántas canciones tienen.",
+        "it": "Le playlist automatiche mostrano il numero di brani.",
+        "nl": "Automatische afspeellijsten tonen hoeveel nummers ze bevatten."
+      }
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "version": "2.2.9",
+  "date": "2026-10-10",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Chaque télé n'a plus qu'un seul lecteur de musique : « · Vision ».",
+        "en": "Each TV now has a single music player: “· Vision”.",
+        "de": "Jeder Fernseher hat jetzt nur noch einen Musikplayer: „· Vision“.",
+        "es": "Cada tele tiene ahora un solo reproductor de música: «· Vision».",
+        "it": "Ogni TV ha ora un solo lettore musicale: «· Vision».",
+        "nl": "Elke tv heeft nu één muziekspeler: „· Vision”."
+      }
+    },
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "La musique lancée depuis la télé joue sur la télé par défaut.",
+        "en": "Music started from the TV plays on the TV by default.",
+        "de": "Vom Fernseher gestartete Musik läuft standardmäßig auf dem Fernseher.",
+        "es": "La música iniciada desde la tele suena en la tele por defecto.",
+        "it": "La musica avviata dalla TV suona sulla TV per impostazione predefinita.",
+        "nl": "Muziek die je op de tv start, speelt standaard op de tv."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "public": "decideurs",
+      "texte": {
+        "fr": "Dans les réglages Musique, la télé garde sa case cochée.",
+        "en": "In the Music settings, the TV keeps its checkbox.",
+        "de": "In den Musik-Einstellungen bleibt das Häkchen des Fernsehers erhalten.",
+        "es": "En los ajustes de Música, la tele conserva su casilla marcada.",
+        "it": "Nelle impostazioni Musica, la TV mantiene la sua casella spuntata.",
+        "nl": "In de muziekinstellingen blijft het vinkje van de tv staan."
+      }
+    }
+  ]
+}

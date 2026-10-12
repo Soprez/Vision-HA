@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vision</string>
+    <string name="widget_ha_label">Vision · Home Assistant</string>
+    <string name="widget_ha_description">A Home Assistant entity allowed on this device: value, button, switch, gauge, chart or weather.</string>
+    <string name="accessibility_desc">Vision applies the rules set in Home Assistant: blocked apps, time slots and locking.</string>
+    <string name="admin_desc">Prevents Vision from being uninstalled without the management code.</string>
+    <string name="musique_fin_action">Add a song to get the party going again</string>
+    <!-- 1.86.2 (retour d'essai) : Musique, file vide et musique arrêtée. Même liste et même ordre que Home Assistant
+         (translations/*.json, section « musique », fin_1 à fin_8) : HA tire le numéro, chaque écran montre la même phrase.
+         Des titres de chansons courts, jamais de paroles. -->
+    <string-array name="musique_fin_clins">
+        <item>The End 🎬</item>
+        <item>The Show Must Go On… add a song 🎭</item>
+        <item>Silence Is Golden 🤫</item>
+        <item>Encore! 👏</item>
+        <item>Play It Again 🎹</item>
+        <item>Stop! In the Name of Love ✋</item>
+        <item>One More Time 🔁</item>
+        <item>Don\'t Stop Me Now 🎤</item>
+    </string-array>
+    <!-- Le nom du lieu tant que Home Assistant n'en a envoyé aucun : neutre (jamais « Maison »). -->
+    <string name="lieu_defaut">Place</string>
+    <string name="soutien_titre">Support the project</string>
+    <string name="soutien_badge">♥ Supporter</string>
+    <string name="soutien_carte">☕ Buy us a coffee</string>
+    <string name="soutien_merci">Thank you! This place supports Vision.</string>
+    <string name="soutien_explication">The Supporter badge is purely decorative: nothing is unlocked, Vision does exactly the same for everyone.</string>
+    <string name="soutien_comment">To turn it on: in Home Assistant, Settings → Devices &amp; services → Vision → Configure → Support the project.</string>
+    <string name="soutien_adresse">Donation page: %1$s</string>
+    <string name="soutien_ouvrir">Open the donation page</string>
+    <string name="soutien_fermer">Close</string>
+    <string name="reglagestv_a_propos">About</string>
+    <string name="reglagestv_version">Version</string>
+    <string name="mus_aide_tele">OK: play, next, move, remove · Back: exit</string>
+    <string name="mus_aide_deplacer">Up / down: move · OK: confirm · Back: cancel</string>
+    <string name="mus_musique_charge">One moment: the music is loading.</string>
+    <string name="mus_demande_en_cours">One moment: the previous request is still running.</string>
+    <string name="mus_oui">yes</string>
+    <string name="mus_non">no</string>
+    <string name="mus_similaires_desc">Continue with similar tracks when the queue is empty: %1$s</string>
+    <string name="mus_ok_changer">%1$s. OK to change</string>
+    <string name="mus_fond_floute_bouton">Home screen background: blurred cover — %1$s</string>
+    <string name="mus_fond_floute_desc">Blurred cover as home screen background: %1$s</string>
+    <string name="mus_fond_floute">Blurred cover as home screen background</string>
+    <string name="mus_aide">Help</string>
+    <string name="mus_hors_ligne">" · offline"</string>
+    <string name="mus_hors_ma">" · not in Music Assistant"</string>
+    <string name="mus_enchainement_titres">Track transitions</string>
+    <string name="mus_sans_blanc">Gapless</string>
+    <string name="mus_fondu_s">Fade %1$d s</string>
+    <string name="mus_titre_par_titre_aide">This player plays track by track: a short gap is possible. Flow mode is set in Music Assistant (Settings → Players).</string>
+    <string name="mus_type">Type</string>
+    <string name="mus_tout">All</string>
+    <string name="mus_titres">Tracks</string>
+    <string name="mus_albums">Albums</string>
+    <string name="mus_playlists">Playlists</string>
+    <string name="mus_artistes">Artists</string>
+    <string name="mus_radios">Radios</string>
+    <string name="mus_autres">Other</string>
+    <string name="mus_plateforme">Platform</string>
+    <string name="mus_toutes">All</string>
+    <string name="mus_auto_ma">Automatic (Music Assistant)</string>
+    <string name="mus_auto_ma_desc">Playlist made automatically by Music Assistant</string>
+    <string name="mus_lire">Play</string>
+    <string name="mus_ensuite">Next</string>
+    <string name="mus_plus_choix">More choices: %1$s</string>
+    <string name="mus_ajouter_n_titre">Add %1$d tracks?</string>
+    <string name="mus_ajouter_n_message">“%1$s” has %2$d tracks: they will all be added to the end of the queue.</string>
+    <string name="mus_ajouter_les_n">Add the %1$d tracks</string>
+    <string name="mus_ench_inconnu">Transitions: unknown</string>
+    <string name="mus_ench_fondu">Transitions: %1$d s fade</string>
+    <string name="mus_ench_sans_blanc">Transitions: gapless</string>
+    <string name="mus_ench_titre">Transitions: track by track</string>
+    <string name="accueil_raison_origine">Open the original home screen</string>
+    <string name="accueil_raison_rendre">Give back the original home screen</string>
+    <string name="accueil_raison_force">Leave the Home button to the original home screen</string>
+    <string name="actions_raison_infos">App info: uninstall, clear data, permissions</string>
+
+
+</resources>

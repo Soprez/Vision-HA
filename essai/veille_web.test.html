@@ -1,0 +1,100 @@
+<!doctype html>
+<!--
+  Essai de la veille face aux cartes web (iframe), dans un vrai navigateur, sans Home Assistant.
+  On charge la vraie page de veille (www/vision-veille-coeur.js) et on éprouve ses méthodes :
+  cadre vide pendant la préparation, page chargée seulement à l'écran, garde-fou d'un site muet,
+  déchargement à la sortie, détecteur de gel.
+
+  Lancer (Edge ou Chrome, temps virtuel pour les délais) :
+    msedge --headless=new --disable-gpu --virtual-time-budget=40000 --dump-dom essai/veille_web.test.html
+  Le résultat est dans <pre id="r"> : une ligne « ok » ou « RATE » par vérification.
+-->
+<meta charset="utf-8">
+<body>
+<pre id="r"></pre>
+<script src="../www/vision-veille-coeur.js"></script>
+<script>
+const r = document.getElementById("r");
+let rates = 0;
+const verifier = (quoi, ok) => { if (!ok) rates++; r.textContent += (ok ? "ok   " : "RATE ") + quoi + "\n"; };
+const fin = () => { r.textContent += rates + " raté(s)\n"; document.title = "FINI " + rates; };
+
+try { localStorage.removeItem("vision-veille-lourds"); } catch (e) {}
+const v = document.createElement("vision-veille-coeur");
+document.body.appendChild(v);
+v._notes = [];
+v._note = (t) => v._notes.push(t);
+
+const SOURD = "http://10.255.255.1/";          // une adresse qui ne répond jamais
+const VIF = "data:text/html,<p>ok</p>";           // une page qui se charge tout de suite
+
+function scene(url, cachee) {
+  const s = document.createElement("div"); s.className = "scene";
+  const sec = document.createElement("div"); sec.className = "section";
+  if (cachee) sec.style.visibility = "hidden";
+  const b = v._carte({ type: "iframe", url, aspect_ratio: "50%" });
+  sec.appendChild(b); s.appendChild(sec); v.shadowRoot.appendChild(s);
+  return [s, b];
+}
+
+// 1. Pendant la préparation : un cadre vide, aucune page chargée.
+const [s1, b1] = scene(SOURD);
+verifier("préparation : cadre posé, aucune iframe", b1.classList.contains("web") && !b1.querySelector("iframe"));
+verifier("préparation : la proportion 50 % est reprise", b1.style.paddingTop === "50%");
+
+// 2. Une partie cachée du tableau ne charge rien.
+const [s2, b2] = scene(VIF, true);
+v._allumerWeb(s2);
+verifier("partie cachée : rien n'est chargé", !b2.querySelector("iframe"));
+
+// 3. À l'écran : la page se charge.
+v._allumerWeb(s1);
+verifier("à l'écran : l'iframe est créée avec son adresse", !!b1.querySelector("iframe") && b1.querySelector("iframe").src === SOURD);
+
+const [s3, b3] = scene(VIF);
+v._allumerWeb(s3);
+
+setTimeout(() => {
+  // 4. Garde-fou : le site muet est retiré au bout de 12 s, la page vive reste.
+  verifier("garde-fou : le site muet est retiré", !b1.querySelector("iframe"));
+  verifier("garde-fou : une mention le dit", /injoignable/.test(b1.textContent));
+  verifier("page vive : toujours là, chargée", !!b3.querySelector("iframe") && b3._charge === true);
+
+  // 5. Sortie de scène : la page est déchargée.
+  v._eteindreWeb(s3);
+  verifier("sortie : la page est déchargée", !b3.querySelector("iframe"));
+
+  // 6. Détecteur de gel : une seconde qui en dure plus de six, avec une page allumée.
+  v._allumerWeb(s3);
+  v._dort = false;
+  v._guetterGel();
+  const vrai = Date.now;
+  setTimeout(() => {
+    const saut = vrai() + 7000;
+    Date.now = () => saut;                       // l'horloge saute : la veille a été figée 7 s
+    setTimeout(() => {
+      Date.now = vrai;
+      verifier("gel : la page en cause est retirée", !b3.querySelector("iframe"));
+      verifier("gel : la mention le dit", /figeait/.test(b3.textContent));
+      verifier("gel : retenue comme trop lourde pour l'appareil", !!JSON.parse(localStorage.getItem("vision-veille-lourds") || "{}")[VIF]);
+      v._allumerWeb(s3);
+      verifier("gel : au tour suivant, elle n'est pas rechargée", !b3.querySelector("iframe") && /trop lourde/.test(b3.textContent));
+      verifier("le journal de la veille l'a noté", v._notes.some((t) => /figée/.test(t)));
+      // 7. Relance pendant qu'une page est allumée : le témoin la fait mettre de côté au redémarrage.
+      localStorage.removeItem("vision-veille-lourds");
+      const [s4, b4] = scene("data:text/html,<p>radar</p>");
+      v._allumerWeb(s4);
+      verifier("témoin posé quand la page s'allume", localStorage.getItem("vision-veille-web-en-cours") === b4._url);
+      const w = document.createElement("vision-veille-coeur");   // une veille neuve, comme après une relance
+      w._note = (t) => v._notes.push(t);
+      w._guetterGel();
+      verifier("relance : la page restée allumée est mise de côté",
+               !!JSON.parse(localStorage.getItem("vision-veille-lourds") || "{}")[b4._url]
+               && localStorage.getItem("vision-veille-web-en-cours") === null);
+      v._eteindreWeb(s4);
+      fin();
+    }, 1500);
+  }, 1500);
+}, 13000);
+</script>
+</body>

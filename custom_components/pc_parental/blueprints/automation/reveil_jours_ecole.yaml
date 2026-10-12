@@ -1,0 +1,206 @@
+blueprint:
+  name: Vision — Réveil les jours d'école
+  description: >-
+    Exemple fourni avec le module Réveil de Vision (rien n'est câblé dans Vision : cette automatisation est la vôtre).
+
+    Chaque soir, pour le lendemain :
+
+    - jour d'école = un événement dans l'agenda des jours ouvrés (par exemple celui de l'intégration Workday), et
+    aucun événement dans les agendas de vacances ni d'exceptions ;
+
+    - jour d'école : le réveil sonne à l'heure du premier événement de l'agenda des cours (Pronote ou autre) moins la
+    marge, ou à une heure fixe si vous le choisissez ; hors des bornes, l'heure de repli ; sans repli, pas de réveil ;
+
+    - sinon, l'occurrence du lendemain est sautée (le réveil n'est pas modifié).
+
+    Le réveil passe en type « ponctuel » chaque soir : cette automatisation en a la charge.
+  domain: automation
+  input:
+    reveil:
+      name: Réveil
+      description: L'interrupteur du réveil Vision (switch.vision_reveil_…), créé avant dans Vision.
+      selector:
+        entity:
+          filter:
+            - integration: pc_parental
+              domain: switch
+    jours_ouvres:
+      name: Agenda des jours ouvrés
+      description: >-
+        Un agenda qui a un événement chaque jour travaillé (l'intégration Workday en crée un, par exemple
+        calendar.workday_sensor_fr_calendrier).
+      selector:
+        entity:
+          filter:
+            - domain: calendar
+    vacances:
+      name: Agendas de vacances
+      description: Un événement ce jour-là = pas d'école (par exemple l'agenda ICS officiel de votre zone).
+      default: []
+      selector:
+        entity:
+          multiple: true
+          filter:
+            - domain: calendar
+    exceptions:
+      name: Agendas d'exceptions
+      description: Ponts, grèves, jours sans cours… Un événement ce jour-là = pas de réveil.
+      default: []
+      selector:
+        entity:
+          multiple: true
+          filter:
+            - domain: calendar
+    mode_heure:
+      name: Heure du réveil
+      description: Le premier événement de l'agenda des cours moins la marge (par défaut), ou une heure fixe.
+      default: agenda
+      selector:
+        select:
+          options:
+            - label: Premier événement de l'agenda des cours − marge
+              value: agenda
+            - label: Heure fixe
+              value: fixe
+    cours:
+      name: Agenda des cours
+      description: Par exemple l'emploi du temps Pronote. Requis pour « premier événement − marge ».
+      default: []
+      selector:
+        entity:
+          multiple: true
+          filter:
+            - domain: calendar
+    ignorer:
+      name: Événements ignorés
+      description: Les cours dont le titre ou la description contient ce texte ne comptent pas (vide = aucun).
+      default: annulé
+      selector:
+        text:
+    marge:
+      name: Marge
+      description: Minutes avant le premier cours.
+      default: 60
+      selector:
+        number:
+          min: 0
+          max: 240
+          step: 5
+          unit_of_measurement: min
+    heure_fixe:
+      name: Heure fixe
+      description: Utilisée en mode « Heure fixe ».
+      default: "07:00:00"
+      selector:
+        time:
+    borne_min:
+      name: Pas avant
+      default: "05:00:00"
+      selector:
+        time:
+    borne_max:
+      name: Pas après
+      default: "10:00:00"
+      selector:
+        time:
+    repli:
+      name: Heure de repli
+      description: Si l'agenda des cours est vide ou hors bornes un jour d'école (vide = pas de réveil ce jour-là).
+      default: ""
+      selector:
+        text:
+    heure_evaluation:
+      name: Heure d'évaluation
+      description: Chaque soir à cette heure, le lendemain est préparé.
+      default: "20:00:00"
+      selector:
+        time:
+
+mode: queued
+max: 5
+
+triggers:
+  - trigger: time
+    at: !input heure_evaluation
+  - trigger: homeassistant
+    event: start
+
+variables:
+  reveil: !input reveil
+  jours_ouvres: !input jours_ouvres
+  vacances: !input vacances
+  exceptions: !input exceptions
+  mode_heure: !input mode_heure
+  cours: !input cours
+  ignorer: !input ignorer
+  marge: !input marge
+  heure_fixe: !input heure_fixe
+  borne_min: !input borne_min
+  borne_max: !input borne_max
+  repli: !input repli
+  demain: "{{ (now() + timedelta(days=1)).date().isoformat() }}"
+  debut: "{{ (today_at('00:00') + timedelta(days=1)).isoformat() }}"
+  fin: "{{ (today_at('00:00') + timedelta(days=2)).isoformat() }}"
+  agendas: >-
+    {% set l = [jours_ouvres] + (vacances | list) + (exceptions | list) %}
+    {{ (l + ((cours | list) if mode_heure == 'agenda' else [])) | unique | list }}
+
+actions:
+  - action: calendar.get_events
+    target:
+      entity_id: "{{ agendas }}"
+    data:
+      start_date_time: "{{ debut }}"
+      end_date_time: "{{ fin }}"
+    response_variable: agenda
+  - variables:
+      ouvre: "{{ (agenda[jours_ouvres].events | default([])) | count > 0 }}"
+      ferme: >-
+        {% set n = namespace(v=0) %}
+        {% for a in (vacances | list) + (exceptions | list) %}
+          {% set n.v = n.v + ((agenda[a].events | default([])) | count) if a in agenda else n.v %}
+        {% endfor %}
+        {{ n.v > 0 }}
+      premier: >-
+        {% set n = namespace(l=[]) %}
+        {% for a in cours | list %}
+          {% for e in (agenda[a].events | default([]) if a in agenda else []) %}
+            {% set texte = ((e.summary | default('')) ~ ' ' ~ (e.description | default(''))) | lower %}
+            {% if 'T' in (e.start | string) and not (ignorer and (ignorer | lower) in texte) %}
+              {% set n.l = n.l + [as_datetime(e.start)] %}
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+        {{ (n.l | sort | first).isoformat() if n.l else '' }}
+  - variables:
+      heure: >-
+        {% if mode_heure == 'fixe' %}
+          {{ heure_fixe[:5] }}
+        {% elif premier %}
+          {% set h = (as_datetime(premier) - timedelta(minutes=marge | int)) | as_local %}
+          {% set hhmm = h.strftime('%H:%M') %}
+          {% if h.date().isoformat() == demain and borne_min[:5] <= hhmm <= borne_max[:5] %}{{ hhmm }}
+          {% else %}{{ repli[:5] }}{% endif %}
+        {% else %}
+          {{ repli[:5] }}
+        {% endif %}
+  - if:
+      - condition: template
+        value_template: "{{ ouvre and not ferme and heure | trim != '' }}"
+    then:
+      - action: pc_parental.reveil_reprendre
+        data:
+          reveil: "{{ reveil }}"
+          date: "{{ demain }}"
+      - action: pc_parental.reveil_modifier
+        data:
+          reveil: "{{ reveil }}"
+          type: ponctuel
+          date: "{{ demain }}"
+          heure: "{{ heure | trim }}"
+          actif: true
+    else:
+      - action: pc_parental.reveil_sauter
+        data:
+          reveil: "{{ reveil }}"
+          date: "{{ demain }}"

@@ -1,0 +1,48 @@
+{
+  "version": "2.4.3",
+  "date": "2026-10-12",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Widgets : « Au toucher » choisit ce que fait un toucher (action, détails, tableau de bord, rien).",
+        "en": "Widgets: “On tap” chooses what a tap does (action, details, dashboard, nothing).",
+        "de": "Widgets: „Beim Antippen“ legt fest, was ein Tippen tut (Aktion, Details, Dashboard, nichts).",
+        "es": "Widgets: «Al tocar» elige qué hace un toque (acción, detalles, panel, nada).",
+        "it": "Widget: «Al tocco» sceglie cosa fa un tocco (azione, dettagli, plancia, niente).",
+        "nl": "Widgets: ‘Bij aantikken’ kiest wat een tik doet (actie, details, dashboard, niets)."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Le tableau de bord ou la vue se choisit dans une liste, ou se saisit.",
+        "en": "The dashboard or view is picked from a list, or typed in.",
+        "de": "Dashboard oder Ansicht wird aus einer Liste gewählt oder eingegeben.",
+        "es": "El panel o la vista se elige en una lista o se escribe.",
+        "it": "La plancia o la vista si sceglie da un elenco o si digita.",
+        "nl": "Het dashboard of de weergave kies je uit een lijst of typ je in."
+      }
+    },
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Détails et vues s'ouvrent dans l'appli Home Assistant, sinon dans le navigateur ; seulement pour qui peut agir.",
+        "en": "Details and views open in the Home Assistant app, otherwise in the browser; only for those who may act.",
+        "de": "Details und Ansichten öffnen sich in der App von Home Assistant, sonst im Browser; nur für alle, die bedienen dürfen.",
+        "es": "Detalles y vistas se abren en la app de Home Assistant, si no en el navegador; solo para quien puede actuar.",
+        "it": "Dettagli e viste si aprono nell'app di Home Assistant, altrimenti nel browser; solo per chi può agire.",
+        "nl": "Details en weergaven openen in de Home Assistant-app, anders in de browser; alleen voor wie mag bedienen."
+      }
+    }
+  ]
+}

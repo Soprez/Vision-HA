@@ -1,0 +1,61 @@
+{
+  "version": "2.2.12",
+  "date": "2026-10-10",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Sur téléphone, la page invité montre les pochettes des titres.",
+        "en": "On phones, the guest page now shows album covers.",
+        "de": "Auf dem Handy zeigt die Gästeseite jetzt die Albumcover.",
+        "es": "En el móvil, la página de invitados muestra las portadas.",
+        "it": "Sul telefono, la pagina ospiti mostra le copertine.",
+        "nl": "Op de telefoon toont de gastenpagina nu de albumhoezen."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "L'en-tête de la page invité reste en haut quand on fait défiler.",
+        "en": "The guest page header stays at the top while you scroll.",
+        "de": "Die Kopfzeile der Gästeseite bleibt beim Scrollen oben.",
+        "es": "La cabecera de la página de invitados queda fija al desplazarse.",
+        "it": "L'intestazione della pagina ospiti resta in alto durante lo scorrimento.",
+        "nl": "De kop van de gastenpagina blijft bovenaan staan tijdens het scrollen."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "La page invité suit le thème clair ou sombre.",
+        "en": "The guest page follows the light or dark theme.",
+        "de": "Die Gästeseite folgt dem hellen oder dunklen Design.",
+        "es": "La página de invitados sigue el tema claro u oscuro.",
+        "it": "La pagina ospiti segue il tema chiaro o scuro.",
+        "nl": "De gastenpagina volgt het lichte of donkere thema."
+      }
+    },
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "La télé ne se met plus en veille pendant que la musique joue.",
+        "en": "The TV no longer goes to sleep while music is playing.",
+        "de": "Der Fernseher geht nicht mehr in den Ruhemodus, während Musik läuft.",
+        "es": "La tele ya no entra en reposo mientras suena la música.",
+        "it": "La TV non va più in standby mentre suona la musica.",
+        "nl": "De tv gaat niet meer in slaapstand terwijl er muziek speelt."
+      }
+    }
+  ]
+}

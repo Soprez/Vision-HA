@@ -1,0 +1,148 @@
+VISION — Windows-agent
+======================
+
+Deze map installeer je op elke pc waar Vision voor moet zorgen. Windows 10 of 11.
+
+Andere talen: LISEZ-MOI.txt (Français), README.txt (English),
+LIESMICH.txt (Deutsch), LEEME.txt (Español), LEGGIMI.txt (Italiano).
+De agent, het installatieprogramma en het verwijderprogramma spreken de taal
+van Windows (map „langues”; Engels als de taal ontbreekt).
+
+
+INSTALLATIE (één keer per pc)
+-----------------------------
+Het makkelijkst: Home Assistant host het installatieprogramma. Open op de
+pc PowerShell en plak de regel uit het dashboard „Vision”, onderdeel
+„Een pc installeren”. Die ziet er zo uit:
+
+    irm http://JOUW-HA:8123/api/pc_parental/client/install -OutFile "$env:TEMP\install-cp.ps1"; & "$env:TEMP\install-cp.ps1"
+
+Anders met de bestanden uit deze map:
+
+1. Kopieer de hele map naar de pc (bureaublad, usb-stick, maakt niet uit).
+
+2. Rechtsklik op  install.ps1  ->  „Uitvoeren met PowerShell”.
+   Windows vraagt om beheerdersrechten: accepteer.
+   (Weigert Windows het script uit te voeren, open dan PowerShell als
+    administrator, ga naar deze map en typ eerst:
+        Set-ExecutionPolicy -Scope Process Bypass
+    en daarna  .\install.ps1 )
+
+In beide gevallen vraagt het installatieprogramma twee dingen:
+     - het adres van Home Assistant   bijv. http://homeassistant.local:8123
+     - de registratiesleutel          staat in Home Assistant,
+                                      dashboard „Vision”,
+                                      onderdeel „Een pc installeren”.
+
+Klaar. De pc verschijnt vanzelf in Home Assistant, TOEGESTAAN en ZONDER
+   ENIG TIJDVAK. Zijn planning geef je hem daarna in Home Assistant.
+
+Dezelfde sleutel werkt voor alle pc's.
+
+
+EEN BERICHT STUREN
+------------------
+In het dashboard „Vision”, kaart van de pc, onderdeel „Een bericht
+sturen”: typ je tekst in het veld Bericht en druk op Versturen. Op de pc
+verschijnt een Windows-melding, ondertekend met „Vision”, die in het
+meldingencentrum blijft.
+
+De ontvanger kan alle pc's zijn, een label of één bepaalde pc. Labels zet
+je in het veld „Labels” van elke kaart: geef meerdere pc's hetzelfde label
+en je bereikt ze allemaal tegelijk.
+
+Je kunt een geluid kiezen: standaard, bericht, mail, herinnering, sms,
+aanhoudend alarm, aanhoudende oproep of stil. De twee aanhoudende geluiden
+herhalen zich zolang de melding zichtbaar is.
+
+Voor een automatisering:
+
+    action: pc_parental.notify
+    data:
+      tag: gevolgd
+      message: Zet het vuilnis buiten
+      son: Rappel
+
+Zonder pc of tag gaat het bericht naar alle pc's. De optie „urgent” opent
+een dialoogvenster boven alles in plaats van een bescheiden melding.
+Elke pc heeft ook een eigen notify-entiteit, bereikbaar via de labels van
+Home Assistant.
+
+
+UPDATES
+-------
+Home Assistant host de agent: die versie is leidend. Komt er een nieuwe
+versie met de integratie, dan haalt elke pc die zelf op, controleert de
+vingerafdruk, vervangt zijn script en start opnieuw. Niets opnieuw te
+installeren, geen bestand te kopiëren. De teksten in alle talen zitten in
+de agent.
+
+Wil je liever zelf beslissen: zet „Automatische updates van agents” uit in
+het dashboard. Elke pc toont dan zijn versie naast de gepubliceerde, met
+een knop Installeren.
+
+LET OP: automatische updates bestaan pas vanaf agentversie 1.1.0. Een pc
+die nog op 1.0.0 staat, kan zichzelf niet bijwerken: start het
+installatieprogramma op die machine nog één keer. Dat is zonder risico,
+de pc houdt zijn identiteit en zijn tijdvakken.
+
+
+WAT DE AGENT DOET
+-----------------
+- Hij meldt aan Home Assistant of er iemand achter het scherm zit:
+  actief, inactief (een tijdje niets aangeraakt), sessie vergrendeld of
+  offline. Home Assistant toont dat als een chatstatus.
+- Hij toont berichten uit Home Assistant als echte Windows-meldingen,
+  ondertekend met „Vision” en bewaard in het meldingencentrum. Een
+  dringend bericht opent in plaats daarvan een dialoogvenster boven alles,
+  dat vanzelf sluit.
+- Elke 20 seconden vraagt hij Home Assistant of deze pc toegestaan of
+  geblokkeerd is.
+- Tijdens een geblokkeerd tijdvak wordt de sessie vergrendeld. Ontgrendelt
+  iemand haar met het wachtwoord, dan is ze binnen een seconde weer
+  vergrendeld. Er gaat niets verloren: de programma's blijven erachter
+  open.
+- Vóór een blokkering waarschuwt een bericht op het scherm.
+- Programma's op de lijst „Geblokkeerde programma's” worden steeds
+  gesloten.
+- Sites op de lijst „Geblokkeerde sites” worden via het hosts-bestand
+  geblokkeerd.
+
+Is Home Assistant onbereikbaar, dan blijft de laatst bekende opdracht
+2 uur gelden, daarna blijft de pc toegestaan: een serverstoring mag de
+computer niet voorgoed blokkeren.
+
+
+ZODAT HET WERKT
+---------------
+De agent draait onder het account SYSTEM: een standaardaccount kan hem
+niet stoppen en niet verwijderen. Is het account echter ADMINISTRATOR van
+de pc, dan kan het hem omzeilen. Controleer het account:
+
+    Instellingen > Accounts > Andere gebruikers
+
+en zet het zo nodig op „Standaardgebruiker”.
+
+
+EEN PC VERWIJDEREN
+------------------
+In Home Assistant: knop „Deze pc verwijderen” onderaan de kaart van de
+pc, met bevestiging. De pc, zijn tijdvakken en zijn apparaat verdwijnen.
+
+De agent blijft op de machine staan: hij merkt dat hij niet meer bekend
+is, past geen beperking meer toe en laat de pc toegestaan. Om hem
+helemaal weg te halen, start uninstall.ps1 op die machine.
+
+
+VERWIJDEREN
+-----------
+Rechtsklik op  uninstall.ps1  ->  „Uitvoeren met PowerShell”, als
+administrator. Dat verwijdert de geplande taak, schoont het hosts-bestand
+op en wist de configuratie. De pc blijft zichtbaar in Home Assistant:
+verwijder hem in het dashboard als je hem niet meer gebruikt.
+
+
+ALS ER IETS MISGAAT
+-------------------
+Logboek van de agent:     C:\ProgramData\HAParental\agent.log
+Geplande taak:            Taakplanner > „HA Controle Parental”

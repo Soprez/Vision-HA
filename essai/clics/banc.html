@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Banc des gestes Vision</title>
+<style>
+  :root { --primary-color:#03a9f4; --text-primary-color:#fff; --primary-text-color:#212121; --secondary-text-color:#727272;
+          --divider-color:rgba(0,0,0,.12); --card-background-color:#fff; --secondary-background-color:#f5f5f5; --error-color:#db4437;
+          --warning-color:#ffa600; --success-color:#43a047; font-family:Roboto, "Segoe UI", sans-serif; }
+  body { background:#fafafa; margin:0; padding:16px; }
+</style>
+<script>
+  // Banc des gestes (1.97.3) : une carte Vision, un Home Assistant simulé dont chaque appel attend que le test
+  // y réponde (succès ou échec), pour vérifier ce que la carte montre pendant l'attente puis après.
+  customElements.define("ha-card", class extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: "open" }).innerHTML = "<slot></slot>"; }
+  });
+  customElements.define("ha-icon", class extends HTMLElement {});
+</script>
+</head><body>
+<div id="zone"></div>
+<script type="module">
+  const params = new URLSearchParams(location.search);
+  const carte = params.get("carte");
+  const donnees = await (await fetch("donnees/" + params.get("donnees") + ".json")).json();
+  window.__donnees = donnees;
+  window.__appels = [];
+  const attendre = (genre, chemin, corps) => new Promise((ok, ko) => window.__appels.push({ genre, chemin, corps, ok, ko }));
+  const hass = {
+    states: donnees.__etats || {}, user: { is_admin: true, name: "Robin" }, language: "fr", themes: { darkMode: false },
+    callApi: async (methode, chemin, corps) => {
+      if (methode === "GET") return JSON.parse(JSON.stringify(donnees[chemin.split("?")[0]] || {}));
+      return attendre("api", chemin, corps);
+    },
+    callService: async (domaine, service, corps) => attendre("service", domaine + "." + service, corps),
+    callWS: async () => ({}),
+  };
+  await import("./" + carte + ".js");
+  const el = document.createElement(carte);
+  const config = JSON.parse(params.get("config") || "{}");
+  if (config.entity === "__auto") config.entity = donnees.__entite;  // l'entité réelle, lue par le test
+  el.setConfig(config);
+  el.hass = hass;
+  document.getElementById("zone").appendChild(el);
+  window.__carte = el;
+  window.__pret = true;
+</script>
+</body></html>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Client Sendspin natif (2026-10-12) : l'interrupteur du lecteur de musique, réglages de la télé, Décideurs. -->
+<resources>
+    <string name="reglagestv_lecteur_musique">Reproductor de música</string>
+    <string name="reglagestv_lecteur_classique">Clásico</string>
+    <string name="reglagestv_lecteur_sendspin">Sendspin (prueba)</string>
+    <string name="reglagestv_lecteur_note">Cómo reproduce esta TV Music Assistant. Sendspin: sonido sin pérdidas, posición exacta, sin silencios entre canciones. El volumen se ajusta siempre en la TV.</string>
+    <!-- La Party : volume du groupe et détail par enceinte (règles du projet). -->
+    <string name="party_volume_groupe_pourcent">Grupo %1$d %%</string>
+    <string name="party_volume_enceintes">Altavoces</string>
+    <string name="party_volume_enceintes_titre">Volumen de cada altavoz</string>
+    <string name="party_volume_sur_tele">Se ajusta en la TV</string>
+    <string name="party_volume_moins_de">Bajar el volumen de %1$s</string>
+    <string name="party_volume_plus_de">Subir el volumen de %1$s</string>
+    <!-- L'appairage avec Music Assistant (PIN à l'écran). -->
+    <string name="appairage_titre">Vincular con Music Assistant</string>
+    <string name="appairage_pin_phrase">Introduce este código en Music Assistant para vincular esta TV.</string>
+    <string name="appairage_geste_phrase">Music Assistant pide vincular esta TV. ¿Permitirlo?</string>
+    <string name="appairage_autoriser">Permitir</string>
+</resources>

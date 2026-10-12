@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.76.0 (point 6 bis) : « Vision · Home Assistant », réglé à l'ajout (entité, puis style), redimensionnable. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="110dp"
+    android:minHeight="40dp"
+    android:minResizeWidth="70dp"
+    android:minResizeHeight="40dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="1"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_ha_systeme"
+    android:previewImage="@drawable/ic_vision"
+    android:description="@string/widget_ha_description"
+    android:configure="org.soprez.vision.WidgetHaConfigActivity"
+    android:widgetFeatures="reconfigurable"
+    android:widgetCategory="home_screen" />

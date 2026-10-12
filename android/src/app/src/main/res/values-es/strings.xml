@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vision</string>
+    <string name="widget_ha_label">Vision · Home Assistant</string>
+    <string name="widget_ha_description">Una entidad de Home Assistant permitida en este dispositivo: valor, botón, interruptor, indicador, gráfico o tiempo.</string>
+    <string name="accessibility_desc">Vision aplica las reglas decididas en Home Assistant: apps bloqueadas, franjas horarias y bloqueo.</string>
+    <string name="admin_desc">Impide desinstalar Vision sin el código de gestión.</string>
+    <string name="musique_fin_action">Añade una canción para reanimar la fiesta</string>
+    <!-- 1.86.2 (retour d'essai) : Musique, file vide et musique arrêtée. Même liste et même ordre que Home Assistant
+         (translations/*.json, section « musique », fin_1 à fin_8) : HA tire le numéro, chaque écran montre la même phrase.
+         Des titres de chansons courts, jamais de paroles. -->
+    <string-array name="musique_fin_clins">
+        <item>The End 🎬</item>
+        <item>The Show Must Go On… añade una canción 🎭</item>
+        <item>Silence Is Golden 🤫</item>
+        <item>¡Otra! 👏</item>
+        <item>Play It Again 🎹</item>
+        <item>Stop! In the Name of Love ✋</item>
+        <item>One More Time 🔁</item>
+        <item>Don\'t Stop Me Now 🎤</item>
+    </string-array>
+    <!-- Le nom du lieu tant que Home Assistant n'en a envoyé aucun : neutre (jamais « Maison »). -->
+    <string name="lieu_defaut">Lugar</string>
+    <string name="soutien_titre">Apoyar el proyecto</string>
+    <string name="soutien_badge">♥ Apoyo</string>
+    <string name="soutien_carte">☕ Invítanos a un café</string>
+    <string name="soutien_merci">¡Gracias! Este lugar apoya a Vision.</string>
+    <string name="soutien_explication">La insignia de apoyo es solo decorativa: no desbloquea nada, Vision hace exactamente lo mismo para todos.</string>
+    <string name="soutien_comment">Para activarla: en Home Assistant, Ajustes → Dispositivos y servicios → Vision → Configurar → Apoyar el proyecto.</string>
+    <string name="soutien_adresse">Página de donación: %1$s</string>
+    <string name="soutien_ouvrir">Abrir la página de donación</string>
+    <string name="soutien_fermer">Cerrar</string>
+    <string name="reglagestv_a_propos">Acerca de</string>
+    <string name="reglagestv_version">Versión</string>
+    <string name="mus_aide_tele">OK: reproducir, siguiente, mover, quitar · Atrás: salir</string>
+    <string name="mus_aide_deplacer">Arriba / abajo: mover · OK: confirmar · Atrás: cancelar</string>
+    <string name="mus_musique_charge">Un momento: la música se está cargando.</string>
+    <string name="mus_demande_en_cours">Un momento: la solicitud anterior sigue en curso.</string>
+    <string name="mus_oui">sí</string>
+    <string name="mus_non">no</string>
+    <string name="mus_similaires_desc">Seguir con canciones similares cuando la cola esté vacía: %1$s</string>
+    <string name="mus_ok_changer">%1$s. OK para cambiar</string>
+    <string name="mus_fond_floute_bouton">Fondo de inicio: carátula difuminada — %1$s</string>
+    <string name="mus_fond_floute_desc">Carátula difuminada como fondo de inicio: %1$s</string>
+    <string name="mus_fond_floute">Carátula difuminada como fondo de inicio</string>
+    <string name="mus_aide">Ayuda</string>
+    <string name="mus_hors_ligne">" · sin conexión"</string>
+    <string name="mus_hors_ma">" · fuera de Music Assistant"</string>
+    <string name="mus_enchainement_titres">Transición entre canciones</string>
+    <string name="mus_sans_blanc">Sin pausas</string>
+    <string name="mus_fondu_s">Fundido %1$d s</string>
+    <string name="mus_titre_par_titre_aide">Este reproductor va canción a canción: puede haber una breve pausa. El modo flujo se configura en Music Assistant (Ajustes → Reproductores).</string>
+    <string name="mus_type">Tipo</string>
+    <string name="mus_tout">Todo</string>
+    <string name="mus_titres">Canciones</string>
+    <string name="mus_albums">Álbumes</string>
+    <string name="mus_playlists">Listas</string>
+    <string name="mus_artistes">Artistas</string>
+    <string name="mus_radios">Radios</string>
+    <string name="mus_autres">Otros</string>
+    <string name="mus_plateforme">Plataforma</string>
+    <string name="mus_toutes">Todas</string>
+    <string name="mus_auto_ma">Automática (Music Assistant)</string>
+    <string name="mus_auto_ma_desc">Lista creada automáticamente por Music Assistant</string>
+    <string name="mus_lire">Reproducir</string>
+    <string name="mus_ensuite">Siguiente</string>
+    <string name="mus_plus_choix">Más opciones: %1$s</string>
+    <string name="mus_ajouter_n_titre">¿Añadir %1$d canciones?</string>
+    <string name="mus_ajouter_n_message">«%1$s» tiene %2$d canciones: se añadirán todas al final de la cola.</string>
+    <string name="mus_ajouter_les_n">Añadir las %1$d canciones</string>
+    <string name="mus_ench_inconnu">Transición: desconocida</string>
+    <string name="mus_ench_fondu">Transición: fundido de %1$d s</string>
+    <string name="mus_ench_sans_blanc">Transición: sin pausas</string>
+    <string name="mus_ench_titre">Transición: canción a canción</string>
+    <string name="accueil_raison_origine">Abrir la pantalla de inicio original</string>
+    <string name="accueil_raison_rendre">Devolver la pantalla de inicio original</string>
+    <string name="accueil_raison_force">Dejar el botón de inicio a la pantalla de inicio original</string>
+    <string name="actions_raison_infos">Información de la app: desinstalar, borrar datos, permisos</string>
+
+
+</resources>

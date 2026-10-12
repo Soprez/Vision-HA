@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.88.0 : widgets interactifs (rôle, réglage, confirmation, affichage et détail), six langues. -->
+<resources>
+    <string name="wha_style_reglage">Ajuste (− / + o una lista)</string>
+    <string name="wha_ligne_detail">%1$s: %2$s</string>
+    <string name="wha_plus_n">+%1$d</string>
+    <string name="wha_confirmer_question">¿Confirmar «%1$s»?</string>
+    <string name="wha_confirmer_oui">Confirmar</string>
+    <string name="wha_diminuer">Bajar %1$s</string>
+    <string name="wha_augmenter">Subir %1$s</string>
+    <string name="wha_choisir">Elegir para %1$s</string>
+    <string name="wha_detail_vide">Nada que mostrar.</string>
+    <string name="wha_detail_autres">… y %1$d más</string>
+    <string name="editeurwidget_affichage">Visualización</string>
+    <string name="editeurwidget_aff_ha">Como en Home Assistant</string>
+    <string name="editeurwidget_aff_valeur">Solo el valor</string>
+    <string name="editeurwidget_aff_detail">Detalle</string>
+    <string name="editeurwidget_aff_valeur_detail">Valor + detalle</string>
+    <!-- 1.90.0 : « Au toucher » (détails, tableau de bord, rien). -->
+    <string name="editeurwidget_toucher">Al tocar</string>
+    <string name="editeurwidget_toucher_ha">Como en Home Assistant</string>
+    <string name="editeurwidget_toucher_role">Acción</string>
+    <string name="editeurwidget_toucher_details">Detalles</string>
+    <string name="editeurwidget_toucher_vue">Panel</string>
+    <string name="editeurwidget_toucher_rien">Nada</string>
+    <string name="editeurwidget_toucher_choisir">Elegir un panel o una vista…</string>
+    <string name="editeurwidget_toucher_chemin">Ruta (por ejemplo /lovelace/0)</string>
+    <string name="editeurwidget_toucher_aide">Abre la app de Home Assistant si está instalada; si no, el navegador.</string>
+    <string name="editeurwidget_toucher_chemin_faux">La ruta debe empezar por «/».</string>
+</resources>

@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Empreinte / visage à la place du code parent (appareils des parents, si Home Assistant le permet). -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!-- Seulement pour scanner le QR d'appairage ; demandée à ce moment-là. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- 1.79.0 (point 13 bis) : le fond de l'écran verrouillé, aux couleurs de Vision (option). -->
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+    <!-- Pour ouvrir l'écran d'installation du système lors d'une mise à jour.
+         Rien ne s'installe sans la confirmation de l'utilisateur. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Pour proposer la désinstallation de l'ancienne Vision (ancien identifiant, Migration.ANCIEN) -->
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
+
+    <!-- Une seule appli pour téléphones, tablettes, Android TV, Google TV et Fire TV. -->
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <!-- Une télé sans caméra installe Vision quand même : elle affiche son QR. -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+
+    <application
+        android:name=".VisionApp"
+        android:allowBackup="false"
+        android:banner="@drawable/banner"
+        android:icon="@drawable/ic_vision"
+        android:label="@string/app_name"
+        android:supportsRtl="false"
+        android:theme="@android:style/Theme.Material.NoActionBar"
+        android:usesCleartextTraffic="true"
+        android:enableOnBackInvokedCallback="false"
+        tools:targetApi="34">
+
+        <activity
+            android:name=".SetupActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+            <intent-filter android:label="@string/manifeste_demander_acces">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
+        <!-- Le lanceur de la télé : Vision en page d'accueil (à choisir comme accueil, ou à ouvrir comme une appli). -->
+        <activity
+            android:name=".LanceurActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|density|fontScale|keyboard|keyboardHidden|navigation|locale|layoutDirection"
+            android:exported="true"
+            android:label="@string/manifeste_accueil"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:stateNotNeeded="true"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- 1.81.0 (point 14 bis) : le Mode Party (plein écran sur la télé, pilotage sur le téléphone d'un décideur). -->
+        <activity
+            android:name=".PartyActivity"
+            android:exported="false"
+            android:label="@string/manifeste_musique"
+            android:icon="@drawable/tuile_party"
+            android:launchMode="singleTop"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <!-- 2.0.0 : réponse à un message (bouton proposé ou texte libre sous la notification). -->
+        <receiver android:name=".MessageReponseReceiver" android:exported="false" />
+        <activity
+            android:name=".MessageEnvoiActivity"
+            android:exported="false"
+            android:label="@string/manifeste_envoyer_message"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <!-- 1.82.0 : choisir la musique de la Party (Music Assistant). -->
+        <activity
+            android:name=".ChoixMusiqueActivity"
+            android:exported="false"
+            android:label="@string/manifeste_choisir_musique"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".ReglagesTvActivity"
+            android:exported="false"
+            android:label="@string/manifeste_reglages_tele"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
+        <activity
+            android:name=".TableauEditeurActivity"
+            android:exported="false"
+            android:label="@string/manifeste_tableau_compose"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".DeverrouillageActivity"
+            android:exported="false"
+            android:label="@string/manifeste_demander_deverrouillage"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".DeverrouillageParentActivity"
+            android:exported="false"
+            android:label="@string/manifeste_demandes_deverrouillage"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".ScanActivity"
+            android:exported="false"
+            android:label="@string/manifeste_scanner_qr"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".AppairageActivity"
+            android:exported="false"
+            android:label="@string/manifeste_appairage"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".CouleursActivity"
+            android:exported="false"
+            android:label="@string/manifeste_couleurs"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <!-- À la sortie de la veille : reprendre l'appli qui jouait, ou l'accueil. -->
+        <activity
+            android:name=".RetourActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity
+            android:name=".VeilleActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
+
+        <activity
+            android:name=".CategoriesActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".ExceptionsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".EditeurWidgetHaActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".DetailFermesActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".FermesActivity"
+            android:exported="false"
+            android:label="@string/manifeste_fermes"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".ParentsActivity"
+            android:exported="false"
+            android:label="@string/manifeste_maison"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".BlockActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="org.soprez.vision.block"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
+
+        <activity
+            android:name=".MessageActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Vision.Message" />
+
+        <service
+            android:name=".AgentService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Supervision du lieu : applique en continu les horaires et les regles choisis par les decideurs" />
+        </service>
+
+        <service
+            android:name=".DnsVpnService"
+            android:exported="false"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".VisionAccessibility"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility" />
+        </service>
+
+        <service
+            android:name=".EcouteFlux"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".VeilleService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_DREAM_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.dream"
+                android:resource="@xml/veille" />
+        </service>
+
+        <receiver
+            android:name=".AdminReceiver"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".InstallReceiver"
+            android:exported="false" />
+
+        <!-- 1.65.0 : réponses des notifications, après empreinte ou code de gestion. -->
+        <activity
+            android:name=".GardeActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- 1.76.0 (point 6 bis) : les widgets Home Assistant sur n'importe quel lanceur. -->
+        <receiver
+            android:name=".WidgetHaSystemeProvider"
+            android:label="@string/widget_ha_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_ha_systeme" />
+        </receiver>
+        <!-- 1.88.0 : la petite fenêtre d'un widget d'écran d'accueil (confirmer, régler une valeur, choisir dans une liste). -->
+        <activity
+            android:name=".AppairageSendspinActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop" />
+        <!-- Client Sendspin natif : l'appairage avec Music Assistant (PIN à l'écran, ou autorisation à la télécommande). -->
+        <activity
+            android:name=".WidgetHaActionActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity
+            android:name=".WidgetHaConfigActivity"
+            android:exported="true"
+            android:label="@string/widget_ha_label"
+            android:theme="@android:style/Theme.Material.NoActionBar">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
+        <receiver
+            android:name=".ReponseReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Sert uniquement l'APK téléchargé à l'installateur système. -->
+        <provider
+            android:name=".ApkProvider"
+            android:authorities="org.soprez.vision.apk"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+    </application>
+</manifest>

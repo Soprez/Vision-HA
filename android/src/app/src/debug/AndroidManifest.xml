@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Prototype Sendspin (debug seulement, jamais dans l'APK publié) : adb shell am start -n org.soprez.vision/.PrototypeSendspinActivity -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity android:name=".PrototypeSendspinActivity" android:exported="true" android:launchMode="singleTask" />
+        <activity android:name=".EssaiSendspinNatifActivity" android:exported="true" android:launchMode="singleTask" />
+    </application>
+</manifest>

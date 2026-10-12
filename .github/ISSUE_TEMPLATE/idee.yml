@@ -1,0 +1,19 @@
+name: Idée · Feature request
+description: Proposer une amélioration. · Suggest an improvement.
+labels: [idée]
+body:
+  - type: textarea
+    id: besoin
+    attributes:
+      label: Le besoin · The need
+      description: Quelle situation, pour qui (Décideur, Demandeur, administrateur) ? · Which situation, for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: proposition
+    attributes:
+      label: Ce que vous proposez · Your proposal
+  - type: textarea
+    id: autres
+    attributes:
+      label: Autres pistes envisagées · Alternatives considered

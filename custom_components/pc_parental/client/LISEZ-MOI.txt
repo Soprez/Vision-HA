@@ -1,0 +1,146 @@
+VISION — agent Windows
+======================
+
+Ce dossier s'installe sur chaque PC a controler. Windows 10 ou 11.
+
+Autres langues : README.txt (English), LIESMICH.txt (Deutsch),
+LEEME.txt (Espanol), LEGGIMI.txt (Italiano), LEESMIJ.txt (Nederlands).
+L'agent, l'installateur et le desinstalleur parlent la langue de Windows
+(dossier "langues" ; anglais si la langue n'y est pas).
+
+
+INSTALLATION (une fois par PC)
+------------------------------
+Le plus simple : Home Assistant heberge l'installateur. Sur le PC a
+equiper, ouvre PowerShell et colle la ligne affichee dans le tableau de
+bord "Vision", section "Installer un PC". Elle ressemble a :
+
+    irm http://TON-HA:8123/api/pc_parental/client/install -OutFile "$env:TEMP\install-cp.ps1"; & "$env:TEMP\install-cp.ps1"
+
+Sinon, avec les fichiers de ce dossier :
+
+1. Copie ce dossier entier sur le PC (bureau, cle USB, peu importe).
+
+2. Clic droit sur  install.ps1  ->  "Executer avec PowerShell".
+   Windows demande l'autorisation administrateur : accepte.
+   (Si Windows refuse d'executer le script, ouvre PowerShell en
+    administrateur, va dans ce dossier, et tape d'abord :
+        Set-ExecutionPolicy -Scope Process Bypass
+    puis  .\install.ps1 )
+
+Dans les deux cas, l'installateur demande deux choses :
+     - l'adresse de Home Assistant   ex. http://homeassistant.local:8123
+     - la cle d'inscription          elle est affichee dans Home Assistant,
+                                     tableau de bord "Vision",
+                                     section "Installer un PC".
+
+C'est fini. Le PC apparait tout seul dans Home Assistant, OUVERT et
+   SANS AUCUNE PLAGE. C'est ensuite depuis Home Assistant que tu lui
+   donnes ses horaires.
+
+La meme cle sert pour tous les PC.
+
+
+ENVOYER UN MESSAGE
+------------------
+Depuis le tableau de bord "Vision", carte du PC, section
+"Envoyer un message" : ecris ton texte dans le champ Message et appuie sur
+Envoyer. Une notification Windows apparait sur le PC, signee "Vision",
+et reste dans le centre de notifications.
+
+Le destinataire peut etre tous les PC, une etiquette, ou un PC precis. Les
+etiquettes se posent dans le champ "Etiquettes" de chaque carte : mets
+"suivis" sur plusieurs PC et tu les vises tous d'un coup, comme on
+grouperait des prises.
+
+Un son peut etre choisi : defaut, message, courrier, rappel, SMS, alarme
+insistante, appel insistant, ou silencieux. Les deux sons insistants se
+repetent tant que la notification reste affichee.
+
+Pour une automatisation :
+
+    action: pc_parental.notify
+    data:
+      tag: suivis
+      message: Sors la poubelle
+      son: Rappel
+
+Sans pc ni tag, le message part a tous les PC. L'option "urgent" ouvre une
+boite de dialogue par-dessus tout au lieu d'une notification discrete.
+Chaque PC a aussi son entite notify, ciblable par les libelles de Home
+Assistant si tu preferes ce mecanisme.
+
+
+MISES A JOUR
+------------
+Home Assistant heberge l'agent : c'est lui qui fait foi. Quand une
+nouvelle version arrive avec l'integration, chaque PC la recupere tout
+seul, verifie son empreinte, remplace son script et redemarre. Rien a
+reinstaller, aucun fichier a recopier.
+
+Si tu preferes garder la main : desactive "Mise a jour automatique des
+agents" dans le tableau de bord. Chaque PC affiche alors sa version face
+a celle publiee, avec un bouton Installer.
+
+ATTENTION : la mise a jour automatique n'existe qu'a partir de la version
+1.1.0 de l'agent. Un PC encore en 1.0.0 ne sait pas se mettre a jour tout
+seul : relance l'installateur une fois sur cette machine. C'est sans
+risque, le PC garde son identite et ses plages.
+
+
+CE QUE FAIT L'AGENT
+-------------------
+- Il rapporte a Home Assistant si quelqu'un est devant l'ecran : actif,
+  inactif (rien touche depuis un moment), session verrouillee, ou hors
+  ligne. Home Assistant l'affiche comme un statut de messagerie.
+- Il affiche les messages envoyes depuis Home Assistant sous forme de vraies
+  notifications Windows, signees "Vision" et conservees dans le
+  centre de notifications. Un message marque urgent ouvre a la place une
+  boite de dialogue par-dessus tout, qui se ferme d'elle-meme.
+- Il demande a Home Assistant, toutes les 20 secondes, si ce PC est
+  ouvert ou ferme.
+- Pendant une plage fermee : la session est verrouillee. Si la personne la
+  rouvre avec son mot de passe, elle est reverrouillee dans la seconde.
+  Rien n'est perdu : les programmes restent ouverts derriere.
+- Cinq minutes avant une fermeture, un message previent a l'ecran.
+- Les logiciels de la liste "Logiciels bloques" sont fermes en continu.
+- Les sites de la liste "Sites bloques" sont bloques via le fichier hosts.
+
+Si Home Assistant devient injoignable, la derniere consigne connue est
+conservee 2 heures, puis le PC est laisse ouvert : une panne du serveur
+ne doit pas condamner l'ordinateur.
+
+
+POUR QUE CE SOIT EFFICACE
+-------------------------
+L'agent tourne en compte SYSTEM : un utilisateur en compte standard ne peut
+ni l'arreter ni le desinstaller. En revanche, s'il est ADMINISTRATEUR de
+son PC, il pourra le contourner. Verifie son compte :
+
+    Parametres > Comptes > Autres utilisateurs
+
+et passe-le en "Utilisateur standard" si besoin.
+
+
+SUPPRIMER UN PC
+---------------
+Depuis Home Assistant : bouton "Supprimer ce PC" en bas de la carte du PC,
+avec confirmation. Le PC, ses plages et son appareil disparaissent.
+
+L'agent reste installe sur la machine : il constate qu'il n'est plus connu,
+n'applique plus aucune restriction et laisse le PC ouvert. Pour l'enlever
+pour de bon, lance uninstall.ps1 sur cette machine.
+
+
+DESINSTALLER
+------------
+Clic droit sur  uninstall.ps1  ->  "Executer avec PowerShell", en
+administrateur. Cela retire la tache planifiee, nettoie le fichier hosts
+et efface la configuration. Le PC reste visible dans Home Assistant :
+supprime-le depuis le tableau de bord si tu ne t'en sers plus.
+
+
+EN CAS DE SOUCI
+---------------
+Le journal de l'agent :   C:\ProgramData\HAParental\agent.log
+La tache planifiee    :   Planificateur de taches > "HA Controle Parental"

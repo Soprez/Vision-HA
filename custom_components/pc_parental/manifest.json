@@ -1,0 +1,22 @@
+{
+  "domain": "pc_parental",
+  "name": "Vision",
+  "after_dependencies": [
+    "frontend"
+  ],
+  "codeowners": [
+    "@Soprez/vision"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "http"
+  ],
+  "documentation": "https://github.com/Soprez/Vision-HA",
+  "integration_type": "hub",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/Soprez/Vision-HA/issues",
+  "requirements": [
+    "PyQRCode==1.2.1"
+  ],
+  "version": "2.4.3"
+}

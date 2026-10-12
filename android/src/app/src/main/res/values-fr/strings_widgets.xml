@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.88.0 : widgets interactifs (rôle, réglage, confirmation, affichage et détail), six langues. -->
+<resources>
+    <string name="wha_style_reglage">Réglage (− / + ou une liste)</string>
+    <string name="wha_ligne_detail">%1$s : %2$s</string>
+    <string name="wha_plus_n">+%1$d</string>
+    <string name="wha_confirmer_question">Confirmer « %1$s » ?</string>
+    <string name="wha_confirmer_oui">Confirmer</string>
+    <string name="wha_diminuer">Diminuer %1$s</string>
+    <string name="wha_augmenter">Augmenter %1$s</string>
+    <string name="wha_choisir">Choisir pour %1$s</string>
+    <string name="wha_detail_vide">Rien à afficher.</string>
+    <string name="wha_detail_autres">… et %1$d de plus</string>
+    <string name="editeurwidget_affichage">Affichage</string>
+    <string name="editeurwidget_aff_ha">Comme dans Home Assistant</string>
+    <string name="editeurwidget_aff_valeur">Valeur seule</string>
+    <string name="editeurwidget_aff_detail">Détail</string>
+    <string name="editeurwidget_aff_valeur_detail">Valeur + détail</string>
+    <!-- 1.90.0 : « Au toucher » (détails, tableau de bord, rien). -->
+    <string name="editeurwidget_toucher">Au toucher</string>
+    <string name="editeurwidget_toucher_ha">Comme dans Home Assistant</string>
+    <string name="editeurwidget_toucher_role">Action</string>
+    <string name="editeurwidget_toucher_details">Détails</string>
+    <string name="editeurwidget_toucher_vue">Tableau de bord</string>
+    <string name="editeurwidget_toucher_rien">Rien</string>
+    <string name="editeurwidget_toucher_choisir">Choisir un tableau de bord ou une vue…</string>
+    <string name="editeurwidget_toucher_chemin">Chemin (par exemple /lovelace/0)</string>
+    <string name="editeurwidget_toucher_aide">Ouvre l\'appli Home Assistant si elle est installée, sinon le navigateur.</string>
+    <string name="editeurwidget_toucher_chemin_faux">Le chemin doit commencer par « / ».</string>
+</resources>

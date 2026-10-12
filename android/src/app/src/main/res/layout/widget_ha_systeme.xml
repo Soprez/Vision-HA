@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.76.0 (point 6 bis) : un widget Home Assistant de Vision posé sur n'importe quel lanceur. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_racine"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/widget_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:id="@+id/widget_message"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:padding="12dp"
+        android:background="@drawable/widget_fond_message"
+        android:textColor="#FF2A2026"
+        android:textSize="13sp"
+        android:visibility="gone" />
+</FrameLayout>

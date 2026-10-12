@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 1 (zone Android) : textes nouveaux, six langues. -->
+<resources>
+    <string name="liaison_question">¿Vincular con «%1$s»?</string>
+    <string name="liaison_question_texte">Vision ha encontrado este servidor de Home Assistant en la red (%1$s). No se le envía nada hasta que elijas.</string>
+    <string name="liaison_se_relier">Vincular</string>
+    <string name="liaison_pas_celui_ci">Este no</string>
+    <string name="liaison_ecarte">Servidor descartado. Elige otro método abajo.</string>
+    <string name="decouverte_recherche_delai">Buscando Home Assistant en la red… (%1$d s como máximo)</string>
+    <string name="liaison_autres_methodes">Otros métodos</string>
+    <string name="bienvenue_qr_titre">Vincular con un código QR</string>
+    <string name="liaison_autres_methodes_plus">Otros métodos ▸</string>
+    <string name="liaison_autres_masquer">Ocultar otros métodos ▾</string>
+    <string name="nonrelie_titre">Sin vincular</string>
+    <string name="nonrelie_tele">Esta TV aún no está vinculada a Vision: nada está protegido en ella.</string>
+    <string name="nonrelie_appareil">Este dispositivo aún no está vinculado a Vision: nada está protegido en él.</string>
+    <string name="nonrelie_carte_texte">Este dispositivo no está vinculado a ningún servidor de Vision: todavía no se aplica ninguna regla. Vincúlalo abajo.</string>
+    <string name="nonrelie_relier">Vincular</string>
+    <string name="statut_suspendue">Protección suspendida</string>
+    <string name="cat_etat_ouverte">Abierta</string>
+    <string name="cat_etat_fermee">Cerrada</string>
+    <string name="cat_etat_description">%1$s: %2$s</string>
+    <string name="a11y_retour">Atrás</string>
+    <string name="a11y_actualiser">Actualizar</string>
+    <string name="a11y_allonger_5_s">%1$s: 5 segundos más</string>
+    <string name="a11y_raccourcir_5_s">%1$s: 5 segundos menos</string>
+    <string name="a11y_retirer_case">Quitar %1$s</string>
+    <string name="a11y_qr_deverrouillage">Código QR de desbloqueo, para escanear con el dispositivo</string>
+    <string name="couleurs_contraste_faible">Contraste bajo (%1$s:1): el texto será difícil de leer. Intenta llegar al menos a 4,5:1, por ejemplo texto claro sobre fondo oscuro.</string>
+    <!-- 1.87.1 : Musique, lancement d'une playlist sur la télé -->
+    <string name="party_lancement_playlist">«%1$s»: iniciando…</string>
+</resources>

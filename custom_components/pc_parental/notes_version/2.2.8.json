@@ -1,0 +1,64 @@
+{
+  "version": "2.2.8",
+  "date": "2026-10-10",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "La recherche de musique se filtre par type et par service, et les filtres se cumulent.",
+        "en": "Music search can be filtered by type and by service, and filters combine.",
+        "de": "Die Musiksuche lässt sich nach Art und Dienst filtern, die Filter sind kombinierbar.",
+        "es": "La búsqueda de música se filtra por tipo y por servicio, y los filtros se combinan.",
+        "it": "La ricerca musicale si filtra per tipo e per servizio, e i filtri si combinano.",
+        "nl": "Muziek zoeken kan nu op soort en op dienst, en de filters zijn te combineren."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Chaque résultat indique de quel service il vient.",
+        "en": "Each result shows which service it comes from.",
+        "de": "Jedes Ergebnis zeigt, von welchem Dienst es stammt.",
+        "es": "Cada resultado indica de qué servicio procede.",
+        "it": "Ogni risultato indica da quale servizio proviene.",
+        "nl": "Elk resultaat toont van welke dienst het komt."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "La page invité propose aussi le choix du service.",
+        "en": "The guest page also lets you pick the service.",
+        "de": "Auch die Gästeseite bietet die Wahl des Dienstes.",
+        "es": "La página de invitados también permite elegir el servicio.",
+        "it": "Anche la pagina ospiti permette di scegliere il servizio.",
+        "nl": "Ook op de gastenpagina kun je de dienst kiezen."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "public": "decideurs",
+      "texte": {
+        "fr": "Une lecture qui échoue est notée dans le journal.",
+        "en": "A failed playback is now recorded in the log.",
+        "de": "Eine fehlgeschlagene Wiedergabe wird jetzt im Protokoll vermerkt.",
+        "es": "Una reproducción fallida queda anotada en el registro.",
+        "it": "Una riproduzione non riuscita viene annotata nel registro.",
+        "nl": "Een mislukte weergave wordt nu in het logboek genoteerd."
+      }
+    }
+  ]
+}

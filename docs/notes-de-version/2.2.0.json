@@ -1,0 +1,42 @@
+{
+  "version": "2.2.0",
+  "date": "2026-10-10",
+  "titre": {
+    "fr": "Quoi de neuf dans Vision 2.2",
+    "en": "What's new in Vision 2.2"
+  },
+  "points": [
+    {
+      "public": "tous",
+      "appareils": ["telephone", "tele"],
+      "textes": {
+        "fr": "Pendant une Party, un titre ajouté passe à la suite sans couper celui qui joue.",
+        "en": "During a Party, an added song plays next without cutting the one that's playing."
+      }
+    },
+    {
+      "public": "tous",
+      "appareils": ["tele"],
+      "textes": {
+        "fr": "La télé de la Party n'est plus sa propre enceinte : la musique part sur l'enceinte de la pièce.",
+        "en": "The Party TV is no longer its own speaker: the music plays on the room's speaker."
+      }
+    },
+    {
+      "public": "decideurs",
+      "appareils": ["telephone", "tele"],
+      "textes": {
+        "fr": "Remplacer la musique en cours se fait seulement quand on le demande.",
+        "en": "The music that's playing is only replaced when you ask for it."
+      }
+    },
+    {
+      "public": "administrateurs",
+      "appareils": ["ha"],
+      "textes": {
+        "fr": "Nouveau : les événements vision_party_started et vision_party_stopped, pour brancher vos propres automatisations sur une Party. Le Mode Fête quitte Vision.",
+        "en": "New: the vision_party_started and vision_party_stopped events, to hook your own automations onto a Party. Celebration mode leaves Vision."
+      }
+    }
+  ]
+}

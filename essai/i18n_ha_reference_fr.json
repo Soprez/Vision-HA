@@ -1,0 +1,626 @@
+{
+ "pc_parental_a_classer": [
+  "sensor.vision_a_classer",
+  "Vision À classer"
+ ],
+ "pc_parental_acces_g1": [
+  "switch.google_pixel_8a_acces_a_l_appareil",
+  "Google Pixel 8a Accès à l'appareil"
+ ],
+ "pc_parental_acces_j1": [
+  "switch.pc_alex_acces_a_l_appareil",
+  "PC-ALEX Accès à l'appareil"
+ ],
+ "pc_parental_adresse_constatee": [
+  "select.vision_adresse_du_site",
+  "Vision Adresse du site"
+ ],
+ "pc_parental_agent_g1": [
+  "binary_sensor.google_pixel_8a_agent",
+  "Google Pixel 8a Agent"
+ ],
+ "pc_parental_agent_j1": [
+  "binary_sensor.pc_alex_agent",
+  "PC-ALEX Agent"
+ ],
+ "pc_parental_alertes_g1": [
+  "sensor.google_pixel_8a_sites_dangereux_bloques",
+  "Google Pixel 8a Sites dangereux bloqués"
+ ],
+ "pc_parental_alertes_j1": [
+  "sensor.pc_alex_sites_dangereux_bloques",
+  "PC-ALEX Sites dangereux bloqués"
+ ],
+ "pc_parental_autoriser_logiciel": [
+  "button.vision_autoriser_ce_logiciel",
+  "Vision Autoriser ce logiciel"
+ ],
+ "pc_parental_autoriser_logiciel_bloque": [
+  "button.vision_autoriser_ce_logiciel_2",
+  "Vision Autoriser ce logiciel"
+ ],
+ "pc_parental_autoriser_site": [
+  "button.vision_autoriser_ce_site",
+  "Vision Autoriser ce site"
+ ],
+ "pc_parental_autoriser_site_bloque": [
+  "button.vision_autoriser_ce_site_2",
+  "Vision Autoriser ce site"
+ ],
+ "pc_parental_avertissement": [
+  "number.vision_avertir_avant_fermeture",
+  "Vision Avertir avant fermeture"
+ ],
+ "pc_parental_blocages_g1": [
+  "sensor.google_pixel_8a_sites_bloques_aujourd_hui",
+  "Google Pixel 8a Sites bloqués aujourd'hui"
+ ],
+ "pc_parental_blocages_j1": [
+  "sensor.pc_alex_sites_bloques_aujourd_hui",
+  "PC-ALEX Sites bloqués aujourd'hui"
+ ],
+ "pc_parental_bloquer_logiciel": [
+  "button.vision_bloquer_ce_logiciel",
+  "Vision Bloquer ce logiciel"
+ ],
+ "pc_parental_bloquer_logiciel_autorise": [
+  "button.vision_bloquer_ce_logiciel_2",
+  "Vision Bloquer ce logiciel"
+ ],
+ "pc_parental_bloquer_origine": [
+  "button.vision_bloquer_ce_programme",
+  "Vision Bloquer ce programme"
+ ],
+ "pc_parental_bloquer_site": [
+  "button.vision_bloquer_ce_site",
+  "Vision Bloquer ce site"
+ ],
+ "pc_parental_bloquer_site_autorise": [
+  "button.vision_bloquer_ce_site_2",
+  "Vision Bloquer ce site"
+ ],
+ "pc_parental_bloques": [
+  "sensor.vision_bloques_sur_cet_appareil",
+  "Vision Bloqués sur cet appareil"
+ ],
+ "pc_parental_cle_virustotal": [
+  "text.vision_cle_virustotal",
+  "Vision Clé VirusTotal"
+ ],
+ "pc_parental_compte_admin_g1": [
+  "binary_sensor.google_pixel_8a_compte_administrateur",
+  "Google Pixel 8a Compte administrateur"
+ ],
+ "pc_parental_compte_admin_j1": [
+  "binary_sensor.pc_alex_compte_administrateur",
+  "PC-ALEX Compte administrateur"
+ ],
+ "pc_parental_creer_pc": [
+  "button.vision_creer_l_appareil",
+  "Vision Créer l'appareil"
+ ],
+ "pc_parental_creer_plage": [
+  "button.vision_creer_la_plage",
+  "Vision Créer la plage"
+ ],
+ "pc_parental_declasser_logiciel_autorise": [
+  "button.vision_remettre_a_trier",
+  "Vision Remettre à trier"
+ ],
+ "pc_parental_declasser_logiciel_bloque": [
+  "button.vision_remettre_a_trier_2",
+  "Vision Remettre à trier"
+ ],
+ "pc_parental_declasser_site_autorise": [
+  "button.vision_remettre_a_trier_3",
+  "Vision Remettre à trier"
+ ],
+ "pc_parental_declasser_site_bloque": [
+  "button.vision_remettre_a_trier_4",
+  "Vision Remettre à trier"
+ ],
+ "pc_parental_delai_refus": [
+  "number.vision_attente_apres_un_refus",
+  "Vision Attente après un refus"
+ ],
+ "pc_parental_desinstallation": [
+  "switch.vision_desinstallation_par_l_agent",
+  "Vision Désinstallation par l'agent"
+ ],
+ "pc_parental_destinataire": [
+  "select.vision_destinataire_du_message",
+  "Vision Destinataire du message"
+ ],
+ "pc_parental_dns_filtrant": [
+  "select.vision_filtre_dns_des_pc",
+  "Vision Filtre DNS des PC"
+ ],
+ "pc_parental_duree_laissez_passer": [
+  "number.vision_duree_du_laissez_passer",
+  "Vision Durée du laissez-passer"
+ ],
+ "pc_parental_envoyer": [
+  "button.vision_envoyer_le_message",
+  "Vision Envoyer le message"
+ ],
+ "pc_parental_epargner_adresse": [
+  "button.vision_epargner_cette_adresse",
+  "Vision Épargner cette adresse"
+ ],
+ "pc_parental_etat_g1": [
+  "sensor.google_pixel_8a_etat",
+  "Google Pixel 8a État"
+ ],
+ "pc_parental_etat_j1": [
+  "sensor.pc_alex_etat",
+  "PC-ALEX État"
+ ],
+ "pc_parental_etq_g1_jeux": [
+  "switch.google_pixel_8a_bloquer_jeux",
+  "Google Pixel 8a Bloquer « Jeux »"
+ ],
+ "pc_parental_etq_j1_jeux": [
+  "switch.pc_alex_bloquer_jeux",
+  "PC-ALEX Bloquer « Jeux »"
+ ],
+ "pc_parental_exceptions": [
+  "sensor.vision_exceptions",
+  "Vision Exceptions"
+ ],
+ "pc_parental_fermer_laissez_passer": [
+  "button.vision_refermer_ce_site",
+  "Vision Refermer ce site"
+ ],
+ "pc_parental_fermetures_alex": [
+  "sensor.vision_fermetures_par_automatisation_alex",
+  "Vision Fermetures par automatisation Alex"
+ ],
+ "pc_parental_inactivite": [
+  "number.vision_inactif_apres",
+  "Vision Inactif après"
+ ],
+ "pc_parental_inscriptions": [
+  "switch.vision_inscription_de_nouveaux_appareils",
+  "Vision Inscription de nouveaux appareils"
+ ],
+ "pc_parental_inscrire_logiciel": [
+  "button.vision_inscrire_comme_logiciel",
+  "Vision Inscrire comme logiciel"
+ ],
+ "pc_parental_inscrire_site": [
+  "button.vision_inscrire_comme_site",
+  "Vision Inscrire comme site"
+ ],
+ "pc_parental_jours": [
+  "select.vision_jours_de_la_plage",
+  "Vision Jours de la plage"
+ ],
+ "pc_parental_laisser_passer": [
+  "button.vision_laisser_passer_ce_site",
+  "Vision Laisser passer ce site"
+ ],
+ "pc_parental_liste_autorises_g1": [
+  "text.google_pixel_8a_autorises_exceptions",
+  "Google Pixel 8a Autorisés (exceptions)"
+ ],
+ "pc_parental_liste_autorises_j1": [
+  "text.pc_alex_autorises_exceptions",
+  "PC-ALEX Autorisés (exceptions)"
+ ],
+ "pc_parental_liste_bloques_g1": [
+  "text.google_pixel_8a_bloques",
+  "Google Pixel 8a Bloqués"
+ ],
+ "pc_parental_liste_bloques_j1": [
+  "text.pc_alex_bloques",
+  "PC-ALEX Bloqués"
+ ],
+ "pc_parental_liste_noire": [
+  "switch.vision_liste_noire_des_sites_dangereux",
+  "Vision Liste noire des sites dangereux"
+ ],
+ "pc_parental_liste_noire_etat": [
+  "sensor.vision_liste_noire",
+  "Vision Liste noire"
+ ],
+ "pc_parental_liste_nom_g1": [
+  "text.google_pixel_8a_nom",
+  "Google Pixel 8a Nom"
+ ],
+ "pc_parental_liste_nom_j1": [
+  "text.pc_alex_nom",
+  "PC-ALEX Nom"
+ ],
+ "pc_parental_logiciel_autorise": [
+  "select.vision_logiciel_autorise",
+  "Vision Logiciel autorisé"
+ ],
+ "pc_parental_logiciel_bloque": [
+  "select.vision_logiciel_bloque",
+  "Vision Logiciel bloqué"
+ ],
+ "pc_parental_logiciel_constate": [
+  "select.vision_logiciel_constate",
+  "Vision Logiciel constaté"
+ ],
+ "pc_parental_maj_auto": [
+  "switch.vision_mise_a_jour_automatique_des_agents",
+  "Vision Mise à jour automatique des agents"
+ ],
+ "pc_parental_maj_g1": [
+  "update.google_pixel_8a_agent",
+  "Google Pixel 8a Agent"
+ ],
+ "pc_parental_maj_j1": [
+  "update.pc_alex_agent",
+  "PC-ALEX Agent"
+ ],
+ "pc_parental_msg_position_g1": [
+  "select.google_pixel_8a_position_des_messages",
+  "Google Pixel 8a Position des messages"
+ ],
+ "pc_parental_msg_position_j1": [
+  "select.pc_alex_position_des_messages",
+  "PC-ALEX Position des messages"
+ ],
+ "pc_parental_msg_taille_g1": [
+  "select.google_pixel_8a_taille_des_messages",
+  "Google Pixel 8a Taille des messages"
+ ],
+ "pc_parental_msg_taille_j1": [
+  "select.pc_alex_taille_des_messages",
+  "PC-ALEX Taille des messages"
+ ],
+ "pc_parental_musique_derniere_commande": [
+  "sensor.vision_musique_derniere_commande",
+  "Vision Musique — dernière commande"
+ ],
+ "pc_parental_new_rule_debut": [
+  "time.vision_debut_de_la_nouvelle_plage",
+  "Vision Début de la nouvelle plage"
+ ],
+ "pc_parental_new_rule_fin": [
+  "time.vision_fin_de_la_nouvelle_plage",
+  "Vision Fin de la nouvelle plage"
+ ],
+ "pc_parental_notify_g1": [
+  "notify.google_pixel_8a_message_a_l_ecran",
+  "Google Pixel 8a Message à l'écran"
+ ],
+ "pc_parental_notify_j1": [
+  "notify.pc_alex_message_a_l_ecran",
+  "PC-ALEX Message à l'écran"
+ ],
+ "pc_parental_notoriete": [
+  "switch.vision_frequentation_des_sites",
+  "Vision Fréquentation des sites"
+ ],
+ "pc_parental_origine_cible": [
+  "select.vision_ouvert_par",
+  "Vision Ouvert par"
+ ],
+ "pc_parental_oublier_g1": [
+  "button.google_pixel_8a_supprimer_cet_appareil",
+  null
+ ],
+ "pc_parental_oublier_j1": [
+  "button.pc_alex_supprimer_cet_appareil",
+  null
+ ],
+ "pc_parental_ouvrir30_g1": [
+  "button.google_pixel_8a_ouvrir_30_min",
+  "Google Pixel 8a Ouvrir 30 min"
+ ],
+ "pc_parental_ouvrir30_j1": [
+  "button.pc_alex_ouvrir_30_min",
+  "PC-ALEX Ouvrir 30 min"
+ ],
+ "pc_parental_page_precedente": [
+  "button.vision_page_precedente",
+  "Vision Page précédente"
+ ],
+ "pc_parental_page_suivante": [
+  "button.vision_page_suivante",
+  "Vision Page suivante"
+ ],
+ "pc_parental_pause_generale": [
+  "binary_sensor.vision_pause_generale_en_cours",
+  "Vision Tout fermé"
+ ],
+ "pc_parental_pause_generale_30": [
+  "button.vision_pause_generale_30_min",
+  "Vision Tout fermer 30 min"
+ ],
+ "pc_parental_pause_generale_fin": [
+  "button.vision_fin_de_la_pause_generale",
+  "Vision Rouvrir"
+ ],
+ "pc_parental_pause_max_g1": [
+  "number.google_pixel_8a_duree_max_de_pause",
+  "Google Pixel 8a Durée max de suspension"
+ ],
+ "pc_parental_pause_max_j1": [
+  "number.pc_alex_duree_max_de_pause",
+  "PC-ALEX Durée max de suspension"
+ ],
+ "pc_parental_pc_cible": [
+  "select.vision_appareil_cible",
+  "Vision Appareil ciblé"
+ ],
+ "pc_parental_personne_g1": [
+  "select.google_pixel_8a_utilisateur",
+  "Google Pixel 8a Utilisateur"
+ ],
+ "pc_parental_personne_j1": [
+  "select.pc_alex_utilisateur",
+  "PC-ALEX Utilisateur"
+ ],
+ "pc_parental_plage_a_supprimer": [
+  "select.vision_plage_a_supprimer",
+  "Vision Plage à supprimer"
+ ],
+ "pc_parental_plages_g1": [
+  "sensor.google_pixel_8a_plages",
+  "Google Pixel 8a Plages"
+ ],
+ "pc_parental_plages_j1": [
+  "sensor.pc_alex_plages",
+  "PC-ALEX Plages"
+ ],
+ "pc_parental_planning_g1": [
+  "button.google_pixel_8a_revenir_au_planning",
+  "Google Pixel 8a Revenir au planning"
+ ],
+ "pc_parental_planning_j1": [
+  "button.pc_alex_revenir_au_planning",
+  "PC-ALEX Revenir au planning"
+ ],
+ "pc_parental_portee_plage": [
+  "select.vision_cette_plage_ferme",
+  "Vision Cette plage ferme"
+ ],
+ "pc_parental_presence_g1": [
+  "sensor.google_pixel_8a_presence",
+  "Google Pixel 8a Présence"
+ ],
+ "pc_parental_presence_j1": [
+  "sensor.pc_alex_presence",
+  "PC-ALEX Présence"
+ ],
+ "pc_parental_rafraichir_liste_noire": [
+  "button.vision_rafraichir_la_liste_noire",
+  "Vision Rafraîchir la liste noire"
+ ],
+ "pc_parental_rafraichir_notoriete": [
+  "button.vision_rafraichir_la_frequentation",
+  "Vision Rafraîchir la fréquentation"
+ ],
+ "pc_parental_recherche_noire": [
+  "sensor.vision_dans_la_liste_noire",
+  "Vision Dans la liste noire"
+ ],
+ "pc_parental_reinscription_g1": [
+  "button.google_pixel_8a_autoriser_une_reinscription",
+  "Google Pixel 8a Autoriser une réinscription"
+ ],
+ "pc_parental_reinscription_j1": [
+  "button.pc_alex_autoriser_une_reinscription",
+  "PC-ALEX Autoriser une réinscription"
+ ],
+ "pc_parental_retirer_adresse": [
+  "button.vision_ne_plus_epargner_cette_adresse",
+  "Vision Ne plus épargner cette adresse"
+ ],
+ "pc_parental_retirer_logiciel": [
+  "button.vision_retirer_ce_logiciel_de_la_liste",
+  "Vision Retirer ce logiciel de la liste"
+ ],
+ "pc_parental_retirer_site": [
+  "button.vision_retirer_ce_site_de_la_liste",
+  "Vision Retirer ce site de la liste"
+ ],
+ "pc_parental_role_g1": [
+  "select.google_pixel_8a_role_de_l_appareil",
+  "Google Pixel 8a Rôle de l'appareil"
+ ],
+ "pc_parental_role_j1": [
+  "select.pc_alex_role_de_l_appareil",
+  "PC-ALEX Rôle de l'appareil"
+ ],
+ "pc_parental_rule_g1_1": [
+  "switch.google_pixel_8a_plage_matin_jeux_07h00_08h00_du_lundi_au_vendredi",
+  "Google Pixel 8a Plage Matin — Jeux — 07h00→08h00 (du lundi au vendredi)"
+ ],
+ "pc_parental_rule_j1_1": [
+  "switch.pc_alex_plage_matin_jeux_07h00_08h00_du_lundi_au_vendredi",
+  "PC-ALEX Plage Matin — Jeux — 07h00→08h00 (du lundi au vendredi)"
+ ],
+ "pc_parental_rulejours_g1_1": [
+  "select.google_pixel_8a_plage_matin_jours",
+  "Google Pixel 8a Plage Matin jours"
+ ],
+ "pc_parental_rulejours_j1_1": [
+  "select.pc_alex_plage_matin_jours",
+  "PC-ALEX Plage Matin jours"
+ ],
+ "pc_parental_ruleportee_g1_1": [
+  "select.google_pixel_8a_plage_matin_ferme",
+  "Google Pixel 8a Plage Matin ferme"
+ ],
+ "pc_parental_ruleportee_j1_1": [
+  "select.pc_alex_plage_matin_ferme",
+  "PC-ALEX Plage Matin ferme"
+ ],
+ "pc_parental_ruletags_g1_1": [
+  "text.google_pixel_8a_plage_matin_etiquettes",
+  "Google Pixel 8a Plage Matin étiquettes"
+ ],
+ "pc_parental_ruletags_j1_1": [
+  "text.pc_alex_plage_matin_etiquettes",
+  "PC-ALEX Plage Matin étiquettes"
+ ],
+ "pc_parental_ruletime_g1_1_end": [
+  "time.google_pixel_8a_plage_matin_fin",
+  "Google Pixel 8a Plage Matin fin"
+ ],
+ "pc_parental_ruletime_g1_1_start": [
+  "time.google_pixel_8a_plage_matin_debut",
+  "Google Pixel 8a Plage Matin début"
+ ],
+ "pc_parental_ruletime_j1_1_end": [
+  "time.pc_alex_plage_matin_fin",
+  "PC-ALEX Plage Matin fin"
+ ],
+ "pc_parental_ruletime_j1_1_start": [
+  "time.pc_alex_plage_matin_debut",
+  "PC-ALEX Plage Matin début"
+ ],
+ "pc_parental_rythme_liste_noire": [
+  "number.vision_rafraichir_la_liste_noire_toutes_les",
+  "Vision Rafraîchir la liste noire toutes les"
+ ],
+ "pc_parental_saisie_adresse": [
+  "text.vision_adresse_a_epargner",
+  "Vision Adresse à épargner"
+ ],
+ "pc_parental_saisie_ajout": [
+  "text.vision_site_ou_logiciel_a_inscrire",
+  "Vision Site ou logiciel à inscrire"
+ ],
+ "pc_parental_saisie_etiquettes_plage": [
+  "text.vision_etiquettes_a_fermer_separees_par_des_virgules",
+  "Vision Étiquettes à fermer (séparées par des virgules)"
+ ],
+ "pc_parental_saisie_message": [
+  "text.vision_message_a_envoyer",
+  "Vision Message à envoyer"
+ ],
+ "pc_parental_saisie_nom_pc": [
+  "text.vision_nom_du_nouvel_appareil",
+  "Vision Nom du nouvel appareil"
+ ],
+ "pc_parental_saisie_nom_plage": [
+  "text.vision_nom_de_la_nouvelle_plage",
+  "Vision Nom de la nouvelle plage"
+ ],
+ "pc_parental_saisie_recherche": [
+  "text.vision_chercher_dans_la_liste_noire",
+  "Vision Chercher dans la liste noire"
+ ],
+ "pc_parental_sans_regle_logiciel": [
+  "button.vision_sans_regle_ce_logiciel",
+  "Vision Sans règle : ce logiciel"
+ ],
+ "pc_parental_sans_regle_site": [
+  "button.vision_sans_regle_ce_site",
+  "Vision Sans règle : ce site"
+ ],
+ "pc_parental_session_g1": [
+  "sensor.google_pixel_8a_session_ouverte",
+  "Google Pixel 8a Session ouverte"
+ ],
+ "pc_parental_session_j1": [
+  "sensor.pc_alex_session_ouverte",
+  "PC-ALEX Session ouverte"
+ ],
+ "pc_parental_site_autorise": [
+  "select.vision_site_autorise",
+  "Vision Site autorisé"
+ ],
+ "pc_parental_site_bloque": [
+  "select.vision_site_bloque",
+  "Vision Site bloqué"
+ ],
+ "pc_parental_site_constate": [
+  "select.vision_site_constate",
+  "Vision Site constaté"
+ ],
+ "pc_parental_son": [
+  "select.vision_son_de_la_notification",
+  "Vision Son de la notification"
+ ],
+ "pc_parental_suivant_g1": [
+  "sensor.google_pixel_8a_prochain_changement",
+  "Google Pixel 8a Prochain changement"
+ ],
+ "pc_parental_suivant_j1": [
+  "sensor.pc_alex_prochain_changement",
+  "PC-ALEX Prochain changement"
+ ],
+ "pc_parental_supprimer_pc": [
+  "button.vision_supprimer_l_appareil_cible",
+  "Vision Supprimer l'appareil ciblé"
+ ],
+ "pc_parental_supprimer_plage": [
+  "button.vision_supprimer_la_plage",
+  "Vision Supprimer la plage"
+ ],
+ "pc_parental_tableau": [
+  "button.vision_regenerer_le_tableau_de_bord",
+  "Vision Régénérer le tableau de bord"
+ ],
+ "pc_parental_taille_page": [
+  "select.vision_resultats_par_page",
+  "Vision Résultats par page"
+ ],
+ "pc_parental_temps_ecran_g1": [
+  "sensor.google_pixel_8a_temps_d_ecran",
+  "Google Pixel 8a Temps d'écran"
+ ],
+ "pc_parental_temps_ecran_j1": [
+  "sensor.pc_alex_temps_d_ecran",
+  "PC-ALEX Temps d'écran"
+ ],
+ "pc_parental_veille_cameras": [
+  "text.vision_ecran_de_veille_cameras",
+  "Vision Écran de veille : caméras"
+ ],
+ "pc_parental_veille_courbe": [
+  "text.vision_ecran_de_veille_courbe",
+  "Vision Écran de veille : courbe"
+ ],
+ "pc_parental_veille_entites": [
+  "text.vision_ecran_de_veille_entites",
+  "Vision Écran de veille : entités"
+ ],
+ "pc_parental_veille_flux_suffixe": [
+  "text.vision_ecran_de_veille_flux_secondaire",
+  "Vision Écran de veille : flux secondaire"
+ ],
+ "pc_parental_veille_musique": [
+  "text.vision_ecran_de_veille_musique",
+  "Vision Écran de veille : musique"
+ ],
+ "pc_parental_veille_nuit": [
+  "text.vision_ecran_de_veille_nuit",
+  "Vision Écran de veille : nuit"
+ ],
+ "pc_parental_veille_radio": [
+  "select.vision_ecran_de_veille_radio",
+  "Vision Écran de veille : radio"
+ ],
+ "pc_parental_veille_rendu": [
+  "switch.vision_veille_vrai_rendu_des_cartes",
+  "Vision Veille : vrai rendu des cartes"
+ ],
+ "pc_parental_veille_theme": [
+  "select.vision_ecran_de_veille_theme",
+  "Vision Écran de veille : thème"
+ ],
+ "pc_parental_verrouiller_g1": [
+  "button.google_pixel_8a_verrouiller_maintenant",
+  "Google Pixel 8a Verrouiller maintenant"
+ ],
+ "pc_parental_verrouiller_j1": [
+  "button.pc_alex_verrouiller_maintenant",
+  "PC-ALEX Verrouiller maintenant"
+ ],
+ "pc_parental_virustotal": [
+  "switch.vision_avis_virustotal",
+  "Vision Avis VirusTotal"
+ ],
+ "pc_parental_fenetre_reveil": [
+  "binary_sensor.vision_fenetre_reveil",
+  null
+ ]
+}

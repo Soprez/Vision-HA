@@ -1,0 +1,80 @@
+{
+  "version": "2.3.1",
+  "date": "2026-10-11",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele",
+        "pc"
+      ],
+      "texte": {
+        "fr": "Vision parle six langues : français, anglais, allemand, espagnol, italien et néerlandais.",
+        "en": "Vision now speaks six languages: French, English, German, Spanish, Italian and Dutch.",
+        "de": "Vision spricht jetzt sechs Sprachen: Französisch, Englisch, Deutsch, Spanisch, Italienisch und Niederländisch.",
+        "es": "Vision habla ahora seis idiomas: francés, inglés, alemán, español, italiano y neerlandés.",
+        "it": "Vision ora parla sei lingue: francese, inglese, tedesco, spagnolo, italiano e olandese.",
+        "nl": "Vision spreekt nu zes talen: Frans, Engels, Duits, Spaans, Italiaans en Nederlands."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "pc"
+      ],
+      "public": "decideurs",
+      "texte": {
+        "fr": "Le code de gestion des PC se règle dans Vision › Sécurité ; Home Assistant le vérifie.",
+        "en": "The PC management code is set in Vision › Security; Home Assistant checks it.",
+        "de": "Der Verwaltungscode der PCs wird unter Vision › Sicherheit eingestellt; Home Assistant prüft ihn.",
+        "es": "El código de gestión de los PC se configura en Vision › Seguridad; Home Assistant lo comprueba.",
+        "it": "Il codice di gestione dei PC si imposta in Vision › Sicurezza; Home Assistant lo verifica.",
+        "nl": "De beheercode van de pc's stel je in bij Vision › Beveiliging; Home Assistant controleert hem."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Musique : plus de coupure après 5 s sur les télés, pochette du titre en cours, page invité faite pour le téléphone.",
+        "en": "Music: no more cut after 5 s on TVs, cover art for the current track, a guest page made for phones.",
+        "de": "Musik: kein Abbruch mehr nach 5 s auf Fernsehern, Cover des laufenden Titels, Gastseite fürs Handy.",
+        "es": "Música: sin cortes a los 5 s en las teles, carátula del tema actual, página de invitados para el móvil.",
+        "it": "Musica: niente più interruzioni dopo 5 s sulle TV, copertina del brano in corso, pagina ospiti pensata per il telefono.",
+        "nl": "Muziek: geen onderbreking meer na 5 s op tv's, hoes van het huidige nummer, gastpagina gemaakt voor de telefoon."
+      }
+    },
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Accueil : préavis réglable avant une coupure, messages animés, une appli désinstallée disparaît aussitôt.",
+        "en": "Start screen: adjustable warning before a cut-off, animated messages, an uninstalled app disappears at once.",
+        "de": "Startbildschirm: einstellbare Vorwarnung, animierte Nachrichten, deinstallierte Apps verschwinden sofort.",
+        "es": "Inicio: aviso ajustable antes de un corte, mensajes animados, una app desinstalada desaparece al momento.",
+        "it": "Schermata iniziale: preavviso regolabile prima di un blocco, messaggi animati, un'app disinstallata sparisce subito.",
+        "nl": "Startscherm: instelbare waarschuwing vóór afsluiten, geanimeerde berichten, een verwijderde app verdwijnt meteen."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "public": "decideurs",
+      "texte": {
+        "fr": "Configurer : messages d'accueil personnalisables, vocabulaire, et « Soutenir le projet ».",
+        "en": "Configure: customisable welcome messages, vocabulary, and “Support the project”.",
+        "de": "Konfigurieren: anpassbare Begrüßungen, Wortschatz und „Projekt unterstützen“.",
+        "es": "Configurar: mensajes de bienvenida personalizables, vocabulario y «Apoyar el proyecto».",
+        "it": "Configura: messaggi di benvenuto personalizzabili, vocabolario e «Sostieni il progetto».",
+        "nl": "Configureren: aanpasbare welkomstberichten, woordenschat en „Het project steunen”."
+      }
+    }
+  ]
+}

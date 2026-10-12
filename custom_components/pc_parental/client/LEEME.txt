@@ -1,0 +1,145 @@
+VISION — agente de Windows
+==========================
+
+Esta carpeta se instala en cada PC del que quieras que Vision se ocupe. Windows 10 u 11.
+
+Otros idiomas: LISEZ-MOI.txt (Français), README.txt (English),
+LIESMICH.txt (Deutsch), LEGGIMI.txt (Italiano), LEESMIJ.txt (Nederlands).
+El agente, el instalador y el desinstalador hablan el idioma de Windows
+(carpeta «langues»; inglés si el idioma no está).
+
+
+INSTALACIÓN (una vez por PC)
+----------------------------
+Lo más sencillo: Home Assistant aloja el instalador. En el PC, abre
+PowerShell y pega la línea que aparece en el panel «Vision», sección
+«Instalar un PC». Se parece a esto:
+
+    irm http://TU-HA:8123/api/pc_parental/client/install -OutFile "$env:TEMP\install-cp.ps1"; & "$env:TEMP\install-cp.ps1"
+
+Si no, con los archivos de esta carpeta:
+
+1. Copia la carpeta entera al PC (escritorio, memoria USB, donde sea).
+
+2. Clic derecho en  install.ps1  ->  «Ejecutar con PowerShell».
+   Windows pide permiso de administrador: acepta.
+   (Si Windows se niega a ejecutar el script, abre PowerShell como
+    administrador, ve a esta carpeta y escribe primero:
+        Set-ExecutionPolicy -Scope Process Bypass
+    y luego  .\install.ps1 )
+
+En los dos casos, el instalador pide dos cosas:
+     - la dirección de Home Assistant   p. ej. http://homeassistant.local:8123
+     - la clave de registro             se muestra en Home Assistant,
+                                        panel «Vision»,
+                                        sección «Instalar un PC».
+
+Listo. El PC aparece solo en Home Assistant, PERMITIDO y SIN NINGUNA
+   FRANJA HORARIA. Después le das su horario desde Home Assistant.
+
+La misma clave sirve para todos los PC.
+
+
+ENVIAR UN MENSAJE
+-----------------
+Desde el panel «Vision», tarjeta del PC, sección «Enviar un mensaje»:
+escribe tu texto en el campo Mensaje y pulsa Enviar. En el PC aparece una
+notificación de Windows, firmada «Vision», que se queda en el centro de
+notificaciones.
+
+El destinatario puede ser todos los PC, una etiqueta o un PC concreto.
+Las etiquetas se ponen en el campo «Etiquetas» de cada tarjeta: pon la
+misma en varios PC y les llegas a todos de una vez.
+
+Se puede elegir un sonido: predeterminado, mensaje, correo, recordatorio,
+SMS, alarma insistente, llamada insistente o silencio. Los dos sonidos
+insistentes se repiten mientras la notificación sigue en pantalla.
+
+Para una automatización:
+
+    action: pc_parental.notify
+    data:
+      tag: supervisados
+      message: Saca la basura
+      son: Rappel
+
+Sin pc ni tag, el mensaje va a todos los PC. La opción «urgent» abre un
+cuadro de diálogo encima de todo en lugar de una notificación discreta.
+Cada PC tiene además su propia entidad notify, que puedes alcanzar con
+las etiquetas de Home Assistant.
+
+
+ACTUALIZACIONES
+---------------
+Home Assistant aloja el agente: su copia es la que vale. Cuando llega una
+versión nueva con la integración, cada PC la descarga solo, comprueba su
+huella, sustituye su script y se reinicia. Nada que reinstalar, ningún
+archivo que copiar. Los textos de todos los idiomas van dentro del agente.
+
+Si prefieres decidir tú: desactiva «Actualización automática de los
+agentes» en el panel. Cada PC muestra entonces su versión junto a la
+publicada, con un botón Instalar.
+
+ATENCIÓN: la actualización automática existe a partir de la versión 1.1.0
+del agente. Un PC todavía en 1.0.0 no sabe actualizarse solo: vuelve a
+lanzar el instalador una vez en esa máquina. No hay riesgo, el PC conserva
+su identidad y sus franjas.
+
+
+LO QUE HACE EL AGENTE
+---------------------
+- Informa a Home Assistant de si hay alguien delante de la pantalla:
+  activo, inactivo (nada tocado desde hace un rato), sesión bloqueada o
+  sin conexión. Home Assistant lo muestra como un estado de mensajería.
+- Muestra los mensajes enviados desde Home Assistant como notificaciones
+  de Windows de verdad, firmadas «Vision» y guardadas en el centro de
+  notificaciones. Un mensaje urgente abre en su lugar un cuadro de
+  diálogo encima de todo, que se cierra solo.
+- Cada 20 segundos pregunta a Home Assistant si este PC está permitido o
+  bloqueado.
+- Durante una franja bloqueada, la sesión se bloquea. Si la persona la
+  desbloquea con su contraseña, se vuelve a bloquear al segundo. No se
+  pierde nada: los programas siguen abiertos detrás.
+- Antes de un bloqueo, un mensaje avisa en pantalla.
+- Los programas de la lista «Programas bloqueados» se cierran sin parar.
+- Los sitios de la lista «Sitios bloqueados» se bloquean con el archivo
+  hosts.
+
+Si no se puede contactar con Home Assistant, la última consigna conocida
+se mantiene 2 horas y después el PC queda permitido: una avería del
+servidor no debe dejar el ordenador bloqueado para siempre.
+
+
+PARA QUE SEA EFICAZ
+-------------------
+El agente funciona con la cuenta SYSTEM: una cuenta estándar no puede ni
+pararlo ni desinstalarlo. En cambio, si la cuenta es ADMINISTRADOR del PC,
+podrá saltárselo. Comprueba la cuenta:
+
+    Configuración > Cuentas > Otros usuarios
+
+y cámbiala a «Usuario estándar» si hace falta.
+
+
+QUITAR UN PC
+------------
+Desde Home Assistant: botón «Eliminar este PC» abajo en la tarjeta del PC,
+con confirmación. El PC, sus franjas y su dispositivo desaparecen.
+
+El agente sigue instalado en la máquina: ve que ya no lo conocen, deja de
+aplicar restricciones y deja el PC permitido. Para quitarlo del todo,
+ejecuta uninstall.ps1 en esa máquina.
+
+
+DESINSTALAR
+-----------
+Clic derecho en  uninstall.ps1  ->  «Ejecutar con PowerShell», como
+administrador. Quita la tarea programada, limpia el archivo hosts y borra
+la configuración. El PC sigue visible en Home Assistant: elimínalo desde
+el panel si ya no lo usas.
+
+
+SI ALGO FALLA
+-------------
+Registro del agente:      C:\ProgramData\HAParental\agent.log
+Tarea programada:         Programador de tareas > «HA Controle Parental»
