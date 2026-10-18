@@ -8,7 +8,9 @@ donne accès qu'à cette unique réponse : « ce PC est-il ouvert ou fermé ».
 
 from __future__ import annotations
 
+import hashlib
 import ipaddress
+import json
 import logging
 import secrets
 import time
@@ -20,7 +22,7 @@ from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
 
 from . import android_maj, client_files, installation, labels, messages
-from . import lieu, messages_v2, modules, nouveautes, party, preavis, roles, soutien, textes, veille_pc, widgets
+from . import lieu, messages_v2, modules, nouveautes, party, preavis, roles, soutien, textes, veille_options, veille_pc, widgets
 from .parent import PcParentalMaisonView, PcParentalParentView
 from .demandes import PcParentalDemandeView
 from .veille import PcParentalVeilleEntitesView, PcParentalVeilleFluxView, PcParentalVeilleImageView, PcParentalVeilleView
@@ -28,7 +30,6 @@ from .esports import PcParentalVeilleLogoView
 from .veille_plus import PcParentalVeillePhotoView, PcParentalVeilleReglagesView
 from .veille_tableaux import PcParentalVeilleTableauxView
 from .const import (
-    ANCIEN_PAQUET,
     CLIENT_VERSION,
     DNS_FILTRANTS,
     DOMAIN,
@@ -63,6 +64,46 @@ def _personnes(hass: HomeAssistant) -> list[dict[str, str]]:
     liste.sort(key=lambda x: x["nom"].lower())
     return liste
 
+
+
+def hosts_version(reponse: dict[str, Any]) -> str:
+    """Empreinte de tout ce que l'agent PC met dans son fichier hosts (1.93.2).
+
+    Sites bloqués, adresses épargnées, version de la liste noire et SafeSearch : exactement les champs que l'agent
+    passe à Sync-Hosts. Une liste qui ne change pas donne la même empreinte d'un relevé à l'autre ; le moindre
+    changement en donne une autre, et l'agent reconstruit.
+    """
+    contenu = json.dumps(
+        [
+            list(reponse.get("sites") or []),
+            list(reponse.get("exceptions") or []),
+            str(reponse.get("liste_noire") or ""),
+            bool(reponse.get("safesearch")),
+        ],
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(contenu.encode("utf-8")).hexdigest()[:16]
+
+
+def _charge_agent(brut: Any) -> dict[str, float | int | None] | None:
+    """La charge déclarée par l'agent, bornée : on ne range que des nombres plausibles."""
+    if not isinstance(brut, dict):
+        return None
+
+    def nombre(cle: str, maxi: float) -> float | None:
+        try:
+            v = float(brut.get(cle))
+        except (TypeError, ValueError):
+            return None
+        return round(v, 1) if 0 <= v <= maxi else None
+
+    charge = {
+        "cpu_pct": nombre("cpu_pct", 100.0),
+        "mem_mo": nombre("mem_mo", 65536.0),
+        "hosts_ms": nombre("hosts_ms", 3_600_000.0),
+    }
+    return charge if any(v is not None for v in charge.values()) else None
 
 class PcParentalPollView(HomeAssistantView):
     """Répond à l'agent d'un PC."""
@@ -194,6 +235,10 @@ class PcParentalPollView(HomeAssistantView):
             "focus": str(corps.get("focus") or "")[:64],
             "admin": None if admin is None else bool(admin),
         }
+        # 1.93.2 : ce que l'agent PC coûte à sa machine (processeur, mémoire, durée du fichier hosts), s'il le dit.
+        _charge = _charge_agent(corps.get("agent_charge"))
+        if _charge:
+            pc["agent"]["charge"] = _charge
         pc["agent"]["platform"] = str(corps.get("platform") or "")[:16]
         # 2.4.0 (retour d'essai) : écran éteint (appli Vision, DisplayManager) → la lecture du lecteur « · Vision » se met en pause.
         if str(corps.get("ecran") or "") in ("eteint", "allume"):
@@ -276,6 +321,8 @@ class PcParentalPollView(HomeAssistantView):
         # L'agent ne décide de rien : il dit ce qu'il a vu passer, Home
         # Assistant décide s'il faut en parler.
         _proposer: list[str] = []
+        # 2.5.1 : le logiciel au premier plan, pour lier à lui les sites bloqués pendant qu'il tourne.
+        _app_focus = coord.store.famille_premier_plan(focus)
         for brut in list(corps.get("alertes") or [])[:20]:
             if isinstance(brut, dict):
                 domaine = str(brut.get("domaine") or "")
@@ -295,8 +342,14 @@ class PcParentalPollView(HomeAssistantView):
             # Aucune notification, nulle part : ni sur le PC, ni ici. Un
             # site bloqué est simplement injoignable. Ce qui reste, c'est la
             # trace — le journal dit *quoi*, la courbe dit *combien*.
-            if coord.store.noter_alerte(pc, domaine, origine):
+            if coord.store.noter_alerte(pc, domaine, origine, _app_focus if origine == "regle" else ""):
                 coord.store.compter_blocage(pc)
+        # 2.5.1 (décision du projet du 14-10) : les sites vus pendant qu'un logiciel tourne lui sont liés tout seuls,
+        # avec les garde-fous ; un site fermé au moment du lien le reste.
+        try:
+            coord.store.lier_auto(pc)
+        except Exception:  # un lien raté ne bloque jamais le relevé
+            _LOGGER.debug("Vision : liens automatiques non faits.", exc_info=True)
 
         coord.marquer_observation()
         _mins = corps.get("demande_temps")
@@ -342,10 +395,17 @@ class PcParentalPollView(HomeAssistantView):
                 _dem = {"id": secrets.token_hex(4), "minutes": _mins, "ts": maintenant_ts}
                 _prochain = coord.store.evaluate(pc).get("next_change")
                 pc["demande"] = _dem
+                # Lot 2 : sur les téléphones des Décideurs (appli Compagnon), avec ses boutons.
+                from . import a_decider as _adec
+                self.hass.async_create_task(_adec.notifier(self.hass, coord, "temps", pc_id, _dem["id"],
+                                                           _texte_temps(textes.ha(self.hass)), _mins))
                 # 1.97.2 : gardée tout de suite (un redémarrage la perdait) ; elle attend dans la liste des demandes.
                 self.hass.async_create_task(coord.store.async_save())
+                from . import canaux as _canaux
+
                 for _pid in roles.avec(coord.store, "gerer"):
-                    if _pid == pc_id:
+                    # 2.5.6 : dans l'appli Vision des Décideurs qui l'ont choisie (canaux.py).
+                    if _pid == pc_id or not _canaux.vision_pour(self.hass, coord.store, _pid, "demandes"):
                         continue
                     _langue_g = textes.pour(self.hass, coord.store.pcs.get(_pid))
                     try:
@@ -378,6 +438,8 @@ class PcParentalPollView(HomeAssistantView):
             "widgets": {"version": widgets.version(coord.store, pc)},
             # 1.98.0 (point 14 bis) : la tuile Mode Party et l'écran Party de la télé choisie.
             "party": party.pour_releve(self.hass, coord.store, pc),
+            # 1.93.05 (l'auteur, retour 36) : les options de la veille de cet appareil (pc_parental.veille_regler), si réglées.
+            "veille_options": veille_options.pour_releve(pc),
             # Soutien du projet (docs/soutien.md) : badge et animation, rien d'autre.
             "soutien": soutien.pour_releve(coord.store),
             # L'agent reçoit le résultat, pas les règles : les étiquettes
@@ -402,7 +464,12 @@ class PcParentalPollView(HomeAssistantView):
             # Les fonctions du rôle de cet appareil (1.71.0) : l'appli montre ce qui est permis.
             "role": roles.nom(coord.store, pc),
             "fonctions": modules.fonctions_effectives(coord.store, roles.fonctions(coord.store, pc)),
+            # FAILLE (l'auteur, 16/10) : le code de déverrouillage de ce Décideur est-il déjà dans HA ? (octroi.py)
+            "code_deverrouillage": _code_deverrouillage(coord.store, pc),
         }
+        # 1.93.2 (l'auteur, perte d'images par seconde chez un Demandeur) : Home Assistant décide quand l'agent PC
+        # reconstruit son fichier hosts. Tant que cette version ne bouge pas, l'agent n'a rien à refaire.
+        reponse["hosts_version"] = hosts_version(reponse)
         # Profils (1.73.0) : la personne voit son temps du jour, cumulé sur ses appareils.
         if pc.get("person") and roles.a(coord.store, pc, "temps") and not modules.coupe(coord.store, "temps"):
             from .parent import temps_personne
@@ -413,6 +480,16 @@ class PcParentalPollView(HomeAssistantView):
             reponse["refus"] = [] if modules.coupe(coord.store, "demandes") else coord.store.refus_en_cours(pc)
         except Exception:  # noqa: BLE001
             reponse["refus"] = []
+        # 2.5.1 (ajouts 5 et 6 de l'auteur) : les sites bloqués récemment que le Demandeur peut demander, et les mêmes
+        # regroupés par logiciel (« Roblox ne marche pas : 6 sites bloqués »), pour une demande d'un geste.
+        try:
+            if modules.coupe(coord.store, "demandes"):
+                reponse["bloques_recents"], reponse["groupes"] = [], []
+            else:
+                reponse["bloques_recents"] = coord.store.blocages_recents(pc, textes.pour(self.hass, pc), pour_demandeur=True, maximum=12)
+                reponse["groupes"] = coord.store.groupes_a_demander(pc, textes.pour(self.hass, pc))
+        except Exception:  # jamais au prix du relevé
+            _LOGGER.debug("Vision : blocages récents non calculés.", exc_info=True)
         # Les applis « Toujours autorisé » : ouvertes même appareil fermé.
         try:
             if "Toujours autorisé" not in coord.store.toutes_etiquettes():
@@ -426,6 +503,10 @@ class PcParentalPollView(HomeAssistantView):
                     for nom_tj in autre.get("toujours") or []:
                         if nom_tj not in reponse["toujours"]:
                             reponse["toujours"].append(nom_tj)
+            # Refonte des autorisations, lot 1 : les applis « toujours disponibles » du Demandeur.
+            for nom_tj in coord.store.noms_durables(moi_pc, "apps", "toujours"):
+                if nom_tj not in reponse["toujours"]:
+                    reponse["toujours"].append(nom_tj)
         except Exception:  # noqa: BLE001
             reponse["toujours"] = []
         if gestion is not None:
@@ -453,6 +534,25 @@ class PcParentalPollView(HomeAssistantView):
                 coord.async_update_listeners()
         except Exception:  # noqa: BLE001 - le relevé passe avant tout
             _LOGGER.exception("%s : réveils (relevé)", PRODUIT)
+
+        # Module Niveau sonore (docs/son-contrat-appareils.md) — des nombres seulement (niveau, dépassements),
+        # puis les réglages de la mesure ; « actif: false » arrête le micro de l'appareil.
+        try:
+            from . import son as _son
+
+            if _son.recevoir(self.hass, coord.store, pc, corps.get("son")):
+                await coord.store.async_save()
+                coord.async_update_listeners()
+            reponse["son"] = _son.pour_releve(coord.store, pc)
+        except Exception:  # noqa: BLE001 - le relevé passe avant tout
+            _LOGGER.exception("%s : niveau sonore (relevé)", PRODUIT)
+        # 17-10 (retour d'essai) : l'écran de cet appareil (veille de Vision, écran gardé allumé), réglé par pc_parental.ecran_regler.
+        try:
+            from . import ecran as _ecran
+
+            reponse["ecran"] = _ecran.pour_releve(pc)
+        except Exception:  # noqa: BLE001 - le relevé passe avant tout
+            _LOGGER.exception("%s : écran (relevé)", PRODUIT)
 
         # Messages à afficher sur ce PC (poubelle, rappel, avertissement…).
         if attente := coord.store.take_messages(pc):
@@ -927,9 +1027,6 @@ class PcParentalAndroidView(HomeAssistantView):
             # Le lien stable : toujours la dernière version (pas de redirection, pour
             # les navigateurs de télé et l'appli Downloader).
             chemin, nom_servi = android_maj.fichier_stable()
-        elif nom == "ancienne.apk" and ANCIEN_PAQUET:
-            # Les mises à jour de l'ancienne appli (const.ANCIEN_PAQUET), là où elle a existé.
-            chemin = android_maj.fichier("vision.apk")
         elif nom.startswith("vision-") and nom.endswith(".apk"):
             # Le lien d'installation, versionné : un ancien lien mène à la dernière version.
             chemin, publiee = android_maj.fichier_versionne(nom)
@@ -1012,6 +1109,16 @@ class PcParentalCatalogueView(HomeAssistantView):
         return self.json({"ok": True, **coord.store.catalogue_etiquetage()})
 
 
+def _code_deverrouillage(store, pc: dict[str, Any]) -> bool | None:
+    """Pour l'appareil d'un Décideur : son code est-il dans HA ? None pour les autres appareils."""
+    from . import octroi
+
+    personne = str(pc.get("person") or "")
+    if not personne or personne not in octroi.decideurs(store):
+        return None
+    return octroi.code_pose(store, personne)
+
+
 def async_register(hass: HomeAssistant) -> None:
     """Enregistre les vues une seule fois."""
     if hass.data.get(f"{DOMAIN}_view"):
@@ -1030,11 +1137,19 @@ def async_register(hass: HomeAssistant) -> None:
     hass.http.register_view(PcParentalMaisonView(hass))
     from .widgets_admin import PcParentalWidgetsAdminView
     hass.http.register_view(PcParentalWidgetsAdminView(hass))  # 1.94.0 : onglet « Widgets HA »
+    from .personne_fiche import PcParentalPersonneAdminView
+    hass.http.register_view(PcParentalPersonneAdminView(hass))  # Refonte lot 3 : la fiche d'une personne
+    from .reglages_admin import PcParentalReglagesAdminView
+    hass.http.register_view(PcParentalReglagesAdminView(hass))  # Refonte lot 5 : Réglages › Réservé
+    from .canaux import PcParentalCanauxView
+    hass.http.register_view(PcParentalCanauxView(hass))  # 2.5.6 : Réglages › Mes notifications
     from .apparence import PcParentalApparenceView
     hass.http.register_view(PcParentalApparenceView(hass))  # 1.95.0 : apparence du tableau
     hass.http.register_view(PcParentalDemandeView(hass))
     hass.http.register_view(PcParentalVeilleView(hass))
     hass.http.register_view(PcParentalVeilleImageView(hass))
+    from .veille_cases import PcParentalVeilleMediaView
+    hass.http.register_view(PcParentalVeilleMediaView(hass))  # 2.2.12 : images des cases typées
     hass.http.register_view(PcParentalVeilleEntitesView(hass))
     hass.http.register_view(PcParentalVeilleFluxView(hass))
     hass.http.register_view(PcParentalVeilleLogoView(hass))
@@ -1046,8 +1161,13 @@ def async_register(hass: HomeAssistant) -> None:
     veille_page.installer(hass)
     hass.http.register_view(PcParentalVeilleTableauxView(hass))
     widgets.enregistrer_vues(hass)
+    # 2.4.5 : l'appairage Sendspin automatique (PIN transmis par l'appareil, soumis à Music Assistant par HA).
+    from . import sendspin_appairage
+    sendspin_appairage.enregistrer_vues(hass)
     # 1.98.0 (point 14 bis) : le Mode Party.
     party.enregistrer_vues(hass)
+    from . import veille_musique
+    veille_musique.enregistrer_vues(hass)
     from . import reveil_http
 
     reveil_http.enregistrer_vues(hass)

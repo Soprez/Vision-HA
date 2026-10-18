@@ -44,11 +44,11 @@ async def test_avertit_puis_arrete(hass, hass_storage, monkeypatch):
     monkeypatch.setattr(messages_v2, "envoyer", envoyer)
     assert musique_arret.delai_min(coord.store) == musique_arret.DEFAUT_MIN  # 2 h par défaut
     coord.store.musique["arret_auto_min"] = 30
-    _jouer(hass, MA_SALON, "Télé des parents · Vision")
+    _jouer(hass, MA_SALON, "Télé du bureau · Vision")
     t0 = time.time()
     await musique_arret.tour(hass, coord, t0)  # premier passage : le délai part de maintenant
     assert envois == [] and appels == []
-    await musique_arret.tour(hass, coord, t0 + 30 * 60 - 50)  # 1 min avant : avertissement sur la Télé des parents
+    await musique_arret.tour(hass, coord, t0 + 30 * 60 - 50)  # 1 min avant : avertissement sur la Télé du bureau
     assert len(envois) == 1
     donnees, exp = envois[0]
     assert donnees["destinataires"] == [TELE2["id"]] and exp["arret_auto"] == MA_SALON
@@ -69,7 +69,7 @@ async def test_continuer_et_activite_relancent(hass, hass_storage, monkeypatch):
         return {"envoi": "x", "messages": []}
     monkeypatch.setattr(messages_v2, "envoyer", envoyer)
     coord.store.musique["arret_auto_min"] = 30
-    _jouer(hass, MA_SALON, "Télé des parents · Vision")
+    _jouer(hass, MA_SALON, "Télé du bureau · Vision")
     t0 = time.time()
     await musique_arret.tour(hass, coord, t0)
     # « Continuer » sur l'avertissement : le délai repart.
@@ -101,7 +101,7 @@ async def test_ecran_eteint_met_en_pause(hass, hass_storage, monkeypatch):
     coord, _a, _f = await _monter(hass, hass_storage, monkeypatch)
     from custom_components.pc_parental import musique_arret
     appels = _services(hass)
-    _jouer(hass, MA_SALON, "Télé des parents · Vision")
+    _jouer(hass, MA_SALON, "Télé du bureau · Vision")
     _jouer(hass, MA_CHAMBRE, "Chambre")
     pc = coord.store.pcs[TELE2["id"]]
     assert await musique_arret.ecran(hass, coord.store, pc, "allume") is False

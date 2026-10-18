@@ -23,6 +23,37 @@ object Demandes {
         else -> d.optString("libelle").trim().ifEmpty { d.optString("nom").ifEmpty { d.optString("cle") } }
     }
 
+    /** 15-10 : ce qui se décide par lots (« a_decider_lots » de /veille, Décideur seulement) : (libellé, nombre). */
+    fun lots(d: JSONObject?): List<Pair<String, Int>> {
+        val a = d?.optJSONArray("a_decider_lots") ?: return emptyList()
+        return lotsValides((0 until a.length()).mapNotNull { a.optJSONObject(it) }.map { it.optString("libelle") to it.optInt("nombre", 0) })
+    }
+
+    /** Les lots qui comptent : un libellé et au moins un élément. Pur. */
+    fun lotsValides(l: List<Pair<String, Int>>): List<Pair<String, Int>> = l.filter { it.second > 0 && it.first.isNotBlank() }
+
+    /** 16-10 : les appareils à valider (lot « appairage ») : une demande de liaison, la seule qui compte comme demande. */
+    fun appareilsAValider(d: JSONObject?): Int {
+        val a = d?.optJSONArray("a_decider_lots") ?: return 0
+        return appareilsAValider((0 until a.length()).mapNotNull { a.optJSONObject(it) }.map { it.optString("genre") to it.optInt("nombre", 0) })
+    }
+
+    /** Le même, pur : (genre, nombre) de chaque lot. */
+    fun appareilsAValider(lots: List<Pair<String, Int>>): Int = lots.filter { it.first == "appairage" }.sumOf { it.second.coerceAtLeast(0) }
+
+    /** 15-10 : combien de DEMANDES attendent un Décideur — le total annoncé (la liste est coupée à quatre).
+     *  16-10 (l'auteur : « 1 demande en attente », et aucune demande à l'ouverture) : les lots ne sont pas des demandes.
+     *  « 229 éléments à classer » ou « 3 logiciels à valider » gardent leur propre ligne, comme dans le tableau de
+     *  Home Assistant ; seuls les appareils à valider s'ajoutent (ce sont des demandes de liaison). */
+    fun total(d: JSONObject?): Int {
+        if (d == null) return 0
+        val liste = d.optJSONArray("demandes")?.length() ?: 0
+        return total(liste, if (d.has("demandes_total")) d.optInt("demandes_total", liste) else null, appareilsAValider(d))
+    }
+
+    /** Le même compte, pur : [liste] reçues, [totalHa] annoncé (null : ancien Home Assistant), [appareils] à valider. */
+    fun total(liste: Int, totalHa: Int?, appareils: Int): Int = maxOf(totalHa ?: liste, liste) + appareils.coerceAtLeast(0)
+
     /** Un lot de messages reçus contient-il une demande à régler (accès, temps, déverrouillage) ? */
     fun contientDemande(messages: org.json.JSONArray?): Boolean {
         if (messages == null) return false

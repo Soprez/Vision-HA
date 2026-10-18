@@ -113,7 +113,8 @@ async def test_renommage_garde_les_entity_id_anglais(hass, hass_storage):
 
 def test_menu_appareils_a_valider():
     """L'entrée du menu désigne l'appairage, pas les demandes d'accès ou de temps."""
-    attendu = {"fr": "Appareils à valider ({attente})", "en": "Devices to approve ({attente})"}
+    # Retours de l'auteur (15/10) : chaque entrée des menus d'options porte un emoji (✅ ici), et la page le même.
+    attendu = {"fr": "✅ Appareils à valider ({attente})", "en": "✅ Devices to approve ({attente})"}
     for lg in LANGUES:
         tr = _json(RACINE / "translations" / f"{lg}.json")
         libelle = tr["options"]["step"]["init"]["menu_options"]["appairage"]
@@ -268,19 +269,21 @@ def test_options_de_selecteur_jamais_en_cle_brute():
 # ------------------------------------------------------------------ A10 / HA-30 : « Suivant » sur les choix intermédiaires
 
 # Home Assistant affiche « Suivant » (et non « Valider ») quand un formulaire annonce last_step=False.
+# Lot 4 : le chemin dans Configurer réduit (« Autres réglages », « Réparer… »), puis l'écran.
 INTERMEDIAIRES = (
-    ("roles", "roles_modifier"), ("roles", "roles_personnes"), ("roles", "roles_creer"),
-    ("entites", "entites_personnes"), ("entites", "entites_appareils"),
-    ("appareils", "appareils_relier"), ("avance", "qr"), (None, "ajouter"),
+    (("autres", "roles"), "roles_modifier"), (("autres", "roles"), "roles_personnes"), (("autres", "roles"), "roles_creer"),
+    (("autres", "entites"), "entites_personnes"), (("autres", "entites"), "entites_appareils"),
+    (("reparer",), "appareils_relier"),
+    (("reparer",), "qr"), ((), "ajouter"), ((), "assistant"),
 )
 
 
 async def test_choix_intermediaires_disent_suivant(hass, hass_storage):
     entree = await _monter_langue(hass, hass_storage, "fr")
     om = hass.config_entries.options
-    for menu, etape in INTERMEDIAIRES:
+    for menus, etape in INTERMEDIAIRES:
         flux = await om.async_init(entree.entry_id)
-        if menu:
+        for menu in menus:
             flux = await om.async_configure(flux["flow_id"], {"next_step_id": menu})
         flux = await om.async_configure(flux["flow_id"], {"next_step_id": etape})
         assert flux["type"] == "form" and flux["step_id"] == etape, (etape, flux)
@@ -302,19 +305,20 @@ async def test_appareils_d_essai_sous_avance(hass, hass_storage):
     entree = await _monter_langue(hass, hass_storage, "fr")
     om = hass.config_entries.options
     flux = await om.async_init(entree.entry_id)
+    flux = await om.async_configure(flux["flow_id"], {"next_step_id": "autres"})
     flux = await om.async_configure(flux["flow_id"], {"next_step_id": "general"})
     assert "appareils_essai" not in {str(k) for k in flux["data_schema"].schema}
     om.async_abort(flux["flow_id"])
     flux = await om.async_init(entree.entry_id)
-    flux = await om.async_configure(flux["flow_id"], {"next_step_id": "avance"})
-    assert flux["menu_options"][-1] == "appareils_essai"
+    flux = await om.async_configure(flux["flow_id"], {"next_step_id": "autres"})
+    assert flux["menu_options"][-1] == "appareils_essai"  # lot 6 : directement sous « Autres réglages »
     flux = await om.async_configure(flux["flow_id"], {"next_step_id": "appareils_essai"})
     assert flux["step_id"] == "appareils_essai"
     flux = await om.async_configure(flux["flow_id"], {"appareils_essai": ["g1"]})
     store = hass.data[DOMAIN][entree.entry_id].store
     assert store.appareils_essai == ["g1"]
     tr = _json(RACINE / "translations" / "fr.json")["options"]
-    assert tr["step"]["avance"]["menu_options"]["appareils_essai"] == "Appareils Android d'essai"
+    assert tr["step"]["autres"]["menu_options"]["appareils_essai"] == "🧪 Appareils Android d'essai"
     assert "appareils_essai" not in tr["step"]["general"]["data"]
     assert tr["abort"]["essai_aucun_android"]
 

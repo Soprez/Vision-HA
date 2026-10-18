@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.0 (retour d'essai) : la musique de la veille, une playlist de Music Assistant, favorites en premier (VeilleAudio). -->
+<resources>
+    <string name="veilleaudio_playlist">Afspeellijst tijdens schermbeveiliging</string>
+    <string name="veilleaudio_desactivee">Uit</string>
+    <string name="veilleaudio_titre_choix">Afspeellijst uit Music Assistant (favorieten eerst)</string>
+    <string name="veilleaudio_aucune">Music Assistant heeft nog geen afspeellijst in zijn bibliotheek. Zoek er hier meteen een in je diensten (YouTube Music…).</string>
+    <string name="veilleaudio_erreur">Afspeellijsten konden niet worden gelezen: %1$s</string>
+    <string name="veilleaudio_reessayer">Opnieuw</string>
+    <string name="veilleaudio_note">Wordt door dit apparaat afgespeeld tijdens de schermbeveiliging, in plaats van de radio; stopt zodra de schermbeveiliging eindigt. Speelt er al muziek, dan start er niets.</string>
+</resources>

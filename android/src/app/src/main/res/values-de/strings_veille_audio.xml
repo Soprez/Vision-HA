@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.0 (retour d'essai) : la musique de la veille, une playlist de Music Assistant, favorites en premier (VeilleAudio). -->
+<resources>
+    <string name="veilleaudio_playlist">Playlist im Bildschirmschoner</string>
+    <string name="veilleaudio_desactivee">Aus</string>
+    <string name="veilleaudio_titre_choix">Playlist aus Music Assistant (Favoriten zuerst)</string>
+    <string name="veilleaudio_aucune">Music Assistant hat noch keine Playlist in seiner Bibliothek. Such hier direkt eine in deinen Diensten (YouTube Music…).</string>
+    <string name="veilleaudio_erreur">Playlists konnten nicht gelesen werden: %1$s</string>
+    <string name="veilleaudio_reessayer">Erneut versuchen</string>
+    <string name="veilleaudio_note">Wird von diesem Gerät während des Bildschirmschoners statt des Radios gespielt; sie endet mit dem Bildschirmschoner. Läuft bereits Musik, startet nichts.</string>
+</resources>

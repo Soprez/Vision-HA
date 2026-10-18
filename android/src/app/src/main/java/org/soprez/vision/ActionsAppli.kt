@@ -147,13 +147,13 @@ object ActionsAppli {
                 try { am.killBackgroundProcesses(pkg) } catch (_: Exception) {}
                 // Une deuxième fois un instant plus tard : un processus de service redémarré tout de suite s'arrête aussi.
                 android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ try { am.killBackgroundProcesses(pkg) } catch (_: Exception) {} }, 800)
-                Toast.makeText(act, act.getString(R.string.actions_arretee, nom), Toast.LENGTH_LONG).show()
+                Ui.toast(act, act.getString(R.string.actions_arretee, nom), genre = OeilModele.Genre.SUCCES)
             }
             // Android 14+ : seule la page système peut l'arrêter ; sans code, en mode restreint.
-            Voie.RESTREINT -> { Toast.makeText(act, act.getString(R.string.actions_arret_reglages, nom), Toast.LENGTH_LONG).show(); infos(act, pkg, Viser.ARRET, restreint = true) }
+            Voie.RESTREINT -> { Ui.toast(act, act.getString(R.string.actions_arret_reglages, nom)); infos(act, pkg, Viser.ARRET, restreint = true) }
             // Service d'accessibilité coupé : rien ne filtrerait Désinstaller, Effacer les données… code d'abord.
             Voie.CODE -> Garde.exiger(act, ParentsActivity.RAISON) {
-                Toast.makeText(act, act.getString(R.string.actions_arret_reglages, nom), Toast.LENGTH_LONG).show()
+                Ui.toast(act, act.getString(R.string.actions_arret_reglages, nom))
                 infos(act, pkg, Viser.ARRET, restreint = false)
             }
         }
@@ -166,9 +166,9 @@ object ActionsAppli {
      */
     fun viderCache(act: Activity, pkg: String, nom: String) {
         when (voie(arretDirect = false, accessibilite = VisionAccessibility.actif, decideur = Garde.ouverte())) {
-            Voie.RESTREINT -> { Toast.makeText(act, act.getString(R.string.actions_cache_reglages, nom), Toast.LENGTH_LONG).show(); infos(act, pkg, Viser.CACHE, restreint = true) }
+            Voie.RESTREINT -> { Ui.toast(act, act.getString(R.string.actions_cache_reglages, nom)); infos(act, pkg, Viser.CACHE, restreint = true) }
             else -> Garde.exiger(act, ParentsActivity.RAISON) {
-                Toast.makeText(act, act.getString(R.string.actions_cache_reglages, nom), Toast.LENGTH_LONG).show()
+                Ui.toast(act, act.getString(R.string.actions_cache_reglages, nom))
                 infos(act, pkg, Viser.CACHE, restreint = false)
             }
         }
@@ -187,9 +187,9 @@ object ActionsAppli {
                 if (android.os.Build.VERSION.SDK_INT < 28) return@setPositiveButton
                 try {
                     dpm.clearApplicationUserData(AdminReceiver.composant(act), pkg, act.mainExecutor) { _, ok ->
-                        act.runOnUiThread { Toast.makeText(act, if (ok) act.getString(R.string.actions_donnees_effacees, nom) else act.getString(R.string.actions_effacement_refuse, nom), Toast.LENGTH_LONG).show() }
+                        act.runOnUiThread { Ui.toast(act, if (ok) act.getString(R.string.actions_donnees_effacees, nom) else act.getString(R.string.actions_effacement_refuse, nom), genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR) }
                     }
-                } catch (_: Exception) { Toast.makeText(act, R.string.actions_effacement_impossible, Toast.LENGTH_LONG).show() }
+                } catch (_: Exception) { Ui.toast(act, act.getString(R.string.actions_effacement_impossible), genre = OeilModele.Genre.ERREUR) }
             }.show()
     }
 

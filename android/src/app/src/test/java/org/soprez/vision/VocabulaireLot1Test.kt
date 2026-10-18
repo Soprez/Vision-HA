@@ -56,6 +56,6 @@ class VocabulaireLot1Test {
         }
         assertEquals("Lieu", Config.LIEU_DEFAUT)
         val manifeste = File(src, "AndroidManifest.xml").readText()
-        assertFalse(Regex("""(?i)maison|famille|gestionnaire""").containsMatchIn(manifeste.replace("manifeste_maison", "").replace(Migration.ANCIEN, "")))
+        assertFalse(Regex("""(?i)maison|famille|gestionnaire""").containsMatchIn(manifeste.replace("manifeste_maison", "")))
     }
 }

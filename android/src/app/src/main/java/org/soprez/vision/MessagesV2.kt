@@ -65,7 +65,7 @@ object MessagesV2 {
         else -> CANAL
     }
 
-    /** La ligne d'en-tête : « Robin · important ». */
+    /** La ligne d'en-tête : « Nolan · important ». */
     fun entete(m: JSONObject): String = listOf(m.optString("de"), if (m.optBoolean("important")) Tr.s(R.string.msgv2_important) else "",
         // Les noms de type par défaut du serveur (données) ne se répètent pas.
         m.optString("type_nom").takeIf { it != "Message" && it != "Important" }.orEmpty())  // i18n-exception : valeurs du serveur

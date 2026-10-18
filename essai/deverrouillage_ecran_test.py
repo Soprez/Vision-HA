@@ -83,7 +83,8 @@ async def _demander(client, action="app:com.roblox.client", minutes=30):
 
 async def _ecran(hass, entree):
     r = await hass.config_entries.options.async_init(entree.entry_id)
-    assert r["type"] == FlowResultType.MENU and r["menu_options"][0] == "ajouter"
+    assert r["type"] == FlowResultType.MENU and "ajouter" in r["menu_options"]
+    r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "autres"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "securite"})
     assert r["menu_options"][0] == "deverrouillage"
     return await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "deverrouillage"})
@@ -113,6 +114,7 @@ async def test_approuver_par_qr_image_signee(hass, hass_storage, hass_client_no_
     admin = await hass_client()  # comme l'interface : la session d'un administrateur
     demande = await _demander(anonyme, action="parent", minutes=15)
     r = await (await admin.post("/api/config/config_entries/options/flow", json={"handler": entree.entry_id})).json()
+    r = await (await admin.post(f"/api/config/config_entries/options/flow/{r['flow_id']}", json={"next_step_id": "autres"})).json()
     r = await (await admin.post(f"/api/config/config_entries/options/flow/{r['flow_id']}", json={"next_step_id": "securite"})).json()
     r = await (await admin.post(f"/api/config/config_entries/options/flow/{r['flow_id']}", json={"next_step_id": "deverrouillage"})).json()
     r = await (await admin.post(f"/api/config/config_entries/options/flow/{r['flow_id']}",

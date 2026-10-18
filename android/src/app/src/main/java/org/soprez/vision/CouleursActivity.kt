@@ -91,7 +91,7 @@ class CouleursActivity : Activity() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or (if (!th.sombre) View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR else 0)
         colonne.removeAllViews()
         val dm = resources.displayMetrics
-        colonne.setPadding(if (tele) (dm.widthPixels * 0.06f).toInt() else px(20f), if (tele) (dm.heightPixels * 0.035f).toInt() else px(36f), if (tele) (dm.widthPixels * 0.06f).toInt() else px(20f), px(24f))
+        colonne.setPadding(if (tele) ZoneSure.x(this@CouleursActivity, 0.06f) else px(20f), if (tele) ZoneSure.y(this@CouleursActivity, 0.035f) else px(36f), if (tele) ZoneSure.x(this@CouleursActivity, 0.06f) else px(20f), px(24f))
 
         // La marque, au milieu en haut, puis le titre et « Revenir au thème ».
         val marque = LinearLayout(this).apply { gravity = Gravity.CENTER; setPadding(0, 0, 0, px(14f)) }
@@ -145,8 +145,12 @@ class CouleursActivity : Activity() {
         // Les thèmes en grille : autant par ligne que la largeur le permet à la taille du texte choisie
         // (un nom de thème n'est jamais serré au point d'être coupé au milieu d'un mot).
         val themes = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false; clipToPadding = false }
-        val parLigne = ((dm.widthPixels - colonne.paddingLeft - colonne.paddingRight) /
-            (px(72f) * resources.configuration.fontScale.coerceAtLeast(1f))).toInt().coerceIn(1, 8)
+        // 1.90.1 : la largeur sans les barres du système (paysage, Android 15+), et une case assez large pour le nom
+        // de thème le plus long, en gras (le thème choisi l'est).
+        val mesure = android.text.TextPaint().apply { textSize = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP, 11f, dm); typeface = Polices.gras(this@CouleursActivity) }
+        val nomLePlusLong = Themes.liste.maxOfOrNull { mesure.measureText(Themes.libelle(it.nom)) } ?: 0f
+        val case = maxOf(px(72f) * resources.configuration.fontScale.coerceAtLeast(1f), nomLePlusLong + px(12f))
+        val parLigne = ((Marges.largeurUtile(this) - colonne.paddingLeft - colonne.paddingRight) / case).toInt().coerceIn(1, 8)
         var ligneThemes = LinearLayout(this)
         Themes.liste.forEachIndexed { k, t ->
             if (k % parLigne == 0) { ligneThemes = LinearLayout(this).apply { clipChildren = false; clipToPadding = false }; themes.addView(ligneThemes) }
@@ -160,6 +164,8 @@ class CouleursActivity : Activity() {
             cell.addView(pastille, LinearLayout.LayoutParams(px(54f), px(54f)))
             cell.addView(texte(Themes.libelle(t.nom), 11f, if (on) th.encre else th.encre2, if (on) Polices.gras(this) else Polices.moyen(this)).apply { gravity = Gravity.CENTER; setPadding(0, px(6f), 0, 0) })
             cell.setOnClickListener { Local.poserTheme(this, t.nom); reglage = JSONObject(); enregistrer() }
+            // Lot 6 (APP-22) : le thème choisi se dit « choisi », il ne se voit pas qu'à son anneau.
+            cell.contentDescription = if (on) getString(R.string.msgenv_choisi, Themes.libelle(t.nom)) else Themes.libelle(t.nom)
             ligneThemes.addView(cell, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         }
         // La dernière ligne garde les mêmes colonnes que les autres.
@@ -179,7 +185,8 @@ class CouleursActivity : Activity() {
             liste.forEach { hex ->
                 val c = Color.parseColor(hex)
                 val on = (c and 0xFFFFFF) == (actuel and 0xFFFFFF)
-                val v = FrameLayout(this).apply { contentDescription = hex }
+                // Lot 6 (APP-22) : la pastille se lit par le nom de sa couleur (« bleu foncé »), plus par son code.
+                val v = FrameLayout(this).apply { contentDescription = Lisibilite.nomCouleur(c).let { n -> if (on) getString(R.string.msgenv_choisi, n) else n } }
                 focalisable(v, "$cle:$hex")
                 v.addView(View(this).apply { background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(c); setStroke(px(2f), th.carteBord) } }, FrameLayout.LayoutParams(px(40f), px(40f), Gravity.CENTER))
                 if (on) v.addView(View(this).apply { background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(0); setStroke(px(1.5f), th.or) } }, FrameLayout.LayoutParams(px(50f), px(50f), Gravity.CENTER))
@@ -195,11 +202,49 @@ class CouleursActivity : Activity() {
             val defilant = android.widget.HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; clipChildren = false; clipToPadding = false; addView(pastilles) }
             rang.addView(defilant, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             colonne.addView(rang)
+            // 1.91.0 : sur la télé, les pastilles défilent jusqu'au bord droit de l'écran (fondu dans l'overscan, jamais
+            // coupées net au bord de la marge) ; à gauche, elles restent après le nom de la couleur.
+            if (tele) BordABord.poser(defilant, pastilles, colonne.paddingLeft, colonne.paddingRight, px(4f), gauche = false)
         }
         colonne.addView(texte(getString(R.string.couleurs_explication), 13f, th.encre2).apply { setPadding(0, px(16f), 0, 0) })
+        // 15-10 (l'auteur : « Réglages de l'appareil » presque obsolète) : sur le téléphone et la tablette, l'apparence (mode
+        // sombre, mode nuit) et le fond de l'accueil ont rejoint ce menu ; la télé les garde dans ses réglages.
+        if (!tele) {
+            fun groupe(titre: String) = colonne.addView(texte(titre.uppercase(), 12f, th.encre2, Polices.gras(this), 0.2f).apply { setPadding(0, px(24f), 0, px(8f)) })
+            // Aux couleurs de cette page (son thème d'aperçu), pas à celles de l'appli : sinon, des tuiles sombres sur un fond clair.
+            fun rangee(titre: String, valeur: String, cle: String, action: () -> Unit) = colonne.addView(
+                Ui.tuile(this, "$titre  ›", valeur, false, action).apply {
+                    tag = cle; minHeight = px(60f); minimumHeight = minHeight
+                    val t = android.text.SpannableStringBuilder("$titre  ›")
+                    val debut = t.length
+                    t.append('\n').append(valeur)
+                    t.setSpan(android.text.style.RelativeSizeSpan(0.82f), debut, t.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    t.setSpan(android.text.style.ForegroundColorSpan(th.encre2), debut, t.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    if (android.os.Build.VERSION.SDK_INT >= 28) t.setSpan(android.text.style.TypefaceSpan(Polices.texte(this@CouleursActivity)), debut, t.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    text = t; setTextColor(th.encre)
+                    background = Ui.fondInteractif(this@CouleursActivity, th.carte, Palette.melanger(th.carte, th.encre, 0.1f), px(18f).toFloat(),
+                        th.or, Palette.melanger(th.carte, th.encre, 0.28f))
+                },
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = px(8f) })
+            val apres = { construire() }
+            groupe(getString(R.string.reglagestv_apparence))
+            rangee(getString(R.string.reglagestv_mode_sombre), ReglagesPartages.nomModeSombre(this), "sombre") { ReglagesPartages.choisirModeSombre(this, apres) }
+            rangee(getString(R.string.reglagestv_mode_nuit), ReglagesPartages.nomNuit(this), "nuit") { ReglagesPartages.choisirNuit(this, apres) }
+            groupe(getString(R.string.fondacc_titre))
+            rangee(getString(R.string.fondacc_titre), ReglagesPartages.nomFond(this), "fond_accueil") { ReglagesPartages.choisirFondAccueil(this, apres) }
+            rangee(getString(R.string.fondacc_voile), ReglagesPartages.nomVoileFond(this), "fond_voile") { ReglagesPartages.choisirVoileFond(this, apres) }
+            rangee(ReglagesPartages.titrePermisDemandeur(this), ReglagesPartages.nomPermisDemandeur(this), "fond_demandeur") { ReglagesPartages.basculerPermisDemandeur(this, apres) }
+        }
         focusTag?.let { cle -> colonne.post { chercher(colonne, cle)?.requestFocus() } }
             Ui.laisserDeborder(racine)
 }
+
+    @Deprecated("Activité sans AndroidX : le résultat du choix de photo (fond de l'accueil) arrive ici.")
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        ReglagesPartages.recevoirPhoto(this, requestCode, resultCode, data) { construire() }
+    }
 
     private fun chercher(v: View, cle: String): View? {
         if (v.tag == cle) return v
@@ -207,9 +252,32 @@ class CouleursActivity : Activity() {
         return null
     }
 
+    /**
+     * Lot 6 (B9 / APP-20) : une couleur à la carte qui rendrait le texte illisible (moins de 4,5:1 sur le fond ou les
+     * cartes) ou l'accent invisible (moins de 3:1 sur le fond) est ajustée juste assez, et on dit pourquoi ; « Annuler »
+     * revient aux couleurs d'avant.
+     */
     private fun poser(cle: String, couleur: Int) {
+        val avant = JSONObject(reglage.toString())
         reglage.put(cle, Palette.hex(couleur))
+        Palette.ecrire(this, cible, reglage)
+        val th = theme()
+        val texte = Lisibilite.ajusterTexte(th.encre, th.fond, th.carte)
+        val accent = Lisibilite.ajusterAccent(th.pourpre, th.fond)
+        if (!texte.change && !accent.change) { enregistrer(); return }
+        if (texte.change) reglage.put("encre", Palette.hex(texte.couleur))
+        if (accent.change) reglage.put("accent", Palette.hex(accent.couleur))
         enregistrer()
+        val l = java.util.Locale.getDefault()
+        val lignes = ArrayList<String>()
+        if (texte.change) lignes.add(getString(R.string.lot6_contraste_texte_ajuste, String.format(l, "%.1f", texte.contraste)))
+        if (accent.change) lignes.add(getString(R.string.lot6_contraste_accent_ajuste, String.format(l, "%.1f", accent.contraste)))
+        if (!texte.atteint || !accent.atteint) lignes.add(getString(R.string.lot6_contraste_impossible))
+        lignes.add(getString(R.string.lot6_contraste_annuler))
+        Ui.dialogue(this).setTitle(R.string.lot6_contraste_titre).setMessage(lignes.joinToString("\n\n"))
+            .setPositiveButton(R.string.commun_ok, null)
+            .setNegativeButton(R.string.commun_annuler) { _, _ -> reglage = avant; enregistrer() }
+            .show()
     }
 
     /** La roue des couleurs : teinte et saturation au doigt, clarté à la glissière. */

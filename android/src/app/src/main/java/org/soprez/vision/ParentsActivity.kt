@@ -28,6 +28,16 @@ class ParentsActivity : Activity() {
     private val principal = Handler(Looper.getMainLooper())
     private var appareils: JSONArray = JSONArray()
     private var demandes: JSONArray = JSONArray()
+    // HA 2.5.0 et après (refonte des autorisations) : l'état porte « autorisations_v2 ». Avant, une décision
+    // « accorder » serait lue comme un refus : les trois modes ne s'affichent qu'avec une intégration qui les connaît.
+    private var troisModes = false
+    /** HA 2.5.1 : écran d'une catégorie par élément, recherche, blocages récents, demandes groupées. */
+    private var elements = false
+    /** Demande groupée : ses éléments (« app:<nom> », sites) et ceux que le Décideur a décochés. */
+    private val groupe = HashMap<String, List<String>>()
+    private val exclus = HashMap<String, MutableSet<String>>()
+    /** Refonte UX, lot 2 : ce qui se traite par lots dans Home Assistant (appareils à valider, à classer, logiciels). */
+    private var lots: JSONArray = JSONArray()
     private var categories: JSONArray = JSONArray()
     private var personnes: JSONArray = JSONArray()
     /** Fin de la pause générale en cours (ms), null sans pause. */
@@ -35,6 +45,8 @@ class ParentsActivity : Activity() {
     private var erreur = ""
     private var chargement = false
     private val deplies = HashSet<String>()
+    /** Refonte lot 3 : les personnes montrées (entité, prénom), dans l'ordre, pour passer de fiche en fiche. */
+    private val personnesFiche = ArrayList<Pair<String, String>>()
     /** 1.71.0 : le geste demandé depuis l'écran principal (pause générale, ajout de temps), fait au premier chargement. */
     private var actionDemandee: String? = null
     private val rafraichir = object : Runnable {
@@ -49,13 +61,16 @@ class ParentsActivity : Activity() {
         }
         val scroll = ScrollView(this).apply { setBackgroundColor(Ui.FOND); isFillViewport = true }
         racine = Ui.colonne(this, Ui.dp(this, 20f))
+        Ui.largeurLecture(racine)
         scroll.addView(racine)
         setContentView(scroll)
         actionDemandee = intent?.getStringExtra(EXTRA_ACTION)
+        // Refonte lot 3 : retour depuis une fiche (« Voir les appareils ») : la personne arrive dépliée.
+        intent?.getStringExtra(EXTRA_DEPLIER)?.takeIf { it.isNotEmpty() }?.let { deplies.add("p:$it") }
         dessiner()
     }
 
-    override fun onResume() { super.onResume(); principal.post(rafraichir) }
+    override fun onResume() { super.onResume(); Garde.exigerCodeDecideur(this); principal.post(rafraichir) }
     override fun onPause() { super.onPause(); principal.removeCallbacks(rafraichir) }
 
     // ------------------------------------------------------------ Réseau
@@ -65,7 +80,11 @@ class ParentsActivity : Activity() {
 
     private fun charger(action: String = "", pc: String = "", minutes: Int = 0, texte: String = "", geste: JSONObject? = null) {
         // Consulter est libre (HA ne répond qu'aux rôles qui gèrent) ; agir demande l'empreinte ou le code.
-        if (action.isNotEmpty()) { Garde.exiger(this, RAISON) { envoyer(action, pc, minutes, texte, geste) }; return }
+        // FAILLE (l'auteur, 16-10) : un geste qui accorde demande l'empreinte ou le code à chaque fois (Garde.exigerOctroi).
+        if (action.isNotEmpty()) {
+            val apercu = JSONObject().put("action", action).put("minutes", minutes).put("decision", geste?.optString("decision") ?: "")
+            Garde.exigerPour(this, RAISON, CHEMIN, apercu) { envoyer(action, pc, minutes, texte, geste) }; return
+        }
         envoyer(action, pc, minutes, texte, geste)
     }
 
@@ -76,17 +95,20 @@ class ParentsActivity : Activity() {
         if (action.isNotEmpty()) Geste.enCours()
         Thread {
             try {
-                val corps = JSONObject().put("id", cfg.id).put("secret", cfg.secret)
+                val corps = corpsLecture(cfg)
                 if (action.isNotEmpty()) {
                     corps.put("action", action).put("pc", pc).put("minutes", minutes)
                     if (texte.isNotEmpty()) corps.put("texte", texte)
                     geste?.keys()?.forEach { k -> if (k != "id" && k != "secret") corps.put(k, geste.get(k)) }
                 }
-                val r = Net.post(this, cfg, "/api/pc_parental/parent", corps)
+                val r = Net.post(this, cfg, CHEMIN, corps)
                 Modules.memoriser(this, r)
                 appareils = r.optJSONArray("appareils") ?: JSONArray()
                 cfg.lieu = r.optString("lieu", "")
                 demandes = r.optJSONArray("demandes") ?: JSONArray()
+                troisModes = r.has("autorisations_v2")
+                elements = r.has("elements")
+                lots = r.optJSONArray("a_decider_lots") ?: JSONArray()
                 categories = r.optJSONArray("categories") ?: JSONArray()
                 personnes = r.optJSONArray("personnes") ?: JSONArray()
                 pauseFin = PauseGenerale.lire(r)
@@ -99,7 +121,7 @@ class ParentsActivity : Activity() {
             } catch (e: Net.Echec) {
                 if (action.isNotEmpty() && e.code in 400..409) {
                     val phrase = e.corps?.optString("retour").orEmpty()
-                    principal.post { toast(phrase.ifEmpty { getString(R.string.geste_echec_refuse) }); Geste.relacher(); dessiner() }
+                    principal.post { toast(phrase.ifEmpty { getString(R.string.geste_echec_refuse) }, OeilModele.Genre.ERREUR); Geste.relacher(); dessiner() }
                 } else {
                     erreur = if (e.code == 403) getString(R.string.geste_echec_droits)
                              else getString(R.string.parents_err_reponse)
@@ -136,8 +158,24 @@ class ParentsActivity : Activity() {
             c.addView(Ui.texte(this, erreur, 14f, Ui.ROUGE))
             racine.addView(c)
         }
-        if (demandes.length() > 0 && Modules.actifDans(m, Modules.DEMANDES)) {
-            racine.addView(Ui.section(this, getString(R.string.parents_demandes_acces)))
+        // Refonte UX, lot 2 : une seule boîte « À décider » — les demandes, puis ce qui se traite par lots dans HA.
+        val avecDemandes = demandes.length() > 0 && Modules.actifDans(m, Modules.DEMANDES)
+        if (avecDemandes || lots.length() > 0) racine.addView(Ui.section(this, getString(R.string.adec_titre)))
+        for (i in 0 until lots.length()) {
+            val l = lots.optJSONObject(i) ?: continue
+            val c = Ui.carte(this, Ui.CARTE_HAUTE)
+            c.addView(Ui.texte(this, l.optString("libelle"), 16f, Ui.TEXTE, gras = true))
+            c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.adec_dans_ha), 13f, Ui.TEXTE_2), haut = 4f))
+            val ou = l.optString("ou")
+            if (ou.startsWith("/")) {
+                c.isClickable = true; c.isFocusable = true
+                c.setOnClickListener {
+                    try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(Config(this).urlActive.trimEnd('/') + ou))) } catch (_: Exception) {}
+                }
+            }
+            racine.addView(Ui.marge(this, c, bas = 8f))
+        }
+        if (avecDemandes) {
             for (i in 0 until demandes.length()) {
                 val d = demandes.optJSONObject(i) ?: continue
                 val c = Ui.carte(this, Ui.CARTE_HAUTE)
@@ -148,11 +186,16 @@ class ParentsActivity : Activity() {
                     c.addView(Ui.texte(this, getString(R.string.parents_demande, d.optString("prenom"),
                         if (d.optString("genre") == "temps") getString(R.string.demandes_temps_de_plus, Temps.duree(m)) else Demandes.quoi(d)), 16f, Ui.TEXTE, gras = true))
                     c.addView(Ui.marge(this, Ui.texte(this, Demandes.description(d), 13f, Ui.TEXTE_2), haut = 4f))
+                    // Lot 6 (APP-08) : les mêmes réponses que la notification et le plein écran (accorder, autre durée, refuser).
                     val rt = Ui.rangeeBoutons(this)
                     val pct = d.optString("pc"); val idt = d.optString("id")
-                    rt.addView(Ui.poids(Ui.boutonPrimaire(this, getString(R.string.parents_accorder, Temps.duree(m))) { repondreAcces(pct, idt, "temporaire", m) }))
-                    rt.addView(Ui.marge(this, Ui.poids(Ui.boutonDanger(this, getString(R.string.parents_non)) { repondreAcces(pct, idt, "non") }), gauche = 8f))
+                    val (lblAccorder, lblAutre, lblRefuser) = Durees.reponsesTemps(m)
+                    rt.addView(Ui.poids(Ui.boutonPrimaire(this, lblAccorder) { repondreAcces(pct, idt, "temporaire", m) }))
+                    rt.addView(Ui.marge(this, Ui.poids(Ui.boutonDanger(this, lblRefuser) { repondreAcces(pct, idt, "non") }), gauche = 8f))
                     c.addView(Ui.marge(this, rt, haut = 14f))
+                    if (d.optString("genre") == "temps") c.addView(Ui.marge(this, Ui.boutonSecondaire(this, lblAutre) {
+                        Temps.choisir(this, getString(R.string.messageecran_accorder_du_temps), 0L) { ch -> repondreAcces(pct, idt, "temporaire", ch.minutes) }
+                    }, haut = 8f))
                     racine.addView(c)
                     continue
                 }
@@ -163,6 +206,8 @@ class ParentsActivity : Activity() {
                     setOnClickListener { try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(if (lien.contains("://")) lien else "https://$lien"))) } catch (_: Exception) {} }
                 }, haut = 4f))
                 if (motif.isNotEmpty()) c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.dpa_motif, motif), 13f, Ui.TEXTE_2), haut = 4f))
+                val sitesG = d.optJSONArray("sites")?.let { a -> (0 until a.length()).map { a.optString(it) }.filter { it.isNotEmpty() } }.orEmpty()
+                if (elements && sitesG.isNotEmpty() && d.optString("genre") == "apps") c.addView(Ui.marge(this, caseGroupe(d, sitesG), haut = 8f))
                 d.optString("raison").takeIf { it.isNotEmpty() }?.let { c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.parents_ferme_car, it), 13f, Ui.TEXTE_3), haut = 6f)) }
                 val duree = d.optString("duree")
                 val etiquettes = d.optJSONArray("etiquettes")?.let { a -> (0 until a.length()).map { a.optString(it) }.filter { it.isNotEmpty() } }.orEmpty()
@@ -178,18 +223,33 @@ class ParentsActivity : Activity() {
                 val r = Ui.rangeeBoutons(this)
                 val pc = d.optString("pc"); val id = d.optString("id")
                 fun choix(t: String, principal: Boolean, action: () -> Unit) = if (principal) Ui.boutonPrimaire(this, t, action) else Ui.boutonSecondaire(this, t, action)
-                r.addView(Ui.poids(choix(Tr.duree(60), duree == "1h" || duree.isEmpty()) { repondreAcces(pc, id, "temporaire", 60) }))
-                r.addView(Ui.marge(this, Ui.poids(choix(getString(R.string.parents_autoriser), duree == "toujours" || duree.isEmpty()) { repondreAcces(pc, id, "toujours") }), gauche = 8f))
-                r.addView(Ui.marge(this, Ui.poids(Ui.boutonDanger(this, getString(R.string.parents_non)) { repondreAcces(pc, id, "non") }), gauche = 8f))
-                c.addView(Ui.marge(this, r, haut = 14f))
-                if (etiquettes.isNotEmpty()) c.addView(Ui.marge(this, choix(getString(R.string.parents_toute_categorie, categoriesAffichees), duree == "categorie") { repondreAcces(pc, id, "categorie") }, haut = 8f))
-                if (d.optString("genre") == "apps") c.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.parents_toujours_dispo)) { repondreAcces(pc, id, "exception") }, haut = 8f))
-                c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.parents_aide_autoriser), 12f, Ui.TEXTE_3), haut = 6f))
+                if (troisModes) {
+                    // HA 2.5.0 : 15 min, 1 h, Refuser ; puis Exception et Toujours disponible (appli ou site).
+                    r.addView(Ui.poids(choix(resources.getQuantityString(R.plurals.temps_minutes, 15, 15), false) { repondreAcces(pc, id, "temporaire", 15) }))
+                    r.addView(Ui.marge(this, Ui.poids(choix(Tr.duree(60), duree == "1h" || duree.isEmpty()) { repondreAcces(pc, id, "temporaire", 60) }), gauche = 8f))
+                    r.addView(Ui.marge(this, Ui.poids(Ui.boutonDanger(this, getString(R.string.parents_refuser)) { repondreAcces(pc, id, "non") }), gauche = 8f))
+                    c.addView(Ui.marge(this, r, haut = 14f))
+                    val r2 = Ui.rangeeBoutons(this)
+                    r2.addView(Ui.poids(choix(getString(R.string.parents_exception), duree == "toujours") { repondreAcces(pc, id, "accorder", 0, "exception") }))
+                    r2.addView(Ui.marge(this, Ui.poids(Ui.boutonSecondaire(this, getString(R.string.parents_toujours_disponible)) { repondreAcces(pc, id, "accorder", 0, "toujours") }), gauche = 8f))
+                    c.addView(Ui.marge(this, r2, haut = 8f))
+                    if (etiquettes.isNotEmpty()) c.addView(Ui.marge(this, choix(getString(R.string.parents_toute_categorie, categoriesAffichees), duree == "categorie") { repondreAcces(pc, id, "categorie") }, haut = 8f))
+                    c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.parents_aide_trois_modes), 12f, Ui.TEXTE_3), haut = 6f))
+                } else {
+                    // Lot 6 (APP-08) : les mêmes trois réponses que la notification et le plein écran.
+                    val (lblPour, lblToujours, lblRefuser) = Durees.reponsesAcces()
+                    r.addView(Ui.poids(choix(lblPour, duree == "1h" || duree.isEmpty()) { repondreAcces(pc, id, "temporaire", Durees.ACCES_TEMPORAIRE) }))
+                    r.addView(Ui.marge(this, Ui.poids(choix(lblToujours, duree == "toujours" || duree.isEmpty()) { repondreAcces(pc, id, "toujours") }), gauche = 8f))
+                    r.addView(Ui.marge(this, Ui.poids(Ui.boutonDanger(this, lblRefuser) { repondreAcces(pc, id, "non") }), gauche = 8f))
+                    c.addView(Ui.marge(this, r, haut = 14f))
+                    if (etiquettes.isNotEmpty()) c.addView(Ui.marge(this, choix(getString(R.string.parents_toute_categorie, categoriesAffichees), duree == "categorie") { repondreAcces(pc, id, "categorie") }, haut = 8f))
+                    if (d.optString("genre") == "apps") c.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.parents_toujours_dispo)) { repondreAcces(pc, id, "exception") }, haut = 8f))
+                    c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.parents_aide_autoriser), 12f, Ui.TEXTE_3), haut = 6f))
+                }
                 c.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.temps_autre_duree)) {
                     Ui.dialogue(this).setTitle(getString(R.string.parents_ouvrir_pour, d.optString("libelle")))
-                        .setItems(arrayOf(resources.getQuantityString(R.plurals.temps_minutes, 15, 15), resources.getQuantityString(R.plurals.temps_minutes, 30, 30),
-                            resources.getQuantityString(R.plurals.temps_heures, 2, 2), getString(R.string.parents_jusqua_ce_soir))) { _, k ->
-                            repondreAcces(pc, id, "temporaire", listOf(15, 30, 120, 360)[k]) }
+                        .setItems((Durees.libelles(Durees.REPONSE) + getString(R.string.parents_jusqua_ce_soir)).toTypedArray()) { _, k ->
+                            repondreAcces(pc, id, "temporaire", (Durees.REPONSE + 360)[k]) }
                         .setNegativeButton(R.string.commun_annuler, null).show()
                 }, haut = 8f))
                 racine.addView(c)
@@ -200,6 +260,7 @@ class ParentsActivity : Activity() {
         for (i in 0 until appareils.length()) appareils.optJSONObject(i)?.let { if (!it.optBoolean("parent")) parId[it.optString("id")] = it }
         val montres = HashSet<String>()
         var vus = 0
+        personnesFiche.clear()
         for (i in 0 until personnes.length()) {
             val p = personnes.optJSONObject(i) ?: continue
             if (p.optBoolean("parent")) continue
@@ -209,11 +270,17 @@ class ParentsActivity : Activity() {
             // Accordéons (décision du projet) : une ligne repliable par personne, ses appareils et leurs gestes dessous.
             val siens = ids.map { parId.getValue(it) }
             montres += ids; vus += ids.size
-            val cle = "p:" + p.optString("entite")
+            val entite = p.optString("entite")
+            val cle = "p:$entite"
+            if (entite.isNotEmpty()) personnesFiche += entite to p.optString("prenom")
             racine.addView(lignePersonne(p.optString("prenom"), p.optString("role"),
-                p.optJSONObject("temps")?.optInt("actif")?.takeIf { Modules.actifDans(m, Modules.TEMPS) }, siens, cle))
+                p.optJSONObject("temps")?.optInt("actif")?.takeIf { Modules.actifDans(m, Modules.TEMPS) }, siens, cle, entite))
             if (cle in deplies) {
                 val tous = p.optJSONArray("appareils") ?: JSONArray()
+                // Refonte lot 3 : la fiche de la personne, en clair, en tête de son accordéon.
+                if (entite.isNotEmpty()) racine.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.fiche_de, p.optString("prenom"))) {
+                    ouvrirFiche(entite)
+                }, haut = 4f, bas = 4f))
                 if (Modules.horaires(m)) racine.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.parents_30_min_ses_appareils)) {
                     agir(JSONObject().put("action", "temps").put("pc", tous.optString(0)).put("minutes", 30).put("appareils", tous))
                 }, haut = 4f, bas = 4f))
@@ -235,8 +302,30 @@ class ParentsActivity : Activity() {
         racine.addView(Ui.espace(this, 24f))
     }
 
+    /**
+     * HA 2.5.1 (ajout 5 de l'auteur) : une demande pour un logiciel avec ses sites bloqués. Tout est coché : la réponse
+     * vaut en bloc ; décocher un élément le laisse fermé (réponse élément par élément).
+     */
+    private fun caseGroupe(d: JSONObject, sites: List<String>): View {
+        val id = d.optString("id")
+        val app = "app:" + d.optString("cle")
+        groupe[id] = listOf(app) + sites
+        val sans = exclus.getOrPut(id) { HashSet() }
+        val col = Ui.colonne(this).apply { layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
+        col.addView(Ui.texte(this, resources.getQuantityString(R.plurals.el_groupe_sites, sites.size, sites.size), 13f, Ui.OR, gras = true))
+        col.addView(Ui.marge(this, Ui.texte(this, getString(R.string.el_demande_inclus), 12f, Ui.TEXTE_2), haut = 4f))
+        for (el in listOf(app) + sites) {
+            val libelle = if (el == app) d.optString("libelle").ifEmpty { d.optString("cle") } else el
+            col.addView(Ui.caseACocher(this, Ui.coupable(libelle), el !in sans) { coche -> if (coche) sans.remove(el) else sans.add(el) }.apply {
+                tag = "el_case:$el"
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            })
+        }
+        return col
+    }
+
     /** La ligne repliable d'une personne : nom, rôle, temps cumulé du jour, état de ses appareils. */
-    private fun lignePersonne(titre: String, role: String, minutes: Int?, siens: List<JSONObject>, cle: String): View {
+    private fun lignePersonne(titre: String, role: String, minutes: Int?, siens: List<JSONObject>, cle: String, entite: String = ""): View {
         val ouvert = cle in deplies
         val c = Ui.carte(this, Ui.CARTE_HAUTE)
         val r = Ui.rangee(this)
@@ -252,10 +341,17 @@ class ParentsActivity : Activity() {
         r.addView(droite)
         r.addView(Ui.marge(this, Ui.texte(this, if (ouvert) "▾" else "▸", 18f, Ui.TEXTE_2), gauche = 12f))
         c.addView(r)
+        // Refonte lot 3 : « Voir la fiche », un bouton à part : toucher la ligne déplie toujours l'accordéon.
+        if (entite.isNotEmpty()) c.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.fiche_voir)) { ouvrirFiche(entite) }.apply {
+            contentDescription = getString(R.string.fiche_de, titre)
+        }, haut = 10f))
         c.setOnClickListener { if (ouvert) deplies.remove(cle) else deplies.add(cle); dessiner() }
         c.contentDescription = getString(if (ouvert) R.string.parents_replier else R.string.parents_deplier, titre)
         return Ui.marge(this, c, haut = 10f)
     }
+
+    /** Refonte lot 3 : la fiche allégée d'une personne, avec la liste pour passer à la précédente ou à la suivante. */
+    private fun ouvrirFiche(entite: String) = FichePersonneActivity.ouvrir(this, entite, personnesFiche)
 
     /** « Ouvert », « Fermé », « Hors ligne » ou « 1 ouvert · 1 fermé » pour un groupe d'appareils. */
     private fun etatGroupe(siens: List<JSONObject>): Pair<String, Int> {
@@ -352,7 +448,7 @@ class ParentsActivity : Activity() {
         c.addView(Ui.separateur(this))
         val rB = Ui.rangeeBoutons(this)
         rB.addView(Ui.poids(Ui.boutonSecondaire(this, getString(R.string.cat_titre)) {
-            CategoriesActivity.fiche = a; CategoriesActivity.cats = categories
+            CategoriesActivity.fiche = a; CategoriesActivity.cats = categories; CategoriesActivity.elements = elements
             startActivity(Intent(this, CategoriesActivity::class.java))
         }))
         rB.addView(Ui.marge(this, Ui.poids(Ui.boutonSecondaire(this, getString(R.string.parents_ferme_n, nApps, nSites)) {
@@ -463,8 +559,12 @@ class ParentsActivity : Activity() {
         val n = plages?.length() ?: 0
         val entete = Ui.rangee(this)
         entete.addView(Ui.poids(Ui.texte(this, getString(R.string.parents_planning_n, n), 14f, if (n > 0) Ui.TEXTE else Ui.TEXTE_3, gras = true)))
-        entete.addView(Ui.texte(this, if (ouvert) "▴" else "▾", 14f, Ui.TEXTE_2))
+        entete.addView(Ui.texte(this, if (ouvert) "▴" else "▾", 14f, Ui.TEXTE_2).apply { importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO })
         entete.setPadding(0, Ui.dp(this, 8f), 0, Ui.dp(this, 8f))
+        // Lot 6 (APP-21) : l'accordéon fait 48 dp de haut, se prend à la télécommande et dit s'il est ouvert.
+        entete.minimumHeight = Ui.dp(this, Ui.CIBLE_MIN); entete.isClickable = true
+        Ui.anneauFocus(entete, Ui.themeActif(this), 12f, agrandir = false)
+        entete.contentDescription = getString(if (ouvert) R.string.lot6_deplie else R.string.lot6_replie, getString(R.string.parents_planning_n, n))
         entete.setOnClickListener { if (ouvert) deplies.remove(cle) else deplies.add(cle); dessiner() }
         bloc.addView(entete)
         if (!ouvert || plages == null) return bloc
@@ -502,10 +602,14 @@ class ParentsActivity : Activity() {
         return bloc
     }
 
-    private fun repondreAcces(pc: String, demande: String, decision: String, minutes: Int = 60) {
-        Garde.exiger(this, RAISON) {
+    private fun repondreAcces(pc: String, demande: String, decision: String, minutes: Int = Durees.ACCES_TEMPORAIRE, mode: String = "") {
+        // HA 2.5.1 : les éléments décochés d'une demande groupée restent fermés ; tout coché, la réponse vaut pour tout.
+        val decoches = exclus[demande].orEmpty()
+        val elements = if (decoches.isEmpty() || decision == "non") null
+            else JSONArray(groupe[demande].orEmpty().filter { it !in decoches })
+        Garde.exigerPour(this, RAISON, CHEMIN, JSONObject().put("action", "acces").put("decision", decision)) {
             Geste.enCours()
-            Acces.repondre(this, pc, demande, decision, minutes) { res ->
+            Acces.repondre(this, pc, demande, decision, minutes, mode, elements) { res ->
                 // Réglée (ou déjà réglée ailleurs) : elle disparaît tout de suite, puis tout est relu.
                 if (res.ok) { demandes = Geste.sans(demandes, demande); dessiner() } else Geste.relacher()
                 charger()
@@ -570,10 +674,11 @@ class ParentsActivity : Activity() {
         racine.addView(Ui.marge(this, c, bas = 14f))
     }
 
-    /** La boîte de durée habituelle, sans « jusqu'à la prochaine plage » (aucun agenda commun à tous). */
+    /** Refonte UX, lot 2 (A8) : la limite est dite avant le choix, les durées proposées la respectent, et la durée
+     *  choisie est confirmée avant de tout fermer. */
     private fun poserPauseGenerale() {
         Temps.choisir(this, getString(R.string.parents_pause_generale_titre), 0L) { choix ->
-            if (!PauseGenerale.dureeValide(choix.minutes)) toast(getString(R.string.parents_pause_generale_max))
+            if (!PauseGenerale.dureeValide(choix.minutes)) toast(getString(R.string.parents_pause_generale_max), OeilModele.Genre.ERREUR)
             else charger(PauseGenerale.ACTION, "", choix.minutes)
         }
     }
@@ -630,7 +735,7 @@ class ParentsActivity : Activity() {
         }.setNegativeButton(R.string.commun_annuler, null).show()
     }
 
-    private fun toast(t: String) = Toast.makeText(this, t, Toast.LENGTH_LONG).show()
+    private fun toast(t: String, genre: OeilModele.Genre = OeilModele.Genre.INFO) = Ui.toast(this, t, genre = genre)
 
     companion object {
         /** La raison montrée par Garde (code ou empreinte), dans la langue de l'appareil. */
@@ -639,6 +744,14 @@ class ParentsActivity : Activity() {
         const val EXTRA_ACTION = "action"
         const val A_PAUSE = "pause"
         const val A_TEMPS = "temps"
+        /** Refonte lot 3 : l'entité de la personne à déplier à l'ouverture (retour depuis sa fiche). */
+        const val EXTRA_DEPLIER = "deplier"
+        /** Le point d'entrée de l'espace gestion (lecture et gestes). */
+        const val CHEMIN = "/api/pc_parental/parent"
+        /** Le corps d'une simple lecture (aucune action) : l'appareil et son secret. */
+        fun corpsLecture(cfg: Config): JSONObject = JSONObject().put("id", cfg.id).put("secret", cfg.secret)
+        /** Refonte lot 3 : relit l'espace gestion sans rien changer (FichePersonneActivity). Hors du fil principal. */
+        fun relire(ctx: android.content.Context, cfg: Config): JSONObject = Net.post(ctx, cfg, CHEMIN, corpsLecture(cfg))
         fun ouvrir(ctx: android.content.Context, action: String? = null) =
             ctx.startActivity(Intent(ctx, ParentsActivity::class.java).apply { if (action != null) putExtra(EXTRA_ACTION, action) })
     }

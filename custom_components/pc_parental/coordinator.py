@@ -230,13 +230,16 @@ class PcParentalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self.async_refresh()
 
     async def async_maj_tableau(self, force: bool = False) -> bool:
-        """Reconstruit le tableau de bord à partir des PC et plages actuels."""
+        """Reconstruit le tableau de bord à partir des PC et plages actuels.
+
+        2.5.10 (l'auteur, retour 28) : appelé seulement à la demande (bouton « Régénérer le tableau de bord », service
+        build_dashboard) ; l'ancien tableau est alors sauvegardé avant d'être remplacé."""
         from .dashboard import async_build, signature
 
         sig = signature(self)
         if not force and sig == self._signature:
             return False
-        ok = await async_build(self.hass, self)
+        ok = await async_build(self.hass, self, sauvegarder=force)
         if ok:
             self._signature = sig
             # 1.86.1 : gardée aussi dans le magasin (le démarrage suivant ne refait pas un tableau à jour).

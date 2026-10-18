@@ -17,7 +17,7 @@ from deverrouillage_test import (  # noqa: F401  (fixtures du banc)
     DOMAIN, ENFANT, ENFANT2, _fiche, _integrations, expected_lingering_tasks, expected_lingering_timers,
 )
 
-PAGE = {"ok": True, "horloge": {"actif": True, "duree": 15}, "meteo": "weather.maison", "tableaux": [{
+PAGE = {"ok": True, "horloge": {"actif": True, "duree": 15}, "tableaux": [{
     "id": "dash_x_0", "titre": "Noa", "duree": 30, "colonnes": 4, "sections": [{"titre": "", "span": 1, "cartes": [
         {"cle": "a", "cles": ["a"], "config": {"type": "picture-elements", "image": "/local/cles.png",
                                                  "elements": [{"type": "state-icon", "entity": "lock.cle_noa"}]}},
@@ -36,7 +36,7 @@ async def _monter(hass, hass_storage, monkeypatch):
             "e2": _fiche("e2", "TEL-LOU", ENFANT2["secret"], person="person.lou", platform="android"),
         }}}
     for eid, etat in (("lock.cle_noa", "locked"), ("sensor.edt_noa", "48"), ("weather.maison", "sunny"),
-                      ("alarm_control_panel.maison", "armed_away"), ("person.robin", "home")):
+                      ("alarm_control_panel.maison", "armed_away"), ("person.nolan", "home")):
         hass.states.async_set(eid, etat, {"friendly_name": eid})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -44,9 +44,9 @@ async def _monter(hass, hass_storage, monkeypatch):
     await hass.async_block_till_done()
     from custom_components.pc_parental import veille_page
 
-    async def page(_hass, _coord, pc, ecran, _essai=""):
+    async def page(_hass, _coord, pc, ecran, _essai="", typees=True):  # typees : cases de la page (veille-lot)
         ECRANS_VUS.append(ecran)
-        return PAGE if pc and pc["id"] == "e1" else {**PAGE, "tableaux": [], "meteo": ""}
+        return PAGE if pc and pc["id"] == "e1" else {**PAGE, "tableaux": []}
 
     monkeypatch.setattr(veille_page, "page", page)
     return next(iter(hass.data[DOMAIN].values()))
@@ -94,9 +94,9 @@ async def test_passerelle(hass, hass_storage, hass_client, monkeypatch):
             if r.get("id") == msg["id"] and r.get("type") == "result":
                 return r
 
-    # Les états : seulement ceux des cartes de CET appareil (et la météo de l'horloge).
+    # Les états : seulement ceux des cartes de CET appareil. 1.93.05 (retour 35) : plus la météo de l'horloge.
     r = await demander({"id": 1, "type": "get_states"})
-    assert r["success"] and {e["entity_id"] for e in r["result"]} == {"lock.cle_noa", "sensor.edt_noa", "weather.maison"}
+    assert r["success"] and {e["entity_id"] for e in r["result"]} == {"lock.cle_noa", "sensor.edt_noa"}
     # La page de l'appareil, par la passerelle.
     r = await demander({"id": 2, "type": "pc_parental/veille_page"})
     assert r["result"]["tableaux"][0]["titre"] == "Noa"
@@ -109,11 +109,11 @@ async def test_passerelle(hass, hass_storage, hass_client, monkeypatch):
     hist = {"type": "history/history_during_period", "start_time": "2026-01-01T00:00:00+00:00", "minimal_response": True}
     assert not (await demander({"id": 5, **hist, "entity_ids": ["alarm_control_panel.maison"]}))["success"]
     # 1.84.0 : une liste mêlée n'est plus refusée en bloc : seule l'entité autorisée est demandée à HA.
-    hass.states.async_set("person.robin", "home")
-    r = await demander({"id": 6, **hist, "entity_ids": ["lock.cle_noa", "person.robin"]})
+    hass.states.async_set("person.nolan", "home")
+    r = await demander({"id": 6, **hist, "entity_ids": ["lock.cle_noa", "person.nolan"]})
     # (Sans recorder dans ce banc, HA répond « commande inconnue » : l'important est que la passerelle l'ait laissée passer.)
     assert r["success"] or (r.get("error") or {}).get("code") != "unauthorized"
-    assert "person.robin" not in (r.get("result") or {})
+    assert "person.nolan" not in (r.get("result") or {})
     # L'abonnement aux entités : borné aux autorisées, même demandé sans liste.
     await ws.send_json({"id": 7, "type": "subscribe_entities"})
     vues: set[str] = set()
@@ -122,7 +122,7 @@ async def test_passerelle(hass, hass_storage, hass_client, monkeypatch):
         if m.get("type") == "event" and m.get("id") == 7:
             vues |= set((m["event"].get("a") or {}).keys())
             break
-    assert vues and vues <= {"lock.cle_noa", "sensor.edt_noa", "weather.maison"}
+    assert vues and vues <= {"lock.cle_noa", "sensor.edt_noa"}
     # Un changement d'une entité non autorisée ne sort pas.
     assert (await demander({"id": 8, "type": "subscribe_events", "event_type": "state_changed"}))["success"]
     hass.states.async_set("alarm_control_panel.maison", "disarmed")
@@ -140,7 +140,7 @@ async def test_passerelle(hass, hass_storage, hass_client, monkeypatch):
     assert not (await demander({"id": 9, "type": "subscribe_events", "event_type": "call_service"}))["success"]
     # 1.84.0 (en fin : les identifiants du websocket doivent croître) :
     # une liste d'entités toutes non autorisées reste refusée par la passerelle ;
-    r = await demander({"id": 900, **hist, "entity_ids": ["person.robin"]})
+    r = await demander({"id": 900, **hist, "entity_ids": ["person.nolan"]})
     assert (r.get("error") or {}).get("code") == "unauthorized"
     # l'état de démarrage des intégrations, que le frontend attend au chargement, passe la passerelle.
     # 1.86.4 : répondue par la passerelle elle-même (sa vraie réponse faisait recharger la page de veille).
@@ -267,7 +267,7 @@ async def test_ouverture_et_fermeture_journalisees(hass, hass_storage, hass_clie
             break
         import asyncio
         await asyncio.sleep(0.05)
-    assert any("« TEL-NOA » ouverte par la passerelle" in m and "3 entités" in m for m in caplog.messages)
+    assert any("« TEL-NOA » ouverte par la passerelle" in m and "2 entités" in m for m in caplog.messages)
     assert any("« TEL-NOA » fermée" in m and "call_service ×1" in m for m in caplog.messages)
 
 

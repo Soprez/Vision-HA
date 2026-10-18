@@ -4,6 +4,10 @@
 // ---- i18n:debut — les textes de ce panneau, dans les six langues de Vision (fr source, en repli) ----
 const TEXTES = /*i18n-json*/{
   "fr": {
+    "octroi_titre": "Code de déverrouillage",
+    "octroi_champ": "Code",
+    "octroi_valider": "Valider",
+    "octroi_annuler": "Annuler",
     "erreur_admin": "Réservé aux administrateurs de Home Assistant.",
     "erreur_qr": "Impossible de générer le QR (adresse de Home Assistant inconnue, ou trop de QR en cours).",
     "demande_refusee": "Demande {code} refusée.",
@@ -28,6 +32,10 @@ const TEXTES = /*i18n-json*/{
     "aucune_demande": "Aucune demande en attente."
   },
   "en": {
+    "octroi_titre": "Unlock code",
+    "octroi_champ": "Code",
+    "octroi_valider": "Confirm",
+    "octroi_annuler": "Cancel",
     "erreur_admin": "Only Home Assistant administrators can do this.",
     "erreur_qr": "Couldn't create the QR code (Home Assistant address unknown, or too many QR codes in progress).",
     "demande_refusee": "Request {code} declined.",
@@ -52,6 +60,10 @@ const TEXTES = /*i18n-json*/{
     "aucune_demande": "No requests waiting."
   },
   "de": {
+    "octroi_titre": "Entsperrcode",
+    "octroi_champ": "Code",
+    "octroi_valider": "Bestätigen",
+    "octroi_annuler": "Abbrechen",
     "erreur_admin": "Nur für Home Assistant-Administratoren.",
     "erreur_qr": "Der QR-Code konnte nicht erstellt werden (Adresse von Home Assistant unbekannt oder zu viele QR-Codes in Bearbeitung).",
     "demande_refusee": "Anfrage {code} abgelehnt.",
@@ -76,6 +88,10 @@ const TEXTES = /*i18n-json*/{
     "aucune_demande": "Keine wartenden Anfragen."
   },
   "es": {
+    "octroi_titre": "Código de desbloqueo",
+    "octroi_champ": "Código",
+    "octroi_valider": "Confirmar",
+    "octroi_annuler": "Cancelar",
     "erreur_admin": "Solo para administradores de Home Assistant.",
     "erreur_qr": "No se pudo generar el QR (dirección de Home Assistant desconocida, o demasiados QR en curso).",
     "demande_refusee": "Solicitud {code} rechazada.",
@@ -100,6 +116,10 @@ const TEXTES = /*i18n-json*/{
     "aucune_demande": "Ninguna solicitud pendiente."
   },
   "it": {
+    "octroi_titre": "Codice di sblocco",
+    "octroi_champ": "Codice",
+    "octroi_valider": "Conferma",
+    "octroi_annuler": "Annulla",
     "erreur_admin": "Riservato agli amministratori di Home Assistant.",
     "erreur_qr": "Impossibile generare il QR (indirizzo di Home Assistant sconosciuto, o troppi QR in corso).",
     "demande_refusee": "Richiesta {code} rifiutata.",
@@ -124,6 +144,10 @@ const TEXTES = /*i18n-json*/{
     "aucune_demande": "Nessuna richiesta in attesa."
   },
   "nl": {
+    "octroi_titre": "Ontgrendelcode",
+    "octroi_champ": "Code",
+    "octroi_valider": "Bevestigen",
+    "octroi_annuler": "Annuleren",
     "erreur_admin": "Alleen voor beheerders van Home Assistant.",
     "erreur_qr": "De QR-code kon niet worden gemaakt (adres van Home Assistant onbekend, of te veel QR-codes tegelijk).",
     "demande_refusee": "Verzoek {code} geweigerd.",
@@ -232,6 +256,49 @@ const trCat = (nom) => {
   return (e && (e[LANGUE] || e.en)) || nom;
 };
 // ---- i18n:fin ----
+// FAILLE DE SÉCURITÉ (l'auteur, 16/10) : accorder (accepter, déverrouiller, donner du temps, ouvrir, autoriser, valider un
+// appareil, donner un rôle) exige le code de déverrouillage du Décideur À CHAQUE geste. Home Assistant le réclame (403 « code_octroi »,
+// octroi.py) : on le demande, puis on renvoie le même geste avec lui. Le code n'est jamais gardé.
+const esc = (t) =>
+  String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const ERREURS_CODE_OCTROI = ["code_octroi", "code_octroi_faux"];
+const demanderCodeOctroi = (racine, message) => new Promise((resoudre) => {
+  const d = document.createElement("dialog");
+  d.setAttribute("aria-label", tr("octroi_titre"));
+  d.style.cssText = "border:0;border-radius:16px;padding:20px;max-width:min(360px,calc(100vw - 48px));box-sizing:border-box;"
+    + "background:var(--card-background-color,#fff);color:var(--primary-text-color,#000);";
+  d.innerHTML = `<form method="dialog" style="display:grid;gap:12px;margin:0">
+      <b style="font-size:18px">${esc(tr("octroi_titre"))}</b>
+      <div style="color:var(--secondary-text-color);overflow-wrap:anywhere">${esc(message || "")}</div>
+      <input name="code" type="password" autocomplete="off" aria-label="${esc(tr("octroi_champ"))}" placeholder="${esc(tr("octroi_champ"))}"
+        style="font:inherit;padding:10px;border-radius:10px;border:1px solid var(--divider-color);min-height:44px;box-sizing:border-box;width:100%;background:var(--card-background-color);color:var(--primary-text-color)">
+      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+        <button value="" type="button" data-annuler style="font:inherit;min-height:44px;padding:8px 14px;border-radius:999px;border:1px solid var(--divider-color);background:none;color:var(--primary-text-color)">${esc(tr("octroi_annuler"))}</button>
+        <button value="ok" style="font:inherit;min-height:44px;padding:8px 14px;border-radius:999px;border:0;background:var(--primary-color);color:var(--text-primary-color)">${esc(tr("octroi_valider"))}</button>
+      </div></form>`;
+  const champ = d.querySelector("input");
+  const fin = (v) => { d.remove(); resoudre(v); };
+  d.querySelector("[data-annuler]").addEventListener("click", () => { d.close(); fin(""); });
+  d.addEventListener("cancel", () => fin(""));
+  d.querySelector("form").addEventListener("submit", () => fin(champ.value));
+  racine.appendChild(d);
+  d.showModal();
+  champ.focus();
+});
+const avecCodeOctroi = async (hass, racine, chemin, corps) => {
+  try { return await hass.callApi("POST", chemin, corps); } catch (e) {
+    let erreur = e;
+    for (let essai = 0; essai < 3; essai += 1) {
+      const b = erreur && erreur.body;
+      if (!b || !ERREURS_CODE_OCTROI.includes(b.error)) throw erreur;
+      const code = await demanderCodeOctroi(racine, b.retour);
+      if (!code) throw erreur;
+      try { return await hass.callApi("POST", chemin, Object.assign({}, corps, { code_octroi: code })); } catch (e2) { erreur = e2; }
+    }
+    throw erreur;
+  }
+};
+
 class VisionAppairagePanel extends HTMLElement {
   set hass(hass) {
     const premier = !this._hass;
@@ -255,7 +322,7 @@ class VisionAppairagePanel extends HTMLElement {
   async _generer() {
     const valeur = (nom) => (this.querySelector(`select[name="${nom}"]`) || {}).value || "";
     try {
-      const r = await this._hass.callApi("POST", "pc_parental/appairage/invitation", {
+      const r = await avecCodeOctroi(this._hass, this, "pc_parental/appairage/invitation", {
         personne: valeur("qr-personne"), appareil: valeur("qr-appareil"),
       });
       this._qr = { svg: r.svg, expire: Date.now() + r.expire_dans * 1000 };
@@ -272,7 +339,7 @@ class VisionAppairagePanel extends HTMLElement {
   async _decider(code, action) {
     const choix = this.querySelector(`select[data-code="${code}"]`);
     try {
-      const r = await this._hass.callApi("POST", "pc_parental/appairage", {
+      const r = await avecCodeOctroi(this._hass, this, "pc_parental/appairage", {
         code, action, personne: choix ? choix.value : "",
       });
       const f = r.fait || {};

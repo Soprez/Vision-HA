@@ -160,7 +160,7 @@ async def test_reglage_valeur_et_liste(hass, integrations, hass_storage, hass_cl
     await _etats_de_plus(hass)
     appels = _services(hass)
     client = await hass_client()
-    await _admin(client, op="personne", personne="person.robin", entites=["input_number.consigne", "select.mode"])
+    await _admin(client, op="personne", personne="person.nolan", entites=["input_number.consigne", "select.mode"])
     await _admin(client, op="reglage", entite="input_number.consigne", role="reglage")
     await _admin(client, op="reglage", entite="select.mode", role="reglage")
     for data in ({"value": 30}, {"value": "x"}, {"value": True}, {}, {"value": 1e12}):
@@ -214,7 +214,7 @@ async def test_style_reglage_options_et_detail_demande(hass, integrations, hass_
     _, coord = await _monter(hass, hass_storage)
     await _etats_de_plus(hass)
     client = await hass_client()
-    await _admin(client, op="personne", personne="person.robin", entites=["select.mode", "input_number.consigne", "sensor.temp"])
+    await _admin(client, op="personne", personne="person.nolan", entites=["select.mode", "input_number.consigne", "sensor.temp"])
     st, d = await _post(client, "/entites", PARENT)
     par_id = {e["entity_id"]: e for e in d["entites"]}
     assert par_id["select.mode"]["styles"][0] == "reglage" and par_id["input_number.consigne"]["styles"][0] == "reglage"

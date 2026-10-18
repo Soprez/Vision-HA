@@ -191,14 +191,18 @@ async def test_module_coupe(hass, hass_storage, hass_client):
     # Témoin : module actif, la section est sur l'accueil.
     accueil = dashboard.build(hass, _coord(hass))["views"][0]
     assert any(c.get("heading") == "Tout fermer" for s in accueil["sections"] for c in s.get("cards", []))
-    # Les deux boutons de la section : « Tout fermer 30 min » (confirmation avant, lot 1 HA-08) et « Rouvrir ».
+    # Lot 2 (A8) : la durée se choisit (15 min à 2 h), chacune avec sa confirmation qui la répète ; « Rouvrir » sans.
     section = next(s for s in accueil["sections"]
                    if any(c.get("heading") == "Tout fermer" for c in s.get("cards", [])))
-    boutons = next(c for c in section["cards"] if c.get("type") == "horizontal-stack")["cards"]
-    assert [(b["name"], b["icon"]) for b in boutons] == [
-        ("Tout fermer 30 min", "mdi:lock-clock"), ("Rouvrir", "mdi:lock-open-variant-outline")]
-    assert boutons[0]["tap_action"]["confirmation"]["text"].startswith("Tout fermer")
-    assert "confirmation" not in boutons[1]["tap_action"]
+    durees = next(c for c in section["cards"] if c.get("type") == "grid")["cards"]
+    assert [(b["name"], b["icon"]) for b in durees] == [
+        ("15 min", "mdi:lock-clock"), ("30 min", "mdi:lock-clock"), ("1 h", "mdi:lock-clock"), ("2 h", "mdi:lock-clock")]
+    assert all(b["tap_action"]["confirmation"]["text"].startswith("Tout fermer") for b in durees)
+    assert [b["tap_action"]["data"]["minutes"] for b in durees] == [15, 30, 60, 120]
+    # Faille du 16/10 : « Rouvrir » est la carte Vision (code d'octroi), plus le bouton standard de HA.
+    rouvrir = [c for c in section["cards"] if c.get("type") == "custom:vision-maison-card"]
+    assert len(rouvrir) == 1 and rouvrir[0]["mode"] == "rouvrir" and rouvrir[0]["entity"].startswith("binary_sensor.")
+    assert not any(c.get("type") == "horizontal-stack" for c in section["cards"])
     modules.regler(hass, store, set(modules.TOUS) - {"pause_generale"}, "essai")
     modules.appliquer_entites(hass, store)
     await hass.async_block_till_done()

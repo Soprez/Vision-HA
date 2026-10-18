@@ -166,6 +166,7 @@ li b{font-size:17px;font-weight:600} li span{font-size:16px;color:var(--encre2)}
 .plus{flex:none;width:48px;height:48px;min-height:48px;padding:0;font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center}
 .plus.fait{background:var(--carte);color:var(--ok);border:1px solid var(--bord);opacity:1}
 .note{margin-top:20px;font-size:16px}
+#mes li span.att{color:var(--accent-texte);font-weight:600}
 </style></head><body>
 <header>
 <div class="np" id="np" aria-live="polite"><div class="vide" id="np-vide" aria-hidden="true">♪</div><img class="pochette" id="np-img" alt="" width="56" height="56" hidden>
@@ -178,6 +179,8 @@ li b{font-size:17px;font-weight:600} li span{font-size:16px;color:var(--encre2)}
 <h1>__T_titre_page__</h1>
 <p>__T_intro__</p>
 __PUCES____FIN__<div id="statut" role="status" aria-live="polite"></div>
+<h2 id="mes-titre" hidden>__T_mes_titres__</h2>
+<ul id="mes"></ul>
 <h2 id="res-titre" hidden>__T_souvent__</h2>
 <ul id="res"></ul>
 <p class="note">__T_note__</p>
@@ -237,7 +240,7 @@ __PUCES____FIN__<div id="statut" role="status" aria-live="polite"></div>
       bt.addEventListener("click", function(){
         bt.disabled = true; bt.textContent = "…";
         envoyer("/proposer", {ref: t.ref}).then(function(r){
-          if (r.ok) { bt.textContent = "✓"; bt.className = "plus fait"; bt.setAttribute("aria-label", T.propose); dire(r.message, true); var fin = document.getElementById("fin"); if (fin) fin.remove(); }
+          if (r.ok) { bt.textContent = "✓"; bt.className = "plus fait"; bt.setAttribute("aria-label", T.propose); dire(r.message, true); var fin = document.getElementById("fin"); if (fin) fin.remove(); mesTitres(); }
           else { bt.disabled = false; bt.textContent = "+"; dire(r.message || T.pas_passe, false); }
         }, function(){ bt.disabled = false; bt.textContent = "+"; dire(T.pas_reseau, false); });
       });
@@ -279,7 +282,23 @@ __PUCES____FIN__<div id="statut" role="status" aria-live="polite"></div>
       }
     }).catch(function(){});
   }
+  // 2.5.8 (retour d'essai) : « Vos titres » — chaque titre proposé ici, avec son état (en attente, dans la file, joué…).
+  var mes = document.getElementById("mes"), mesTitre = document.getElementById("mes-titre");
+  function mesTitres(){
+    if (document.visibilityState === "hidden") return;
+    envoyer("/mes", {}).then(function(j){
+      if (!j || !j.ok) return;
+      mes.textContent = "";
+      (j.titres || []).forEach(function(t){
+        var li = document.createElement("li"), d = document.createElement("div"), b = document.createElement("b"), s = document.createElement("span");
+        d.className = "txt"; b.textContent = t.titre; s.textContent = t.etat; if (t.attente) s.className = "att";
+        d.appendChild(b); d.appendChild(s); li.appendChild(d); mes.appendChild(li);
+      });
+      mesTitre.hidden = !(j.titres || []).length;
+    }, function(){});
+  }
   maintenant(); setInterval(maintenant, 15000);
+  mesTitres(); setInterval(mesTitres, 15000);
   document.addEventListener("visibilitychange", maintenant);
 })();
 </script></body></html>"""
@@ -330,8 +349,29 @@ def _theme(hass: HomeAssistant) -> tuple:
     return THEMES_PAGE.get(nom, THEMES_PAGE["Beige"])
 
 
-def _page(hass: HomeAssistant, nonce: str, base: str, fin: str, puces: str, langue: str | None = None) -> str:
-    t = _theme(hass)
+_RE_COULEUR = re.compile(r"^[0-9a-fA-F]{6}$")
+
+
+def theme_de_l_appareil(valeur: str | None) -> tuple | None:
+    """2.5.8 (l'auteur : « la page invités doit prendre le thème de l'appareil qui affiche le QR code ») : l'appareil ajoute
+    ses couleurs à l'adresse du code (`th` : fond, encre, encre2, carte, bord, accent, texte sur l'accent, accent en
+    texte — 8 couleurs hexadécimales sans « # », séparées par des virgules). Tout ce qui n'est pas exactement cela est
+    ignoré (thème de Home Assistant). Les couleurs d'état (ok, ko) suivent le clair ou le sombre du fond."""
+    if not valeur or len(valeur) > 80:
+        return None
+    morceaux = valeur.split(",")
+    if len(morceaux) != 8 or not all(_RE_COULEUR.match(m) for m in morceaux):
+        return None
+    c = ["#" + m.upper() for m in morceaux]
+    r, g, b = (int(morceaux[0][i:i + 2], 16) for i in (0, 2, 4))
+    sombre = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.5
+    ok, ko = ("#8FD48F", "#F0A0A0") if sombre else ("#2E6B2E", "#A12A2A")
+    return (*c, ok, ko, sombre)
+
+
+def _page(hass: HomeAssistant, nonce: str, base: str, fin: str, puces: str, langue: str | None = None,
+          theme: tuple | None = None) -> str:
+    t = theme or _theme(hass)
     lg = langue or textes.ha(hass)
     noms = ("fond", "encre", "encre2", "carte", "bord", "accent", "sur-accent", "accent-texte", "ok", "ko")
     css = ";".join(f"--{n}:{v}" for n, v in zip(noms, t[:10]))
@@ -408,7 +448,8 @@ class PcParentalPartyInvitePageView(_PorteInvite):
             return web.Response(text=_fini(lg), status=404, content_type="text/html", headers=_entetes())
         nonce = secrets.token_urlsafe(16)
         base = json.dumps(URL + "/" + jeton)
-        page = _page(self.hass, nonce, base, await _fin(self.hass, self.st(), lg), _puces(self.hass, lg), lg)
+        page = _page(self.hass, nonce, base, await _fin(self.hass, self.st(), lg), _puces(self.hass, lg), lg,
+                     theme_de_l_appareil(request.query.get("th")))
         return web.Response(text=page, content_type="text/html", headers=_entetes(nonce))
 
 
@@ -530,7 +571,7 @@ class PcParentalPartyInviteProposerView(_PorteInvite):
         if not jeton_valide(st, jeton):  # Party arrêtée pendant la lecture du corps
             return _json({"ok": False, "message": _t("lien_expire", lg)}, 404)
         try:
-            message = await self._proposer(self.hass, t, lg)
+            message = await self._proposer(self.hass, t, lg, _appareil(request, c))
         except Complet as e:
             return _json({"ok": False, "message": str(e)}, 429)
         except musique.MusiqueIndisponible:
@@ -622,6 +663,25 @@ class PcParentalPartyInviteMaintenantView(_PorteInvite):
                       "pochette": m.get("pochette", "") if joue else ""})
 
 
+class PcParentalPartyInviteMesTitresView(_PorteInvite):
+    """2.5.8 (retour d'essai) : « Vos titres » — ce que cet invité a proposé, et où chaque titre en est (en attente, juste après le
+    titre en cours, n° X dans la file, en cours, joué, refusé). Rien des autres invités."""
+
+    url = URL + "/{jeton}/mes"
+    name = "api:pc_parental:party_invite_mes"
+
+    async def post(self, request: web.Request, jeton: str) -> web.Response:
+        from . import party
+        st = self.st()
+        lg = textes.langue_requete(request, self.hass)
+        if not jeton_valide(st, jeton):
+            return _json({"ok": False}, 404)
+        if _trop("vu:" + _ip(request), VUES_MIN_IP):
+            return _json({"ok": False}, 429)
+        c = await _corps(request)
+        return _json({"ok": True, "titres": await party.mes_titres(self.hass, _appareil(request, c), lg)})
+
+
 class PcParentalPartyInvitePochetteView(_PorteInvite):
     """2.2.12 : la pochette du titre en cours (lue par Home Assistant, sans exposer son jeton)."""
 
@@ -647,6 +707,7 @@ def enregistrer_vues(hass: HomeAssistant, etat, proposer) -> None:
     hass.http.register_view(PcParentalPartyInviteImageView(hass, etat))
     hass.http.register_view(PcParentalPartyInviteSuggestionsView(hass, etat))
     hass.http.register_view(PcParentalPartyInviteMaintenantView(hass, etat))
+    hass.http.register_view(PcParentalPartyInviteMesTitresView(hass, etat))
     hass.http.register_view(PcParentalPartyInvitePochetteView(hass, etat))
     hass.http.register_view(PcParentalPartyInviteChercherView(hass, etat))
     hass.http.register_view(PcParentalPartyInviteProposerView(hass, etat, proposer))

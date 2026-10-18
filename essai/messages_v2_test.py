@@ -23,10 +23,10 @@ async def _monter(hass, hass_storage):
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", role="enfant", type="telephone"),
             "e2": _fiche("e2", "PC-LOU", ENFANT2["secret"], person="person.lou", platform="windows", role="enfant"),
             "t1": _fiche("t1", "Téléviseur du salon", TELE["secret"], platform="android", role="enfant", type="tv"),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
         }}}
     hass.states.async_set("person.lou", "home", {"friendly_name": "Lou"})
-    hass.states.async_set("person.robin", "home", {"friendly_name": "Robin"})
+    hass.states.async_set("person.nolan", "home", {"friendly_name": "Nolan"})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
@@ -62,7 +62,7 @@ async def test_envoi_carte_important_ne_bloque_pas_et_reponse(hass, hass_storage
     client = await hass_client()
     r = await client.get("/api/pc_parental/messages")
     d = await r.json()
-    assert r.status == 200 and {p["id"] for p in d["destinataires"]["personnes"]} == {"person.lou", "person.robin"}
+    assert r.status == 200 and {p["id"] for p in d["destinataires"]["personnes"]} == {"person.lou", "person.nolan"}
     r = await client.post("/api/pc_parental/messages", json={
         "action": "envoyer", "destinataires": ["person.lou", "t1"], "type": "message", "texte": "À table dans 10 minutes !",
         "reponses": ["J'arrive", "Dans 5 min", "OK", "Trop"], "important": True})
@@ -96,8 +96,8 @@ async def test_pause_tele_seulement_si_demandee_et_appli_decideur(hass, hass_sto
                                                                  "texte": "Film fini ?", "pause_tele": True, "reponses": ["Oui", "Non"]})
     assert r.status == 200
     m = coord.store.pcs["t1"]["messages"][-1]
-    assert m["pause_tele"] is True and m["de"] == "Robin"
-    # La télé répond « Oui » : le téléphone de Robin reçoit la réponse dans sa file.
+    assert m["pause_tele"] is True and m["de"] == "Nolan"
+    # La télé répond « Oui » : le téléphone de Nolan reçoit la réponse dans sa file.
     avant = len(coord.store.pcs["p1"]["messages"])
     r = await client.post("/api/pc_parental/message", json={**TELE, "message": m["id"], "etat": "repondu", "detail": "Oui"})
     assert r.status == 200

@@ -1,0 +1,46 @@
+{
+  "version": "2.4.5",
+  "date": "2026-10-12",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Lecteur Sendspin : Home Assistant fait l'appairage avec Music Assistant, sans PIN à taper.",
+        "en": "Sendspin player: Home Assistant pairs with Music Assistant, no PIN to type.",
+        "de": "Sendspin-Player: Home Assistant koppelt mit Music Assistant, ohne PIN-Eingabe.",
+        "es": "Reproductor Sendspin: Home Assistant empareja con Music Assistant, sin escribir PIN.",
+        "it": "Lettore Sendspin: Home Assistant associa con Music Assistant, senza digitare il PIN.",
+        "nl": "Sendspin-speler: Home Assistant koppelt met Music Assistant, zonder pincode te typen."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Seul un appareil inscrit dans Vision peut être appairé, et seulement son propre lecteur.",
+        "en": "Only a device enrolled in Vision can be paired, and only its own player.",
+        "de": "Nur ein in Vision angemeldetes Gerät kann gekoppelt werden, und nur sein eigener Player.",
+        "es": "Solo un dispositivo inscrito en Vision puede emparejarse, y solo su propio reproductor.",
+        "it": "Solo un dispositivo iscritto in Vision può essere associato, e solo il proprio lettore.",
+        "nl": "Alleen een in Vision ingeschreven apparaat kan gekoppeld worden, en alleen de eigen speler."
+      }
+    },
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "Si l'appairage automatique n'est pas possible, le PIN reste affiché pour Music Assistant.",
+        "en": "If automatic pairing is not possible, the PIN stays on screen for Music Assistant.",
+        "de": "Ist die automatische Kopplung nicht möglich, bleibt die PIN für Music Assistant sichtbar.",
+        "es": "Si el emparejamiento automático no es posible, el PIN sigue en pantalla para Music Assistant.",
+        "it": "Se l'associazione automatica non è possibile, il PIN resta a schermo per Music Assistant.",
+        "nl": "Lukt automatisch koppelen niet, dan blijft de pincode in beeld voor Music Assistant."
+      }
+    }
+  ]
+}

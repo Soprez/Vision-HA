@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.5, prototype (retour d'essai) : l'œil sur le bouton Accueil (OeilAccueil). -->
+<resources>
+    <string name="oeilaccueil_titre">Auge auf der Startbildschirm-Taste</string>
+    <string name="oeilaccueil_active">An</string>
+    <string name="oeilaccueil_desactive">Aus</string>
+    <string name="oeilaccueil_note">Das Auge von Vision auf der Startbildschirm-Taste der Navigationsleiste mit 3 Tasten. Bei Gestensteuerung, im Vollbild und mit Tastatur wird nichts angezeigt. Benötigt den Bedienungshilfen-Dienst von Vision.</string>
+</resources>

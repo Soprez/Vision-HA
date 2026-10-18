@@ -17,4 +17,15 @@
     <string name="appairage_pin_phrase">Introduce este código en Music Assistant para vincular esta TV.</string>
     <string name="appairage_geste_phrase">Music Assistant pide vincular esta TV. ¿Permitirlo?</string>
     <string name="appairage_autoriser">Permitir</string>
+    <!-- 1.90.2 (l'auteur : « jamais le code à l'écran ») : appairage à la main seulement, depuis Décideurs. -->
+    <string name="appairage_connexion">Conectando con la música…</string>
+    <string name="appairage_manuel_phrase">Inicia la vinculación de «%1$s» en Music Assistant: el código aparecerá aquí.</string>
+    <string name="appairage_reussi">Esta tele está vinculada con Music Assistant.</string>
+    <string name="appairage_echec">La vinculación no se completó. Vuelve a iniciarla en Music Assistant.</string>
+    <string name="appairage_fermer">Cerrar</string>
+    <string name="reglagestv_appairage_musique">Vinculación de música</string>
+    <string name="reglagestv_appairage_ok">Vinculada</string>
+    <string name="reglagestv_appairage_echec">Sin vincular</string>
+    <string name="reglagestv_appairage_echec_note">La vinculación automática no se completó. Puedes vincular a mano.</string>
+    <string name="reglagestv_appairer_main">Vincular a mano</string>
 </resources>

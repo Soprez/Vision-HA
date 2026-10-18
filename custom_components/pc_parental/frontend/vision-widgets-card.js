@@ -28,11 +28,11 @@ const TEXTES = /*i18n-json*/{
     "pilotable": "Pilotable : {services}", "lecture_seule": "Lecture seule", "action": "Action", "lecture": "Lecture",
     "introuvable": "introuvable", "retirer": "Retirer", "retirer_nom": "Retirer {nom}",
     "suggestions": "Entités de Home Assistant", "aucune_suggestion": "Aucune entité ne correspond.",
-    "tous_titre": "Pour tout le monde", "tous_aide": "Vues sur tous les appareils, en plus de la liste de chaque personne.", "ajout_tous": "+ Ajouter pour tout le monde", "regler": "Régler", "regler_nom": "Régler {nom}", "role": "Rôle", "role_lecture": "Lecture", "role_interrupteur": "Interrupteur", "role_bouton": "Bouton", "role_reglage": "Réglage", "qui": "Qui peut agir", "qui_decideurs": "Seulement les {decideurs}", "qui_tous": "Tout le monde", "confirmer": "Demander confirmation avant d'agir", "nom_affiche": "Nom affiché", "icone": "Icône (mdi:…)", "affichage": "Affichage", "aff_valeur": "Valeur seule", "aff_detail": "Détail", "aff_valeur_detail": "Valeur + détail", "attributs": "Attributs du détail", "attributs_aide": "Aucun coché : tous les attributs.", "liste_aide": "Le détail montre les éléments à faire de la liste.", "enregistrer": "Enregistrer", "fermer": "Fermer", "badge_tous": "tout le monde", "badge_confirmer": "avec confirmation", "toucher": "Au toucher", "toucher_role": "Action du rôle", "toucher_details": "Ouvrir les détails de l'entité", "toucher_vue": "Ouvrir un tableau de bord ou une vue", "toucher_rien": "Rien", "chemin": "Chemin dans Home Assistant (par exemple /lovelace/0)", "chemin_liste": "Choisir un tableau de bord ou une vue…", "toucher_aide": "Détails et vues : seulement pour qui peut agir sur l'entité ; les autres gardent l'action du rôle.",
+    "mep": "Mise en page", "mep_h": "Alignement horizontal", "mep_v": "Alignement vertical", "mep_taille": "Taille de la valeur", "mep_h_gauche": "À gauche", "mep_h_centre": "Au centre", "mep_h_droite": "À droite", "mep_v_haut": "En haut", "mep_v_centre": "Au milieu", "mep_v_bas": "En bas", "mep_t_remplir": "Remplir", "mep_t_s": "S", "mep_t_m": "M", "mep_t_l": "L", "mep_t_xl": "XL", "mep_titre": "Montrer le titre", "mep_icone": "Montrer l'icône", "mep_aide": "La même mise en page sur tous les appareils ; un {decideur} peut aussi la régler depuis son téléphone. « Remplir » : la plus grande valeur qui tient.", "tous_titre": "Pour tout le monde", "tous_aide": "Vues sur tous les appareils, en plus de la liste de chaque personne.", "ajout_tous": "+ Ajouter pour tout le monde", "regler": "Régler", "regler_nom": "Régler {nom}", "role": "Rôle", "role_lecture": "Lecture", "role_interrupteur": "Interrupteur", "role_bouton": "Bouton", "role_reglage": "Réglage", "qui": "Qui peut agir", "qui_decideurs": "Seulement les {decideurs}", "qui_tous": "Tout le monde", "confirmer": "Demander confirmation avant d'agir", "nom_affiche": "Nom affiché", "icone": "Icône (mdi:…)", "texte": "Ligne sous la valeur (entité)", "texte_aide": "Une entité dont l'état s'écrit sous la valeur, par exemple le mode et l'horaire du chauffage. Vide : rien.", "affichage": "Affichage", "aff_valeur": "Valeur seule", "aff_detail": "Détail", "aff_valeur_detail": "Valeur + détail", "attributs": "Attributs du détail", "attributs_aide": "Aucun coché : tous les attributs.", "liste_aide": "Le détail montre les éléments à faire de la liste.", "enregistrer": "Enregistrer", "fermer": "Fermer", "badge_tous": "tout le monde", "badge_confirmer": "avec confirmation", "toucher": "Au toucher", "toucher_role": "Action du rôle", "toucher_details": "Ouvrir les détails de l'entité", "toucher_vue": "Ouvrir un tableau de bord ou une vue", "toucher_rien": "Rien", "chemin": "Chemin dans Home Assistant (par exemple /lovelace/0)", "chemin_liste": "Choisir un tableau de bord ou une vue…", "toucher_aide": "Détails et vues : seulement pour qui peut agir sur l'entité ; les autres gardent l'action du rôle.",
     "chargement": "Chargement…", "rien": "Rien pour l'instant.", "ajouter_entite": "+ Ajouter une entité",
     "en_plus": "En plus", "en_moins": "En moins",
     "ajout_plus": "+ En plus sur cet appareil", "ajout_moins": "+ En moins sur cet appareil",
-    "module_coupe": "Le module « Entités Home Assistant » est coupé : ces réglages sont gardés et reviennent avec lui (Configurer → Modules).",
+    "module_coupe": "Le module « Entités Home Assistant » est coupé : ces réglages sont gardés et reviennent avec lui (Vision → Réglages → Fonctions).",
     "aucune_personne": "Aucune personne dans Home Assistant.",
     "exceptions": "Exceptions par appareil",
     "titre": "Widgets Home Assistant",
@@ -63,11 +63,11 @@ const TEXTES = /*i18n-json*/{
     "pilotable": "Controllable: {services}", "lecture_seule": "Read only", "action": "Action", "lecture": "Read",
     "introuvable": "not found", "retirer": "Remove", "retirer_nom": "Remove {nom}",
     "suggestions": "Home Assistant entities", "aucune_suggestion": "No entity matches.",
-    "tous_titre": "For everyone", "tous_aide": "Shown on every device, in addition to each person's list.", "ajout_tous": "+ Add for everyone", "regler": "Settings", "regler_nom": "Settings for {nom}", "role": "Role", "role_lecture": "Read", "role_interrupteur": "Switch", "role_bouton": "Button", "role_reglage": "Setting", "qui": "Who can act", "qui_decideurs": "Only {decideurs}", "qui_tous": "Everyone", "confirmer": "Ask for confirmation before acting", "nom_affiche": "Displayed name", "icone": "Icon (mdi:…)", "affichage": "Display", "aff_valeur": "Value only", "aff_detail": "Details", "aff_valeur_detail": "Value + details", "attributs": "Attributes in details", "attributs_aide": "None ticked: all attributes.", "liste_aide": "Details show the list's items still to do.", "enregistrer": "Save", "fermer": "Close", "badge_tous": "everyone", "badge_confirmer": "with confirmation", "toucher": "On tap", "toucher_role": "Role action", "toucher_details": "Open the entity's details", "toucher_vue": "Open a dashboard or a view", "toucher_rien": "Nothing", "chemin": "Path in Home Assistant (for example /lovelace/0)", "chemin_liste": "Choose a dashboard or a view…", "toucher_aide": "Details and views: only for those who may act on the entity; others keep the role action.",
+    "mep": "Layout", "mep_h": "Horizontal alignment", "mep_v": "Vertical alignment", "mep_taille": "Value size", "mep_h_gauche": "Left", "mep_h_centre": "Center", "mep_h_droite": "Right", "mep_v_haut": "Top", "mep_v_centre": "Middle", "mep_v_bas": "Bottom", "mep_t_remplir": "Fill", "mep_t_s": "S", "mep_t_m": "M", "mep_t_l": "L", "mep_t_xl": "XL", "mep_titre": "Show the title", "mep_icone": "Show the icon", "mep_aide": "The same layout on every device; a {decideur} can also set it from their phone. “Fill”: the largest value that fits.", "tous_titre": "For everyone", "tous_aide": "Shown on every device, in addition to each person's list.", "ajout_tous": "+ Add for everyone", "regler": "Settings", "regler_nom": "Settings for {nom}", "role": "Role", "role_lecture": "Read", "role_interrupteur": "Switch", "role_bouton": "Button", "role_reglage": "Setting", "qui": "Who can act", "qui_decideurs": "Only {decideurs}", "qui_tous": "Everyone", "confirmer": "Ask for confirmation before acting", "nom_affiche": "Displayed name", "icone": "Icon (mdi:…)", "texte": "Line under the value (entity)", "texte_aide": "An entity whose state is written under the value, for example the heating mode and schedule. Empty: nothing.", "affichage": "Display", "aff_valeur": "Value only", "aff_detail": "Details", "aff_valeur_detail": "Value + details", "attributs": "Attributes in details", "attributs_aide": "None ticked: all attributes.", "liste_aide": "Details show the list's items still to do.", "enregistrer": "Save", "fermer": "Close", "badge_tous": "everyone", "badge_confirmer": "with confirmation", "toucher": "On tap", "toucher_role": "Role action", "toucher_details": "Open the entity's details", "toucher_vue": "Open a dashboard or a view", "toucher_rien": "Nothing", "chemin": "Path in Home Assistant (for example /lovelace/0)", "chemin_liste": "Choose a dashboard or a view…", "toucher_aide": "Details and views: only for those who may act on the entity; others keep the role action.",
     "chargement": "Loading…", "rien": "Nothing yet.", "ajouter_entite": "+ Add an entity",
     "en_plus": "Extra", "en_moins": "Hidden",
     "ajout_plus": "+ Extra on this device", "ajout_moins": "+ Hidden on this device",
-    "module_coupe": "The “Home Assistant entities” module is off: these settings are kept and come back with it (Configure → Modules).",
+    "module_coupe": "The “Home Assistant entities” module is off: these settings are kept and come back with it (Vision → Settings → Features).",
     "aucune_personne": "No people in Home Assistant.",
     "exceptions": "Exceptions per device",
     "titre": "Home Assistant widgets",
@@ -98,11 +98,11 @@ const TEXTES = /*i18n-json*/{
     "pilotable": "Steuerbar: {services}", "lecture_seule": "Nur lesen", "action": "Aktion", "lecture": "Lesen",
     "introuvable": "nicht gefunden", "retirer": "Entfernen", "retirer_nom": "{nom} entfernen",
     "suggestions": "Home-Assistant-Entitäten", "aucune_suggestion": "Keine passende Entität.",
-    "tous_titre": "Für alle", "tous_aide": "Auf allen Geräten sichtbar, zusätzlich zur Liste jeder Person.", "ajout_tous": "+ Für alle hinzufügen", "regler": "Einstellen", "regler_nom": "{nom} einstellen", "role": "Rolle", "role_lecture": "Nur lesen", "role_interrupteur": "Schalter", "role_bouton": "Taste", "role_reglage": "Regler", "qui": "Wer darf bedienen", "qui_decideurs": "Nur {decideurs}", "qui_tous": "Alle", "confirmer": "Vor dem Ausführen bestätigen lassen", "nom_affiche": "Angezeigter Name", "icone": "Symbol (mdi:…)", "affichage": "Anzeige", "aff_valeur": "Nur Wert", "aff_detail": "Details", "aff_valeur_detail": "Wert + Details", "attributs": "Attribute in den Details", "attributs_aide": "Keines angehakt: alle Attribute.", "liste_aide": "Die Details zeigen die offenen Einträge der Liste.", "enregistrer": "Speichern", "fermer": "Schließen", "badge_tous": "alle", "badge_confirmer": "mit Bestätigung", "toucher": "Beim Antippen", "toucher_role": "Aktion der Rolle", "toucher_details": "Details der Entität öffnen", "toucher_vue": "Ein Dashboard oder eine Ansicht öffnen", "toucher_rien": "Nichts", "chemin": "Pfad in Home Assistant (zum Beispiel /lovelace/0)", "chemin_liste": "Dashboard oder Ansicht wählen…", "toucher_aide": "Details und Ansichten: nur für alle, die die Entität bedienen dürfen; die anderen behalten die Aktion der Rolle.",
+    "mep": "Layout", "mep_h": "Horizontale Ausrichtung", "mep_v": "Vertikale Ausrichtung", "mep_taille": "Größe des Werts", "mep_h_gauche": "Links", "mep_h_centre": "Mittig", "mep_h_droite": "Rechts", "mep_v_haut": "Oben", "mep_v_centre": "Mitte", "mep_v_bas": "Unten", "mep_t_remplir": "Ausfüllen", "mep_t_s": "S", "mep_t_m": "M", "mep_t_l": "L", "mep_t_xl": "XL", "mep_titre": "Titel anzeigen", "mep_icone": "Symbol anzeigen", "mep_aide": "Dasselbe Layout auf allen Geräten; ein {decideur} kann es auch am Handy einstellen. „Ausfüllen“: der größte Wert, der passt.", "tous_titre": "Für alle", "tous_aide": "Auf allen Geräten sichtbar, zusätzlich zur Liste jeder Person.", "ajout_tous": "+ Für alle hinzufügen", "regler": "Einstellen", "regler_nom": "{nom} einstellen", "role": "Rolle", "role_lecture": "Nur lesen", "role_interrupteur": "Schalter", "role_bouton": "Taste", "role_reglage": "Regler", "qui": "Wer darf bedienen", "qui_decideurs": "Nur {decideurs}", "qui_tous": "Alle", "confirmer": "Vor dem Ausführen bestätigen lassen", "nom_affiche": "Angezeigter Name", "icone": "Symbol (mdi:…)", "texte": "Zeile unter dem Wert (Entität)", "texte_aide": "Eine Entität, deren Zustand unter dem Wert steht, zum Beispiel Heizmodus und Zeitplan. Leer: nichts.", "affichage": "Anzeige", "aff_valeur": "Nur Wert", "aff_detail": "Details", "aff_valeur_detail": "Wert + Details", "attributs": "Attribute in den Details", "attributs_aide": "Keines angehakt: alle Attribute.", "liste_aide": "Die Details zeigen die offenen Einträge der Liste.", "enregistrer": "Speichern", "fermer": "Schließen", "badge_tous": "alle", "badge_confirmer": "mit Bestätigung", "toucher": "Beim Antippen", "toucher_role": "Aktion der Rolle", "toucher_details": "Details der Entität öffnen", "toucher_vue": "Ein Dashboard oder eine Ansicht öffnen", "toucher_rien": "Nichts", "chemin": "Pfad in Home Assistant (zum Beispiel /lovelace/0)", "chemin_liste": "Dashboard oder Ansicht wählen…", "toucher_aide": "Details und Ansichten: nur für alle, die die Entität bedienen dürfen; die anderen behalten die Aktion der Rolle.",
     "chargement": "Wird geladen…", "rien": "Noch nichts.", "ajouter_entite": "+ Entität hinzufügen",
     "en_plus": "Zusätzlich", "en_moins": "Ausgeblendet",
     "ajout_plus": "+ Zusätzlich auf diesem Gerät", "ajout_moins": "+ Ausgeblendet auf diesem Gerät",
-    "module_coupe": "Das Modul „Home Assistant-Entitäten“ ist ausgeschaltet: diese Einstellungen bleiben erhalten und kommen mit ihm zurück (Konfigurieren → Module).",
+    "module_coupe": "Das Modul „Home Assistant-Entitäten“ ist ausgeschaltet: diese Einstellungen bleiben erhalten und kommen mit ihm zurück (Vision → Einstellungen → Funktionen).",
     "aucune_personne": "Keine Personen in Home Assistant.",
     "exceptions": "Ausnahmen pro Gerät",
     "titre": "Home Assistant-Widgets",
@@ -133,11 +133,11 @@ const TEXTES = /*i18n-json*/{
     "pilotable": "Controlable: {services}", "lecture_seule": "Solo lectura", "action": "Acción", "lecture": "Lectura",
     "introuvable": "no encontrada", "retirer": "Quitar", "retirer_nom": "Quitar {nom}",
     "suggestions": "Entidades de Home Assistant", "aucune_suggestion": "Ninguna entidad coincide.",
-    "tous_titre": "Para todos", "tous_aide": "Visibles en todos los dispositivos, además de la lista de cada persona.", "ajout_tous": "+ Añadir para todos", "regler": "Ajustar", "regler_nom": "Ajustar {nom}", "role": "Función", "role_lecture": "Lectura", "role_interrupteur": "Interruptor", "role_bouton": "Botón", "role_reglage": "Ajuste", "qui": "Quién puede actuar", "qui_decideurs": "Solo {decideurs}", "qui_tous": "Todos", "confirmer": "Pedir confirmación antes de actuar", "nom_affiche": "Nombre mostrado", "icone": "Icono (mdi:…)", "affichage": "Visualización", "aff_valeur": "Solo el valor", "aff_detail": "Detalle", "aff_valeur_detail": "Valor + detalle", "attributs": "Atributos del detalle", "attributs_aide": "Ninguno marcado: todos los atributos.", "liste_aide": "El detalle muestra los elementos pendientes de la lista.", "enregistrer": "Guardar", "fermer": "Cerrar", "badge_tous": "todos", "badge_confirmer": "con confirmación", "toucher": "Al tocar", "toucher_role": "Acción de la función", "toucher_details": "Abrir los detalles de la entidad", "toucher_vue": "Abrir un panel o una vista", "toucher_rien": "Nada", "chemin": "Ruta en Home Assistant (por ejemplo /lovelace/0)", "chemin_liste": "Elegir un panel o una vista…", "toucher_aide": "Detalles y vistas: solo para quien puede actuar sobre la entidad; los demás conservan la acción de la función.",
+    "mep": "Diseño", "mep_h": "Alineación horizontal", "mep_v": "Alineación vertical", "mep_taille": "Tamaño del valor", "mep_h_gauche": "Izquierda", "mep_h_centre": "Centro", "mep_h_droite": "Derecha", "mep_v_haut": "Arriba", "mep_v_centre": "En medio", "mep_v_bas": "Abajo", "mep_t_remplir": "Llenar", "mep_t_s": "S", "mep_t_m": "M", "mep_t_l": "L", "mep_t_xl": "XL", "mep_titre": "Mostrar el título", "mep_icone": "Mostrar el icono", "mep_aide": "El mismo diseño en todos los dispositivos; un {decideur} también puede ajustarlo desde su teléfono. «Llenar»: el valor más grande que cabe.", "tous_titre": "Para todos", "tous_aide": "Visibles en todos los dispositivos, además de la lista de cada persona.", "ajout_tous": "+ Añadir para todos", "regler": "Ajustar", "regler_nom": "Ajustar {nom}", "role": "Función", "role_lecture": "Lectura", "role_interrupteur": "Interruptor", "role_bouton": "Botón", "role_reglage": "Ajuste", "qui": "Quién puede actuar", "qui_decideurs": "Solo {decideurs}", "qui_tous": "Todos", "confirmer": "Pedir confirmación antes de actuar", "nom_affiche": "Nombre mostrado", "icone": "Icono (mdi:…)", "texte": "Línea bajo el valor (entidad)", "texte_aide": "Una entidad cuyo estado se escribe bajo el valor, por ejemplo el modo y el horario de la calefacción. Vacío: nada.", "affichage": "Visualización", "aff_valeur": "Solo el valor", "aff_detail": "Detalle", "aff_valeur_detail": "Valor + detalle", "attributs": "Atributos del detalle", "attributs_aide": "Ninguno marcado: todos los atributos.", "liste_aide": "El detalle muestra los elementos pendientes de la lista.", "enregistrer": "Guardar", "fermer": "Cerrar", "badge_tous": "todos", "badge_confirmer": "con confirmación", "toucher": "Al tocar", "toucher_role": "Acción de la función", "toucher_details": "Abrir los detalles de la entidad", "toucher_vue": "Abrir un panel o una vista", "toucher_rien": "Nada", "chemin": "Ruta en Home Assistant (por ejemplo /lovelace/0)", "chemin_liste": "Elegir un panel o una vista…", "toucher_aide": "Detalles y vistas: solo para quien puede actuar sobre la entidad; los demás conservan la acción de la función.",
     "chargement": "Cargando…", "rien": "Nada por ahora.", "ajouter_entite": "+ Añadir una entidad",
     "en_plus": "De más", "en_moins": "De menos",
     "ajout_plus": "+ De más en este dispositivo", "ajout_moins": "+ De menos en este dispositivo",
-    "module_coupe": "El módulo «Entidades de Home Assistant» está desactivado: estos ajustes se guardan y vuelven con él (Configurar → Módulos).",
+    "module_coupe": "El módulo «Entidades de Home Assistant» está desactivado: estos ajustes se guardan y vuelven con él (Vision → Ajustes → Funciones).",
     "aucune_personne": "Ninguna persona en Home Assistant.",
     "exceptions": "Excepciones por dispositivo",
     "titre": "Widgets de Home Assistant",
@@ -168,11 +168,11 @@ const TEXTES = /*i18n-json*/{
     "pilotable": "Controllabile: {services}", "lecture_seule": "Sola lettura", "action": "Azione", "lecture": "Lettura",
     "introuvable": "non trovata", "retirer": "Rimuovi", "retirer_nom": "Rimuovi {nom}",
     "suggestions": "Entità di Home Assistant", "aucune_suggestion": "Nessuna entità corrispondente.",
-    "tous_titre": "Per tutti", "tous_aide": "Visibili su tutti i dispositivi, oltre all'elenco di ogni persona.", "ajout_tous": "+ Aggiungi per tutti", "regler": "Imposta", "regler_nom": "Imposta {nom}", "role": "Ruolo", "role_lecture": "Sola lettura", "role_interrupteur": "Interruttore", "role_bouton": "Pulsante", "role_reglage": "Regolazione", "qui": "Chi può agire", "qui_decideurs": "Solo {decideurs}", "qui_tous": "Tutti", "confirmer": "Chiedere conferma prima di agire", "nom_affiche": "Nome mostrato", "icone": "Icona (mdi:…)", "affichage": "Visualizzazione", "aff_valeur": "Solo valore", "aff_detail": "Dettaglio", "aff_valeur_detail": "Valore + dettaglio", "attributs": "Attributi del dettaglio", "attributs_aide": "Nessuno selezionato: tutti gli attributi.", "liste_aide": "Il dettaglio mostra le voci ancora da fare dell'elenco.", "enregistrer": "Salva", "fermer": "Chiudi", "badge_tous": "tutti", "badge_confirmer": "con conferma", "toucher": "Al tocco", "toucher_role": "Azione del ruolo", "toucher_details": "Apri i dettagli dell'entità", "toucher_vue": "Apri una plancia o una vista", "toucher_rien": "Niente", "chemin": "Percorso in Home Assistant (ad esempio /lovelace/0)", "chemin_liste": "Scegli una plancia o una vista…", "toucher_aide": "Dettagli e viste: solo per chi può agire sull'entità; gli altri mantengono l'azione del ruolo.",
+    "mep": "Layout", "mep_h": "Allineamento orizzontale", "mep_v": "Allineamento verticale", "mep_taille": "Dimensione del valore", "mep_h_gauche": "A sinistra", "mep_h_centre": "Al centro", "mep_h_droite": "A destra", "mep_v_haut": "In alto", "mep_v_centre": "Al centro", "mep_v_bas": "In basso", "mep_t_remplir": "Riempi", "mep_t_s": "S", "mep_t_m": "M", "mep_t_l": "L", "mep_t_xl": "XL", "mep_titre": "Mostra il titolo", "mep_icone": "Mostra l'icona", "mep_aide": "Lo stesso layout su tutti i dispositivi; un {decideur} può impostarlo anche dal telefono. «Riempi»: il valore più grande che ci sta.", "tous_titre": "Per tutti", "tous_aide": "Visibili su tutti i dispositivi, oltre all'elenco di ogni persona.", "ajout_tous": "+ Aggiungi per tutti", "regler": "Imposta", "regler_nom": "Imposta {nom}", "role": "Ruolo", "role_lecture": "Sola lettura", "role_interrupteur": "Interruttore", "role_bouton": "Pulsante", "role_reglage": "Regolazione", "qui": "Chi può agire", "qui_decideurs": "Solo {decideurs}", "qui_tous": "Tutti", "confirmer": "Chiedere conferma prima di agire", "nom_affiche": "Nome mostrato", "icone": "Icona (mdi:…)", "texte": "Riga sotto il valore (entità)", "texte_aide": "Un'entità il cui stato si scrive sotto il valore, ad esempio la modalità e l'orario del riscaldamento. Vuoto: niente.", "affichage": "Visualizzazione", "aff_valeur": "Solo valore", "aff_detail": "Dettaglio", "aff_valeur_detail": "Valore + dettaglio", "attributs": "Attributi del dettaglio", "attributs_aide": "Nessuno selezionato: tutti gli attributi.", "liste_aide": "Il dettaglio mostra le voci ancora da fare dell'elenco.", "enregistrer": "Salva", "fermer": "Chiudi", "badge_tous": "tutti", "badge_confirmer": "con conferma", "toucher": "Al tocco", "toucher_role": "Azione del ruolo", "toucher_details": "Apri i dettagli dell'entità", "toucher_vue": "Apri una plancia o una vista", "toucher_rien": "Niente", "chemin": "Percorso in Home Assistant (ad esempio /lovelace/0)", "chemin_liste": "Scegli una plancia o una vista…", "toucher_aide": "Dettagli e viste: solo per chi può agire sull'entità; gli altri mantengono l'azione del ruolo.",
     "chargement": "Caricamento…", "rien": "Ancora niente.", "ajouter_entite": "+ Aggiungi un'entità",
     "en_plus": "In più", "en_moins": "In meno",
     "ajout_plus": "+ In più su questo dispositivo", "ajout_moins": "+ In meno su questo dispositivo",
-    "module_coupe": "Il modulo «Entità di Home Assistant» è disattivato: queste impostazioni vengono conservate e tornano con lui (Configura → Moduli).",
+    "module_coupe": "Il modulo «Entità di Home Assistant» è disattivato: queste impostazioni vengono conservate e tornano con lui (Vision → Impostazioni → Funzioni).",
     "aucune_personne": "Nessuna persona in Home Assistant.",
     "exceptions": "Eccezioni per dispositivo",
     "titre": "Widget di Home Assistant",
@@ -203,11 +203,11 @@ const TEXTES = /*i18n-json*/{
     "pilotable": "Bedienbaar: {services}", "lecture_seule": "Alleen lezen", "action": "Actie", "lecture": "Lezen",
     "introuvable": "niet gevonden", "retirer": "Verwijderen", "retirer_nom": "{nom} verwijderen",
     "suggestions": "Home Assistant-entiteiten", "aucune_suggestion": "Geen overeenkomende entiteit.",
-    "tous_titre": "Voor iedereen", "tous_aide": "Zichtbaar op alle apparaten, naast de lijst van elke persoon.", "ajout_tous": "+ Toevoegen voor iedereen", "regler": "Instellen", "regler_nom": "{nom} instellen", "role": "Rol", "role_lecture": "Alleen lezen", "role_interrupteur": "Schakelaar", "role_bouton": "Knop", "role_reglage": "Instelling", "qui": "Wie mag bedienen", "qui_decideurs": "Alleen {decideurs}", "qui_tous": "Iedereen", "confirmer": "Om bevestiging vragen voor het uitvoeren", "nom_affiche": "Getoonde naam", "icone": "Pictogram (mdi:…)", "affichage": "Weergave", "aff_valeur": "Alleen waarde", "aff_detail": "Details", "aff_valeur_detail": "Waarde + details", "attributs": "Attributen in de details", "attributs_aide": "Niets aangevinkt: alle attributen.", "liste_aide": "De details tonen de open items van de lijst.", "enregistrer": "Opslaan", "fermer": "Sluiten", "badge_tous": "iedereen", "badge_confirmer": "met bevestiging", "toucher": "Bij aantikken", "toucher_role": "Actie van de rol", "toucher_details": "De details van de entiteit openen", "toucher_vue": "Een dashboard of weergave openen", "toucher_rien": "Niets", "chemin": "Pad in Home Assistant (bijvoorbeeld /lovelace/0)", "chemin_liste": "Kies een dashboard of weergave…", "toucher_aide": "Details en weergaven: alleen voor wie de entiteit mag bedienen; de anderen houden de actie van de rol.",
+    "mep": "Opmaak", "mep_h": "Horizontale uitlijning", "mep_v": "Verticale uitlijning", "mep_taille": "Grootte van de waarde", "mep_h_gauche": "Links", "mep_h_centre": "Midden", "mep_h_droite": "Rechts", "mep_v_haut": "Boven", "mep_v_centre": "Midden", "mep_v_bas": "Onder", "mep_t_remplir": "Vullen", "mep_t_s": "S", "mep_t_m": "M", "mep_t_l": "L", "mep_t_xl": "XL", "mep_titre": "Titel tonen", "mep_icone": "Pictogram tonen", "mep_aide": "Dezelfde opmaak op alle apparaten; een {decideur} kan hem ook op zijn telefoon instellen. „Vullen”: de grootste waarde die past.", "tous_titre": "Voor iedereen", "tous_aide": "Zichtbaar op alle apparaten, naast de lijst van elke persoon.", "ajout_tous": "+ Toevoegen voor iedereen", "regler": "Instellen", "regler_nom": "{nom} instellen", "role": "Rol", "role_lecture": "Alleen lezen", "role_interrupteur": "Schakelaar", "role_bouton": "Knop", "role_reglage": "Instelling", "qui": "Wie mag bedienen", "qui_decideurs": "Alleen {decideurs}", "qui_tous": "Iedereen", "confirmer": "Om bevestiging vragen voor het uitvoeren", "nom_affiche": "Getoonde naam", "icone": "Pictogram (mdi:…)", "texte": "Regel onder de waarde (entiteit)", "texte_aide": "Een entiteit waarvan de status onder de waarde staat, bijvoorbeeld de verwarmingsmodus en het schema. Leeg: niets.", "affichage": "Weergave", "aff_valeur": "Alleen waarde", "aff_detail": "Details", "aff_valeur_detail": "Waarde + details", "attributs": "Attributen in de details", "attributs_aide": "Niets aangevinkt: alle attributen.", "liste_aide": "De details tonen de open items van de lijst.", "enregistrer": "Opslaan", "fermer": "Sluiten", "badge_tous": "iedereen", "badge_confirmer": "met bevestiging", "toucher": "Bij aantikken", "toucher_role": "Actie van de rol", "toucher_details": "De details van de entiteit openen", "toucher_vue": "Een dashboard of weergave openen", "toucher_rien": "Niets", "chemin": "Pad in Home Assistant (bijvoorbeeld /lovelace/0)", "chemin_liste": "Kies een dashboard of weergave…", "toucher_aide": "Details en weergaven: alleen voor wie de entiteit mag bedienen; de anderen houden de actie van de rol.",
     "chargement": "Laden…", "rien": "Nog niets.", "ajouter_entite": "+ Entiteit toevoegen",
     "en_plus": "Extra", "en_moins": "Verborgen",
     "ajout_plus": "+ Extra op dit apparaat", "ajout_moins": "+ Verborgen op dit apparaat",
-    "module_coupe": "De module „Home Assistant-entiteiten” staat uit: deze instellingen blijven bewaard en komen terug met de module (Configureren → Modules).",
+    "module_coupe": "De module „Home Assistant-entiteiten” staat uit: deze instellingen blijven bewaard en komen terug met de module (Vision → Instellingen → Functies).",
     "aucune_personne": "Geen personen in Home Assistant.",
     "exceptions": "Uitzonderingen per apparaat",
     "titre": "Home Assistant-widgets",
@@ -219,7 +219,7 @@ const TEXTES = /*i18n-json*/{
   }
 }/*i18n-json:fin*/;
 // Les catégories (étiquettes de la maison) : cette carte n'en affiche pas.
-const CATEGORIES_I18N = /*i18n-categories*/{}/*i18n-categories:fin*/;
+const CATEGORIES_I18N = /*i18n-categories*/{"jeux": {"fr": "Jeux", "en": "Games", "de": "Spiele", "es": "Juegos", "it": "Giochi", "nl": "Games"}, "videos": {"fr": "Vidéos", "en": "Videos", "de": "Videos", "es": "Vídeos", "it": "Video", "nl": "Video's"}, "reseaux_sociaux": {"fr": "Réseaux sociaux", "en": "Social media", "de": "Soziale Medien", "es": "Redes sociales", "it": "Social network", "nl": "Sociale media"}, "tv": {"fr": "TV", "en": "TV", "de": "TV", "es": "TV", "it": "TV", "nl": "tv"}, "vod": {"fr": "VOD", "en": "Streaming", "de": "Streaming", "es": "Streaming", "it": "Streaming", "nl": "Streaming"}, "musique": {"fr": "Musique", "en": "Music", "de": "Musik", "es": "Música", "it": "Musica", "nl": "Muziek"}, "ia": {"fr": "IA", "en": "AI", "de": "KI", "es": "IA", "it": "IA", "nl": "AI"}, "internet": {"fr": "Internet", "en": "Internet", "de": "Internet", "es": "Internet", "it": "Internet", "nl": "Internet"}, "travail": {"fr": "Travail", "en": "Work", "de": "Arbeit", "es": "Trabajo", "it": "Lavoro", "nl": "Werk"}, "creation": {"fr": "Création", "en": "Creativity", "de": "Kreativität", "es": "Creatividad", "it": "Creatività", "nl": "Creativiteit"}, "actu_medias": {"fr": "Actu & médias", "en": "News & media", "de": "Nachrichten & Medien", "es": "Noticias y medios", "it": "Notizie e media", "nl": "Nieuws & media"}, "pub_tracage": {"fr": "Pub & traçage", "en": "Ads & tracking", "de": "Werbung & Tracking", "es": "Anuncios y rastreo", "it": "Pubblicità e tracciamento", "nl": "Advertenties & tracking"}, "contournement": {"fr": "Contournement", "en": "Bypass tools", "de": "Umgehung", "es": "Elusión", "it": "Aggiramento", "nl": "Omzeiling"}, "dangereux": {"fr": "Dangereux", "en": "Dangerous", "de": "Gefährlich", "es": "Peligroso", "it": "Pericoloso", "nl": "Gevaarlijk"}, "adulte": {"fr": "Adulte", "en": "Adult", "de": "Erwachsene", "es": "Adultos", "it": "Adulti", "nl": "Volwassenen"}, "pegi_12": {"fr": "PEGI 12", "en": "PEGI 12", "de": "PEGI 12", "es": "PEGI 12", "it": "PEGI 12", "nl": "PEGI 12"}, "pegi_16": {"fr": "PEGI 16", "en": "PEGI 16", "de": "PEGI 16", "es": "PEGI 16", "it": "PEGI 16", "nl": "PEGI 16"}, "pegi_18": {"fr": "PEGI 18", "en": "PEGI 18", "de": "PEGI 18", "es": "PEGI 18", "it": "PEGI 18", "nl": "PEGI 18"}, "systeme": {"fr": "Système", "en": "System", "de": "System", "es": "Sistema", "it": "Sistema", "nl": "Systeem"}, "google": {"fr": "Google", "en": "Google", "de": "Google", "es": "Google", "it": "Google", "nl": "Google"}, "discord": {"fr": "Discord", "en": "Discord", "de": "Discord", "es": "Discord", "it": "Discord", "nl": "Discord"}, "annuaires_discord": {"fr": "Annuaires Discord", "en": "Discord directories", "de": "Discord-Verzeichnisse", "es": "Directorios de Discord", "it": "Directory Discord", "nl": "Discord-gidsen"}, "toujours_autorise": {"fr": "Toujours autorisé", "en": "Always allowed", "de": "Immer erlaubt", "es": "Siempre permitido", "it": "Sempre consentito", "nl": "Altijd toegestaan"}, "ecole": {"fr": "École", "en": "School", "de": "Schule", "es": "Escuela", "it": "Scuola", "nl": "School"}}/*i18n-categories:fin*/;
 // ---- i18n:code — le même dans toutes les cartes de Vision (essai/i18n_cartes_test.py le vérifie) ----
 // Langue : celle de l'utilisateur Home Assistant (hass.locale.language, sinon hass.language), sur deux lettres ;
 // une langue que Vision ne parle pas → l'anglais. Un texte absent → l'anglais, puis le français, puis la clé.
@@ -478,25 +478,40 @@ class VisionWidgetsCard extends HTMLElement {
     if (!f) return "";
     const rg = f.reglage || {};
     const v = Object.assign({}, rg, this._brouillon || {});
-    const radios = (nom, valeurs, etiquette) => valeurs.map((x) => `<label class="choix"><input type="radio" name="${nom}" value="${ech(x)}"
-        ${v[nom] === x ? "checked" : ""}> ${ech(etiquette(x))}</label>`).join("");
+    // 15-10 (règle UX de l'auteur) : chaque groupe de choix passe par <vision-choix> — étiquettes s'il y a 3 options ou moins et
+    // qu'elles tiennent sur une ligne, sinon liste déroulante qui montre le choix.
+    const radios = (nom, valeurs, etiquette, titre) => `<vision-choix data-choix="${nom}" titre="${ech(titre)}" valeur="${ech(v[nom] || "")}"
+        options="${ech(JSON.stringify(valeurs.map((x) => ({ cle: x, libelle: etiquette(x) }))))}"></vision-choix>`;
     const agit = v.role && v.role !== "lecture";
+    // 2.5.3 : la mise en page (défaut : valeur « remplir », centrée, titre et icône montrés).
+    const mep = Object.assign({ align_h: "centre", align_v: "centre", taille: "remplir", titre: true, icone: true }, v.mise_en_page || {});
+    const radiosMep = (cle, valeurs, etiquette) => valeurs.map((x) => `<label class="choix"><input type="radio" name="mep_${cle}" value="${ech(x)}"
+        ${mep[cle] === x ? "checked" : ""}> ${ech(etiquette(x))}</label>`).join("");
     const attributs = !f.liste && v.affichage !== "valeur" && (f.attributs_dispo || []).length ? `
         <fieldset><legend>${ech(tr("attributs"))}</legend>
-          ${(f.attributs_dispo || []).map((a) => `<label class="choix"><input type="checkbox" name="attributs" value="${ech(a)}"
-            ${(v.attributs || []).includes(a) ? "checked" : ""}> ${ech(a)}</label>`).join("")}
+          <vision-choix data-choix="attributs" multiple titre="${ech(tr("attributs"))}" valeurs="${ech(JSON.stringify(v.attributs || []))}"
+            options="${ech(JSON.stringify((f.attributs_dispo || []).map((a) => ({ cle: a, libelle: a }))))}"></vision-choix>
           <p class="petit">${ech(tr("attributs_aide"))}</p></fieldset>` : "";
     return `<div class="panneau" data-panneau="${ech(section + "|" + f.id)}">
         <h4>${ech(tr("regler_nom", { nom: (rg.nom || f.nom) }))}</h4>
-        <fieldset><legend>${ech(tr("role"))}</legend>${radios("role", f.roles || ["lecture"], (x) => tr("role_" + x))}</fieldset>
-        ${agit ? `<fieldset><legend>${ech(tr("qui"))}</legend>${radios("qui", ["decideurs", "tous"], (x) => tr("qui_" + x))}</fieldset>
+        <fieldset><legend>${ech(tr("role"))}</legend>${radios("role", f.roles || ["lecture"], (x) => tr("role_" + x), tr("role"))}</fieldset>
+        ${agit ? `<fieldset><legend>${ech(tr("qui"))}</legend>${radios("qui", ["decideurs", "tous"], (x) => tr("qui_" + x), tr("qui"))}</fieldset>
           <label class="choix"><input type="checkbox" name="confirmer" ${v.confirmer ? "checked" : ""}> ${ech(tr("confirmer"))}</label>` : ""}
         <label class="champ">${ech(tr("nom_affiche"))}<input type="text" name="nom" maxlength="60" value="${ech(v.nom || "")}" placeholder="${ech(f.nom)}"></label>
         <label class="champ">${ech(tr("icone"))}<input type="text" name="icone" maxlength="64" value="${ech(v.icone || "")}" placeholder="mdi:…"></label>
-        <fieldset><legend>${ech(tr("affichage"))}</legend>${radios("affichage", ["valeur", "detail", "valeur_detail"], (x) => tr("aff_" + x))}
+        <label class="champ">${ech(tr("texte"))}<input type="text" name="texte" maxlength="255" value="${ech(v.texte || "")}" placeholder="sensor."></label>
+        <p class="petit">${ech(tr("texte_aide"))}</p>
+        <fieldset><legend>${ech(tr("affichage"))}</legend>${radios("affichage", ["valeur", "detail", "valeur_detail"], (x) => tr("aff_" + x), tr("affichage"))}
           ${f.liste && v.affichage !== "valeur" ? `<p class="petit">${ech(tr("liste_aide"))}</p>` : ""}</fieldset>
         ${attributs}
-        <fieldset><legend>${ech(tr("toucher"))}</legend>${radios("toucher", ["role", "details", "vue", "rien"], (x) => tr("toucher_" + x))}
+        <fieldset><legend>${ech(tr("mep"))}</legend>
+          <div class="petit">${ech(tr("mep_h"))}</div>${radiosMep("align_h", ["gauche", "centre", "droite"], (x) => tr("mep_h_" + x))}
+          <div class="petit">${ech(tr("mep_v"))}</div>${radiosMep("align_v", ["haut", "centre", "bas"], (x) => tr("mep_v_" + x))}
+          <div class="petit">${ech(tr("mep_taille"))}</div>${radiosMep("taille", ["remplir", "s", "m", "l", "xl"], (x) => tr("mep_t_" + x))}
+          <div class="ligne-entiere"><label class="choix"><input type="checkbox" name="mep_titre" ${mep.titre !== false ? "checked" : ""}> ${ech(tr("mep_titre"))}</label>
+          <label class="choix"><input type="checkbox" name="mep_icone" ${mep.icone !== false ? "checked" : ""}> ${ech(tr("mep_icone"))}</label></div>
+          <p class="petit">${ech(tr("mep_aide"))}</p></fieldset>
+        <fieldset><legend>${ech(tr("toucher"))}</legend>${radios("toucher", ["role", "details", "vue", "rien"], (x) => tr("toucher_" + x), tr("toucher"))}
           ${(v.toucher || "role") === "vue" ? `
           ${(this._d.vues || []).length ? `<p class="petit">${ech(tr("chemin_liste"))}</p>
           <div class="vues" role="listbox" aria-label="${ech(tr("chemin_liste"))}">
@@ -514,15 +529,31 @@ class VisionWidgetsCard extends HTMLElement {
   _lirePanneau() {
     const z = this.shadowRoot.querySelector("[data-panneau]");
     if (!z) return null;
-    const val = (n) => { const x = z.querySelector(`input[name="${n}"]:checked`); return x ? x.value : undefined; };
+    // Les groupes de choix (<vision-choix>) : la valeur de l'élément (ou ses attributs s'il n'est pas encore défini).
+    const groupe = (n) => z.querySelector(`[data-choix="${n}"]`);
+    const val = (n) => {
+      const x = groupe(n);
+      if (!x) return undefined;
+      const c = typeof x.valeur === "string" ? x.valeur : (x.getAttribute("valeur") || "");
+      return c || undefined;
+    };
+    const plusieurs = (n) => {
+      const x = groupe(n);
+      if (!x) return [];
+      if (Array.isArray(x.valeurs)) return x.valeurs;
+      try { const l = JSON.parse(x.getAttribute("valeurs") || "[]"); return Array.isArray(l) ? l : []; } catch (e) { return []; }
+    };
     const sortie = { role: val("role"), affichage: val("affichage"), toucher: val("toucher") || "role", nom: z.querySelector('input[name="nom"]').value.trim(),
       icone: z.querySelector('input[name="icone"]').value.trim(),
-      attributs: [...z.querySelectorAll('input[name="attributs"]:checked')].map((x) => x.value) };
-    if (z.querySelector('input[name="qui"]')) sortie.qui = val("qui");
+      texte: z.querySelector('input[name="texte"]').value.trim(),
+      attributs: plusieurs("attributs") };
+    if (groupe("qui")) sortie.qui = val("qui");
     const chemin = z.querySelector('input[name="chemin"]');
     if (chemin) sortie.chemin = chemin.value.trim();
     const c = z.querySelector('input[name="confirmer"]');
     if (c) sortie.confirmer = c.checked;
+    sortie.mise_en_page = { align_h: val("mep_align_h") || "centre", align_v: val("mep_align_v") || "centre", taille: val("mep_taille") || "remplir",
+      titre: z.querySelector('input[name="mep_titre"]').checked, icone: z.querySelector('input[name="mep_icone"]').checked };
     return sortie;
   }
 
@@ -610,7 +641,9 @@ class VisionWidgetsCard extends HTMLElement {
           ${this._panneau(tous, "t")}
           ${this._ajout("t:tous", tr("ajout_tous"))}
         </section>`;
-      const personnes = (d.personnes || []).map((p) => `
+      // Refonte lot 3 : intégrée dans la fiche d'une personne (« personne »), la carte ne montre qu'elle et ses appareils.
+      const seule = this._config.personne || "";
+      const personnes = (d.personnes || []).filter((p) => !seule || p.entite === seule).map((p) => `
         <section>
           <h3>${ech(p.prenom)}</h3>
           <div class="pastilles">${p.entites.length ? p.entites.map((f) => this._pastille(f, `data-retirer-p="${ech(p.entite)}" data-e="${ech(f.id)}"`, "p:" + p.entite)).join("")
@@ -619,7 +652,7 @@ class VisionWidgetsCard extends HTMLElement {
           ${this._ajout("p:" + p.entite, tr("ajouter_entite"))}
         </section>`).join("");
       const ouvert = this._ouverts.has("exceptions");
-      const exceptions = ouvert ? (d.appareils || []).map((a) => `
+      const exceptions = ouvert ? (d.appareils || []).filter((a) => !seule || a.personne === seule).map((a) => `
         <div class="appareil">
           <h4>${ech(a.nom)}${a.prenom ? ` <span class="qui">· ${ech(a.prenom)}</span>` : ""}</h4>
           <div class="ligne"><span class="etiquette">${ech(tr("en_plus"))}</span><div class="pastilles">${a.plus.map((f) => this._pastille(f, `data-retirer-a="${ech(a.id)}" data-sens="plus" data-e="${ech(f.id)}"`, "a+:" + a.id)).join("") || '<span class="vide">—</span>'}</div></div>
@@ -631,7 +664,7 @@ class VisionWidgetsCard extends HTMLElement {
       corps = `
         ${d.module ? "" : `<div class="erreur">${ech(tr("module_coupe"))}</div>`}
         ${this._erreur ? `<div class="erreur">${ech(this._erreur)}</div>` : ""}
-        ${sectionTous}
+        ${seule ? "" : sectionTous}
         ${personnes || `<div class="vide">${ech(tr("aucune_personne"))}</div>`}
         <button class="lien" data-ouvrir="exceptions">${ouvert ? "▾" : "▸"} ${ech(tr("exceptions"))}</button>
         ${exceptions}`;
@@ -664,6 +697,7 @@ class VisionWidgetsCard extends HTMLElement {
         .panneau h4 { margin:0; overflow-wrap:anywhere; }
         .panneau fieldset { border:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px 14px; }
         .panneau legend { font-weight:600; padding:0 0 4px; }
+        .panneau vision-choix { flex:1 1 100%; min-width:0; }
         .choix { display:inline-flex; align-items:center; gap:6px; min-height:32px; overflow-wrap:anywhere; }
         .choix input { width:20px; height:20px; margin:0; flex:none; }
         .champ { display:grid; gap:4px; }
@@ -674,6 +708,7 @@ class VisionWidgetsCard extends HTMLElement {
         .champ input { padding:8px 10px; min-width:0; max-width:100%; border-radius:8px; border:1px solid var(--divider-color); background:var(--card-background-color);
           color:var(--primary-text-color); font:inherit; max-width:420px; box-sizing:border-box; width:100%; }
         .petit { color:var(--secondary-text-color); font-size:.88em; margin:0; flex-basis:100%; }
+        .ligne-entiere { flex-basis:100%; display:flex; flex-wrap:wrap; gap:6px 14px; }
         .boutons { display:flex; gap:8px; flex-wrap:wrap; }
         .principal { background:var(--primary-color); color:var(--text-primary-color, #fff); border:none; border-radius:10px; padding:8px 16px; min-height:36px; cursor:pointer; font:inherit; }
         .secondaire { background:none; border:1px solid var(--divider-color); color:var(--primary-text-color); border-radius:10px; padding:8px 14px; min-height:36px; cursor:pointer; font:inherit; }
@@ -699,7 +734,7 @@ class VisionWidgetsCard extends HTMLElement {
         .vide { color:var(--secondary-text-color); }
       </style>
       <ha-card>
-        <h2>${ech(tr("titre"))}</h2>
+        ${this._config.integre ? "" : `<h2>${ech(tr("titre"))}</h2>`}
         <p class="aide">${ech(tr("aide"))}</p>
         <details><summary>${ech(tr("en_savoir_plus"))}</summary>
           ${ech(tr("details"))}
@@ -739,9 +774,11 @@ class VisionWidgetsCard extends HTMLElement {
     const panneau = r.querySelector("[data-panneau]");
     if (panneau) {
       // Un choix qui change ce que montre le panneau (rôle, affichage) le redessine, sans perdre le reste.
-      panneau.querySelectorAll('input[name="role"], input[name="affichage"], input[name="toucher"]').forEach((x) => x.addEventListener("change", () => {
+      panneau.addEventListener("vision-choix", (ev) => {
+        const n = ev.target && ev.target.dataset ? ev.target.dataset.choix : "";
+        if (!["role", "affichage", "toucher"].includes(n)) return;
         this._brouillon = this._lirePanneau(); this._dessiner();
-      }));
+      });
       // 2.4.3 : un tableau de bord ou une vue choisi dans la liste remplit le chemin (qui reste modifiable).
       panneau.querySelectorAll("button.vue[data-chemin]").forEach((b) => b.addEventListener("click", () => {
         panneau.querySelector('input[name="chemin"]').value = b.dataset.chemin;

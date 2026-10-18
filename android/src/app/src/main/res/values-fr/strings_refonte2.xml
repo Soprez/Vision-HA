@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 2 : « À décider » unique et « Tout fermer » avec durée annoncée (A8). -->
+<resources>
+    <string name="adec_titre">À décider</string>
+    <string name="adec_dans_ha">Dans Home Assistant</string>
+    <string name="adec_refuser">Refuser</string>
+    <string name="adec_pause_choix">Tout fermer pendant… (%1$s à %2$s)</string>
+    <string name="adec_pause_confirmer">Tous les appareils protégés seront fermés pendant %1$s. Continuer ?</string>
+    <string name="adec_pause_ok">Tout fermer</string>
+</resources>

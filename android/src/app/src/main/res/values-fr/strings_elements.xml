@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Autorisations par élément (HA 2.5.1, réponses de l'auteur du 14-10) : écran d'une catégorie, recherche, blocages récents, demandes groupées. -->
+<resources>
+    <string name="el_rechercher_court">Chercher</string>
+    <string name="el_rechercher_indice">Chercher un site, une appli, un logiciel</string>
+    <string name="el_section_logiciels">Applis et logiciels</string>
+    <string name="el_section_sites_seuls">Sites sans logiciel · %1$d</string>
+    <string name="el_services">Services</string>
+    <string name="el_sites">Sites</string>
+    <string name="el_services_suivent">Ses services suivent toujours le logiciel.</string>
+    <string name="el_suit">Suit %1$s</string>
+    <string name="el_attente">Lié alors qu\'il était bloqué : attend une décision</string>
+    <string name="el_auto">Lié automatiquement</string>
+    <string name="el_delier">Délier</string>
+    <string name="el_suivre_logiciel">Suivre %1$s</string>
+    <string name="el_badge_ouvert">Ouvert</string>
+    <string name="el_badge_par_logiciel">Ouvert avec %1$s</string>
+    <string name="el_badge_exception">Exception</string>
+    <string name="el_badge_toujours">Toujours disponible</string>
+    <string name="el_badge_temps">Pour un temps · jusqu\'à %1$s</string>
+    <string name="el_badge_nomme">Bloqué (nommé)</string>
+    <string name="el_badge_categorie">Fermé par la catégorie</string>
+    <string name="el_badge_plage">Fermé par une plage</string>
+    <string name="el_badge_temps_epuise">Temps du jour épuisé</string>
+    <string name="el_badge_securite">Fermé (sécurité ou âge)</string>
+    <string name="el_badge_lieu">Fermé pour tous</string>
+    <string name="el_badge_liste_noire">Signalé dangereux</string>
+    <string name="el_mode_titre">%1$s : choisir</string>
+    <string name="el_mode_categorie">Suivre la catégorie</string>
+    <string name="el_mode_temps">Pour un temps</string>
+    <string name="el_mode_exception">Exception</string>
+    <string name="el_mode_toujours">Toujours disponible</string>
+    <string name="el_mode_bloquer">Bloquer</string>
+    <string name="el_mode_actuel">%1$s ✓</string>
+    <string name="el_mode_aide">Suivre la catégorie : pas de réglage propre (le défaut). Exception : sur tous ses appareils, même si la catégorie est fermée, mais pas pendant les plages. Toujours disponible : rien ne le ferme.</string>
+    <string name="el_recherche_rien">Rien de trouvé.</string>
+    <string name="el_logiciel_de">Logiciel : %1$s</string>
+    <string name="el_service_de">Service de %1$s</string>
+    <string name="el_categories_de">Catégories : %1$s</string>
+    <string name="el_categorie">Catégorie</string>
+    <string name="el_recents_titre">Bloqués récemment</string>
+    <string name="el_recents_vide">Rien de bloqué récemment.</string>
+    <string name="el_recents_tout">Tout voir</string>
+    <string name="el_demander">Demander</string>
+    <string name="el_demander_pour">Demander l\'accès pour %1$s</string>
+    <string name="el_demande_inclus">Compris dans la réponse :</string>
+    <string name="el_tele_lecture">Lecture seule : ces réglages se changent depuis le téléphone d\'un %1$s ou depuis Home Assistant.</string>
+    <string name="el_chargement_echec">Impossible de charger cette catégorie.</string>
+    <plurals name="el_voir_autres">
+        <item quantity="one">Voir %d autre</item>
+        <item quantity="other">Voir les %d autres</item>
+    </plurals>
+    <plurals name="el_tentatives">
+        <item quantity="one">%d tentative</item>
+        <item quantity="other">%d tentatives</item>
+    </plurals>
+    <plurals name="el_groupe_sites">
+        <item quantity="one">%d site bloqué avec lui</item>
+        <item quantity="other">%d sites bloqués avec lui</item>
+    </plurals>
+</resources>

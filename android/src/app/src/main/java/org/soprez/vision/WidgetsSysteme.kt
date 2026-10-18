@@ -86,6 +86,7 @@ object WidgetsSysteme {
             return
         }
         val (wDp, hDp) = tailleDp(app, id)
+        if (listeDefilante(app, r, hDp) && dessinerListe(app, mgr, id, r, wDp, hDp, toucher)) return
         val image = image(app, r, wDp, hDp)
         vues.setViewVisibility(R.id.widget_message, View.GONE)
         vues.setViewVisibility(R.id.widget_image, View.VISIBLE)
@@ -94,6 +95,68 @@ object WidgetsSysteme {
         vues.setContentDescription(R.id.widget_racine, (r.libelle.ifEmpty { e?.nom ?: "" }) + " : " +
             WidgetsHa.valeurAffichee((FluxWidgets.etats[r.entites.first()] ?: WidgetsHa.EtatEntite(e?.etat ?: "")).etat, e?.unite ?: "", e?.domaine ?: "", e?.deviceClass ?: ""))
         try { mgr.updateAppWidget(id, vues) } catch (_: Exception) {}
+    }
+
+    // ------------------------------------------------------------------ détail qui défile (1.90.1)
+
+    /** 1.90.1 : une tuile qui montre un détail, assez haute : son détail devient une liste système qui défile. */
+    fun listeDefilante(ctx: Context, r: WidgetsHa.Reglage, hDp: Int): Boolean {
+        if (hDp < 90 || r.style != WidgetsHa.TUILE) return false
+        val e = WidgetsHaStock.entite(ctx, r.entites.first()) ?: return false
+        if (!WidgetsHa.montreDetail(WidgetsHa.affichage(r, e))) return false
+        val st = FluxWidgets.etats[e.entityId] ?: WidgetsHa.EtatEntite(e.etat, e.attributs, "")
+        return WidgetsHa.detail(e, st).second > 0
+    }
+
+    /** Les lignes de la liste (toutes celles reçues ; « … et N de plus » seulement si Home Assistant en a gardé). */
+    fun lignesDetail(ctx: Context, id: Int): List<String> {
+        val r = reglage(ctx, id) ?: return emptyList()
+        val e = WidgetsHaStock.entite(ctx, r.entites.first()) ?: return emptyList()
+        val st = FluxWidgets.etats[e.entityId] ?: WidgetsHa.EtatEntite(e.etat, e.attributs, "")
+        val (lignes, total) = WidgetsHa.detail(e, st)
+        return lignes.map { "• " + WidgetsHa.texteLigne(it) } +
+            listOfNotNull(if (total > lignes.size) ctx.getString(R.string.wha_detail_autres, total - lignes.size) else null)
+    }
+
+    /** La tuile dessinée sans son détail, et la hauteur (px) où commence la zone du détail ; null si elle n'en a pas. */
+    fun imageSansDetail(ctx: Context, r: WidgetsHa.Reglage, wDp: Int, hDp: Int, exemple: Boolean = false): Pair<Bitmap, Int>? {
+        val (cw, ch) = cases(wDp, hDp)
+        val d = ctx.resources.displayMetrics.density
+        val w = (wDp * d).toInt().coerceIn(48, 1400); val h = (hDp * d).toInt().coerceIn(48, 1400)
+        val theme = Local.themeEffectif(ctx, Palette.APPLI)
+        val vue = VueWidgetHa(ctx, theme, r.copy(w = cw, h = ch), lectureSeule = true, exemple = exemple, detailExterne = true)
+        val sw = View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY); val sh = View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY)
+        vue.measure(sw, sh); vue.layout(0, 0, w, h)
+        vue.maj(); vue.measure(sw, sh); vue.layout(0, 0, w, h)
+        val zone = vue.zoneDetail ?: return null
+        var y = 0; var v: View = zone
+        while (v !== vue) { y += v.top; v = (v.parent as? View) ?: return null }
+        if (y <= 0 || y >= h - (24 * d).toInt()) return null
+        val image = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        vue.draw(Canvas(image))
+        return image to y
+    }
+
+    private fun dessinerListe(app: Context, mgr: AppWidgetManager, id: Int, r: WidgetsHa.Reglage, wDp: Int, hDp: Int, toucher: PendingIntent): Boolean {
+        val (image, y) = imageSansDetail(app, r, wDp, hDp) ?: return false
+        val vues = RemoteViews(app.packageName, R.layout.widget_ha_liste)
+        vues.setImageViewBitmap(R.id.widget_haut, Bitmap.createBitmap(image, 0, 0, image.width, y))
+        vues.setImageViewBitmap(R.id.widget_bas, Bitmap.createBitmap(image, 0, y, image.width, image.height - y))
+        vues.setOnClickPendingIntent(R.id.widget_racine, toucher)
+        val service = Intent(app, WidgetHaListeService::class.java).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
+        service.data = android.net.Uri.parse(service.toUri(Intent.URI_INTENT_SCHEME))
+        @Suppress("DEPRECATION") vues.setRemoteAdapter(R.id.widget_liste, service)
+        val modele = PendingIntent.getBroadcast(app, 100_000 + id, Intent(app, WidgetHaSystemeProvider::class.java).setAction(ACTION_TOUCHER)
+            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id),
+            PendingIntent.FLAG_UPDATE_CURRENT or (if (android.os.Build.VERSION.SDK_INT >= 31) PendingIntent.FLAG_MUTABLE else 0))
+        vues.setPendingIntentTemplate(R.id.widget_liste, modele)
+        val e = WidgetsHaStock.entite(app, r.entites.first())
+        vues.setContentDescription(R.id.widget_racine, r.libelle.ifEmpty { e?.nom ?: "" })
+        return try {
+            mgr.updateAppWidget(id, vues)
+            @Suppress("DEPRECATION") mgr.notifyAppWidgetViewDataChanged(id, R.id.widget_liste)
+            true
+        } catch (_: Exception) { false }
     }
 
     /**
@@ -243,7 +306,7 @@ object WidgetsSysteme {
             if (echec != null) {
                 if (avant != null) FluxWidgets.etats[e.entityId] = avant else FluxWidgets.etats.remove(e.entityId)
                 dessiner(app, id)
-                main.post { Toast.makeText(app, echec, Toast.LENGTH_LONG).show() }
+                main.post { Ui.toast(app, echec, genre = OeilModele.Genre.ERREUR) }
             }
             try { Thread.sleep(700) } catch (_: InterruptedException) {}
         }

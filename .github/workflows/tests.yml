@@ -1,0 +1,60 @@
+# Essais de Vision à chaque envoi : intégration et agent (pytest, en 4 parts) et application Android (JVM).
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    name: Intégration (part ${{ matrix.part }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: essai/requirements.txt
+      - name: Paquets système
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libturbojpeg0 ffmpeg
+      - name: Dépendances
+        run: pip install -r essai/requirements.txt
+      - name: Essais
+        working-directory: essai
+        run: |
+          fichiers=$(ls *_test.py | sort | awk -v p=${{ matrix.part }} '(NR - 1) % 4 == p')
+          python -m pytest -q -p no:cacheprovider -o asyncio_mode=auto $fichiers
+
+  android:
+    name: Application Android (essais JVM)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - name: SDK Android 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - name: Essais
+        run: gradle -p android/src testDebugUnitTest --no-daemon

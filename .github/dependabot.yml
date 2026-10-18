@@ -1,0 +1,23 @@
+# Mises à jour proposées chaque semaine : actions GitHub, dépendances des essais Python, Gradle (Android).
+# Les exigences de l'intégration (manifest.json) suivent Home Assistant : Dependabot ne les lit pas.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dépendances]
+
+  - package-ecosystem: pip
+    directory: /essai
+    schedule:
+      interval: weekly
+    labels: [dépendances]
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: gradle
+    directory: /android/src
+    schedule:
+      interval: weekly
+    labels: [dépendances]
+    open-pull-requests-limit: 5

@@ -28,9 +28,9 @@ async def _installer(hass, hass_storage):
                          usage={**_usage({0: 3600, 1: 3600, 2: 1800}, {"com.roblox.client": 4000, "com.google.android.youtube": 900}),
                                 **_usage({8: 1800})},
                          apps_vues={"com.roblox.client": {"libelle": "Roblox"}, "com.google.android.youtube": {"libelle": "YouTube"}}),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
         }}}
-    for p in ("lou", "robin"):
+    for p in ("lou", "nolan"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -47,8 +47,8 @@ async def test_bilan_envoye_aux_decideurs(hass, hass_storage):
     # Une semaine de décisions : un accès refusé, 30 min ajoutées.
     lou.setdefault("demandes", []).append({"id": "d1", "genre": "apps", "cle": "com.roblox.client", "libelle": "Roblox",
                                              "ts": __import__("time").time(), "pc": "e1", "prenom": "Lou"})
-    await parent.agir(hass, coord, lou, {"action": "acces", "demande": "d1", "decision": "non"}, "Robin", "p1")
-    await parent.agir(hass, coord, lou, {"action": "temps", "minutes": 30}, "Robin", "p1")
+    await parent.agir(hass, coord, lou, {"action": "acces", "demande": "d1", "decision": "non"}, "Nolan", "p1")
+    await parent.agir(hass, coord, lou, {"action": "temps", "minutes": 30}, "Nolan", "p1")
     assert coord.store.bilan_compteurs["person.lou"] == {"refusee": 1, "minutes": 30}
     resumes = await bilan.async_envoyer(hass, coord)
     assert [r["personne"] for r in resumes] == ["person.lou"]  # pas le décideur
@@ -56,8 +56,8 @@ async def test_bilan_envoye_aux_decideurs(hass, hass_storage):
     assert texte.startswith("Lou : 2 h 30 d'écran sur 7 jours (21 min par jour en moyenne), 2 h 00 de plus que la semaine d'avant.")
     assert "Le plus utilisé : Roblox (3 h 20), YouTube (45 min)." in texte
     assert "Demandes : 0 reçue, 0 accordée, 1 refusée." in texte and "Temps ajouté : 30 min." in texte
-    robin = coord.store.pcs["p1"]
-    assert any(m["title"] == "Bilan de la semaine" and m["text"] == texte for m in robin["messages"])
+    nolan = coord.store.pcs["p1"]
+    assert any(m["title"] == "Bilan de la semaine" and m["text"] == texte for m in nolan["messages"])
     assert not any(m.get("title") == "Bilan de la semaine" for m in lou["messages"])
     # Les compteurs repartent de zéro après l'envoi du dimanche.
     assert coord.store.bilan_compteurs == {}

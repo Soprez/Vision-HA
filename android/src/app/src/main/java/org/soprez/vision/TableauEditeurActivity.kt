@@ -74,13 +74,13 @@ class TableauEditeurActivity : Activity() {
 
     private fun construire() {
         contenu.removeAllViews()
-        val mx = if (tele) (dm.widthPixels * 0.08f).toInt() else px(18f); val my = if (tele) (dm.heightPixels * 0.06f).toInt() else px(40f)
+        val mx = if (tele) ZoneSure.x(this@TableauEditeurActivity, 0.08f) else px(18f); val my = if (tele) ZoneSure.y(this@TableauEditeurActivity, 0.06f) else px(40f)
         contenu.setPadding(mx, my, mx, my)
         contenu.addView(texte(getString(R.string.tableauediteur_titre_ecran), t(18f), theme.or, Polices.gras(this)).apply { letterSpacing = 0.22f })
         val tete = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         tete.addView(texte(tableau.optString("titre"), t(44f), theme.encre, Polices.outfit(this)).apply { includeFontPadding = false }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         tete.addView(ligne(getString(R.string.tableauediteur_renommer), "", 0) {
-            val champ = EditText(this).apply { setText(tableau.optString("titre")); setSelectAllOnFocus(true) }
+            val champ = EditText(this).also { ClavierTele.brancher(it) }.apply { setText(tableau.optString("titre")); setSelectAllOnFocus(true) }
             Ui.dialogue(this).setTitle(getString(R.string.tableauediteur_titre)).setView(champ).setPositiveButton(getString(R.string.commun_lot2_garder)) { _, _ -> tableau.put("titre", champ.text.toString().trim().ifEmpty { getString(R.string.tableauediteur_tableau_defaut) }); sauver() }.setNegativeButton(getString(R.string.commun_lot2_annuler), null).show()
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         contenu.addView(tete)
@@ -105,7 +105,7 @@ class TableauEditeurActivity : Activity() {
             r.addView(col, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             r.addView(ligne(getString(R.string.tableauediteur_rendu), "", 0) { val k = rendus.indexOfFirst { it.first == c.optString("rendu", "auto") }; c.put("rendu", rendus[(k + 1) % rendus.size].first); sauver() }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { leftMargin = px(8f) })
             r.addView(ligne(getString(R.string.tableauediteur_libelle), "", 0) {
-                val champ = EditText(this).apply { setText(c.optString("libelle")); hint = nomEntite }
+                val champ = EditText(this).also { ClavierTele.brancher(it) }.apply { setText(c.optString("libelle")); hint = nomEntite }
                 Ui.dialogue(this).setTitle(getString(R.string.tableauediteur_libelle_case)).setView(champ).setPositiveButton(getString(R.string.commun_lot2_garder)) { _, _ -> c.put("libelle", champ.text.toString().trim()); sauver() }.setNegativeButton(getString(R.string.commun_lot2_annuler), null).show()
             }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { leftMargin = px(8f) })
             r.addView(ligne("×", "", 0, getString(R.string.a11y_retirer_case, nomEntite)) { val n = JSONArray(); for (k in 0 until cases.length()) if (k != i) n.put(cases.getJSONObject(k)); tableau.put("cases", n); sauver() }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { leftMargin = px(8f) })
@@ -165,7 +165,7 @@ class TableauEditeurActivity : Activity() {
                 val r = Net.post(this, cfg, "/api/pc_parental/veille/entites", JSONObject().put("id", cfg.id).put("secret", cfg.secret), 20_000)
                 catalogue = r.optJSONArray("entites")
                 main.post { construire() }
-            } catch (_: Exception) { main.post { android.widget.Toast.makeText(this, getString(R.string.tableauediteur_injoignable), android.widget.Toast.LENGTH_LONG).show() } }
+            } catch (_: Exception) { main.post { Ui.toast(this, getString(R.string.tableauediteur_injoignable), genre = OeilModele.Genre.ERREUR) } }
         }.also { it.isDaemon = true }.start()
     }
 }

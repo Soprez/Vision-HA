@@ -141,7 +141,13 @@ def _feuille(carte: dict[str, Any], largeur: int | None) -> dict[str, Any] | Non
     titre = carte.get("title") or carte.get("name") or carte.get("heading")
     titre = str(titre) if isinstance(titre, str) else ""
     cases: list[dict[str, Any]] = []
-    if genre.startswith("custom:") and not genre.startswith("custom:mushroom"):
+    # 2.2.12 : météo, agenda, image, radar, caméra, iframe, derniers passages Frigate (docs/veille-contrat.md).
+    from . import veille_cases
+
+    typees = veille_cases.carte_typee(carte, largeur)
+    if typees is not None:
+        cases = typees
+    elif genre.startswith("custom:") and not genre.startswith("custom:mushroom"):
         # Une carte personnalisée (Pronote, plotly…) dessine bien plus que l'état de ses entités : en cases,
         # elle ne montrerait que des nombres bruts (« 48 » leçons pour un emploi du temps). Masquée jusqu'au
         # vrai rendu des cartes (point 6 du backlog).
@@ -384,9 +390,9 @@ async def inventaire(hass: HomeAssistant, coord) -> list[dict[str, Any]]:
     return sortie
 
 
-async def tableaux(hass: HomeAssistant, coord, ecran: str, qui: dict[str, str]) -> list[dict[str, Any]]:
+async def tableaux(hass: HomeAssistant, coord, ecran: str, qui: dict[str, str], pc_id: str = "") -> list[dict[str, Any]]:
     """Les tableaux de veille tirés des tableaux de bord retenus, résolus pour cet appareil."""
-    from . import veille_tableaux as vt
+    from . import veille_cases, veille_tableaux as vt
 
     sortie: list[dict[str, Any]] = []
     for adresse in list((getattr(coord.store, "veille_dash", None) or {}).keys()):
@@ -413,7 +419,11 @@ async def tableaux(hass: HomeAssistant, coord, ecran: str, qui: dict[str, str]) 
                     for c in f["cases"]:
                         if total >= MAX_CASES:
                             break
-                        if not c.get("entite"):
+                        if c.get("genre"):
+                            r = await veille_cases.resoudre(hass, c, pc_id)
+                            if r is None:
+                                continue
+                        elif not c.get("entite"):
                             r = {"entite": "", "nom": c.get("libelle") or "Note", "rendu": "texte", "texte": await _texte(hass, str(c.get("texte") or ""))}
                         else:
                             r = await vt._case(hass, c)
@@ -425,7 +435,7 @@ async def tableaux(hass: HomeAssistant, coord, ecran: str, qui: dict[str, str]) 
                                         r[borne] = c[borne]
                         r["carte"] = f["cle"]
                         r["largeur"] = int(c.get("largeur") or 6)
-                        r["hauteur"] = int(c.get("hauteur") or (2 if r.get("rendu") in ("jauge", "courbe") else 1))
+                        r["hauteur"] = int(c.get("hauteur") or (2 if r.get("rendu") in ("jauge", "courbe") or c.get("genre") else 1))
                         cases.append(r)
                         total += 1
                 if cases:

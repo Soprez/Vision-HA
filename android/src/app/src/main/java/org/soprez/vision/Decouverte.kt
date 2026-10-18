@@ -25,6 +25,8 @@ object Decouverte {
     @Volatile var trouve: Liaison.Serveur? = null
     /** La recherche est allée au bout du délai sans rien trouver (APP-05 : l'écran propose Réessayer / Autres méthodes). */
     @Volatile var finie = false
+    /** 1.90.3 : l'IP du Home Assistant trouvé (retenue comme adresse locale si on s'y relie). */
+    @Volatile var ipTrouvee = ""
 
     private val attentes = ArrayList<(Liaison.Serveur?) -> Unit>()
     private fun rendre(s: Liaison.Serveur?) {
@@ -46,7 +48,7 @@ object Decouverte {
         val app = ctx.applicationContext
         if (Config(app).inscrit) { fin(null); return }
         synchronized(attentes) { attentes.add(fin); if (enCours) return }
-        enCours = true; finie = false; trouve = null; etat = Tr.s(R.string.decouverte_recherche_delai, (DELAI_MS / 1000).toInt())
+        enCours = true; finie = false; trouve = null; ipTrouvee = ""; etat = Tr.s(R.string.decouverte_recherche_delai, (DELAI_MS / 1000).toInt())
         val nsd = app.getSystemService(Context.NSD_SERVICE) as? NsdManager
         if (nsd == null) { enCours = false; finie = true; etat = Tr.s(R.string.decouverte_impossible); rendre(null); return }
         val urls = LinkedHashSet<String>()
@@ -54,10 +56,10 @@ object Decouverte {
         var termine = false
         var ecouteur: NsdManager.DiscoveryListener? = null
 
-        fun conclure() {
-            if (termine) return
-            termine = true
-            try { ecouteur?.let { nsd.stopServiceDiscovery(it) } } catch (_: Exception) {}
+        var ip = ""; var port = 0
+        fun vu(i: String, p: Int) { if (ip.isEmpty()) { ip = i; port = p } }
+
+        fun finir() {
             enCours = false
             val s = Liaison.serveur(nom, urls)
             if (s == null || Liaison.estEcarte(s)) {
@@ -68,6 +70,25 @@ object Decouverte {
             trouve = s
             etat = Tr.s(R.string.liaison_question, s.affiche())
             rendre(s)
+        }
+
+        fun conclure() {
+            if (termine) return
+            termine = true
+            try { ecouteur?.let { nsd.stopServiceDiscovery(it) } } catch (_: Exception) {}
+            // 1.90.3 (télé d'essai : « http://10.1.1.11:8123 » proposé, alors que HA n'écoute qu'en HTTPS) : sans
+            // adresse https annoncée, et si l'IP ne répond pas en http, l'adresse HTTPS vérifiée du certificat de HA.
+            val (ipVue, portVu) = ip to port
+            ipTrouvee = ipVue
+            if (ipVue.isEmpty() || urls.any { it.startsWith("https://") }) { finir(); return }
+            Thread {
+                val brute = "http://$ipVue:$portVu"
+                val https = if (HoteLocal.repond(brute)) emptyList() else HoteLocal.adressesHttps(ipVue, portVu)
+                main.post {
+                    if (https.isNotEmpty()) { val reste = ArrayList(urls); urls.clear(); urls.addAll(https); urls.addAll(reste.filter { it != brute }) }
+                    finir()
+                }
+            }.apply { isDaemon = true }.start()
         }
 
         val l = object : NsdManager.DiscoveryListener {
@@ -86,8 +107,8 @@ object Decouverte {
                             // L'adresse publique d'abord (certificat valide), puis l'interne, puis l'adresse brute.
                             for (k in listOf("external_url", "internal_url", "base_url")) attribut(k).takeIf { it.startsWith("http") }?.let { urls.add(it) }
                             @Suppress("DEPRECATION")
-                            val ip = si.host?.hostAddress
-                            if (!ip.isNullOrEmpty() && !ip.contains(':')) { urls.add("http://$ip:${si.port}") }
+                            val adresseIp = si.host?.hostAddress
+                            if (!adresseIp.isNullOrEmpty() && !adresseIp.contains(':')) { urls.add("http://$adresseIp:${si.port}"); vu(adresseIp, si.port) }
                             if (nom.isEmpty()) nom = attribut("location_name").ifEmpty { si.serviceName.orEmpty() }
                             main.postDelayed({ conclure() }, 400)
                         }
@@ -108,6 +129,7 @@ object Decouverte {
         val app = ctx.applicationContext
         val cfg = Config(app)
         cfg.urlExterne = s.externe; cfg.urlInterne = s.interne
+        if (ipTrouvee.isNotEmpty() && Reseau.estPrivee("http://$ipTrouvee")) cfg.hoteLocal = ipTrouvee
         cfg.cleInscription = ""
         cfg.sansCle = true
         trouve = null

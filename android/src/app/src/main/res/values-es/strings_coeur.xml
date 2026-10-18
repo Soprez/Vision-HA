@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le cœur « favori » de Music Assistant et le choix de la playlist de veille (l'auteur, 15/10). -->
+<resources>
+    <string name="coeur_ajouter">Añadir a favoritos de Music Assistant</string>
+    <string name="coeur_retirer">Quitar de favoritos de Music Assistant</string>
+    <string name="choixplaylist_chercher_indice">Buscar una lista (YouTube Music…)</string>
+    <string name="choixplaylist_chercher">Buscar</string>
+    <string name="choixplaylist_chercher_action">Buscar una lista</string>
+    <string name="choixplaylist_autres">Otras listas</string>
+    <string name="choixplaylist_chargement">Cargando las listas…</string>
+    <string name="choixplaylist_recherche_en_cours">Buscando…</string>
+    <string name="choixplaylist_rien_trouve">No se encontró ninguna lista para «%1$s».</string>
+</resources>

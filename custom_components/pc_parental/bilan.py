@@ -141,8 +141,16 @@ async def async_envoyer(hass: HomeAssistant, coord, remise_a_zero: bool = True) 
     persistent_notification.async_create(
         hass, "\n\n".join(texte_personne(r, langue_ha) for r in resumes), title=textes.t("bilan.titre_ha", langue_ha),
         notification_id="pc_parental_bilan_hebdo")
+    # 2.5.6 (l'auteur, 15/10) : le résumé par les canaux que chaque Décideur a choisis (canaux.py).
+    from . import canaux
+
+    tout_ha = "\n\n".join(texte_personne(r, langue_ha) for r in resumes)
+    await canaux.compagnon_simple(hass, store, "resume", textes.t("bilan.titre_ha", langue_ha), tout_ha, tag="vision_bilan")
+    await canaux.discord(hass, store, "resume", textes.t("bilan.titre_ha", langue_ha), tout_ha)
     if not modules.coupe(store, "messages"):
         for pc_id in roles.avec(store, "gerer"):
+            if not canaux.vision_pour(hass, store, pc_id, "resume"):
+                continue
             # Chaque décideur reçoit le bilan dans la langue de son appareil.
             langue = textes.pour(hass, store.pcs.get(pc_id))
             for r in resumes:

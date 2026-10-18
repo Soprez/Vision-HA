@@ -26,6 +26,8 @@ class CategoriesActivity : Activity() {
     companion object {
         @Volatile var fiche: JSONObject? = null
         @Volatile var cats: JSONArray? = null
+        /** HA 2.5.1 : chaque catégorie s'ouvre élément par élément (CategorieActivity), et les blocages récents. */
+        @Volatile var elements = false
     }
 
     override fun onCreate(b: Bundle?) {
@@ -38,6 +40,7 @@ class CategoriesActivity : Activity() {
         if (android.os.Build.VERSION.SDK_INT >= 21) { window.statusBarColor = Ui.FOND; window.navigationBarColor = Ui.FOND }
         val scroll = ScrollView(this).apply { setBackgroundColor(Ui.FOND); isFillViewport = true }
         racine = Ui.colonne(this, Ui.dp(this, 20f))
+        Ui.largeurLecture(racine)
         scroll.addView(racine); setContentView(scroll)
 
         racine.addView(Ui.marque(this))
@@ -49,6 +52,7 @@ class CategoriesActivity : Activity() {
         r.addView(Ui.marge(this, col, gauche = 2f))
         racine.addView(Ui.marge(this, r, bas = 14f))
         racine.addView(Ui.texte(this, getString(R.string.cat_aide), 13f, Ui.TEXTE_2))
+        if (elements) racine.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.el_recents_titre)) { ouvrir("") }, haut = 10f))
         liste = Ui.colonne(this)
         racine.addView(Ui.marge(this, liste, haut = 10f))
         remplir()
@@ -102,10 +106,14 @@ class CategoriesActivity : Activity() {
         col.addView(Ui.texte(this, detail, 12f, Ui.TEXTE_2))
         val raison = e.optString("raison")
         if (raison.isNotEmpty() && (bloqueParRegle || verrou)) col.addView(Ui.texte(this, raison, 12f, if (bloqueParRegle) Ui.OR else Ui.TEXTE_3))
-        col.setOnClickListener { contenu(cat) }
+        col.setOnClickListener { if (elements) ouvrir(nom) else contenu(cat) }
         r.addView(Ui.poids(col))
+        // Refonte lot 3 (mot coupé à 200 % : « divertissement ») : écran étroit (grands caractères), l'état et
+        // l'interrupteur passent sous le nom, qui garde toute la largeur ; sinon, à droite comme avant.
+        val etroit = Ui.etroit(this)
+        val cible: android.view.ViewGroup = if (etroit) Ui.rangee(this).also { col.addView(Ui.marge(this, it, haut = 6f)) } else r
         if (verrou) {
-            r.addView(Ui.chip(this, getString(R.string.cat_tous_les_appareils), Ui.TEXTE_3))
+            cible.addView(Ui.chip(this, getString(R.string.cat_tous_les_appareils), Ui.TEXTE_3))
         } else {
             // Coché = fermé : l'interrupteur prend le rouge du thème ; désactivé (règle) : pâli par le thème lui-même.
             // APP-27 : l'état se lit en toutes lettres à côté (« Ouverte » / « Fermée »), et TalkBack le dit.
@@ -121,11 +129,19 @@ class CategoriesActivity : Activity() {
                 sw.contentDescription = getString(R.string.cat_etat_description, libelle, etat(coche))
                 basculer(nom, if (coche) "bloquer" else "neutre")
             }
-            r.addView(Ui.marge(this, texteEtat, droite = 8f))
-            r.addView(sw)
+            cible.addView(Ui.marge(this, texteEtat, droite = 8f))
+            cible.addView(sw)
         }
         r.setPadding(0, Ui.dp(this, 8f), 0, Ui.dp(this, 8f))
         return r
+    }
+
+    /** HA 2.5.1 : la catégorie élément par élément ; vide : les blocages récents de la personne. */
+    private fun ouvrir(etiquette: String) {
+        CategorieActivity.pc = a.optString("id")
+        CategorieActivity.etiquette = etiquette
+        CategorieActivity.prenom = a.optString("prenom").ifEmpty { a.optString("nom") }
+        startActivity(android.content.Intent(this, CategorieActivity::class.java))
     }
 
     private fun contenu(cat: JSONObject) {
@@ -141,7 +157,8 @@ class CategoriesActivity : Activity() {
         Ui.dialogue(this).setTitle(Categories.libelle(this, cat.optString("nom"))).setView(vue).setPositiveButton(R.string.commun_fermer, null).show()
     }
 
-    private fun basculer(nom: String, etat: String) = Garde.exiger(this, ParentsActivity.RAISON, annule = { remplir() }) { basculerVraiment(nom, etat) }
+    private fun basculer(nom: String, etat: String) = Garde.exigerPour(this, ParentsActivity.RAISON, "/api/pc_parental/parent",
+        JSONObject().put("action", "etiquette").put("etat", etat), annule = { remplir() }) { basculerVraiment(nom, etat) }
 
     // 1.77.0 : le choix s'affiche tout de suite ; un refus remet le choix d'avant (et le dit).
     private fun basculerVraiment(nom: String, etat: String) {
@@ -160,7 +177,7 @@ class CategoriesActivity : Activity() {
             } catch (e: Net.Echec) { Geste.messageEchec(e.code) } catch (_: Exception) { getString(R.string.commun_ha_injoignable_rien) }
             runOnUiThread {
                 if (!ok) { if (avant != null) etats[nom] = avant else etats.remove(nom); remplir() }
-                Toast.makeText(this, texte, Toast.LENGTH_SHORT).show()
+                Ui.toast(this, texte, court = true, genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)
             }
         }.start()
     }

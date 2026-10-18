@@ -30,6 +30,11 @@ import java.io.File
  *   adb shell am instrument -w org.soprez.vision.test/android.test.InstrumentationTestRunner
  */
 class EcransGrandsCaracteresTest : InstrumentationTestCase() {
+    override fun setUp() {
+        super.setUp()
+        CodeEssai.poser(instrumentation.targetContext)  // faille du 16-10 : un Décideur a toujours un code
+    }
+
     private val ctx get() = instrumentation.targetContext
     private val problemes = ArrayList<String>()
     private val dossier by lazy { File(ctx.getExternalFilesDir(null), "captures").apply { mkdirs() } }
@@ -42,6 +47,7 @@ class EcransGrandsCaracteresTest : InstrumentationTestCase() {
     override fun tearDown() {
         shell("settings put system font_scale 1.0")
         instrumentation.uiAutomation.setRotation(UiAutomation.ROTATION_UNFREEZE)
+        CodeEssai.rendre(instrumentation.targetContext)
         super.tearDown()
     }
 
@@ -155,6 +161,24 @@ class EcransGrandsCaracteresTest : InstrumentationTestCase() {
         "exceptions":{"autorises":[{"libelle":"Encyclopédie collaborative","nom":"wiki"}],"bloques":[{"libelle":"Vidéos en continu","nom":"video"}],"toujours":[]},
         "temps":{"actif":95,"ouvert":120},"usage":{"focus":"org.exemple","focus_libelle":"Application de dessin extraordinaire"}
     }""")
+    /** Refonte lot 3 : une réponse /parent d'essai pour la fiche d'une personne (noms longs, 3 appareils, 2 réveils). */
+    private val FICHE_ESSAI = """{"ok":true,"categories":[],
+        "appareils":[
+          {"id":"f1","nom":"Tablette de Maximilian-Alexander (salle de séjour, étage)","en_ligne":true,"verrouille":false,"prochain_verrou":"2030-01-01T21:30:00+01:00"},
+          {"id":"f2","nom":"Téléphone portable de Maximilian-Alexander","en_ligne":true,"verrouille":true},
+          {"id":"f3","nom":"Ordinateur de bureau de Maximilian-Alexander (bibliothèque)","en_ligne":false}],
+        "personnes":[
+          {"entite":"person.maximilian","prenom":"Maximilian-Alexander von Hohenzollern","role":"Demandeur","appareils":["f1","f2","f3"],"temps":{"actif":135},
+           "fiche":{"modules":{"plages":true,"reveil":true,"temps_gagne":true,"regles_lieu":true,"entites":true},
+             "role_nom":"Demandeur (accès encadré, demandes soumises à validation)",
+             "reveils":[{"nom":"École primaire Jean-Baptiste-Poquelin (lundi au vendredi)","actif":true,"prochain":"2030-01-07T07:00:00+01:00"},
+                        {"nom":"Entraînement de natation du samedi matin","actif":false,"prochain":"2030-01-05T08:30:00+01:00"}],
+             "recompenses":{"liste":"Tâches ménagères hebdomadaires de Maximilian-Alexander","minutes":15,"max":60,"accorde":30},
+             "regles_lieu":[{"zone":"Collège international Sainte-Geneviève-des-Bois","categories":["Jeux","Réseaux sociaux","Vidéo"]},
+                            {"zone":"Bibliothèque","categories":["Jeux"]}],
+             "widgets":3}},
+          {"entite":"person.lou","prenom":"Lou","appareils":[]}]}"""
+
     private val categories = JSONArray("""[
         {"id":"jeux","nom":"Jeux vidéo et divertissement en ligne","apps":[{"libelle":"Jeu de construction"}],"sites":["jeux.exemple"],"coupe":true,"raison":"Fermé par le planning du soir"},
         {"id":"etude","nom":"Études","apps":[],"sites":[],"coupe":false}
@@ -242,6 +266,12 @@ class EcransGrandsCaracteresTest : InstrumentationTestCase() {
             ecran("autorisations_$suffixe", Intent(ctx, ExceptionsActivity::class.java))
             CategoriesActivity.fiche = appareil; CategoriesActivity.cats = categories
             ecran("categories_$suffixe", Intent(ctx, CategoriesActivity::class.java))
+            // Refonte lot 3 : la fiche d'une personne (réponse d'essai, sans réseau).
+            FichePersonneActivity.donneesEssai = FICHE_ESSAI
+            try {
+                ecran("fiche_personne_$suffixe", FichePersonneActivity.intention(ctx, "person.maximilian",
+                    listOf("person.maximilian" to "Maximilian-Alexander von Hohenzollern", "person.lou" to "Lou")), defiler = true)
+            } finally { FichePersonneActivity.donneesEssai = null }
             // L'écran de blocage ne reste affiché que si l'appareil est fermé : on le ferme le temps de la capture.
             val avant = Etat.verrouille
             Etat.verrouille = true
@@ -250,7 +280,7 @@ class EcransGrandsCaracteresTest : InstrumentationTestCase() {
                     .putExtra("raison", "Fermé par le planning du soir : l'écran se rallume demain à sept heures")
                     .putExtra("pkg", "com.android.settings"))
             } finally { Etat.verrouille = avant }
-            ecran("reglages_tv_$suffixe", Intent(ctx, ReglagesTvActivity::class.java))
+            ecran("reglages_tv_$suffixe", EcransReglages.reglages(ctx))
             ecran("couleurs_$suffixe", Intent(ctx, CouleursActivity::class.java))
             ecran("deverrouillage_$suffixe", Intent(ctx, DeverrouillageActivity::class.java))
             // Une boîte de Vision : titre long, liste, trois boutons.

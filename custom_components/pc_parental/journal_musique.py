@@ -83,7 +83,7 @@ def poser_jours(hass: HomeAssistant, n: int) -> None:
 
 # Les mots du journal : catalogue serveur (i18n/serveur), dans la langue du lecteur (Home Assistant).
 ACTIONS = (
-    "jouer", "retirer", "ensuite_element", "jouer_element", "deplacer", "a_la_fin", "lecture", "suivant", "precedent",
+    "jouer", "retirer", "vider", "invites_ouverts", "ensuite_element", "jouer_element", "deplacer", "a_la_fin", "lecture", "suivant", "precedent",
     "volume", "enceinte", "lancer", "lancer_ici", "arreter", "similaires", "enchainement", "premier_plan_perdu",
 )
 MODES = ("remplacer", "ajouter", "ensuite")
@@ -93,7 +93,7 @@ RESULTATS = ("ok", "note", "confirmer", "echec_enceinte", "refuse")
 
 
 def phrase(d: dict[str, Any], langue: str | None = None) -> str:
-    """Une ligne lisible : « Pixel 9 (Lou) : ajoute à la suite — playlist « 500 Random tracks » (500 titres) — ok »."""
+    """Une ligne lisible : « Téléphone (Lou) : ajoute à la suite — playlist « 500 Random tracks » (500 titres) — ok »."""
     from . import textes
 
     qui = str(d.get("appareil") or "?") + (f" ({d['personne']})" if d.get("personne") else "")

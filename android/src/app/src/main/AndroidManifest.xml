@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Recherche de musique à la voix : savoir si l'appareil a un service de reconnaissance (bouton micro). -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+        </intent>
+    </queries>
+
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Empreinte / visage à la place du code parent (appareils des parents, si Home Assistant le permet). -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
@@ -13,6 +20,9 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:ignore="ProtectedPermissions" />
+    <!-- Veille-lot : jamais accordée d'office ; un Décideur peut la donner par ADB (pm grant) sur les télés qui cachent
+         le choix de l'économiseur (Google TV) : Vision règle alors l'économiseur lui-même. -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -20,6 +30,15 @@
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Réveil : alarmes exactes (setAlarmClock), sonnerie au premier plan. USE_EXACT_ALARM dès Android 13
+         (appli de réveil), SCHEDULE_EXACT_ALARM avant. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <!-- Niveau sonore (module coupé par défaut) : le niveau du bruit, mesuré sur place ; rien n'est enregistré. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
@@ -28,7 +47,7 @@
     <!-- Pour ouvrir l'écran d'installation du système lors d'une mise à jour.
          Rien ne s'installe sans la confirmation de l'utilisateur. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <!-- Pour proposer la désinstallation de l'ancienne Vision (ancien identifiant, Migration.ANCIEN) -->
+    <!-- Pour ouvrir l'écran de désinstallation du système (une appli choisie dans le menu de Vision) -->
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
@@ -67,7 +86,9 @@
             </intent-filter>
         </activity>
 
-        <!-- Le lanceur de la télé : Vision en page d'accueil (à choisir comme accueil, ou à ouvrir comme une appli). -->
+        <!-- Le lanceur de la télé : Vision en page d'accueil (à choisir comme accueil, ou à ouvrir depuis Vision → Réglages →
+             « Ouvrir l'accueil Vision »). Refonte lot 6 (APP-32) : plus d'entrée LEANBACK_LAUNCHER ici ; la seule icône de Vision
+             dans le lanceur de la télé est celle de SetupActivity, comme sur le téléphone. -->
         <activity
             android:name=".LanceurActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|density|fontScale|keyboard|keyboardHidden|navigation|locale|layoutDirection"
@@ -81,10 +102,6 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
         <!-- 1.81.0 (point 14 bis) : le Mode Party (plein écran sur la télé, pilotage sur le téléphone d'un décideur). -->
@@ -104,6 +121,13 @@
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:theme="@android:style/Theme.Material.NoActionBar" />
         <!-- 1.82.0 : choisir la musique de la Party (Music Assistant). -->
+        <!-- l'auteur (16/10) : la recherche dans la moitié droite de la télé, par-dessus le lecteur (fenêtre translucide). -->
+        <activity
+            android:name=".ChoixMusiqueTeleActivity"
+            android:exported="false"
+            android:label="@string/manifeste_choisir_musique"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
             android:name=".ChoixMusiqueActivity"
             android:exported="false"
@@ -136,6 +160,11 @@
             android:label="@string/manifeste_scanner_qr"
             android:theme="@android:style/Theme.Material.NoActionBar" />
         <activity
+            android:name=".NouvelAppareilActivity"
+            android:exported="false"
+            android:label="@string/manifeste_nouvel_appareil"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
             android:name=".AppairageActivity"
             android:exported="false"
             android:label="@string/manifeste_appairage"
@@ -145,6 +174,12 @@
             android:exported="false"
             android:label="@string/manifeste_couleurs"
             android:theme="@android:style/Theme.Material.NoActionBar" />
+        <!-- 17-10 (l'auteur, point 12) : « Ajuster l'écran », la zone sûre de la télé. -->
+        <activity
+            android:name=".AjusterEcranActivity"
+            android:exported="false"
+            android:label="@string/zonesure_titre"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
         <!-- À la sortie de la veille : reprendre l'appli qui jouait, ou l'accueil. -->
         <activity
             android:name=".RetourActivity"
@@ -162,6 +197,11 @@
             android:exported="false"
             android:theme="@android:style/Theme.Material.NoActionBar" />
         <activity
+            android:name=".CategorieActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
             android:name=".ExceptionsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
@@ -170,6 +210,11 @@
             android:name=".EditeurWidgetHaActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <!-- Refonte lot 3 : la fiche allégée d'une personne (espace Décideur). -->
+        <activity
+            android:name=".FichePersonneActivity"
+            android:exported="false"
             android:theme="@android:style/Theme.Material.NoActionBar" />
         <activity
             android:name=".DetailFermesActivity"
@@ -200,6 +245,43 @@
             android:showOnLockScreen="true"
             android:turnScreenOn="true"
             android:theme="@style/Vision.Message" />
+
+        <!-- Réveil : l'écran qui sonne (par-dessus le verrouillage), la liste, la sonnerie, les alarmes système. -->
+        <activity
+            android:name=".ReveilActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:showOnLockScreen="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:taskAffinity="org.soprez.vision.reveil"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
+        <activity
+            android:name=".ReveilsActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <service
+            android:name=".MesureSonService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+        <service
+            android:name=".ReveilService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+        <receiver
+            android:name=".ReveilReceiver"
+            android:exported="false">
+            <!-- Non exporté : les diffusions du système arrivent quand même ; aucune autre appli ne fait sonner. -->
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".AgentService"
@@ -298,6 +380,11 @@
             android:excludeFromRecents="true"
             android:launchMode="singleTop" />
         <!-- Client Sendspin natif : l'appairage avec Music Assistant (PIN à l'écran, ou autorisation à la télécommande). -->
+        <!-- 1.90.1 : les lignes du détail d'un widget d'écran d'accueil, en liste qui défile. -->
+        <service
+            android:name=".WidgetHaListeService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
         <activity
             android:name=".WidgetHaActionActivity"
             android:exported="false"

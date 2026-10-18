@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Veille télé (lot repris pour la 1.92) : mise en place de l'économiseur, grille, cases typées. -->
+<resources>
+    <string name="eco_etat_vision">Der Fernseher startet bereits den Vision-Bildschirmschoner. Nichts zu tun.</string>
+    <string name="eco_etat_vision_eteint">Vision ist ausgewählt, aber der Bildschirmschoner des Fernsehers ist ausgeschaltet.</string>
+    <string name="eco_etat_autre">Der Bildschirmschoner des Fernsehers ist nicht Vision.</string>
+    <string name="eco_etat_inconnu">Dieser Fernseher verrät nicht, welchen Bildschirmschoner er nutzt.</string>
+    <string name="eco_ecrire">Vision darf den Bildschirmschoner selbst einstellen: Drück einfach auf „Vision wählen“.</string>
+    <string name="eco_reglage">In den Einstellungen, die sich öffnen, mit der Fernbedienung: Wähl „Bildschirmschoner“ (oder „Daydream“), dann „Vision“. Komm danach mit Zurück wieder.</string>
+    <string name="eco_adb">Dieses Modell bietet Vision in seinen Einstellungen nicht an (Google TV, Chromecast…). Ein Entscheider kann es einmal von einem Computer aus einstellen, mit ADB-Debugging auf dem Fernseher (Einstellungen → System → Entwickleroptionen):</string>
+    <string name="eco_adb_apres">Der erste Befehl reicht: Vision stellt den Bildschirmschoner danach selbst ein und setzt ihn nach einem Update des Fernsehers wieder. Die anderen beiden stellen ihn direkt ein.</string>
+    <string name="eco_repli_accueils">Bis dahin startet Vision seinen Bildschirmschoner auf dem Startbildschirm des Fernsehers nach %1$d Min. ohne Fernbedienung, nie über einer anderen App, und entfernt ihn beim ersten Tastendruck.</string>
+    <string name="eco_repli_accueil_vision">Bis dahin startet Vision seinen Bildschirmschoner nach %1$d Min. ohne Fernbedienung, nur auf seinem eigenen Startbildschirm. Für den Startbildschirm des Fernsehers aktiviere die Bedienungshilfe von Vision.</string>
+    <string name="eco_repli_aucun">Ohne Bildschirmschoner startet der von Vision nur von selbst, wenn Vision der Startbildschirm des Fernsehers ist oder seine Bedienungshilfe aktiv ist.</string>
+    <string name="eco_repli_jamais">Der Vision-Bildschirmschoner auf dem Startbildschirm steht auf „Nie“.</string>
+    <string name="eco_choisir_vision">Vision wählen</string>
+    <string name="eco_utiliser_repli">Vision-Bildschirmschoner verwenden</string>
+    <string name="eco_plus_tard">Später</string>
+    <string name="eco_ok">OK</string>
+    <string name="eco_ecrit">Erledigt: Der Fernseher startet den Vision-Bildschirmschoner.</string>
+    <string name="eco_ecrit_echec">Der Fernseher hat die Einstellung abgelehnt. Der Vision-Bildschirmschoner auf dem Startbildschirm übernimmt.</string>
+    <string name="eco_introuvable">Dieser Fernseher bietet die Einstellung des Bildschirmschoners nicht an. Der Vision-Bildschirmschoner auf dem Startbildschirm übernimmt.</string>
+    <string name="eco_valeur_vision">Vision</string>
+    <string name="eco_valeur_ecrire">OK: Vision wählen</string>
+    <string name="eco_valeur_reglage">Ein anderer: OK zum Ändern</string>
+    <string name="eco_valeur_adb">ADB-Befehl nötig: OK zum Anzeigen</string>
+    <string name="reg_pastille">Plakette hinter den Werten</string>
+    <string name="oui">Ja</string>
+    <string name="non">Nein</string>
+    <string name="reg_direct">Kameras live</string>
+    <string name="direct_auto">Auto</string>
+    <string name="direct_aide">Auto: immer nur eine Kamera live (leichter Stream), Bilder, wenn der Fernseher nicht mitkommt.</string>
+    <string name="direct_images">Nur Bilder</string>
+    <string name="ecart_instant">gerade eben</string>
+    <string name="ecart_min">vor %1$d Min.</string>
+    <string name="ecart_h">vor %1$d Std.</string>
+    <string name="ecart_hier">gestern</string>
+    <string name="ecart_j">vor %1$d T.</string>
+    <string name="agenda_aujourdhui">Heute</string>
+    <string name="agenda_demain">Morgen</string>
+    <string name="agenda_journee">Ganztägig</string>
+    <string name="agenda_vide">Nichts geplant</string>
+    <string name="clips_vide">Keine Aktivität</string>
+</resources>

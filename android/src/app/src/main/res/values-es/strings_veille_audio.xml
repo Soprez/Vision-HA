@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.0 (retour d'essai) : la musique de la veille, une playlist de Music Assistant, favorites en premier (VeilleAudio). -->
+<resources>
+    <string name="veilleaudio_playlist">Lista durante el salvapantallas</string>
+    <string name="veilleaudio_desactivee">Desactivada</string>
+    <string name="veilleaudio_titre_choix">Lista de Music Assistant (favoritas primero)</string>
+    <string name="veilleaudio_aucune">Music Assistant aún no tiene listas en su biblioteca. Busca una en tus servicios (YouTube Music…) aquí mismo.</string>
+    <string name="veilleaudio_erreur">No se pudieron leer las listas: %1$s</string>
+    <string name="veilleaudio_reessayer">Reintentar</string>
+    <string name="veilleaudio_note">La reproduce este dispositivo durante el salvapantallas, en lugar de la radio; se detiene al salir del salvapantallas. No se inicia nada si ya suena música.</string>
+</resources>

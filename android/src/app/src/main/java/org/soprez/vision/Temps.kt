@@ -24,11 +24,9 @@ object Temps {
      * l'option « Jusqu'à la prochaine plage » n'apparaît que s'il est à venir.
      */
     fun choisir(act: Activity, titre: String, prochain: Long, annule: () -> Unit = {}, ok: (Choix) -> Unit) {
-        val libelles = arrayListOf(act.resources.getQuantityString(R.plurals.temps_minutes, 15, 15),
-            act.resources.getQuantityString(R.plurals.temps_minutes, 30, 30),
-            act.resources.getQuantityString(R.plurals.temps_heures, 1, 1),
-            act.resources.getQuantityString(R.plurals.temps_heures, 2, 2), act.getString(R.string.temps_autre_duree))
-        val minutes = listOf(15, 30, 60, 120)
+        // Lot 6 (APP-08) : les mêmes durées de réponse partout (notification, plein écran, gestion).
+        val minutes = Durees.REPONSE
+        val libelles = ArrayList(Durees.libelles(minutes)).apply { add(act.getString(R.string.temps_autre_duree)) }
         val avecPlage = prochain > System.currentTimeMillis() + 60_000
         if (avecPlage) libelles.add(act.getString(R.string.temps_jusqua_plage, Etat.heure(prochain)))
         Ui.dialogue(act).setTitle(titre)
@@ -64,7 +62,7 @@ object Temps {
             .setPositiveButton(R.string.temps_accorder) { _, _ ->
                 val total = heures.value * 60 + mins.value * 5
                 if (total >= 5) ok(Choix(total, false))
-                else { android.widget.Toast.makeText(act, act.getString(R.string.temps_au_moins_5), android.widget.Toast.LENGTH_SHORT).show(); annule() }
+                else { Ui.toast(act, act.getString(R.string.temps_au_moins_5), court = true, genre = OeilModele.Genre.ERREUR); annule() }
             }
             .setNegativeButton(R.string.commun_annuler) { _, _ -> annule() }
             .setOnCancelListener { annule() }

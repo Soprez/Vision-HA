@@ -31,7 +31,7 @@ async def test_volume_vision_tenu_et_jamais_regle(hass, hass_storage, hass_clien
     await _monter(hass, hass_storage, monkeypatch)
     from custom_components.pc_parental import musique, party
     appels = _volumes(hass)
-    hass.states.async_set(MA_SALON, "idle", {"friendly_name": "Télé des parents · Vision", "volume_level": 1.0,
+    hass.states.async_set(MA_SALON, "idle", {"friendly_name": "Télé du bureau · Vision", "volume_level": 1.0,
                                              "active_queue": "qid-salon"})
     hass.states.async_set(MA_CHAMBRE, "idle", {"friendly_name": "Chambre", "volume_level": 0.4, "active_queue": "qid-chambre"})
     await hass.async_block_till_done()
@@ -39,7 +39,7 @@ async def test_volume_vision_tenu_et_jamais_regle(hass, hass_storage, hass_clien
 
     # Music Assistant pousse 10 % (nouvel identifiant, réglage par défaut) : HA remet 100 % sans attendre.
     appels.clear()
-    hass.states.async_set(MA_SALON, "idle", {"friendly_name": "Télé des parents · Vision", "volume_level": 0.1,
+    hass.states.async_set(MA_SALON, "idle", {"friendly_name": "Télé du bureau · Vision", "volume_level": 0.1,
                                              "active_queue": "qid-salon"})
     await hass.async_block_till_done()
     assert (MA_SALON, 1.0) in _ids(appels)
@@ -67,10 +67,10 @@ async def test_lecture_figee_exposee_arretee(hass, hass_storage, monkeypatch):
     from custom_components.pc_parental import party
     vieux = datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=party.FIGE_S + 30)
     frais = datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=5)
-    hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Télé des parents · Vision", "media_title": "Around the World",
+    hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Télé du bureau · Vision", "media_title": "Around the World",
                                                 "media_position": 0, "media_position_updated_at": vieux})
     assert party.maintenant(hass, MA_SALON)["etat"] == "idle"  # figée : position plus mise à jour depuis > 60 s
-    hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Télé des parents · Vision", "media_title": "Around the World",
+    hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Télé du bureau · Vision", "media_title": "Around the World",
                                                 "media_position": 42, "media_position_updated_at": frais})
     assert party.maintenant(hass, MA_SALON)["etat"] == "playing"
     # Un lecteur qui n'est pas de Music Assistant (Cast ordinaire) : jamais jugé figé.

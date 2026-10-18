@@ -42,7 +42,7 @@
   "maison.bouton_toujours_dispo": "Sempre disponibile",
   "maison.bouton_categorie": "Categoria",
   "maison.bouton_non": "No",
-  "maison.aide_choix": "Consenti: aperta anche se la sua categoria è bloccata, durante le fasce consentite del programma. Sempre disponibile: mai bloccata, anche con il dispositivo bloccato.",
+  "maison.aide_choix": "Eccezione: su tutti i suoi dispositivi, anche con la categoria chiusa, ma non durante le fasce orarie. Sempre disponibile: niente la chiude.",
   "maison.les_actifs": "Attivi ora",
   "maison.aucun_inscrit": "Ancora nessun dispositivo registrato.",
   "maison.aucun_appareil": "Nessun dispositivo",
@@ -405,7 +405,16 @@
   "code.injoignable": "Home Assistant non è raggiungibile: riprova tra un attimo.",
   "install.exemple_cle": "16 caratteri, per esempio 0123456789abcdef",
   "soutien.merci": "♥ Sostenitore — grazie!",
-  "soutien.soutenir": "Sostieni il progetto",
+  "soutien.soutenir": "☕ Offrimi un caffè",
   "code.faux": "Non è il codice giusto ({n} tentativo/i rimasto/i).",
-  "code.trop": "Troppi tentativi. Riprova tra {min} min."
+  "code.trop": "Troppi tentativi. Riprova tra {min} min.",
+  "maison.bouton_15": "15 min",
+  "maison.bouton_exception": "Eccezione",
+  "maison.bouton_refuser": "Rifiuta",
+  "moi.bloque_par_logiciel": "Ciò che blocca un programma",
+  "moi.groupe_sites_one": "{n} sito bloccato con esso:",
+  "moi.groupe_sites_other": "{n} siti bloccati con esso:",
+  "moi.demander_pour": "Chiedi l'accesso per {nom}",
+  "moi.tentatives_one": "{n} tentativo",
+  "moi.tentatives_other": "{n} tentativi"
 }

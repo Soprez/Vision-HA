@@ -55,4 +55,4 @@ Garder la même clé pour que les mises à jour s'installent par-dessus.
 - Mode sans échec : désactive tout agent tiers (seul le mode Device Owner
   l'empêche, non couvert ici).
 - Chromecast classique sans télécommande et Fire TV sous Vega OS : aucun APK
-  installable, utiliser le blocage réseau Freebox pour ces appareils.
+  installable, utiliser le contrôle d'accès de la box pour ces appareils.

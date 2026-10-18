@@ -4,7 +4,7 @@ package org.soprez.vision
 /**
  * Le glisser-déposer de l'accueil (Vision 1.63.1) : ce qui se décide, sans Android, pour être essayé.
  *
- * Bug l'auteur (Pixel 9, widget VLC) : après un déplacement, la zone « Glisser ici pour retirer » restait
+ * Bug l'auteur (widget VLC) : après un déplacement, la zone « Glisser ici pour retirer » restait
  * affichée et le widget restait grisé. Le nettoyage dépendait de la case glissée elle-même ; quand
  * elle n'était pas reconstruite (dépôt sans vrai déplacement) ou ne recevait pas la fin du glisser,
  * rien ne se remettait. Désormais, TOUTE fin de glisser passe par [EtatGlisser.fin], une seule fois.

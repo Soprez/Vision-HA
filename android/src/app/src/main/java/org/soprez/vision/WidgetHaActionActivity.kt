@@ -90,15 +90,32 @@ class WidgetHaActionActivity : Activity() {
                 b.contentDescription = getString(desc, nom)
                 b.minWidth = Ui.dp(this, 48f); b.minHeight = Ui.dp(this, 48f)
                 b.setOnClickListener {
-                    val v = WidgetsHa.valeurApres(e, st, sens) ?: return@setOnClickListener
                     avecConfirmation(e, nom, null) {
+                        // 17-10 (double envoi du 15/10) : la valeur part de la dernière demandée ; les appuis rapprochés
+                        // sont regroupés (un seul envoi, la valeur finale).
+                        val v = AppuisReglage.appui(e, st, sens, android.os.SystemClock.elapsedRealtime()) ?: return@avecConfirmation
                         st = st.copy(etat = WidgetsHa.nombre(v)); d.setMessage(texte())
-                        agir(e, "set_value", JSONObject().put("value", v), fermer = false)
+                        AppuisReglage.programmer(e.entityId) { agir(e, "set_value", JSONObject().put("value", v), fermer = false) }
                     }
                 }
             }
             brancher(AlertDialog.BUTTON_NEUTRAL, -1, R.string.wha_diminuer)
             brancher(AlertDialog.BUTTON_POSITIVE, 1, R.string.wha_augmenter)
+            // 17-10 : ouverte depuis l'écran d'accueil, la fenêtre peut partir d'un état ancien (catalogue) : − et + attendent
+            // l'état frais de Home Assistant (quelques secondes au plus) ; sans réponse, ils repartent de l'état connu.
+            if (FluxWidgets.etats[e.entityId] == null) {
+                val boutons = listOfNotNull(d.getButton(AlertDialog.BUTTON_NEUTRAL), d.getButton(AlertDialog.BUTTON_POSITIVE))
+                boutons.forEach { it.isEnabled = false }
+                val app = applicationContext
+                Thread {
+                    val frais = try { WidgetsHaStock.etats(app, listOf(e.entityId))[e.entityId] } catch (_: Exception) { null }
+                    main.post {
+                        if (isFinishing) return@post
+                        if (frais != null) { FluxWidgets.etats[e.entityId] = frais; st = frais; d.setMessage(texte()) }
+                        boutons.forEach { it.isEnabled = true }
+                    }
+                }.also { it.isDaemon = true }.start()
+            }
         }
         d.show()
     }
@@ -112,7 +129,7 @@ class WidgetHaActionActivity : Activity() {
             main.post {
                 when {
                     res.question != null && !confirme && !isFinishing -> avecConfirmation(e, nom, res.question) { agir(e, service, donnees, fermer) }
-                    res.message != null -> Toast.makeText(app, res.message, Toast.LENGTH_LONG).show()
+                    res.message != null -> { AppuisReglage.oublier(e.entityId); Ui.toast(app, res.message) }
                 }
                 if (fermer && res.question == null && !isFinishing) finish()
             }

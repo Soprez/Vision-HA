@@ -42,7 +42,7 @@
   "maison.bouton_toujours_dispo": "Siempre disponible",
   "maison.bouton_categorie": "Categoría",
   "maison.bouton_non": "No",
-  "maison.aide_choix": "Permitir: abierta aunque su categoría esté bloqueada, durante las franjas permitidas del horario. Siempre disponible: nunca bloqueada, aunque el dispositivo esté bloqueado.",
+  "maison.aide_choix": "Excepción: en todos sus aparatos, aunque la categoría esté cerrada, pero no durante las franjas. Siempre disponible: nada la cierra.",
   "maison.les_actifs": "Activos ahora",
   "maison.aucun_inscrit": "Todavía no hay ningún dispositivo registrado.",
   "maison.aucun_appareil": "Ningún dispositivo",
@@ -405,7 +405,16 @@
   "code.injoignable": "No se puede contactar con Home Assistant: inténtalo de nuevo en un momento.",
   "install.exemple_cle": "16 caracteres, por ejemplo 0123456789abcdef",
   "soutien.merci": "♥ Apoyo — ¡gracias!",
-  "soutien.soutenir": "Apoyar el proyecto",
+  "soutien.soutenir": "☕ Invítame a un café",
   "code.faux": "No es el código correcto (quedan {n} intento(s)).",
-  "code.trop": "Demasiados intentos. Vuelve a intentarlo en {min} min."
+  "code.trop": "Demasiados intentos. Vuelve a intentarlo en {min} min.",
+  "maison.bouton_15": "15 min",
+  "maison.bouton_exception": "Excepción",
+  "maison.bouton_refuser": "Rechazar",
+  "moi.bloque_par_logiciel": "Lo que bloquea un programa",
+  "moi.groupe_sites_one": "{n} sitio bloqueado con él:",
+  "moi.groupe_sites_other": "{n} sitios bloqueados con él:",
+  "moi.demander_pour": "Pedir acceso para {nom}",
+  "moi.tentatives_one": "{n} intento",
+  "moi.tentatives_other": "{n} intentos"
 }

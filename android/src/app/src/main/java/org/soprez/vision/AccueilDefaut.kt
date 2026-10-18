@@ -37,25 +37,7 @@ object AccueilDefaut {
     /** La protection des réglages laisse passer l'écran de choix pendant une minute. */
     fun demandeEnCours(): Boolean = System.currentTimeMillis() - demandeA < 60_000
 
-    /** L'ancienne Vision (ancien identifiant, Migration.ANCIEN) : Android la montre aussi « Vision » dans le choix de l'accueil. */
-    fun ancienPresent(ctx: Context): Boolean = try { ctx.packageManager.getPackageInfo(Migration.ANCIEN, 0); true } catch (_: Exception) { false }
-
-    /** Avec l'ancienne Vision encore là, deux « Vision » identiques dans la liste d'Android : la choisir ne marche pas. */
-    fun demander(act: Activity) {
-        if (!ancienPresent(act)) return lancer(act)
-        Ui.dialogue(act)
-            .setTitle(act.getString(R.string.accueildefaut_ancienne_titre))
-            .setMessage(act.getString(R.string.accueildefaut_ancienne_texte))
-            .setPositiveButton(act.getString(R.string.accueildefaut_desinstaller_ancienne)) { _, _ ->
-                // Un message long : une boîte qu'on ferme soi-même (un toast serait coupé en grands caractères).
-                if (!Migration.supprimerAncienne(act))
-                    Ui.dialogue(act).setTitle(act.getString(R.string.accueildefaut_a_la_main_titre))
-                        .setMessage(act.getString(R.string.accueildefaut_a_la_main_texte))
-                        .setPositiveButton(act.getString(R.string.commun_lot2_ok), null).show()
-            }
-            .setNeutralButton(act.getString(R.string.accueildefaut_continuer)) { _, _ -> lancer(act) }
-            .setNegativeButton(act.getString(R.string.commun_lot2_annuler), null).show()
-    }
+    fun demander(act: Activity) = lancer(act)
 
     /**
      * Module « accueil » coupé alors que Vision est l'accueil : l'écran du système pour en choisir un autre

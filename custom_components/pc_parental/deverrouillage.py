@@ -261,8 +261,11 @@ def creer(hass: HomeAssistant, coord, pc: dict[str, Any], corps: dict[str, Any])
         return textes.t("dev.demande_motif" if motif else "dev.demande", langue, qui=qui or nom,
                         quoi=libelle(action, langue), minutes=minutes, motif=motif)
 
+    from . import canaux
+
     for pid in roles.avec(coord.store, "approuver"):
-        if pid == pc["id"]:
+        # 2.5.6 : dans l'appli Vision des Décideurs qui l'ont choisie (canaux.py).
+        if pid == pc["id"] or not canaux.vision_pour(hass, coord.store, pid, "demandes"):
             continue
         langue_p = textes.pour(hass, coord.store.pcs.get(pid))
         try:
@@ -277,6 +280,10 @@ def creer(hass: HomeAssistant, coord, pc: dict[str, Any], corps: dict[str, Any])
         title=textes.t("dev.titre_demande", langue_ha), notification_id=f"{DOMAIN}_deverrouillage_{d['id']}",
     )
     hass.bus.async_fire(f"{DOMAIN}_deverrouillage_demande", public(hass, coord, d))
+    # Lot 2 : sur les téléphones des Décideurs (appli Compagnon), avec ses boutons.
+    from . import a_decider
+    hass.async_create_task(a_decider.notifier(hass, coord, "deverrouillage", d["pc"], d["id"], texte(langue_ha),
+                                              int(d["minutes"])))
     return d
 
 
@@ -516,7 +523,16 @@ def _nom(coord, d: dict[str, Any]) -> str:
 
 
 def _prevenir_parents(hass: HomeAssistant, coord, texte: textes.Phrase) -> None:
+    """Une alerte de protection : par les canaux que chaque Décideur a choisis pour les alertes (2.5.6)."""
+    from . import canaux
+
+    langue_ha = textes.ha(hass)
+    titre_ha = textes.t("dev.titre", langue_ha)
+    hass.async_create_task(canaux.compagnon_simple(hass, coord.store, "alertes", titre_ha, texte.en(langue_ha)))
+    hass.async_create_task(canaux.discord(hass, coord.store, "alertes", titre_ha, texte.en(langue_ha)))
     for pid in roles.avec(coord.store, "approuver"):
+        if not canaux.vision_pour(hass, coord.store, pid, "alertes"):
+            continue
         langue = textes.pour(hass, coord.store.pcs.get(pid))
         try:
             coord.store.add_message(pid, texte.en(langue), titre=textes.t("dev.titre", langue))

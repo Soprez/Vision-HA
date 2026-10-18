@@ -1,0 +1,77 @@
+{
+  "version": "2.5.10",
+  "date": "2026-10-17",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Soirée : le mode invités s'ouvre ou se ferme depuis le lecteur ; « Vider la file » garde le titre en cours.",
+        "en": "Party: guest mode opens or closes from the player; “Clear queue” keeps the current track.",
+        "de": "Party: Gästemodus im Player öffnen oder schließen; „Warteschlange leeren“ behält den aktuellen Titel.",
+        "es": "Fiesta: el modo invitados se abre o cierra desde el reproductor; «Vaciar la cola» conserva la canción actual.",
+        "it": "Festa: la modalità ospiti si apre o chiude dal lettore; «Svuota la coda» mantiene il brano in corso.",
+        "nl": "Feest: gastenmodus open of dicht vanuit de speler; ‘Wachtrij legen’ houdt het huidige nummer."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Widgets : une ligne choisie dans HA peut s'afficher sous la valeur (le mode du chauffage sous la consigne).",
+        "en": "Widgets: a line chosen in HA can show under the value (the heating mode under the set point).",
+        "de": "Widgets: Eine in HA gewählte Zeile kann unter dem Wert stehen (der Heizmodus unter dem Sollwert).",
+        "es": "Widgets: una línea elegida en HA puede mostrarse bajo el valor (el modo de calefacción bajo la consigna).",
+        "it": "Widget: una riga scelta in HA può comparire sotto il valore (la modalità di riscaldamento sotto la soglia).",
+        "nl": "Widgets: een regel gekozen in HA kan onder de waarde staan (de verwarmingsmodus onder het setpoint)."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Écran par appareil : depuis HA, la veille de Vision peut être coupée et l'écran gardé allumé.",
+        "en": "Per-device screen: from HA, Vision's screensaver can be turned off and the screen kept on.",
+        "de": "Bildschirm pro Gerät: In HA lässt sich Visions Bildschirmschoner abschalten und das Display anlassen.",
+        "es": "Pantalla por dispositivo: desde HA se puede quitar el salvapantallas de Vision y dejar la pantalla encendida.",
+        "it": "Schermo per dispositivo: da HA si può disattivare il salvaschermo di Vision e tenere acceso lo schermo.",
+        "nl": "Scherm per apparaat: vanuit HA kan de schermbeveiliging van Vision uit en het scherm aan blijven."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "pc"
+      ],
+      "texte": {
+        "fr": "Sécurité : la liste des logiciels des PC est réservée aux administrateurs, et son fichier local est protégé.",
+        "en": "Security: the PC software list is restricted to administrators, and its local file is protected.",
+        "de": "Sicherheit: Die Softwareliste der PCs ist Administratoren vorbehalten, ihre lokale Datei ist geschützt.",
+        "es": "Seguridad: la lista de programas de los PC queda reservada a los administradores y su archivo local, protegido.",
+        "it": "Sicurezza: l'elenco dei programmi dei PC è riservato agli amministratori e il suo file locale è protetto.",
+        "nl": "Beveiliging: de softwarelijst van de pc's is alleen voor beheerders, en het lokale bestand is beschermd."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Tableau de bord : vos retouches ne sont plus écrasées par une mise à jour ; le 1er onglet devient « Utilisateur ».",
+        "en": "Dashboard: your edits are no longer overwritten by an update; the first tab is now “User”.",
+        "de": "Dashboard: Ihre Änderungen bleiben bei Updates erhalten; der erste Tab heißt jetzt „Benutzer“.",
+        "es": "Panel: sus cambios ya no se sobrescriben al actualizar; la primera pestaña se llama «Usuario».",
+        "it": "Plancia: le tue modifiche non vengono più sovrascritte dagli aggiornamenti; la prima scheda è «Utente».",
+        "nl": "Dashboard: je aanpassingen blijven bij een update behouden; het eerste tabblad heet nu ‘Gebruiker’."
+      }
+    }
+  ]
+}

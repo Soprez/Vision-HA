@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lanceur : liste alphabétique (téléphone), place de la zone du haut, disposition Vertical (télé). -->
+<resources>
+    <string name="lanceur_liste_alpha">Alphabetische Liste</string>
+    <string name="lanceur_index_alpha">Alphabetischer Index</string>
+    <string name="lanceur_index_cote">Seite des Index</string>
+    <string name="lanceur_index_droite">Rechts</string>
+    <string name="lanceur_index_gauche">Links (Linkshänder)</string>
+    <string name="lanceur_favoris">Favoriten</string>
+    <string name="lanceur_favoris_haut">Favoriten oben angeheftet</string>
+    <string name="lanceur_epingler_favori">An Favoriten anheften</string>
+    <string name="lanceur_retirer_favori">Aus Favoriten entfernen</string>
+    <string name="lanceur_zone_position">Obere Zone</string>
+    <string name="lanceur_zone_dessus">Über den Symbolen</string>
+    <string name="lanceur_zone_dessous">Unter den Symbolen</string>
+    <string name="lanceur_tele_rangees">Reihen</string>
+    <string name="lanceur_tele_vertical">Vertikal</string>
+    <string name="lanceur_colonne">App-Spalte</string>
+    <string name="lanceur_colonne_gauche">Links</string>
+    <string name="lanceur_colonne_centre">Mitte</string>
+    <string name="lanceur_colonne_droite">Rechts</string>
+    <string name="lanceur_zone_gauche">Linke Widget-Zone</string>
+    <string name="lanceur_zone_droite">Rechte Widget-Zone</string>
+    <string name="lanceur_zone_activee">aktiv</string>
+    <string name="lanceur_zone_desactivee">aus</string>
+    <string name="lanceur_zone_widgets">Widgets auswählen</string>
+    <string name="lanceur_zone_activer">Diese Zone aktivieren</string>
+    <string name="lanceur_zone_desactiver">Diese Zone deaktivieren</string>
+    <string name="lanceur_zones_note">Eine Zone erscheint erst, wenn sie Widgets hat und aktiviert ist.</string>
+    <string name="lanceur_aide_deplacement_vertical">Hoch und runter verschieben · OK legt ab</string>
+</resources>

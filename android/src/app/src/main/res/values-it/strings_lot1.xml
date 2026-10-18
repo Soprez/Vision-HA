@@ -317,7 +317,7 @@
     <string name="whc_titre">Widget di Home Assistant</string>
     <string name="whc_sous_titre">Scegli l\'entità da mostrare, poi il suo stile. Vengono proposte solo le entità consentite su questo dispositivo.</string>
     <string name="whc_pas_relie">Vision non è ancora collegato a Home Assistant su questo dispositivo: apri Vision e collegalo prima.</string>
-    <string name="whc_desactives">I widget di Home Assistant sono disattivati in Vision (Configura → Moduli, in Home Assistant).</string>
+    <string name="whc_desactives">I widget di Home Assistant sono disattivati in Vision (Vision → Impostazioni → Funzioni, in Home Assistant).</string>
     <string name="whc_chargement">Caricamento delle entità… Se non ce n\'è nessuna, un amministratore deve consentirne alcune in Home Assistant (Vision → Widget HA).</string>
     <string name="whc_chercher">Cerca un\'entità</string>
     <string name="whc_pilotable">%1$s · si può comandare</string>
@@ -702,7 +702,6 @@
     <string name="setup_p_accueil">Rendi Vision la schermata Home</string>
     <string name="setup_p_accueil_detail">Il tasto Home apre Vision</string>
     <string name="setup_p_accueil_sans">Senza: il tasto Home riporta al launcher del telefono; Vision resta un\'app come le altre.</string>
-    <string name="setup_p_accueil_sans_ancienne">Senza: il tasto Home riporta al launcher del telefono; Vision resta un\'app come le altre. La vecchia Vision è ancora installata: ha lo stesso nome nell\'elenco di Android.</string>
     <string name="setup_p_maj">Aggiornamenti</string>
     <string name="setup_p_maj_detail">Vision può installare le sue nuove versioni</string>
     <string name="setup_p_maj_sans">Senza: ogni nuova versione attende una conferma sullo schermo.</string>
@@ -752,10 +751,6 @@
         <item quantity="other">E altre %1$d: «Correggi ora» le fa tutte di seguito, oppure «Tutte le autorizzazioni», in fondo allo schermo.</item>
     </plurals>
     <string name="setup_acces_refuse_aide">«Accesso negato» o interruttore grigio? Informazioni app ▸ menu ⋮ ▸ «Consenti impostazioni con limitazioni» (proposto dopo un primo rifiuto).</string>
-    <string name="setup_ancienne_titre">La vecchia versione di Vision è ancora qui</string>
-    <string name="setup_ancienne_texte">Questa app la sostituisce. Se la vecchia Vision protegge ancora questo dispositivo, sospendi prima la sua protezione (con il suo codice di gestione).</string>
-    <string name="setup_ancienne_supprimer">Rimuovi la vecchia versione</string>
-    <string name="setup_desinstallation_impossible">Impossibile aprire la disinstallazione</string>
     <string name="setup_encore_accueil">Vision è ancora la schermata Home</string>
     <string name="setup_encore_accueil_texte">Questa funzione è disattivata in Home Assistant. Scegli la schermata Home originale nella schermata di sistema.</string>
     <string name="setup_rendre_accueil">Ripristina la schermata Home originale</string>
@@ -798,20 +793,15 @@
     <string name="setup_voir_detail">%1$s, vedi il dettaglio</string>
     <string name="setup_tes_appareils">Sui tuoi dispositivi; gli schermi condivisi non contano.</string>
     <string name="setup_reglages">Impostazioni</string>
-    <string name="setup_apparence">Aspetto</string>
-    <string name="setup_apparence_detail">Tema, colori, modalità notte</string>
     <string name="setup_accueil_detail_tele">App visibili, bolla</string>
     <string name="setup_accueil_detail_oui">Vision è la schermata Home: sì · app, disposizione</string>
     <string name="setup_accueil_detail_non">Vision è la schermata Home: no · app, disposizione</string>
     <string name="setup_accueil_detail">App visibili, disposizione</string>
     <string name="setup_accueil">Schermata Home</string>
     <string name="setup_accueil_widgets">Schermata Home e widget</string>
-    <string name="setup_veille_detail_tableaux">Dashboard, suono, attesa</string>
-    <string name="setup_veille_detail">Suono, attesa</string>
     <string name="setup_statut_notif">Stato nelle notifiche</string>
     <string name="setup_statut_notif_affiche">Visibile: consentito o bloccato, e il tempo che resta</string>
     <string name="setup_masque">Nascosto</string>
-    <string name="setup_son_messages">Suono dei messaggi</string>
     <string name="setup_verrou">Personalizza la schermata di blocco</string>
     <string name="setup_verrou_fond_vision">Sfondo Vision: nome e stato (consentito, protezione sospesa, tempo scaduto, bloccato)</string>
     <string name="setup_verrou_fond_origine">Sfondo originale</string>
@@ -826,7 +816,7 @@
     <string name="setup_en_pause_reprise">Protezione sospesa, riprende %1$s</string>
     <string name="setup_gestion_detail_max">Codice, impronta, sospensione della protezione (massimo %1$d min)</string>
     <string name="setup_gestion_detail">Codice, impronta, sospensione della protezione</string>
-    <string name="setup_espace_gestion">Area di gestione</string>
+    <string name="setup_espace_gestion">Sblocco</string>
     <string name="setup_tout_en_ordre">✅ Tutto in ordine</string>
     <string name="setup_toutes_autorisations">Tutte le autorizzazioni</string>
     <plurals name="setup_n_accordees">
@@ -856,7 +846,7 @@
     <string name="setup_connecter">Collega</string>
     <string name="setup_pas_trouve">Nessun indirizzo e nessuna chiave trovati in questo testo</string>
     <string name="setup_par_qr">Oppure con codice QR, senza chiave</string>
-    <string name="setup_qr_camera_texte">In Home Assistant, un amministratore apre Vision → Configura → Genera un QR di abbinamento; scansionalo con questo dispositivo.</string>
+    <string name="setup_qr_camera_texte">In Home Assistant, un amministratore apre Vision → Configura → Aggiungi un dispositivo, fino al QR di abbinamento; scansionalo con questo dispositivo.</string>
     <string name="setup_scanner_qr_ha">Scansiona il QR di Home Assistant</string>
     <string name="setup_qr_inverse">Oppure il contrario: Vision mostra un QR e un codice, un %1$s lo scansiona con l\'app Home Assistant e conferma.</string>
     <string name="setup_qr_sans_camera">Vision mostra un QR e un codice; un %1$s lo scansiona con l\'app Home Assistant del suo telefono e conferma.</string>

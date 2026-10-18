@@ -70,6 +70,10 @@ object WidgetsHa {
         /** 1.90.0 : le toucher réglé dans Home Assistant pour CET appareil (droits compris), son chemin, et le droit
          *  d'ouvrir les détails ou une vue (ce que l'éditeur peut proposer de plus). */
         val toucher: String = TOUCHER_ROLE, val chemin: String = "", val ouvrir: Boolean = false,
+        /** 1.91.3 : la mise en page réglée dans Home Assistant (une seule configuration par entité). */
+        val miseEnPage: MiseEnPage = MiseEnPage(),
+        /** 17-10 (l'auteur, « widget chauffage lisible ») : la ligne sous la valeur (entité « texte » choisie dans HA) ; null : aucune. */
+        val texte: String? = null,
     )
 
     /** Une ligne du détail : un élément d'une liste (todo), ou un attribut et sa valeur. */
@@ -77,7 +81,9 @@ object WidgetsHa {
 
     /** `detail` null : le serveur n'en a pas donné cette fois (on garde le précédent). */
     data class EtatEntite(val etat: String, val attributs: Map<String, Any?> = emptyMap(), val depuis: String = "",
-                          val detail: List<Ligne>? = null, val detailTotal: Int = 0)
+                          val detail: List<Ligne>? = null, val detailTotal: Int = 0,
+                          /** 17-10 : la ligne sous la valeur ; null : le serveur n'en a pas donné (ancienne version, ou aucune). */
+                          val texte: String? = null)
 
     data class Point(val ts: Long, val v: Double)
     data class Segment(val debut: Long, val fin: Long, val etat: String)
@@ -104,7 +110,72 @@ object WidgetsHa {
             o.t("etat"), attr, o.l("actions").mapNotNull { it?.toString() }, o.l("styles").mapNotNull { it?.toString() },
             o.t("role"), o["confirmer"] == true, o.t("affichage").takeIf { it in AFFICHAGES && it.isNotEmpty() } ?: AFF_VALEUR,
             lignes(o) ?: emptyList(), total(o),
-            toucher = o.t("toucher").takeIf { it in TOUCHERS } ?: TOUCHER_ROLE, chemin = o.t("chemin"), ouvrir = o["ouvrir"] == true)
+            toucher = o.t("toucher").takeIf { it in TOUCHERS } ?: TOUCHER_ROLE, chemin = o.t("chemin"), ouvrir = o["ouvrir"] == true,
+            miseEnPage = miseEnPageDe(o.m("mise_en_page")), texte = o["texte"] as? String)
+    }
+
+    /**
+     * 17-10 (retour d'essai) : la ligne sous la valeur en une case de large (1 × 1) — le mode et l'heure seulement : « Réduit jusqu'à
+     * 12:00, puis Confort 20 °C » → « Réduit → 12:00 ». Sans heure : le premier mot. Pur.
+     */
+    fun texteCourt(t: String): String {
+        val mot = t.trim().split(' ', ',', '·').firstOrNull { it.isNotBlank() }.orEmpty()
+        val heure = Regex("""\b\d{1,2}[:h]\d{2}\b""").find(t)?.value
+        return if (heure != null && mot.isNotEmpty() && !mot.contains(heure)) "$mot → $heure" else mot
+    }
+
+    // ------------------------------------------------------------------ 1.91.3 : la mise en page (réglée dans HA)
+
+    const val GAUCHE = "gauche"; const val CENTRE = "centre"; const val DROITE = "droite"
+    const val HAUT = "haut"; const val BAS = "bas"
+    const val REMPLIR = "remplir"
+    val ALIGNS_H = listOf(GAUCHE, CENTRE, DROITE)
+    val ALIGNS_V = listOf(HAUT, CENTRE, BAS)
+    val TAILLES = listOf(REMPLIR, "s", "m", "l", "xl")
+    /** Les styles qui suivent la mise en page (un titre et une valeur) ; bouton, graphique, météo, lecteur… gardent la leur. */
+    val STYLES_MISE_EN_PAGE = listOf(TUILE, REGLAGE, INTERRUPTEUR, JAUGE, OUVERTURE)
+
+    /**
+     * La mise en page d'un widget : alignement horizontal et vertical du titre et de la valeur, taille de la valeur
+     * (« remplir » : la plus grande qui tient ; ou S, M, L, XL), titre et icône montrés ou non. Une seule configuration
+     * par entité, dans Home Assistant (onglet Widgets HA, ou l'éditeur de l'appli d'un Décideur). Défaut (retour d'essai) : valeur
+     * grande et centrée, titre et icône montrés.
+     */
+    data class MiseEnPage(val alignH: String = CENTRE, val alignV: String = CENTRE, val taille: String = REMPLIR,
+                          val titre: Boolean = true, val icone: Boolean = true)
+
+    /** D'après ce qu'envoie HA (« mise_en_page ») ; une valeur inconnue → le défaut. Pur. */
+    fun miseEnPageDe(o: Map<String, Any?>): MiseEnPage {
+        val d = MiseEnPage()
+        return MiseEnPage(
+            (o["align_h"] as? String)?.takeIf { it in ALIGNS_H } ?: d.alignH,
+            (o["align_v"] as? String)?.takeIf { it in ALIGNS_V } ?: d.alignV,
+            (o["taille"] as? String)?.takeIf { it in TAILLES } ?: d.taille,
+            o["titre"] as? Boolean ?: d.titre,
+            o["icone"] as? Boolean ?: d.icone)
+    }
+
+    /** Ce qu'on envoie à HA (/widgets/mise_en_page). Pur. */
+    fun versHa(m: MiseEnPage): Map<String, Any> = mapOf("align_h" to m.alignH, "align_v" to m.alignV, "taille" to m.taille, "titre" to m.titre, "icone" to m.icone)
+
+    /** La mise en page d'un widget : l'aperçu de l'éditeur s'il y en a un, sinon celle de HA. */
+    fun miseEnPage(r: Reglage, e: Entite): MiseEnPage = r.apercu ?: e.miseEnPage
+
+    /** Taille (sp) de la valeur pour S, M, L, XL ; un widget petit (moins de 110 dp) un cran plus bas. Pur. */
+    fun tailleSp(taille: String, petit: Boolean): Float {
+        val base = when (taille) { "s" -> 16f; "m" -> 22f; "l" -> 30f; "xl" -> 40f; else -> 28f }
+        return if (petit) base * 0.72f else base
+    }
+
+    /**
+     * « Remplir » : la taille (px) qui fait tenir un texte d'une ligne dans [largeur] × [hauteur], sachant sa largeur
+     * [largeurA100] et sa hauteur de ligne [hauteurA100] à 100 px ; bornée à [min]..[max]. Pur.
+     */
+    fun tailleQuiTient(largeurA100: Float, hauteurA100: Float, largeur: Float, hauteur: Float, min: Float, max: Float): Float {
+        if (largeur <= 0f || hauteur <= 0f) return min
+        val parLargeur = if (largeurA100 > 0f) largeur * 100f / largeurA100 else max
+        val parHauteur = if (hauteurA100 > 0f) hauteur * 100f / hauteurA100 else max
+        return minOf(parLargeur, parHauteur, max).coerceAtLeast(min)
     }
 
     /** 1.90.0 : un chemin de Home Assistant (« / » en tête, jamais une autre adresse ni « // ») ; null sinon. */
@@ -155,7 +226,7 @@ object WidgetsHa {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun etatDe(o: Map<String, Any?>): EtatEntite = EtatEntite(o.t("etat"), o.m("attributs_utiles"), o.t("depuis"), lignes(o), total(o))
+    private fun etatDe(o: Map<String, Any?>): EtatEntite = EtatEntite(o.t("etat"), o.m("attributs_utiles"), o.t("depuis"), lignes(o), total(o), o["texte"] as? String)
 
     /** /widgets/etats → {entity_id: état}. */
     @Suppress("UNCHECKED_CAST")
@@ -234,7 +305,7 @@ object WidgetsHa {
         code == 400 -> Tr.s(R.string.wha_err_400)
         code == 401 -> Tr.s(R.string.wha_err_401)
         code <= 0 -> Tr.s(R.string.wha_err_injoignable)
-        else -> Tr.s(R.string.wha_err_autre, code)
+        else -> Tr.s(R.string.lot6_err_widget)
     }
 
     // ------------------------------------------------------------------ styles
@@ -303,11 +374,25 @@ object WidgetsHa {
         val affichage: String = AFF_HA,
         /** 1.90.0 : le toucher choisi pour CE widget ("" : comme réglé dans Home Assistant) et le chemin d'une vue. */
         val toucher: String = TOUCHER_HA, val chemin: String = "",
+        /** 1.91.2 (retour d'essai) : le contenu (détail) défile dans le widget ; sinon ce qui tient, puis « Voir tout ». */
+        val defilement: Boolean = true,
+        /** 1.91.2 (retour d'essai) : la hauteur maximale du détail ([HAUTEUR_COMPACTE], [HAUTEUR_MOYENNE], [HAUTEUR_GRANDE]). */
+        val hauteur: String = HAUTEUR_MOYENNE,
+        /** 1.91.3 : la mise en page en cours de choix dans l'éditeur (aperçu) ; jamais enregistrée ici : elle vit dans HA. */
+        val apercu: MiseEnPage? = null,
     )
+
+    const val HAUTEUR_COMPACTE = "compacte"
+    const val HAUTEUR_MOYENNE = "moyenne"
+    const val HAUTEUR_GRANDE = "grande"
+    val HAUTEURS = listOf(HAUTEUR_COMPACTE, HAUTEUR_MOYENNE, HAUTEUR_GRANDE)
+
+    /** Le nombre de lignes de détail visibles au plus, selon la hauteur maximale choisie. */
+    fun lignesMax(hauteur: String): Int = when (hauteur) { HAUTEUR_COMPACTE -> 3; HAUTEUR_GRANDE -> 10; else -> 6 }
 
     fun encoder(r: Reglage): String = Json.ecrire(linkedMapOf("id" to r.id, "entites" to r.entites, "style" to r.style, "w" to r.w, "h" to r.h,
         "libelle" to r.libelle, "icone" to r.icone, "variante" to r.variante, "periode" to r.periode, "affichage" to r.affichage,
-        "toucher" to r.toucher, "chemin" to r.chemin))
+        "toucher" to r.toucher, "chemin" to r.chemin, "defilement" to r.defilement, "hauteur" to r.hauteur))
 
     fun decoder(s: String?): Reglage? {
         val o = Json.objet(s) ?: return null
@@ -317,7 +402,9 @@ object WidgetsHa {
         return Reglage(o.t("id"), entites, style, (o["w"] as? Double)?.toInt() ?: 2, (o["h"] as? Double)?.toInt() ?: 1,
             o.t("libelle"), o.t("icone"), o.t("variante").ifEmpty { "ligne" }, o.t("periode").ifEmpty { "24h" },
             o.t("affichage").takeIf { it in AFFICHAGES } ?: AFF_HA,
-            o.t("toucher").takeIf { it in TOUCHERS } ?: TOUCHER_HA, o.t("chemin"))
+            o.t("toucher").takeIf { it in TOUCHERS } ?: TOUCHER_HA, o.t("chemin"),
+            // 1.91.2 : absent (widget d'avant) → défilement activé, hauteur moyenne.
+            o["defilement"] as? Boolean ?: true, o.t("hauteur").takeIf { it in HAUTEURS } ?: HAUTEUR_MOYENNE)
     }
 
     // ------------------------------------------------------------------ affichage et détail (1.88.0)
@@ -542,6 +629,31 @@ object WidgetsHa {
             sommes[k] += p.v; ts[k] += (p.ts - debut); n[k]++
         }
         return (0 until max).filter { n[it] > 0 }.map { Point(debut + ts[it] / n[it], sommes[it] / n[it]) }
+    }
+
+    /**
+     * 16-10 (l'auteur : « la courbe ne prend pas toute la largeur, parfois seule la moitié est dessinée ») : ce que trace une
+     * courbe, de [debut] à [fin]. Un capteur n'envoie qu'à chaque changement : sa dernière valeur tient jusqu'à
+     * maintenant (prolongée jusqu'à [fin]), et la valeur d'avant la période tient depuis [debut]. Sans valeur d'avant
+     * (historique plus court : capteur récent, Home Assistant redémarré), la courbe commence à la première mesure.
+     * Rend la fenêtre de temps (début, fin) et les points : la courbe occupe toujours toute la largeur.
+     */
+    /** Le côté (px) des boutons − / + d'un widget de [largeur] × [hauteur] px ; [unDp] : 1 dp en px. */
+    fun coteBouton(largeur: Float, hauteur: Float, unDp: Float): Float =
+        minOf(hauteur * 0.42f, largeur * 0.25f).coerceIn(30f * unDp, 48f * unDp)
+
+    fun courbe(points: List<Point>, debut: Long, fin: Long): Pair<Pair<Long, Long>, List<Point>> {
+        val tries = points.sortedBy { it.ts }
+        val avant = tries.lastOrNull { it.ts <= debut }
+        val dedans = tries.filter { it.ts > debut && it.ts <= fin }
+        val l = ArrayList<Point>()
+        if (avant != null) l.add(Point(debut, avant.v))
+        l.addAll(dedans)
+        if (l.isEmpty()) return (debut to fin) to emptyList()
+        if (l.last().ts < fin) l.add(Point(fin, l.last().v))
+        val depart = l.first().ts
+        // Une seule mesure, juste maintenant : un trait plat sur toute la largeur plutôt qu'un point.
+        return (if (depart >= fin) (debut to fin) else (depart to fin)) to (if (l.size == 1) listOf(Point(debut, l[0].v), Point(fin, l[0].v)) else l)
     }
 
     /** Les barres : une par heure (24 h) ou par jour (7 j), moyenne des points ; null là où il n'y a rien. */

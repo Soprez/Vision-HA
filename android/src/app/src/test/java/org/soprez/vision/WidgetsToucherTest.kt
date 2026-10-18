@@ -23,7 +23,7 @@ class WidgetsToucherTest {
 
     @Test fun adresse_web_sans_appli_compagnon() {
         // La dernière adresse qui a répondu (l'interne à la maison, l'externe dehors), puis le chemin.
-        assertEquals("http://192.168.1.11:8123/lovelace/0", OuvrirHa.adresseWeb(listOf("http://192.168.1.11:8123/", "https://exemple.exemple.org"), "/lovelace/0"))
+        assertEquals("http://10.1.1.11:8123/lovelace/0", OuvrirHa.adresseWeb(listOf("http://10.1.1.11:8123/", "https://exemple.exemple.org"), "/lovelace/0"))
         assertEquals("https://exemple.exemple.org/jardin", OuvrirHa.adresseWeb(listOf("https://exemple.exemple.org"), "/jardin"))
         assertNull(OuvrirHa.adresseWeb(emptyList(), "/jardin"))
         assertNull(OuvrirHa.adresseWeb(listOf("https://exemple.exemple.org"), "https://ailleurs.invalid"))

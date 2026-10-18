@@ -19,6 +19,34 @@ object Acces {
     /** Refus récents des parents (relevé, `refus`) : « genre:nom » → fin (ms). Comme l'agent Windows. */
     @Volatile private var refus: Map<String, Long> = emptyMap()
 
+    /** HA 2.5.1 (ajouts 5 et 6 de l'auteur) : les sites bloqués récemment qu'on peut demander, et les mêmes par logiciel. */
+    @Volatile var recents: org.json.JSONArray = org.json.JSONArray()
+    @Volatile var groupes: org.json.JSONArray = org.json.JSONArray()
+
+    fun poserRecents(r: JSONObject) {
+        recents = r.optJSONArray("bloques_recents") ?: org.json.JSONArray()
+        groupes = r.optJSONArray("groupes") ?: org.json.JSONArray()
+    }
+
+    /** « Roblox ne marche pas : 6 sites bloqués » : une seule demande pour le logiciel et ses sites. */
+    fun demanderGroupe(ctx: Context, app: String, libelle: String, sites: List<String>, apres: ((Boolean) -> Unit)? = null) {
+        val cfg = Config(ctx.applicationContext)
+        val principal = Handler(Looper.getMainLooper())
+        envoyees["apps:$app"] = System.currentTimeMillis()
+        Thread {
+            val ok = try {
+                Net.post(ctx, cfg, "/api/pc_parental/demande", JSONObject()
+                    .put("id", cfg.id).put("secret", cfg.secret).put("genre", "apps").put("nom", app)
+                    .put("libelle", libelle).put("sites", org.json.JSONArray(sites))).optBoolean("ok")
+            } catch (_: Exception) { false }
+            if (!ok) envoyees.remove("apps:$app")
+            principal.post {
+                Ui.toast(ctx, if (ok) ctx.getString(R.string.acces_demande_envoyee) else ctx.getString(R.string.acces_envoi_impossible), genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)
+                apres?.invoke(ok)
+            }
+        }.start()
+    }
+
     fun poserRefus(a: org.json.JSONArray?) {
         val m = HashMap<String, Long>()
         if (a != null) for (i in 0 until a.length()) {
@@ -59,7 +87,7 @@ object Acces {
             } catch (_: Exception) { false }
             if (!ok) envoyees.remove("$genre:$nom")
             principal.post {
-                Toast.makeText(ctx, if (ok) ctx.getString(R.string.acces_demande_envoyee) else ctx.getString(R.string.acces_envoi_impossible), Toast.LENGTH_LONG).show()
+                Ui.toast(ctx, if (ok) ctx.getString(R.string.acces_demande_envoyee) else ctx.getString(R.string.acces_envoi_impossible), genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)
                 apres?.invoke(ok)
             }
         }.start()
@@ -114,7 +142,9 @@ object Acces {
     }
 
     /** Un parent répond à une demande d'accès. decision : toujours | temporaire | non. */
-    fun repondre(ctx: Context, pc: String, demande: String, decision: String, minutes: Int = 60, apres: ((Geste.Resultat) -> Unit)? = null) {
+    // HA 2.5.0 : decision « accorder » avec un mode (« exception », « toujours ») ; vide pour les autres décisions.
+    fun repondre(ctx: Context, pc: String, demande: String, decision: String, minutes: Int = Durees.ACCES_TEMPORAIRE, mode: String = "",
+                 elements: org.json.JSONArray? = null, apres: ((Geste.Resultat) -> Unit)? = null) {
         val cfg = Config(ctx.applicationContext)
         val principal = Handler(Looper.getMainLooper())
         Thread {
@@ -123,7 +153,11 @@ object Acces {
                 val r = Net.post(ctx, cfg, "/api/pc_parental/parent", JSONObject()
                     .put("id", cfg.id).put("secret", cfg.secret)
                     .put("action", "acces").put("pc", pc).put("demande", demande)
-                    .put("decision", decision).put("minutes", minutes))
+                    .put("decision", decision).put("minutes", minutes).apply {
+                        if (mode.isNotEmpty()) put("mode", mode)
+                        // HA 2.5.1 : une demande groupée acceptée élément par élément (sans liste : tout).
+                        if (elements != null) put("elements", elements)
+                    })
                 ok = r.optBoolean("deja") || r.optBoolean("ok")
                 when {
                     r.optBoolean("deja") -> ctx.getString(R.string.acces_deja_traite, Vocabulaire.decideur(ctx))
@@ -133,7 +167,7 @@ object Acces {
             } catch (e: Net.Echec) {
                 Geste.messageEchec(e.code)
             } catch (_: Exception) { ctx.getString(R.string.commun_lot2_injoignable) }
-            principal.post { Toast.makeText(ctx, texte, Toast.LENGTH_LONG).show(); apres?.invoke(Geste.Resultat(ok, texte)) }
+            principal.post { Ui.toast(ctx, texte, genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR); apres?.invoke(Geste.Resultat(ok, texte)) }
         }.start()
     }
 }

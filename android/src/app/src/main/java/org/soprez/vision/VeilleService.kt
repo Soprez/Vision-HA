@@ -47,6 +47,8 @@ class VeilleService : DreamService() {
         cadre.addView(v, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         cadre.addView(cameras, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         VeilleWeb.attacher(cadre, v)
+        // 1.93.05 (retour 36) : par-dessus tout (page de HA comprise), le bandeau « Lecteur musique ».
+        cadre.addView(CoinsVeille(cadre.context, v).apply { tag = "coins_veille" }, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         vue = v
         setContentView(cadre)
         this.cadre = cadre

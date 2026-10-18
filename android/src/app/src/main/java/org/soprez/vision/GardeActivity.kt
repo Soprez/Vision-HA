@@ -25,7 +25,11 @@ class GardeActivity : Activity() {
         val choisir = i.getBooleanExtra(ReponseReceiver.EXTRA_CHOISIR, false)
         val prochain = Etat.lireDate(i.getStringExtra(ReponseReceiver.EXTRA_PROCHAIN) ?: "")
         fun fermerNotif() { if (notif != 0) (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(notif) }
-        Garde.exiger(this, ParentsActivity.RAISON, annule = { finish() }) {
+        // FAILLE (l'auteur, 16-10) : accorder depuis la notification = empreinte ou code à chaque fois ; refuser : garde ordinaire.
+        val accorde = if (decision != null) decision != "non" else (choisir || minutes > 0)
+        val garde: (() -> Unit) -> Unit = { f -> if (accorde) Garde.exigerOctroi(this, ParentsActivity.RAISON, annule = { finish() }, ok = f)
+            else Garde.exiger(this, ParentsActivity.RAISON, annule = { finish() }, ok = f) }
+        garde {
             when {
                 decision != null -> { fermerNotif(); Acces.repondre(applicationContext, pc, demande, decision, minutes); finish() }
                 choisir -> Temps.choisir(this, getString(R.string.garde_accorder_du_temps), prochain, annule = { finish() }) { ch ->

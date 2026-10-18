@@ -23,7 +23,7 @@
     <string name="lieu_defaut">Lugar</string>
     <string name="soutien_titre">Apoyar el proyecto</string>
     <string name="soutien_badge">♥ Apoyo</string>
-    <string name="soutien_carte">☕ Invítanos a un café</string>
+    <string name="soutien_carte">☕ Invítame a un café</string>
     <string name="soutien_merci">¡Gracias! Este lugar apoya a Vision.</string>
     <string name="soutien_explication">La insignia de apoyo es solo decorativa: no desbloquea nada, Vision hace exactamente lo mismo para todos.</string>
     <string name="soutien_comment">Para activarla: en Home Assistant, Ajustes → Dispositivos y servicios → Vision → Configurar → Apoyar el proyecto.</string>

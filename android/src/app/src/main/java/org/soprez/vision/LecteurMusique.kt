@@ -48,6 +48,16 @@ object LecteurMusique {
     fun positionLocale(ctx: Context, ici: Boolean, lecteurNom: String): Double? =
         if (LecteurSendspin.actif) LecteurSendspin.positionLocale(ctx, ici, lecteurNom) else LecteurSlim.positionLocale(ctx, ici, lecteurNom)
 
+    /**
+     * 1.91.0 : un saut dans le titre, à [quand] (elapsedRealtime). Seul le lecteur Classique en a besoin (il repart de
+     * zéro à chaque flux) ; Sendspin reçoit la nouvelle position de Music Assistant. Rien si cet appareil n'est pas le
+     * lecteur de la Party.
+     */
+    fun saut(ctx: Context, ici: Boolean, lecteurNom: String, positionS: Double, quand: Long) {
+        if (LecteurSendspin.actif) return
+        LecteurSlim.saut(ctx, ici, lecteurNom, positionS, quand)
+    }
+
     /** Le nom affiché dans Music Assistant : celui de l'appareil, avec « · Vision » (les deux moteurs le partagent). */
     fun nom(ctx: Context): String = LecteurSlim.nom(ctx)
 }

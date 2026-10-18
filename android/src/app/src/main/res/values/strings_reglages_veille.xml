@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- l'auteur (15/10) : une seule section « Veille » dans les réglages de Vision (musique de la veille, cartes, ouvertures). -->
+<resources>
+    <string name="reglages_section_veille">Screensaver</string>
+    <string name="reglages_veille_musique">Screensaver music</string>
+    <string name="reglages_veille_cartes">Cards and openings</string>
+</resources>

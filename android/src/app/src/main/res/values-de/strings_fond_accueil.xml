@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.x (retour d'essai) : l'arrière-plan de l'accueil (FondAccueil). -->
+<resources>
+    <string name="fondacc_titre">Hintergrund</string>
+    <string name="fondacc_sorte_defaut">Aktuell (dezente Animation)</string>
+    <string name="fondacc_sorte_uni">Einfarbig</string>
+    <string name="fondacc_sorte_degrade">Verlauf</string>
+    <string name="fondacc_sorte_photo">Foto</string>
+    <string name="fondacc_sorte_anime">Animierter Hintergrund</string>
+    <string name="fondacc_teinte_fond">Hintergrund des Designs</string>
+    <string name="fondacc_teinte_n">Farbton %1$d</string>
+    <string name="fondacc_voile">Lesbarkeitsschleier</string>
+    <string name="fondacc_voile_auto">Automatisch</string>
+    <string name="fondacc_voile_plus">Stärker</string>
+    <string name="fondacc_voile_max">Am stärksten</string>
+    <string name="fondacc_demandeur">Hintergrund änderbar durch %1$s</string>
+    <string name="fondacc_raison">Hintergrund des Startbildschirms ändern</string>
+    <string name="fondacc_photo_echec">Das Foto konnte nicht gelesen werden.</string>
+    <string name="fondacc_note">Ein Schleier hält Uhrzeit und Karten lesbar; die Karten behalten ihren eigenen Hintergrund.</string>
+    <string name="fondacc_style">Stil</string>
+</resources>

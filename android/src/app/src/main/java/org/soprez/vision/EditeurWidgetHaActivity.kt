@@ -56,6 +56,11 @@ class EditeurWidgetHaActivity : Activity() {
     private var affichage = WidgetsHa.AFF_HA
     /** 1.90.0 : le toucher de ce widget ("" : comme réglé dans Home Assistant) et le chemin d'une vue. */
     private var toucher = WidgetsHa.TOUCHER_HA
+    /** 1.91.2 (retour d'essai) : le contenu défile dans le widget, et sa hauteur maximale. */
+    private var defilement = true
+    private var hauteur = WidgetsHa.HAUTEUR_MOYENNE
+    /** 1.91.3 : la mise en page choisie ici (null : inchangée, celle de Home Assistant) ; envoyée à HA à l'enregistrement. */
+    private var miseEnPage: WidgetsHa.MiseEnPage? = null
     private var cheminVue = ""
     private var recherche = ""
     private var listeOuverte = true
@@ -76,6 +81,7 @@ class EditeurWidgetHaActivity : Activity() {
             choisies = ArrayList(r.entites); style = r.style; taille = r.w to r.h; libelle = r.libelle; icone = r.icone; variante = r.variante; periode = r.periode
             affichage = r.affichage
             toucher = r.toucher; cheminVue = r.chemin
+            defilement = r.defilement; hauteur = r.hauteur
             listeOuverte = false
         }
         val racine = ScrollView(this).apply { isVerticalScrollBarEnabled = false; setBackgroundColor(theme.fond); isFillViewport = true }
@@ -118,8 +124,24 @@ class EditeurWidgetHaActivity : Activity() {
 
     private fun section(titre: String) = contenu.addView(texte(titre.uppercase(Locale.FRANCE), 11f, theme.encre2, Polices.gras(this)).apply { letterSpacing = 0.2f; setPadding(px(4f), px(18f), 0, px(8f)) })
 
-    /** Des pastilles qui passent à la ligne (FlowLayout maison). */
-    private fun rangeeChoix(): Pastilles = Pastilles(this, px(8f)).also { contenu.addView(it) }
+    /**
+     * 15-10 (règle UX de l'auteur) : un choix parmi des options — en étiquettes si 3 au plus tiennent sur une ligne, sinon en
+     * liste déroulante qui montre l'option choisie (ChoixAdaptatif, le composant de toute l'appli).
+     */
+    private fun choixUnique(titre: String, options: List<Pair<String, String>>, choisie: String, cle: String, icones: Map<String, android.graphics.drawable.Drawable> = emptyMap(), change: (String) -> Unit) {
+        contenu.addView(Ui.choix(this, titre, options.map { (k, l) -> ChoixAdaptatif.Option(k, l, icones[k]) }, choisie, theme, t(14f), change).apply { tag = cle },
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = px(6f) })
+    }
+
+    /** Un picto de Vision en image (pour les listes) : dessiné une fois à la taille d'une icône. */
+    private fun dessinPicto(nom: String): android.graphics.drawable.Drawable {
+        val c = px(20f)
+        val v = Picto(this, nom, theme.or)
+        v.measure(View.MeasureSpec.makeMeasureSpec(c, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(c, View.MeasureSpec.EXACTLY)); v.layout(0, 0, c, c)
+        val bmp = android.graphics.Bitmap.createBitmap(c, c, android.graphics.Bitmap.Config.ARGB_8888)
+        v.draw(android.graphics.Canvas(bmp))
+        return android.graphics.drawable.BitmapDrawable(resources, bmp)
+    }
 
     private fun entite(id: String): WidgetsHa.Entite? = catalogue?.firstOrNull { it.entityId == id } ?: WidgetsHaStock.entite(this, id)
 
@@ -155,36 +177,64 @@ class EditeurWidgetHaActivity : Activity() {
         section(getString(R.string.editeurwidget_style))
         val premier = entite(choisies.first())
         val styles = premier?.let { WidgetsHa.stylesProposes(it) } ?: listOf(style)
-        val rs = rangeeChoix()
-        styles.forEach { s -> rs.addView(pastilleChoix(WidgetsHa.nomStyle(s), s == style) { changerStyle(s) }) }
+        choixUnique(getString(R.string.editeurwidget_style), styles.map { it to WidgetsHa.nomStyle(it) }, style, "ew_style") { changerStyle(it) }
         if (style == WidgetsHa.GRAPHIQUE) {
-            val rg = rangeeChoix().apply { setPadding(0, px(8f), 0, 0) }
-            rg.addView(pastilleChoix(getString(R.string.editeurwidget_ligne), variante == "ligne") { variante = "ligne"; construire() })
-            rg.addView(pastilleChoix(getString(R.string.editeurwidget_barres), variante == "barres") { variante = "barres"; construire() })
-            rg.addView(pastilleChoix(Tr.duree(24 * 60), periode == "24h") { periode = "24h"; construire() })
-            rg.addView(pastilleChoix(resources.getQuantityString(R.plurals.commun_lot2_jours, 7, 7), periode == "7j") { periode = "7j"; construire() })
+            // Deux choix distincts (avant : quatre étiquettes mêlées) : la forme, puis la période.
+            choixUnique(getString(R.string.editeurwidget_style), listOf("ligne" to getString(R.string.editeurwidget_ligne), "barres" to getString(R.string.editeurwidget_barres)),
+                variante, "ew_variante") { variante = it; construire() }
+            choixUnique(getString(R.string.whc_periode), listOf("24h" to Tr.duree(24 * 60), "7j" to resources.getQuantityString(R.plurals.commun_lot2_jours, 7, 7)),
+                periode, "ew_periode") { periode = it; construire() }
         }
 
         // 1.88.0 (l'auteur : « je dois avoir le choix du détail ou pas ») : valeur seule, détail, ou les deux ; par défaut, comme
         // réglé dans Home Assistant. Le détail : éléments d'une liste (todo) ou attributs de l'entité.
         if (style == WidgetsHa.TUILE) {
             section(getString(R.string.editeurwidget_affichage))
-            val ra = rangeeChoix()
-            listOf(WidgetsHa.AFF_HA to R.string.editeurwidget_aff_ha, WidgetsHa.AFF_VALEUR to R.string.editeurwidget_aff_valeur,
+            choixUnique(getString(R.string.editeurwidget_affichage), listOf(WidgetsHa.AFF_HA to R.string.editeurwidget_aff_ha, WidgetsHa.AFF_VALEUR to R.string.editeurwidget_aff_valeur,
                 WidgetsHa.AFF_DETAIL to R.string.editeurwidget_aff_detail, WidgetsHa.AFF_VALEUR_DETAIL to R.string.editeurwidget_aff_valeur_detail
-            ).forEach { (a, t) -> ra.addView(pastilleChoix(getString(t), affichage == a) { affichage = a; construire(); brancherFlux() }) }
+            ).map { (a, t) -> a to getString(t) }, affichage, "ew_affichage") { affichage = it; construire(); brancherFlux() }
+            // 1.91.2 (retour d'essai) : le contenu (le détail) défile dans le widget, ou montre ce qui tient puis « Voir tout » ; et sa
+            // hauteur maximale. Par défaut : défilement, hauteur moyenne.
+            section(getString(R.string.editeurwidget_contenu))
+            choixUnique(getString(R.string.editeurwidget_contenu), listOf("oui" to getString(R.string.editeurwidget_defilement_oui), "non" to getString(R.string.editeurwidget_defilement_non)),
+                if (defilement) "oui" else "non", "ew_defilement") { defilement = it == "oui"; construire() }
+            section(getString(R.string.editeurwidget_hauteur))
+            choixUnique(getString(R.string.editeurwidget_hauteur), listOf(WidgetsHa.HAUTEUR_COMPACTE to R.string.editeurwidget_hauteur_compacte, WidgetsHa.HAUTEUR_MOYENNE to R.string.editeurwidget_hauteur_moyenne,
+                WidgetsHa.HAUTEUR_GRANDE to R.string.editeurwidget_hauteur_grande
+            ).map { (h, t) -> h to getString(t) }, hauteur, "ew_hauteur") { hauteur = it; construire() }
+        }
+        if (style in WidgetsHa.STYLES_MISE_EN_PAGE) {
+            // 1.91.3 (retour d'essai) : la mise en page — la même que dans l'onglet Widgets HA, pour tous les appareils.
+            val m = miseEnPage ?: premier?.miseEnPage ?: WidgetsHa.MiseEnPage()
+            fun choisir(n: WidgetsHa.MiseEnPage) { miseEnPage = n; construire() }
+            section(getString(R.string.editeurwidget_mep))
+            contenu.addView(texte(getString(R.string.editeurwidget_mep_aide), 12f, theme.encre3).apply { setPadding(px(4f), 0, 0, px(4f)) })
+            section(getString(R.string.editeurwidget_mep_h))
+            choixUnique(getString(R.string.editeurwidget_mep_h), listOf(WidgetsHa.GAUCHE to R.string.editeurwidget_mep_gauche, WidgetsHa.CENTRE to R.string.editeurwidget_mep_centre,
+                WidgetsHa.DROITE to R.string.editeurwidget_mep_droite).map { (a, t) -> a to getString(t) }, m.alignH, "ew_mep_h") { choisir(m.copy(alignH = it)) }
+            section(getString(R.string.editeurwidget_mep_v))
+            choixUnique(getString(R.string.editeurwidget_mep_v), listOf(WidgetsHa.HAUT to R.string.editeurwidget_mep_haut, WidgetsHa.CENTRE to R.string.editeurwidget_mep_milieu,
+                WidgetsHa.BAS to R.string.editeurwidget_mep_bas).map { (a, t) -> a to getString(t) }, m.alignV, "ew_mep_v") { choisir(m.copy(alignV = it)) }
+            section(getString(R.string.editeurwidget_mep_taille))
+            choixUnique(getString(R.string.editeurwidget_mep_taille), listOf(WidgetsHa.REMPLIR to R.string.editeurwidget_mep_remplir, "s" to R.string.editeurwidget_mep_s,
+                "m" to R.string.editeurwidget_mep_m, "l" to R.string.editeurwidget_mep_l, "xl" to R.string.editeurwidget_mep_xl).map { (a, t) -> a to getString(t) },
+                m.taille, "ew_mep_taille") { choisir(m.copy(taille = it)) }
+            // Titre et icône : deux cases indépendantes (choix multiple, 2 options).
+            contenu.addView(Ui.choixMultiple(this, getString(R.string.editeurwidget_mep), listOf(ChoixAdaptatif.Option("titre", getString(R.string.editeurwidget_mep_titre)),
+                ChoixAdaptatif.Option("icone", getString(R.string.editeurwidget_mep_icone))), setOfNotNull("titre".takeIf { m.titre }, "icone".takeIf { m.icone }), theme, t(14f)) { l ->
+                choisir(m.copy(titre = "titre" in l, icone = "icone" in l))
+            }.apply { tag = "ew_mep_montrer" })
         }
 
         // 1.90.0 (l'auteur : « accéder directement à la carte ou au dashboard ») : ce que fait un toucher. Détails et vues :
         // seulement si Home Assistant le permet à cet appareil (sinon le choix n'est pas proposé).
         section(getString(R.string.editeurwidget_toucher))
         val ouvrir = premier?.ouvrir == true
-        val rto = rangeeChoix()
-        listOf(WidgetsHa.TOUCHER_HA to R.string.editeurwidget_toucher_ha, WidgetsHa.TOUCHER_ROLE to R.string.editeurwidget_toucher_role,
+        choixUnique(getString(R.string.editeurwidget_toucher), listOf(WidgetsHa.TOUCHER_HA to R.string.editeurwidget_toucher_ha, WidgetsHa.TOUCHER_ROLE to R.string.editeurwidget_toucher_role,
             WidgetsHa.TOUCHER_DETAILS to R.string.editeurwidget_toucher_details, WidgetsHa.TOUCHER_VUE to R.string.editeurwidget_toucher_vue,
             WidgetsHa.TOUCHER_RIEN to R.string.editeurwidget_toucher_rien
         ).filter { (t, _) -> ouvrir || (t != WidgetsHa.TOUCHER_DETAILS && t != WidgetsHa.TOUCHER_VUE) || t == toucher }
-            .forEach { (t, s) -> rto.addView(pastilleChoix(getString(s), toucher == t) { toucher = t; construire() }) }
+            .map { (t, s) -> t to getString(s) }, toucher, "ew_toucher") { toucher = it; construire() }
         if (toucher == WidgetsHa.TOUCHER_VUE) {
             val vues = WidgetsHaStock.vuesHa(this)
             if (vues.isNotEmpty()) contenu.addView(pastilleChoix(getString(R.string.editeurwidget_toucher_choisir), false) {
@@ -210,9 +260,9 @@ class EditeurWidgetHaActivity : Activity() {
 
         // 3. La taille, parmi celles permises pour ce style.
         section(getString(R.string.editeurwidget_taille))
-        val rt = rangeeChoix()
-        WidgetsHa.taillesPermises(style).sortedWith(compareBy({ it.first * it.second }, { it.first })).forEach { tt ->
-            rt.addView(pastilleChoix("${tt.first} × ${tt.second}", tt == taille) { taille = tt; construire() })
+        val tailles = WidgetsHa.taillesPermises(style).sortedWith(compareBy({ it.first * it.second }, { it.first }))
+        choixUnique(getString(R.string.editeurwidget_taille), tailles.map { "${it.first}x${it.second}" to "${it.first} × ${it.second}" }, "${taille.first}x${taille.second}", "ew_taille") { k ->
+            tailles.firstOrNull { "${it.first}x${it.second}" == k }?.let { taille = it; construire() }
         }
 
         // 4. Libellé et icône.
@@ -229,21 +279,12 @@ class EditeurWidgetHaActivity : Activity() {
         contenu.addView(champ)
         contenu.addView(texte(getString(R.string.editeurwidget_vide_nom), 12f, theme.encre3).apply { setPadding(px(4f), px(4f), 0, 0) })
         section(getString(R.string.editeurwidget_icone))
-        val ri = rangeeChoix()
-        (listOf("", "aucune") + WidgetsHa.PICTOS).forEach { p ->
-            val choisi = p == icone
-            val b = LinearLayout(this).apply {
-                gravity = Gravity.CENTER_VERTICAL; setPadding(px(10f), px(7f), px(12f), px(7f)); isFocusable = true; isClickable = true
-                background = if (choisi) fondCarte(Palette.melanger(theme.carte, theme.or, 0.25f), theme.or, 1.5f, 999f) else fondCarte(rayon = 999f)
-                setOnClickListener { icone = p; construire() }
-                setOnFocusChangeListener { v, a -> if (!choisi) v.background = if (a) fondCarte(bord = theme.or, epaisseur = 2f, rayon = 999f) else fondCarte(rayon = 999f) }
-            }
-            // « Automatique » : l'icône donnée dans Home Assistant (rapprochée d'un picto de Vision), sinon celle du domaine.
-            val nomAuto = if (p == "" && premier != null) WidgetsHa.picto(WidgetsHa.Reglage("", listOf(premier.entityId), style, 1, 1), premier) ?: "etoile" else p
-            if (p != "aucune") b.addView(Picto(this, nomAuto, theme.or), LinearLayout.LayoutParams(px(18f), px(18f)).apply { rightMargin = px(6f) })
-            b.addView(texte(WidgetsHa.nomPicto(p), 13f, theme.encre, Polices.moyen(this)))
-            ri.addView(b)
-        }
+        // 15-10 (règle UX de l'auteur) : les pictos (une trentaine) dans une liste avec leur dessin ; le champ montre celui choisi.
+        // « Automatique » : l'icône donnée dans Home Assistant (rapprochée d'un picto de Vision), sinon celle du domaine.
+        val pictos = listOf("", "aucune") + WidgetsHa.PICTOS
+        val nomAuto = if (premier != null) WidgetsHa.picto(WidgetsHa.Reglage("", listOf(premier.entityId), style, 1, 1), premier) ?: "etoile" else "etoile"
+        choixUnique(getString(R.string.editeurwidget_icone), pictos.map { it to WidgetsHa.nomPicto(it) }, icone, "ew_icone",
+            pictos.filter { it != "aucune" }.associateWith { dessinPicto(if (it == "") nomAuto else it) }) { icone = it; construire() }
         boutons()
     }
 
@@ -346,7 +387,7 @@ class EditeurWidgetHaActivity : Activity() {
     private fun reglageCourant(): WidgetsHa.Reglage? {
         if (choisies.isEmpty()) return null
         return WidgetsHa.Reglage(idExistant ?: "apercu", choisies.toList(), style, taille.first, taille.second, libelle, icone, variante, periode, affichage,
-            toucher, if (toucher == WidgetsHa.TOUCHER_VUE) cheminVue else "")
+            toucher, if (toucher == WidgetsHa.TOUCHER_VUE) cheminVue else "", defilement, hauteur, apercu = miseEnPage)
     }
 
     /** L'aperçu à la vraie taille de la case (réduit si l'écran est plus étroit). */
@@ -410,7 +451,17 @@ class EditeurWidgetHaActivity : Activity() {
         if (idExistant == null) Accueil.ajouterALaGrille(this, cle, r.w, r.h)
         else Accueil.disposition(this).firstOrNull { it.cle == cle }?.let { p -> if (p.w != r.w || p.h != r.h) Accueil.redimensionner(this, cle, r.w, r.h) }
         setResult(RESULT_OK)
-        finish()
+        // 1.91.3 : une mise en page changée part dans Home Assistant (une seule configuration) ; un refus est dit.
+        val m = miseEnPage
+        val e = entite(choisies.first())
+        if (m == null || e == null || m == e.miseEnPage) { finish(); return }
+        Thread {
+            val refus = WidgetsHaStock.reglerMiseEnPage(this, e.entityId, m)
+            runOnUiThread {
+                if (refus != null) Ui.toast(this, refus, genre = OeilModele.Genre.ERREUR)
+                finish()
+            }
+        }.also { it.isDaemon = true }.start()
     }
 }
 

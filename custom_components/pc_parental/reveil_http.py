@@ -50,6 +50,15 @@ def _demandeurs(store, droits, personne) -> list[dict[str, Any]]:
     return sortie
 
 
+def _noms(hass, personnes: set[str]) -> dict[str, str]:
+    """Le nom affiché de chaque personne citée (l'appli ne montre jamais « person.… »)."""
+    sortie = {}
+    for p in sorted(x for x in personnes if x):
+        etat = hass.states.get(p)
+        sortie[p] = str(etat.name) if etat is not None and etat.name else p.split(".", 1)[-1]
+    return sortie
+
+
 class PcParentalReveilsView(HomeAssistantView):
     url = URL
     name = "api:pc_parental:reveils"
@@ -98,9 +107,12 @@ class PcParentalReveilsView(HomeAssistantView):
         if action == "liste":
             visibles = [r for r in reveil.reveils(store).values() if reveil.peut(droits, personne, "voir", r)]
             visibles.sort(key=lambda x: (str(x.get("demandeur")), str(x.get("nom"))))
+            demandeurs = _demandeurs(store, droits, personne)
             return {"reveils": [_vue_appli(hass, store, r, droits, personne) for r in visibles],
                     "droits": {"gerer": "reveil_gerer" in droits, "propres": "reveil_propres" in droits},
-                    "demandeurs": _demandeurs(store, droits, personne), "moi": personne}
+                    "demandeurs": demandeurs, "moi": personne,
+                    "noms": _noms(hass, {str(r.get("demandeur") or "") for r in visibles}
+                                  | {d["personne"] for d in demandeurs} | {personne})}
         if action == "creer":
             brut = dict(corps.get("reveil") or {})
             brut.setdefault("demandeur", personne)

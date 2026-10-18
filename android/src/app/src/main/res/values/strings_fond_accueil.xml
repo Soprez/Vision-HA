@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.x (retour d'essai) : l'arrière-plan de l'accueil (FondAccueil). -->
+<resources>
+    <string name="fondacc_titre">Home screen background</string>
+    <string name="fondacc_sorte_defaut">Current (subtle animation)</string>
+    <string name="fondacc_sorte_uni">Solid colour</string>
+    <string name="fondacc_sorte_degrade">Gradient</string>
+    <string name="fondacc_sorte_photo">Photo</string>
+    <string name="fondacc_sorte_anime">Animated background</string>
+    <string name="fondacc_teinte_fond">Theme background</string>
+    <string name="fondacc_teinte_n">Shade %1$d</string>
+    <string name="fondacc_voile">Readability veil</string>
+    <string name="fondacc_voile_auto">Automatic</string>
+    <string name="fondacc_voile_plus">Stronger</string>
+    <string name="fondacc_voile_max">Strongest</string>
+    <string name="fondacc_demandeur">Background can be changed by %1$s</string>
+    <string name="fondacc_raison">Change the home screen background</string>
+    <string name="fondacc_photo_echec">The photo could not be read.</string>
+    <string name="fondacc_note">A veil keeps the time and the cards readable; the cards keep their own background.</string>
+    <string name="fondacc_style">Style</string>
+</resources>

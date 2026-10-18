@@ -27,74 +27,93 @@
        "type": "heading"
       },
       {
-       "content": "{% if is_state('binary_sensor.x', 'on') %}**Tout est fermé jusqu'à {{ state_attr('binary_sensor.x', 'fin_heure') }}** : les appareils protégés restent fermés jusque-là. « Rouvrir » y met fin plus tôt.{% else %}Rien n'est fermé d'un coup en ce moment. « Tout fermer » ferme tous les appareils protégés pendant 30 minutes, après confirmation.{% endif %}",
-       "type": "markdown"
+       "card": {
+        "content": "**Tout est fermé jusqu'à {{ state_attr('binary_sensor.x', 'fin_heure') }}** : les appareils protégés restent fermés jusque-là. « Rouvrir » y met fin plus tôt.",
+        "type": "markdown"
+       },
+       "conditions": [
+        {
+         "condition": "state",
+         "entity": "binary_sensor.x",
+         "state": "on"
+        }
+       ],
+       "type": "conditional"
       },
       {
        "cards": [
         {
-         "entity": "button.x",
-         "hold_action": {
-          "action": "more-info"
-         },
          "icon": "mdi:lock-clock",
-         "name": "Tout fermer 30 min",
+         "name": "15 min",
          "show_state": false,
          "tap_action": {
           "action": "perform-action",
           "confirmation": {
-           "text": "Tout fermer : tous les appareils protégés seront fermés pendant 30 minutes. Continuer ?"
+           "text": "Tout fermer : tous les appareils protégés seront fermés pendant 15 min. Continuer ?"
           },
-          "perform_action": "button.x",
-          "target": {
-           "entity_id": "button.x"
-          }
+          "data": {
+           "minutes": 15
+          },
+          "perform_action": "pc_parental.pause_generale"
          },
          "type": "button"
         },
         {
-         "entity": "button.x",
-         "hold_action": {
-          "action": "more-info"
-         },
-         "icon": "mdi:lock-open-variant-outline",
-         "name": "Rouvrir",
+         "icon": "mdi:lock-clock",
+         "name": "30 min",
          "show_state": false,
          "tap_action": {
           "action": "perform-action",
-          "perform_action": "button.x",
-          "target": {
-           "entity_id": "button.x"
-          }
+          "confirmation": {
+           "text": "Tout fermer : tous les appareils protégés seront fermés pendant 30 min. Continuer ?"
+          },
+          "data": {
+           "minutes": 30
+          },
+          "perform_action": "pc_parental.pause_generale"
+         },
+         "type": "button"
+        },
+        {
+         "icon": "mdi:lock-clock",
+         "name": "1 h",
+         "show_state": false,
+         "tap_action": {
+          "action": "perform-action",
+          "confirmation": {
+           "text": "Tout fermer : tous les appareils protégés seront fermés pendant 1 h. Continuer ?"
+          },
+          "data": {
+           "minutes": 60
+          },
+          "perform_action": "pc_parental.pause_generale"
+         },
+         "type": "button"
+        },
+        {
+         "icon": "mdi:lock-clock",
+         "name": "2 h",
+         "show_state": false,
+         "tap_action": {
+          "action": "perform-action",
+          "confirmation": {
+           "text": "Tout fermer : tous les appareils protégés seront fermés pendant 2 h. Continuer ?"
+          },
+          "data": {
+           "minutes": 120
+          },
+          "perform_action": "pc_parental.pause_generale"
          },
          "type": "button"
         }
        ],
-       "type": "horizontal-stack"
-      }
-     ],
-     "column_span": 2,
-     "type": "grid"
-    }
-   ],
-   "title": "Aujourd'hui",
-   "type": "sections"
-  },
-  {
-   "back_path": "/vision-maison/maison",
-   "icon": "mdi:account",
-   "max_columns": 3,
-   "path": "personne-lou",
-   "sections": [
-    {
-     "cards": [
+       "columns": 4,
+       "square": false,
+       "type": "grid"
+      },
       {
-       "chemin": "/vision-maison",
-       "grid_options": {
-        "columns": "full"
-       },
-       "mode": "personne",
-       "personne": "person.lou",
+       "entity": "binary_sensor.x",
+       "mode": "rouvrir",
        "type": "custom:vision-maison-card"
       }
      ],
@@ -104,205 +123,26 @@
     {
      "cards": [
       {
-       "heading": "Planning de Lou",
-       "heading_style": "subtitle",
-       "icon": "mdi:calendar-clock",
+       "heading": "Actions rapides",
+       "icon": "mdi:flash-outline",
        "type": "heading"
       },
       {
-       "entity": "sensor.x",
-       "title": "Planning",
-       "type": "custom:vision-planning-card"
-      },
-      {
-       "entity": "sensor.x",
-       "icon": "mdi:calendar-arrow-right",
-       "name": "Prochain changement",
-       "type": "tile"
+       "icon": "mdi:message-text-outline",
+       "name": "Envoyer un message",
+       "show_state": false,
+       "tap_action": {
+        "action": "navigate",
+        "navigation_path": "/vision-maison/message"
+       },
+       "type": "button"
       }
      ],
      "column_span": 2,
      "type": "grid"
     }
    ],
-   "subview": true,
-   "title": "Lou",
-   "type": "sections"
-  },
-  {
-   "back_path": "/vision-maison/maison",
-   "icon": "mdi:account",
-   "max_columns": 3,
-   "path": "personne-mia",
-   "sections": [
-    {
-     "cards": [
-      {
-       "chemin": "/vision-maison",
-       "grid_options": {
-        "columns": "full"
-       },
-       "mode": "personne",
-       "personne": "person.mia",
-       "type": "custom:vision-maison-card"
-      }
-     ],
-     "column_span": 2,
-     "type": "grid"
-    }
-   ],
-   "subview": true,
-   "title": "Mia",
-   "type": "sections"
-  },
-  {
-   "back_path": "/vision-maison/maison",
-   "icon": "mdi:account",
-   "max_columns": 3,
-   "path": "personne-noa",
-   "sections": [
-    {
-     "cards": [
-      {
-       "chemin": "/vision-maison",
-       "grid_options": {
-        "columns": "full"
-       },
-       "mode": "personne",
-       "personne": "person.noa",
-       "type": "custom:vision-maison-card"
-      }
-     ],
-     "column_span": 2,
-     "type": "grid"
-    },
-    {
-     "cards": [
-      {
-       "heading": "Planning de Noa",
-       "heading_style": "subtitle",
-       "icon": "mdi:calendar-clock",
-       "type": "heading"
-      },
-      {
-       "entity": "sensor.x",
-       "title": "Planning",
-       "type": "custom:vision-planning-card"
-      },
-      {
-       "entity": "sensor.x",
-       "icon": "mdi:calendar-arrow-right",
-       "name": "Prochain changement",
-       "type": "tile"
-      }
-     ],
-     "column_span": 2,
-     "type": "grid"
-    }
-   ],
-   "subview": true,
-   "title": "Noa",
-   "type": "sections"
-  },
-  {
-   "back_path": "/vision-maison/maison",
-   "icon": "mdi:account",
-   "max_columns": 3,
-   "path": "personne-robin",
-   "sections": [
-    {
-     "cards": [
-      {
-       "chemin": "/vision-maison",
-       "grid_options": {
-        "columns": "full"
-       },
-       "mode": "personne",
-       "personne": "person.robin",
-       "type": "custom:vision-maison-card"
-      }
-     ],
-     "column_span": 2,
-     "type": "grid"
-    },
-    {
-     "cards": [
-      {
-       "heading": "Planning de Robin",
-       "heading_style": "subtitle",
-       "icon": "mdi:calendar-clock",
-       "type": "heading"
-      },
-      {
-       "entity": "sensor.x",
-       "title": "Planning",
-       "type": "custom:vision-planning-card"
-      },
-      {
-       "entity": "sensor.x",
-       "icon": "mdi:calendar-arrow-right",
-       "name": "Prochain changement",
-       "type": "tile"
-      }
-     ],
-     "column_span": 2,
-     "type": "grid"
-    }
-   ],
-   "subview": true,
-   "title": "Robin",
-   "type": "sections"
-  },
-  {
-   "back_path": "/vision-maison/maison",
-   "icon": "mdi:account",
-   "max_columns": 3,
-   "path": "personne-autres",
-   "sections": [
-    {
-     "cards": [
-      {
-       "chemin": "/vision-maison",
-       "grid_options": {
-        "columns": "full"
-       },
-       "mode": "personne",
-       "personne": "autres",
-       "type": "custom:vision-maison-card"
-      }
-     ],
-     "column_span": 2,
-     "type": "grid"
-    },
-    {
-     "cards": [
-      {
-       "card_mod": {
-        "style": "ha-icon, ha-state-icon { color: #3DDC84; }"
-       },
-       "heading": "Télé du salon",
-       "heading_style": "subtitle",
-       "icon": "mdi:android",
-       "type": "heading"
-      },
-      {
-       "entity": "sensor.x",
-       "title": "Planning",
-       "type": "custom:vision-planning-card"
-      },
-      {
-       "entity": "sensor.x",
-       "icon": "mdi:calendar-arrow-right",
-       "name": "Prochain changement",
-       "type": "tile"
-      }
-     ],
-     "column_span": 2,
-     "type": "grid"
-    }
-   ],
-   "subview": true,
-   "title": "Sans personne",
+   "title": "Utilisateur",
    "type": "sections"
   },
   {
@@ -472,293 +312,6 @@
     }
    ],
    "title": "Autorisations",
-   "type": "sections"
-  },
-  {
-   "max_columns": 3,
-   "path": "statistiques",
-   "sections": [
-    {
-     "cards": [
-      {
-       "heading": "Temps d'écran, 7 derniers jours",
-       "icon": "mdi:chart-bar",
-       "type": "heading"
-      },
-      {
-       "chart_type": "bar",
-       "days_to_show": 7,
-       "entities": [
-        "sensor.x",
-        "sensor.x",
-        "sensor.x",
-        "sensor.x"
-       ],
-       "hide_legend": false,
-       "period": "day",
-       "stat_types": [
-        "change"
-       ],
-       "type": "statistics-graph"
-      }
-     ],
-     "column_span": 2,
-     "type": "grid"
-    },
-    {
-     "cards": [
-      {
-       "heading": "Sites bloqués, jour par jour",
-       "heading_style": "title",
-       "icon": "mdi:chart-line",
-       "type": "heading"
-      },
-      {
-       "content": "Le total des tentatives vers un site bloqué, par machine. Rien n'est notifié nulle part : un site coupé est simplement injoignable. C'est ici que ça se lit.",
-       "type": "markdown"
-      },
-      {
-       "entities": [
-        {
-         "entity": "sensor.x"
-        },
-        {
-         "entity": "sensor.x"
-        },
-        {
-         "entity": "sensor.x"
-        },
-        {
-         "entity": "sensor.x"
-        }
-       ],
-       "hours_to_show": 720,
-       "type": "history-graph"
-      },
-      {
-       "content": "<details><summary>En savoir plus</summary>\n\n| Appareil | 30 derniers jours | Total | Aujourd'hui |\n|---|---|---|---|\n| **PC-NOA** | `{{ state_attr('sensor.x', 'courbe') }}` | {{ state_attr('sensor.x', 'total_30_jours') }} | {{ states('sensor.x') }} |\n| **PIXEL-ROBIN** | `{{ state_attr('sensor.x', 'courbe') }}` | {{ state_attr('sensor.x', 'total_30_jours') }} | {{ states('sensor.x') }} |\n| **TEL-LOU** | `{{ state_attr('sensor.x', 'courbe') }}` | {{ state_attr('sensor.x', 'total_30_jours') }} | {{ states('sensor.x') }} |\n| **Télé du salon** | `{{ state_attr('sensor.x', 'courbe') }}` | {{ state_attr('sensor.x', 'total_30_jours') }} | {{ states('sensor.x') }} |\n\n</details>",
-       "type": "markdown"
-      }
-     ],
-     "type": "grid"
-    },
-    {
-     "cards": [
-      {
-       "cards": [
-        {
-         "heading": "PC-NOA",
-         "heading_style": "subtitle",
-         "icon": "mdi:chart-box-outline",
-         "type": "heading"
-        },
-        {
-         "cards": [
-          {
-           "entity": "sensor.x",
-           "name": "Temps d'écran",
-           "type": "tile"
-          },
-          {
-           "entity": "sensor.x",
-           "name": "Sites bloqués aujourd'hui",
-           "type": "tile"
-          },
-          {
-           "entity": "sensor.x",
-           "name": "Tentatives retenues",
-           "type": "tile"
-          },
-          {
-           "entity": "sensor.x",
-           "name": "Présence",
-           "type": "tile"
-          }
-         ],
-         "columns": 2,
-         "square": false,
-         "type": "grid"
-        },
-        {
-         "content": "{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}{% else %}_aucune tentative retenue_{% endif %}",
-         "type": "markdown"
-        }
-       ],
-       "type": "vertical-stack"
-      }
-     ],
-     "type": "grid"
-    },
-    {
-     "cards": [
-      {
-       "cards": [
-        {
-         "heading": "PIXEL-ROBIN",
-         "heading_style": "subtitle",
-         "icon": "mdi:chart-box-outline",
-         "type": "heading"
-        },
-        {
-         "cards": [
-          {
-           "entity": "sensor.x",
-           "name": "Temps d'écran",
-           "type": "tile"
-          },
-          {
-           "entity": "sensor.x",
-           "name": "Sites bloqués aujourd'hui",
-           "type": "tile"
-          },
-          {
-           "entity": "sensor.x",
-           "name": "Tentatives retenues",
-           "type": "tile"
-          },
-          {
-           "entity": "sensor.x",
-           "name": "Présence",
-           "type": "tile"
-          }
-         ],
-         "columns": 2,
-         "square": false,
-         "type": "grid"
-        },
-        {
-         "content": "{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}{% else %}_aucune tentative retenue_{% endif %}",
-         "type": "markdown"
-        }
-       ],
-       "type": "vertical-stack"
-      }
-     ],
-     "type": "grid"
-    },
-    {
-     "cards": [
-      {
-       "cards": [
-        {
-         "heading": "TEL-LOU",
-         "heading_style": "subtitle",
-         "icon": "mdi:chart-box-outline",
-         "type": "heading"
-        },
-        {
-         "cards": [
-          {
-           "entity": "sensor.x",
-           "name": "Temps d'écran",
-           "type": "tile"
-          },
-          {
-           "entity": "sensor.x",
-           "name": "Sites bloqués aujourd'hui",
-           "type": "tile"
-          },
-          {
-           "entity": "sensor.x",
-           "name": "Tentatives retenues",
-           "type": "tile"
-          },
-          {
-           "entity": "sensor.x",
-           "name": "Présence",
-           "type": "tile"
-          }
-         ],
-         "columns": 2,
-         "square": false,
-         "type": "grid"
-        },
-        {
-         "content": "{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}{% else %}_aucune tentative retenue_{% endif %}",
-         "type": "markdown"
-        }
-       ],
-       "type": "vertical-stack"
-      }
-     ],
-     "type": "grid"
-    },
-    {
-     "cards": [
-      {
-       "cards": [
-        {
-         "heading": "Télé du salon",
-         "heading_style": "subtitle",
-         "icon": "mdi:chart-box-outline",
-         "type": "heading"
-        },
-        {
-         "cards": [
-          {
-           "entity": "sensor.x",
-           "name": "Temps d'écran",
-           "type": "tile"
-          },
-          {
-           "entity": "sensor.x",
-           "name": "Sites bloqués aujourd'hui",
-           "type": "tile"
-          },
-          {
-           "entity": "sensor.x",
-           "name": "Tentatives retenues",
-           "type": "tile"
-          },
-          {
-           "entity": "sensor.x",
-           "name": "Présence",
-           "type": "tile"
-          }
-         ],
-         "columns": 2,
-         "square": false,
-         "type": "grid"
-        },
-        {
-         "content": "{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}{% else %}_aucune tentative retenue_{% endif %}",
-         "type": "markdown"
-        }
-       ],
-       "type": "vertical-stack"
-      }
-     ],
-     "type": "grid"
-    }
-   ],
-   "title": "Activité",
-   "type": "sections"
-  },
-  {
-   "max_columns": 2,
-   "path": "message",
-   "sections": [
-    {
-     "cards": [
-      {
-       "type": "custom:vision-messages-card"
-      }
-     ],
-     "column_span": 2,
-     "type": "grid"
-    },
-    {
-     "cards": [
-      {
-       "content": "<details><summary>Envoyer un message depuis une automatisation</summary>\n\nUne vraie notification, sur l'ordinateur comme sur le téléphone, signée « Vision » et conservée dans le centre de notifications. Si un appareil est éteint, elle attend et se périme au bout d'un quart d'heure.\n\nLe destinataire peut être **tous les appareils**, une **étiquette** (tous les appareils qui la portent), ou un appareil précis. Ce sont les **étiquettes de Home Assistant** — les mêmes que pour une prise : pose-les dans le champ *Étiquettes* de la carte, ou depuis la fiche de l'appareil.\n\n**Dans une automatisation** :\n\n```yaml\naction: pc_parental.notify\ndata:\n  tag: salon\n  message: Sors la poubelle\n  son: Rappel\n```\nSans `pc` ni `tag`, le message part à tous. Chaque appareil a aussi son entité `notify`, ciblable par les libellés de Home Assistant.\n\n</details>",
-       "type": "markdown"
-      }
-     ],
-     "column_span": 2,
-     "type": "grid"
-    }
-   ],
-   "title": "Messages",
    "type": "sections"
   },
   {
@@ -969,11 +522,357 @@
    "type": "sections"
   },
   {
+   "max_columns": 2,
+   "path": "statistiques",
+   "sections": [
+    {
+     "cards": [
+      {
+       "heading": "Temps d'écran, 7 derniers jours",
+       "icon": "mdi:chart-bar",
+       "type": "heading"
+      },
+      {
+       "chart_type": "bar",
+       "days_to_show": 7,
+       "entities": [
+        "sensor.x",
+        "sensor.x",
+        "sensor.x",
+        "sensor.x"
+       ],
+       "hide_legend": false,
+       "period": "day",
+       "stat_types": [
+        "change"
+       ],
+       "type": "statistics-graph"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Aujourd'hui, par appareil",
+       "icon": "mdi:devices",
+       "type": "heading"
+      },
+      {
+       "content": "| Appareil | Temps d'écran | Sites bloqués | 30 derniers jours |\n|---|---|---|---|\n| **PC-NOA** | {% set m = states('sensor.x') | int(0) %}{{ (m // 60) ~ ' h ' ~ '%02d' | format(m % 60) if m >= 60 else m ~ ' min' }} | {{ states('sensor.x') }} | `{{ state_attr('sensor.x', 'courbe') }}` {{ state_attr('sensor.x', 'total_30_jours') }} |\n| **PIXEL-NOLAN** | {% set m = states('sensor.x') | int(0) %}{{ (m // 60) ~ ' h ' ~ '%02d' | format(m % 60) if m >= 60 else m ~ ' min' }} | {{ states('sensor.x') }} | `{{ state_attr('sensor.x', 'courbe') }}` {{ state_attr('sensor.x', 'total_30_jours') }} |\n| **TEL-LOU** | {% set m = states('sensor.x') | int(0) %}{{ (m // 60) ~ ' h ' ~ '%02d' | format(m % 60) if m >= 60 else m ~ ' min' }} | {{ states('sensor.x') }} | `{{ state_attr('sensor.x', 'courbe') }}` {{ state_attr('sensor.x', 'total_30_jours') }} |\n| **Télé du salon** | {% set m = states('sensor.x') | int(0) %}{{ (m // 60) ~ ' h ' ~ '%02d' | format(m % 60) if m >= 60 else m ~ ' min' }} | {{ states('sensor.x') }} | `{{ state_attr('sensor.x', 'courbe') }}` {{ state_attr('sensor.x', 'total_30_jours') }} |",
+       "type": "markdown"
+      },
+      {
+       "content": "{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}<details><summary>Sites tentés · PC-NOA</summary>\n\n{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}\n</details>\n{% endif %}{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}<details><summary>Sites tentés · PIXEL-NOLAN</summary>\n\n{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}\n</details>\n{% endif %}{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}<details><summary>Sites tentés · TEL-LOU</summary>\n\n{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}\n</details>\n{% endif %}{% set l = state_attr('sensor.x', 'lignes') %}{% if l %}<details><summary>Sites tentés · Télé du salon</summary>\n\n{{ state_attr('sensor.x', 'entete') }}\n{% for r in l %}{{ r }}\n{% endfor %}\n</details>\n{% endif %}",
+       "type": "markdown"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "title": "Activité",
+   "type": "sections"
+  },
+  {
+   "max_columns": 2,
+   "path": "reglages",
+   "sections": [
+    {
+     "cards": [
+      {
+       "heading": "Pour tous",
+       "icon": "mdi:account-multiple-outline",
+       "type": "heading"
+      },
+      {
+       "icon": "mdi:palette-outline",
+       "name": "Apparence, veille et son",
+       "show_state": false,
+       "tap_action": {
+        "action": "navigate",
+        "navigation_path": "/vision-maison/veille"
+       },
+       "type": "button"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "grid_options": {
+        "columns": "full"
+       },
+       "type": "custom:vision-canaux-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Réservé aux décideurs 🔒",
+       "icon": "mdi:lock-outline",
+       "type": "heading"
+      },
+      {
+       "grid_options": {
+        "columns": "full"
+       },
+       "type": "custom:vision-reglages-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Avancé",
+       "icon": "mdi:cog-outline",
+       "type": "heading"
+      },
+      {
+       "icon": "mdi:devices",
+       "name": "Appareils",
+       "show_state": false,
+       "tap_action": {
+        "action": "navigate",
+        "navigation_path": "/vision-maison/appareils"
+       },
+       "type": "button"
+      },
+      {
+       "icon": "mdi:alarm",
+       "name": "Réveils",
+       "show_state": false,
+       "tap_action": {
+        "action": "navigate",
+        "navigation_path": "/vision-maison/reveils"
+       },
+       "type": "button"
+      },
+      {
+       "icon": "mdi:home-import-outline",
+       "name": "Widgets HA",
+       "show_state": false,
+       "tap_action": {
+        "action": "navigate",
+        "navigation_path": "/vision-maison/widgets"
+       },
+       "type": "button"
+      },
+      {
+       "icon": "mdi:wrench-outline",
+       "name": "Configurer (installation et réparation)",
+       "show_state": false,
+       "tap_action": {
+        "action": "navigate",
+        "navigation_path": "/config/integrations/integration/pc_parental"
+       },
+       "type": "button"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "title": "Réglages",
+   "type": "sections"
+  },
+  {
+   "icon": "mdi:account",
+   "max_columns": 3,
+   "path": "personne-lou",
+   "sections": [
+    {
+     "cards": [
+      {
+       "chemin": "/vision-maison",
+       "grid_options": {
+        "columns": "full"
+       },
+       "personne": "person.lou",
+       "type": "custom:vision-personne-card"
+      }
+     ],
+     "column_span": 3,
+     "type": "grid"
+    }
+   ],
+   "subview": true,
+   "title": "Lou",
+   "type": "sections"
+  },
+  {
+   "icon": "mdi:account",
+   "max_columns": 3,
+   "path": "personne-mia",
+   "sections": [
+    {
+     "cards": [
+      {
+       "chemin": "/vision-maison",
+       "grid_options": {
+        "columns": "full"
+       },
+       "personne": "person.mia",
+       "type": "custom:vision-personne-card"
+      }
+     ],
+     "column_span": 3,
+     "type": "grid"
+    }
+   ],
+   "subview": true,
+   "title": "Mia",
+   "type": "sections"
+  },
+  {
+   "icon": "mdi:account",
+   "max_columns": 3,
+   "path": "personne-noa",
+   "sections": [
+    {
+     "cards": [
+      {
+       "chemin": "/vision-maison",
+       "grid_options": {
+        "columns": "full"
+       },
+       "personne": "person.noa",
+       "type": "custom:vision-personne-card"
+      }
+     ],
+     "column_span": 3,
+     "type": "grid"
+    }
+   ],
+   "subview": true,
+   "title": "Noa",
+   "type": "sections"
+  },
+  {
+   "icon": "mdi:account",
+   "max_columns": 3,
+   "path": "personne-nolan",
+   "sections": [
+    {
+     "cards": [
+      {
+       "chemin": "/vision-maison",
+       "grid_options": {
+        "columns": "full"
+       },
+       "personne": "person.nolan",
+       "type": "custom:vision-personne-card"
+      }
+     ],
+     "column_span": 3,
+     "type": "grid"
+    }
+   ],
+   "subview": true,
+   "title": "Nolan",
+   "type": "sections"
+  },
+  {
+   "icon": "mdi:account",
+   "max_columns": 3,
+   "path": "personne-autres",
+   "sections": [
+    {
+     "cards": [
+      {
+       "chemin": "/vision-maison",
+       "grid_options": {
+        "columns": "full"
+       },
+       "mode": "personne",
+       "personne": "autres",
+       "type": "custom:vision-maison-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "card_mod": {
+        "style": "ha-icon, ha-state-icon { color: #3DDC84; }"
+       },
+       "heading": "Télé du salon",
+       "heading_style": "subtitle",
+       "icon": "mdi:android",
+       "type": "heading"
+      },
+      {
+       "entity": "sensor.x",
+       "title": "Planning",
+       "type": "custom:vision-planning-card"
+      },
+      {
+       "entity": "sensor.x",
+       "icon": "mdi:calendar-arrow-right",
+       "name": "Prochain changement",
+       "type": "tile"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "subview": true,
+   "title": "Sans personne",
+   "type": "sections"
+  },
+  {
+   "icon": "mdi:message-text",
+   "max_columns": 2,
+   "path": "message",
+   "sections": [
+    {
+     "cards": [
+      {
+       "type": "custom:vision-messages-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "content": "<details><summary>Envoyer un message depuis une automatisation</summary>\n\nUne vraie notification, sur l'ordinateur comme sur le téléphone, signée « Vision » et conservée dans le centre de notifications. Si un appareil est éteint, elle attend et se périme au bout d'un quart d'heure.\n\nLe destinataire peut être **tous les appareils**, une **étiquette** (tous les appareils qui la portent), ou un appareil précis. Ce sont les **étiquettes de Home Assistant** — les mêmes que pour une prise : pose-les dans le champ *Étiquettes* de la carte, ou depuis la fiche de l'appareil.\n\n**Dans une automatisation** :\n\n```yaml\naction: pc_parental.notify\ndata:\n  tag: salon\n  message: Sors la poubelle\n  son: Rappel\n```\nSans `pc` ni `tag`, le message part à tous. Chaque appareil a aussi son entité `notify`, ciblable par les libellés de Home Assistant.\n\n</details>",
+       "type": "markdown"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "subview": true,
+   "title": "Messages",
+   "type": "sections"
+  },
+  {
+   "icon": "mdi:palette-outline",
    "max_columns": 3,
    "path": "veille",
    "sections": [
     {
      "cards": [
+      {
+       "heading": "Écran de veille",
+       "heading_style": "title",
+       "icon": "mdi:television-ambient-light",
+       "type": "heading"
+      },
       {
        "grid_options": {
         "columns": "full"
@@ -991,23 +890,71 @@
     {
      "cards": [
       {
-       "heading": "Sur chaque appareil",
+       "heading": "Apparence du tableau",
        "heading_style": "title",
        "icon": "mdi:palette-outline",
        "type": "heading"
       },
       {
-       "content": "Le thème, la musique ou la radio et le mode nuit se règlent sur chaque appareil (Vision → Réglages) : chaque télé, chaque téléphone a les siens. Ici, on choisit seulement les tableaux de bord et les cartes rendus disponibles.",
+       "type": "custom:vision-apparence-card"
+      },
+      {
+       "content": "Le thème de ce tableau de bord. Celui des appareils se choisit plus bas (par défaut pour tous) ou dans Vision → Réglages de chaque appareil.",
        "type": "markdown"
+      }
+     ],
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "heading": "Sur chaque appareil",
+       "heading_style": "title",
+       "icon": "mdi:cellphone-cog",
+       "type": "heading"
+      },
+      {
+       "content": "Réglages par défaut des appareils : thème, radio ou musique de la veille, mode nuit. Un appareil qui fait son propre choix (Vision → Réglages) garde le sien.",
+       "type": "markdown"
+      },
+      {
+       "entity": "select.x",
+       "type": "tile"
+      },
+      {
+       "entity": "select.x",
+       "type": "tile"
+      },
+      {
+       "entity": "text.x",
+       "type": "tile"
+      },
+      {
+       "entity": "text.x",
+       "type": "tile"
+      },
+      {
+       "entity": "text.x",
+       "type": "tile"
+      },
+      {
+       "entity": "text.x",
+       "type": "tile"
+      },
+      {
+       "entity": "text.x",
+       "type": "tile"
       }
      ],
      "type": "grid"
     }
    ],
-   "title": "Écran de veille",
+   "subview": true,
+   "title": "Apparence, veille et son",
    "type": "sections"
   },
   {
+   "icon": "mdi:devices",
    "max_columns": 3,
    "path": "appareils",
    "sections": [
@@ -1020,7 +967,7 @@
        "type": "heading"
       },
       {
-       "content": "**Téléphone, tablette, télé Android** : aucune version de la nouvelle appli n'est publiée avec l'intégration pour l'instant (`android/installation.apk` et `installation.json`).\n\n<details><summary>En savoir plus</summary>\n\n**PC Windows** — dans **PowerShell**, sur le PC à équiper :\n\n```\nirm http://homeassistant.local:8123/api/pc_parental/client/install -OutFile \"$env:TEMP\\install-cp.ps1\"; & \"$env:TEMP\\install-cp.ps1\"\n```\n\n(installateur : http://homeassistant.local:8123/api/pc_parental/client/install)\n\nL'installateur demande l'autorisation administrateur puis la **clé d'inscription** (*Vision → Configurer → Avancé*). Plus simple : *Vision → Configurer → Ajouter un appareil* donne une commande qui relie le PC sans clé.\n\n⚠️ Ferme les inscriptions quand tous les appareils sont équipés.\n\n</details>",
+       "content": "**Téléphone, tablette, télé Android** : aucune version de la nouvelle appli n'est publiée avec l'intégration pour l'instant (`android/installation.apk` et `installation.json`).\n\n<details><summary>En savoir plus</summary>\n\n**PC Windows** — dans **PowerShell**, sur le PC à équiper :\n\n```\nirm http://homeassistant.local:8123/api/pc_parental/client/install -OutFile \"$env:TEMP\\install-cp.ps1\"; & \"$env:TEMP\\install-cp.ps1\"\n```\n\n(installateur : http://homeassistant.local:8123/api/pc_parental/client/install)\n\nL'installateur demande l'autorisation administrateur puis la **clé d'inscription** (*Vision → Configurer → Réparer, sauvegarder ou restaurer*). Plus simple : *Vision → Configurer → Ajouter un appareil* donne une commande qui relie le PC sans clé.\n\n⚠️ Ferme les inscriptions quand tous les appareils sont équipés.\n\n</details>",
        "type": "markdown"
       },
       {
@@ -1070,7 +1017,7 @@
          "type": "heading"
         },
         {
-         "content": "Un appareil se retire depuis la page de sa personne (onglet « Aujourd'hui », puis la personne) : **Retirer…**, sous l'appareil.\n\n<details><summary>En savoir plus</summary>\n\nVision montre ce qui sera perdu et demande de taper le nom de l'appareil pour confirmer.\n\nSon agent l'apprend au prochain contact : il rend la machine libre — fichier `hosts`, DNS, sonde — confirme, puis s'efface lui-même. Rien à faire sur place.\n\n⚠️ Cela efface aussi ses plages, ses règles et son historique. Un appareil éteint garde sa consigne trois mois : il se désinstallera au premier allumage.\n\n</details>",
+         "content": "Un appareil se retire depuis la page de sa personne (onglet « Utilisateur », puis la personne) : **Retirer…**, sous l'appareil.\n\n<details><summary>En savoir plus</summary>\n\nVision montre ce qui sera perdu et demande de taper le nom de l'appareil pour confirmer.\n\nSon agent l'apprend au prochain contact : il rend la machine libre — fichier `hosts`, DNS, sonde — confirme, puis s'efface lui-même. Rien à faire sur place.\n\n⚠️ Cela efface aussi ses plages, ses règles et son historique. Un appareil éteint garde sa consigne trois mois : il se désinstallera au premier allumage.\n\n</details>",
          "type": "markdown"
         }
        ],
@@ -1078,20 +1025,44 @@
       }
      ],
      "type": "grid"
-    },
-    {
-     "cards": [
-      {
-       "type": "custom:vision-apparence-card"
-      }
-     ],
-     "type": "grid"
     }
    ],
+   "subview": true,
    "title": "Appareils",
    "type": "sections"
   },
   {
+   "icon": "mdi:alarm",
+   "max_columns": 2,
+   "path": "reveils",
+   "sections": [
+    {
+     "cards": [
+      {
+       "content": "{% set l = states.switch | selectattr('entity_id', 'match', 'switch[.]vision_reveil_') | list %}{% if l | count == 0 %}Aucun réveil pour l'instant : on les crée depuis l'appli Vision ou par automatisation.{% else %}\n| Réveil | Pour | Prochain | État |\n|---|---|---|---|\n{% for s in l %}{% set b = s.object_id %}{% set p = state_attr(s.entity_id, 'demandeur') %}{% set n = states('sensor.' ~ b ~ '_prochain') %}| {{ s.name }} | {{ state_attr(p, 'friendly_name') or p }} | {{ (n | as_datetime | as_local).strftime('%d/%m %H:%M') if n not in ['unknown', 'unavailable', ''] else '—' }} | {{ state_translated('sensor.' ~ b ~ '_etat') }} |\n{% endfor %}{% endif %}",
+       "type": "markdown"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "content": "<details><summary>Piloter les réveils par automatisation</summary>\n\nActions : `pc_parental.reveil_creer`, `reveil_modifier`, `reveil_sauter`, `reveil_reprendre`, `reveil_sonner`, `reveil_reporter`, `reveil_arreter`. Événements : `vision_reveil_sonne`, `vision_reveil_reporte`, `vision_reveil_arrete`, `vision_reveil_echec`. Un modèle « jours d'école » (agenda des cours, jours ouvrés, vacances) s'installe avec `pc_parental.reveil_installer_modeles`.\n\n</details>",
+       "type": "markdown"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    }
+   ],
+   "subview": true,
+   "title": "Réveils",
+   "type": "sections"
+  },
+  {
+   "icon": "mdi:home-import-outline",
    "max_columns": 2,
    "path": "widgets",
    "sections": [
@@ -1105,6 +1076,7 @@
      "type": "grid"
     }
    ],
+   "subview": true,
    "title": "Widgets HA",
    "type": "sections"
   }

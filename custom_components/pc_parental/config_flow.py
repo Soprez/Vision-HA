@@ -35,10 +35,94 @@ if TYPE_CHECKING:
 GARDER, NOUVELLE, CHOISIR = "garder", "nouvelle", "choisir"
 
 
-class PcParentalConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Une seule entrée suffit : elle pilote tous les PC de la maison."""
+class _Assistant:
+    """Ce que partagent l'assistant d'ajout (5 étapes) et « Relancer l'assistant » (refonte UX lot 4)."""
+
+    hass: Any
+
+    def _lg(self) -> str:
+        return langues.langue_hass(self.hass)
+
+    def _tx(self, cle: str, **champs: Any) -> str:
+        magasin = getattr(self, "_magasin", None)
+        return TEXTES.t(cle, self._lg(), magasin() if magasin else None, **champs)
+
+    def _schema_lieu(self, nom_lieu: str, mots: dict[str, str]) -> vol.Schema:
+        from homeassistant.data_entry_flow import section
+
+        return vol.Schema({
+            vol.Required("lieu", default=nom_lieu): str,
+            vol.Required("mots"): section(vol.Schema({
+                vol.Optional(m, description={"suggested_value": mots.get(m) or None}): str for m in vocabulaire.MOTS
+            }), {"collapsed": not mots}),
+        })
+
+    def _lire_lieu(self, saisie: dict[str, Any]) -> tuple[str, dict[str, str]]:
+        """(lieu, mots) ; ValueError(mot) si un mot est trop long."""
+        from . import lieu
+
+        return lieu.propre(saisie.get("lieu", "")), vocabulaire.preparer(dict(saisie.get("mots") or {}), self._lg())
+
+    @staticmethod
+    def _schema_personnes(decideurs: list[str]) -> vol.Schema:
+        return vol.Schema({
+            vol.Optional("decideurs", default=list(decideurs)): EntitySelector(EntitySelectorConfig(domain="person", multiple=True)),
+        })
+
+    @staticmethod
+    def _schema_objectifs(groupes: set[str]) -> vol.Schema:
+        from . import assistant
+
+        return vol.Schema({
+            vol.Optional("objectifs", default=[g for g in assistant.GROUPES if g in groupes]): SelectSelector(SelectSelectorConfig(
+                options=list(assistant.GROUPES), multiple=True, translation_key="objectifs", mode=SelectSelectorMode.LIST)),
+        })
+
+    def _modules_objectifs(self, actifs: set[str], avant: set[str], saisie: dict[str, Any]) -> tuple[set[str], set[str], str]:
+        """(groupes, modules voulus, phrase d'erreur des dépendances — vide si tout va)."""
+        from . import assistant, modules
+
+        groupes = {g for g in (saisie.get("objectifs") or []) if g in assistant.GROUPES}
+        voulus = assistant.modules_voulus(actifs, avant, groupes)
+        manque = modules.manques(voulus, self._lg())
+        return groupes, voulus, (" ".join(manque.values()) + "\n\n") if manque else ""
+
+    def _termes(self, mots: dict[str, str]) -> dict[str, str]:
+        """Les mots des rôles (choisis, sinon par défaut), avec la majuscule des titres."""
+        return {m: vocabulaire._majuscule(v) for m, v in {**vocabulaire.defauts(self._lg()), **mots}.items()}
+
+    def _nom_de(self, personne: str) -> str:
+        etat = self.hass.states.get(personne)
+        return etat.name if etat is not None else personne
+
+    def _resume_assistant(self, nom_lieu: str, mots: dict[str, str], decideurs: list[str], groupes: set[str],
+                          genre: str = "") -> str:
+        from . import assistant
+
+        termes = self._termes(mots)
+        lignes = [
+            self._tx("assistant_resume_lieu", lieu=nom_lieu),
+            self._tx("assistant_resume_mots", decideur=termes["decideur"], demandeur=termes["demandeur"]),
+            self._tx("assistant_resume_decideurs", decideurs=termes["decideurs"], demandeur=termes["demandeur"],
+                     liste=", ".join(sorted(self._nom_de(p) for p in decideurs)) or self._tx("assistant_aucun_decideur")),
+            self._tx("assistant_resume_objectifs",
+                     liste=", ".join(self._tx(f"objectif_{g}") for g in assistant.GROUPES if g in groupes)
+                     or self._tx("assistant_aucun_objectif")),
+        ]
+        if genre:
+            lignes.append(self._tx("assistant_resume_appareil", appareil=self._tx(f"premier_appareil_{genre}")))
+        return "\n".join(f"- {ligne}" for ligne in lignes)
+
+
+class PcParentalConfigFlow(_Assistant, ConfigFlow, domain=DOMAIN):
+    """Une seule entrée suffit : elle pilote tous les appareils du lieu.
+
+    Refonte UX lot 4 : l'ajout est un assistant de 5 étapes (assistant.py), « Suivant » jusqu'au résumé."""
 
     VERSION = 1
+
+    def __init__(self) -> None:
+        self._choix: dict[str, Any] = {}
 
     @staticmethod
     @callback
@@ -48,25 +132,93 @@ class PcParentalConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> "ConfigFlowResult":
+        """1/5 : le lieu et les mots des rôles."""
+        from . import lieu
+
         await self.async_set_unique_id(DOMAIN)
         self._abort_if_unique_id_configured()
-
+        erreurs: dict[str, str] = {}
+        lg = self._lg()
+        mots = dict(self._choix.get("mots") or {})
         if user_input is not None:
-            return self.async_create_entry(
-                title=PRODUIT_AFFICHE, data={"modules_initiaux": user_input.get("prereglage", "famille")}
-            )
-
+            try:
+                nom_lieu, mots = self._lire_lieu(user_input)
+            except ValueError:
+                erreurs["base"] = "vocabulaire_trop_long"
+                mots = {m: vocabulaire.nettoyer((user_input.get("mots") or {}).get(m)) for m in vocabulaire.MOTS}
+            else:
+                self._choix.update(lieu="" if nom_lieu == lieu.defaut(lg) else nom_lieu, mots=mots)
+                return await self.async_step_personnes()
         return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema({
-                vol.Required("prereglage", default="famille"): SelectSelector(SelectSelectorConfig(
-                    options=["simple", "famille", "tout"], translation_key="prereglage", mode=SelectSelectorMode.LIST)),
-            }),
-            description_placeholders={},
+            step_id="user", data_schema=self._schema_lieu(self._choix.get("lieu") or lieu.defaut(lg), mots),
+            errors=erreurs, last_step=False,
+            description_placeholders={"defauts": ", ".join(vocabulaire.defauts(lg)[m] for m in vocabulaire.MOTS),
+                                      "longueur": str(vocabulaire.LONGUEUR_MAX)},
         )
 
+    async def async_step_personnes(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """2/5 : qui décide ? Les autres sont Demandeurs (le rôle par défaut)."""
+        if user_input is not None:
+            self._choix["decideurs"] = [str(p) for p in (user_input.get("decideurs") or []) if str(p).startswith("person.")]
+            return await self.async_step_objectifs()
+        termes = self._termes(dict(self._choix.get("mots") or {}))
+        return self.async_show_form(
+            step_id="personnes", data_schema=self._schema_personnes(self._choix.get("decideurs") or []), last_step=False,
+            description_placeholders={"decideurs": termes["decideurs"], "demandeurs": termes["demandeurs"]},
+        )
 
-class PcParentalOptionsFlow(OptionsFlow):
+    async def async_step_objectifs(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """3/5 : les objectifs, quatre groupes de modules ; les dépendances dites en clair."""
+        from . import assistant
+
+        erreurs: dict[str, str] = {}
+        place = {"erreur": ""}
+        groupes = set(self._choix.get("groupes", assistant.GROUPES))
+        if user_input is not None:
+            groupes, voulus, place["erreur"] = self._modules_objectifs(set(), set(), user_input)
+            if place["erreur"]:
+                erreurs["base"] = "objectifs_dependances"
+            else:
+                self._choix.update(groupes=sorted(groupes), modules=sorted(voulus))
+                return await self.async_step_appareil()
+        return self.async_show_form(step_id="objectifs", data_schema=self._schema_objectifs(groupes), errors=erreurs,
+                                    last_step=False, description_placeholders=place)
+
+    async def async_step_appareil(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """4/5 : le premier appareil à relier (l'ajout se fait juste après, dans Configurer → Ajouter un appareil)."""
+        from . import assistant
+
+        if user_input is not None:
+            genre = user_input.get("appareil")
+            self._choix["appareil"] = genre if genre in assistant.GENRES else "plus_tard"
+            return await self.async_step_pret()
+        return self.async_show_form(step_id="appareil", data_schema=vol.Schema({
+            vol.Required("appareil", default=self._choix.get("appareil") or "telephone"): SelectSelector(SelectSelectorConfig(
+                options=list(assistant.GENRES), translation_key="premier_appareil", mode=SelectSelectorMode.LIST)),
+        }), last_step=False)
+
+    async def async_step_pret(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """5/5 : c'est prêt — le résumé ; l'entrée est créée, les choix posés au premier démarrage."""
+        from . import dashboard, lieu
+
+        c = self._choix
+        if user_input is not None:
+            return self.async_create_entry(title=PRODUIT_AFFICHE, data={
+                "modules_initiaux": list(c.get("modules") or []),
+                "assistant": {"lieu": c.get("lieu", ""), "mots": {"langue": self._lg(), "mots": dict(c.get("mots") or {})},
+                              "decideurs": list(c.get("decideurs") or []), "appareil": c.get("appareil", "plus_tard")},
+            })
+        genre = c.get("appareil", "plus_tard")
+        return self.async_show_form(step_id="pret", data_schema=vol.Schema({}), last_step=True, description_placeholders={
+            "resume": self._resume_assistant(c.get("lieu") or lieu.defaut(self._lg()), dict(c.get("mots") or {}),
+                                             list(c.get("decideurs") or []),
+                                             set(c.get("groupes") or []), genre),
+            "suite": self._tx(f"assistant_suite_{genre}"),
+            "tableau": f"/{dashboard.URL_PATH}",
+        })
+
+
+class PcParentalOptionsFlow(_Assistant, OptionsFlow):
     """La clé d'inscription : lue et changée ici seulement.
 
     Les options d'une intégration ne s'ouvrent qu'à un administrateur. Avant la
@@ -81,19 +233,205 @@ class PcParentalOptionsFlow(OptionsFlow):
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> "ConfigFlowResult":
-        """Le menu (refonte du 2026-10-08) : l'ajout d'abord, la clé brute tout au fond (Avancé)."""
+        """Le menu (refonte UX lot 4) : relancer l'assistant, ajouter un appareil, réparer ; le reste sous « Autres
+        réglages » en attendant le panneau Réglages (lot 5) — aucun réglage n'est perdu."""
         from . import appairage
 
         attente = sum(1 for d in appairage._demandes(self.hass).values() if d["etat"] == "en_attente")
         return self.async_show_menu(
-            step_id="init", menu_options=["ajouter", "appairage", "roles", "appareils", "securite", "modules",
-                                          "entites", "general", "accueil", "vocabulaire", "musique", "journal_musique",
-                                          "temps_gagne", "regles_lieu", "avance", "soutien"],
+            step_id="init", menu_options=["assistant", "ajouter", "appairage", "reparer", "autres", "soutien"],
             description_placeholders={"attente": str(attente)},
         )
 
+    async def async_step_reparer(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        return self.async_show_menu(step_id="reparer", menu_options=["appareils_relier", "sauvegarde", "installer", "qr", "cle"])
+
+    async def async_step_autres(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """Les réglages d'avant, tous, le temps que le panneau Réglages (lot 5) les accueille."""
+        return self.async_show_menu(step_id="autres", menu_options=[
+            "roles", "securite", "entites", "general", "accueil", "musique", "journal_musique", "appareils_essai"])
+
+    # ------------------------------------------------ Relancer l'assistant (refonte UX lot 4)
+
+    def _assistant_choix(self) -> dict[str, Any]:
+        """Les réponses en cours, préremplies avec l'installation telle qu'elle est."""
+        if not hasattr(self, "_relance"):
+            from . import assistant, lieu, modules
+
+            store = self._coord().store
+            self._relance: dict[str, Any] = {
+                "lieu": lieu.nom(store, self._lg()), "mots": vocabulaire.reglage(store, self._lg()),
+                "decideurs": assistant.decideurs(store), "avant_decideurs": assistant.decideurs(store),
+                "groupes": sorted(assistant.groupes_actifs(modules.actifs(store))),
+                "avant_groupes": sorted(assistant.groupes_actifs(modules.actifs(store))),
+            }
+        return self._relance
+
+    async def async_step_assistant(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """1/4 : le lieu et les mots des rôles (le premier appareil se relie par « Ajouter un appareil »)."""
+        if self._coord() is None:
+            return self.async_abort(reason="not_loaded")
+        c = self._assistant_choix()
+        erreurs: dict[str, str] = {}
+        mots = dict(c["mots"])
+        if user_input is not None:
+            try:
+                nom_lieu, mots = self._lire_lieu(user_input)
+            except ValueError:
+                erreurs["base"] = "vocabulaire_trop_long"
+                mots = {m: vocabulaire.nettoyer((user_input.get("mots") or {}).get(m)) for m in vocabulaire.MOTS}
+            else:
+                c.update(lieu=nom_lieu or c["lieu"], mots=mots)
+                return await self.async_step_assistant_personnes()
+        lg = self._lg()
+        return self.async_show_form(
+            step_id="assistant", data_schema=self._schema_lieu(c["lieu"], mots), errors=erreurs, last_step=False,
+            description_placeholders={"defauts": ", ".join(vocabulaire.defauts(lg)[m] for m in vocabulaire.MOTS),
+                                      "longueur": str(vocabulaire.LONGUEUR_MAX)},
+        )
+
+    async def async_step_assistant_personnes(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """2/4 : qui décide ? Décoché alors qu'il décidait : le rôle par défaut ; les autres ne bougent pas."""
+        if self._coord() is None:
+            return self.async_abort(reason="not_loaded")
+        c = self._assistant_choix()
+        if user_input is not None:
+            c["decideurs"] = [str(p) for p in (user_input.get("decideurs") or []) if str(p).startswith("person.")]
+            return await self.async_step_assistant_objectifs()
+        termes = self._termes(c["mots"])
+        return self.async_show_form(
+            step_id="assistant_personnes", data_schema=self._schema_personnes(c["decideurs"]), last_step=False,
+            description_placeholders={"decideurs": termes["decideurs"], "demandeurs": termes["demandeurs"]},
+        )
+
+    async def async_step_assistant_objectifs(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """3/4 : les objectifs ; un groupe décoché coupe ses modules, un groupe coché allume ses modules recommandés."""
+        from . import modules
+
+        coord = self._coord()
+        if coord is None:
+            return self.async_abort(reason="not_loaded")
+        c = self._assistant_choix()
+        erreurs: dict[str, str] = {}
+        place = {"erreur": ""}
+        groupes = set(c["groupes"])
+        if user_input is not None:
+            groupes, voulus, place["erreur"] = self._modules_objectifs(
+                modules.actifs(coord.store), set(c["avant_groupes"]), user_input)
+            if place["erreur"]:
+                erreurs["base"] = "objectifs_dependances"
+            else:
+                c.update(groupes=sorted(groupes), modules=sorted(voulus))
+                return await self.async_step_assistant_pret()
+        return self.async_show_form(step_id="assistant_objectifs", data_schema=self._schema_objectifs(groupes),
+                                    errors=erreurs, last_step=False, description_placeholders=place)
+
+    async def async_step_assistant_pret(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """4/4 : le résumé, puis tout est posé d'un coup (journalisé) ; les protections demandent leur confirmation."""
+        from . import assistant, modules
+
+        coord = self._coord()
+        if coord is None:
+            return self.async_abort(reason="not_loaded")
+        c = self._assistant_choix()
+        erreurs: dict[str, str] = {}
+        place = {"erreur": ""}
+        if user_input is not None:
+            store, lg, qui = coord.store, self._lg(), await self._qui()
+            try:
+                roles_changes = assistant.regler_decideurs(self.hass, store, c["decideurs"], c["avant_decideurs"], qui)
+            except ValueError as err:
+                erreurs["base"] = "role_refuse"
+                place["erreur"] = f"{err}\n\n"
+            else:
+                from . import lieu
+
+                lieu_change = bool(c["lieu"]) and c["lieu"] != lieu.nom(store, lg)
+                if lieu_change:
+                    store.lieu = c["lieu"]
+                mots_changes = vocabulaire.poser(store, lg, dict(c["mots"]))
+                if roles_changes or lieu_change or mots_changes:
+                    await store.async_save()
+                    _LOGGER.warning("%s : assistant relancé — lieu, vocabulaire, Décideurs %s (par %s).",
+                                    PRODUIT_AFFICHE, c["decideurs"] or "aucun", qui)
+                if roles_changes:
+                    await coord.async_ecrire()
+                if mots_changes:
+                    try:
+                        await coord.async_maj_tableau()
+                    except Exception:  # noqa: BLE001 - le réglage est enregistré ; le tableau suivra au démarrage
+                        _LOGGER.exception("%s : tableau de bord après l'assistant", PRODUIT_AFFICHE)
+                voulus = set(c["modules"]) if "modules" in c else modules.actifs(store)
+                if voulus != modules.actifs(store):
+                    self._voulus = voulus
+                    if "protections" in modules.actifs(store) and "protections" not in voulus and modules.demandeurs(store):
+                        return await self.async_step_modules_protections()
+                    return await self._modules_enregistrer()
+                if lieu_change:
+                    self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
+                return self.async_create_entry(data=dict(self.config_entry.options))
+        place["resume"] = self._resume_assistant(c["lieu"], dict(c["mots"]), list(c["decideurs"]), set(c["groupes"]))
+        return self.async_show_form(step_id="assistant_pret", data_schema=vol.Schema({}), errors=erreurs, last_step=True,
+                                    description_placeholders=place)
+
     async def async_step_securite(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
-        return self.async_show_menu(step_id="securite", menu_options=["deverrouillage", "inscriptions", "code_gestion"])
+        return self.async_show_menu(step_id="securite", menu_options=["deverrouillage", "inscriptions", "code_gestion", "code_octroi"])
+
+    async def async_step_code_octroi(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """FAILLE (l'auteur, 16/10) : le code de déverrouillage d'un Décideur — le même dans l'appli et le tableau (octroi.py).
+        D'ordinaire, le Décideur le choisit dans l'appli ; ici, un administrateur le pose, le change ou le retire
+        (code oublié, verrou après trop d'essais faux)."""
+        from homeassistant.helpers.selector import SelectOptionDict, TextSelector, TextSelectorConfig, TextSelectorType
+
+        from . import octroi
+
+        coord = self.hass.data.get(DOMAIN, {}).get(self.config_entry.entry_id)
+        if coord is None:
+            return self.async_abort(reason="not_loaded")
+        decideurs = sorted(octroi.decideurs(coord.store))
+        if not decideurs:
+            return self.async_abort(reason="aucun_decideur")
+        erreurs: dict[str, str] = {}
+        if user_input is not None:
+            personne = str(user_input.get("personne") or "")
+            action = user_input.get("action", GARDER)
+            if personne not in decideurs:
+                erreurs["personne"] = "personne_inconnue"
+            elif action == "retirer":
+                octroi.poser(coord.store, personne, "")
+                await coord.store.async_save()
+                _LOGGER.warning("Vision : code de déverrouillage de %s retiré depuis les options.", personne)
+                return self.async_create_entry(data=dict(self.config_entry.options))
+            elif action == "changer":
+                code = octroi.nettoyer(user_input.get("code"))
+                if not octroi.valide(code):
+                    erreurs["code"] = "code_court_deverrouillage"
+                elif code != octroi.nettoyer(user_input.get("confirmation")):
+                    erreurs["confirmation"] = "code_different"
+                else:
+                    await self.hass.async_add_executor_job(octroi.poser, coord.store, personne, code)
+                    await coord.store.async_save()
+                    _LOGGER.warning("Vision : code de déverrouillage de %s changé depuis les options.", personne)
+                    return self.async_create_entry(data=dict(self.config_entry.options))
+            else:
+                return self.async_create_entry(data=dict(self.config_entry.options))
+        mot_de_passe = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
+        options = [SelectOptionDict(value=p, label=self._nom_personne(p)) for p in decideurs]
+        return self.async_show_form(
+            step_id="code_octroi",
+            data_schema=vol.Schema({
+                vol.Required("personne", default=decideurs[0]): SelectSelector(SelectSelectorConfig(
+                    options=options, mode=SelectSelectorMode.DROPDOWN)),
+                vol.Required("action", default=GARDER): SelectSelector(SelectSelectorConfig(
+                    options=[GARDER, "changer", "retirer"], translation_key="code_octroi_action", mode=SelectSelectorMode.LIST)),
+                vol.Optional("code", default=""): mot_de_passe,
+                vol.Optional("confirmation", default=""): mot_de_passe,
+            }),
+            errors=erreurs,
+            description_placeholders={
+                "etat": ", ".join(f"{self._nom_personne(p)} : {'✓' if octroi.code_pose(coord.store, p) else '—'}" for p in decideurs),
+                "essais": str(octroi.ESSAIS_FAUX_MAX), "minutes": str(octroi.FENETRE_S // 60), "total": str(octroi.ECHECS_LIEU_MAX)},
+        )
 
     async def async_step_code_gestion(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
         """Faille 2.2-1 : le code qui libère un message bloquant sur un PC se règle ici, et nulle part ailleurs."""
@@ -144,37 +482,6 @@ class PcParentalOptionsFlow(OptionsFlow):
                 "total": str(code_gestion.ECHECS_MAISON_MAX),
             },
         )
-
-    async def async_step_modules(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
-        """Les modules (1.82.0) : une case par module, un préréglage, les dépendances vérifiées."""
-        from . import modules
-
-        coord = self._coord()
-        if coord is None:
-            return self.async_abort(reason="not_loaded")
-        erreurs: dict[str, str] = {}
-        place = {"erreur": ""}
-        if user_input is not None:
-            pre = user_input.get("prereglage") or "garder"
-            voulus = set(modules.PRESETS[pre]) if pre in modules.PRESETS else set(user_input.get("modules") or [])
-            manque = modules.manques(voulus, langues.langue_hass(self.hass))
-            if manque:
-                erreurs["base"] = "modules_dependances"
-                place["erreur"] = " ".join(manque.values()) + "\n\n"
-            else:
-                self._voulus = voulus
-                demandeurs = modules.demandeurs(coord.store)
-                if "protections" in modules.actifs(coord.store) and "protections" not in voulus and demandeurs:
-                    return await self.async_step_modules_protections()
-                return await self._modules_enregistrer()
-        lg = langues.langue_hass(self.hass)
-        options = [{"value": m, "label": f"{modules.nom(m, lg)} — {modules.phrase(m, lg)}"} for m in modules.CATALOGUE]
-        return self.async_show_form(step_id="modules", data_schema=vol.Schema({
-            vol.Optional("prereglage", default="garder"): SelectSelector(SelectSelectorConfig(
-                options=["garder", "simple", "famille", "tout"], translation_key="prereglage_options", mode=SelectSelectorMode.LIST)),
-            vol.Optional("modules", default=sorted(modules.actifs(coord.store))): SelectSelector(SelectSelectorConfig(
-                options=options, multiple=True, mode=SelectSelectorMode.LIST)),
-        }), errors=erreurs, description_placeholders=place)
 
     async def async_step_modules_protections(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
         """Avertissement explicite avant de couper les protections anti-contournement."""
@@ -238,9 +545,11 @@ class PcParentalOptionsFlow(OptionsFlow):
         options = [{"value": s_.entity_id, "label": self._n(
             "entites_option_personne", len(coord.store.entites_personnes.get(s_.entity_id) or []), nom=s_.name)}
             for s_ in sorted(self.hass.states.async_all("person"), key=lambda x: x.name.lower())]
+        guide = getattr(self, "_guide_entites", False)
+        self._guide_entites = False
         return self.async_show_form(step_id="entites_personnes", data_schema=vol.Schema({
             vol.Required("personne"): SelectSelector(SelectSelectorConfig(options=options, mode=SelectSelectorMode.LIST)),
-        }), last_step=False)
+        }), errors={"base": "entites_rien_a_piloter"} if guide else {}, last_step=False)
 
     async def async_step_entites_personne_liste(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
         from . import widgets
@@ -305,7 +614,9 @@ class PcParentalOptionsFlow(OptionsFlow):
             return self.async_abort(reason="not_loaded")
         pilotables = [e for e in widgets.toutes_choisies(coord.store) if widgets.pilotable(e)]
         if not pilotables:
-            return self.async_abort(reason="entites_rien_a_piloter")
+            # Lot 6 (HA-25) : au lieu d'un abandon, l'écran de l'étape qui manque, avec la raison en tête.
+            self._guide_entites = True
+            return await self.async_step_entites_personnes()
         if user_input is not None:
             voulues = {e: list(user_input.get(e) or []) for e in pilotables}
             if widgets.regler_actions(self.hass, coord.store, voulues, await self._qui()):
@@ -386,21 +697,21 @@ class PcParentalOptionsFlow(OptionsFlow):
         }))
 
     async def async_step_general(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
-        """Réglages généraux (1.81.0) : le nom du lieu ; chantier « Générique » : les personnes qui tiennent lieu
-        d'écran commun. Les appareils Android d'essai (outil de test) sont sous Avancé (EX-06)."""
-        from . import lieu
-
+        """Réglages généraux : les personnes qui tiennent lieu d'écran commun, les téléphones notifiés. Le nom du lieu
+        est dans l'assistant et dans Réglages › Réservé (lot 5) ; les appareils Android d'essai sous Avancé (EX-06)."""
         coord = self._coord()
         if coord is None:
             return self.async_abort(reason="not_loaded")
         if user_input is not None:
-            nouveau = lieu.propre(user_input.get("lieu", ""))
-            if nouveau != coord.store.lieu:
-                ancien, coord.store.lieu = coord.store.lieu, nouveau
-                _LOGGER.warning("%s : nom du lieu « %s » → « %s » (par %s).", PRODUIT_AFFICHE, ancien, nouveau, await self._qui())
+            # 2.5.6 : le salon Discord du lieu (chaque Décideur le coche ou non dans Réglages › Mes notifications).
+            discord = {"service": str(user_input.get("discord_service") or "").removeprefix("notify."),
+                       "cible": str(user_input.get("discord_cible") or "").strip()}
+            discord = {k: v for k, v in discord.items() if v}
+            if discord != (coord.store.discord or {}):
+                coord.store.discord = discord
+                _LOGGER.warning("%s : salon Discord → %s (par %s).", PRODUIT_AFFICHE, discord.get("service") or "aucun",
+                                await self._qui())
                 await coord.store.async_save()
-                # Des textes des entités portent le nom du lieu : rechargement.
-                self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
             affichage = sorted({str(p) for p in (user_input.get("personnes_affichage") or []) if p})
             if affichage != sorted(coord.store.personnes_affichage):
                 coord.store.personnes_affichage = affichage
@@ -409,10 +720,22 @@ class PcParentalOptionsFlow(OptionsFlow):
                 await coord.store.async_save()
             return self.async_create_entry(data=dict(self.config_entry.options))
         schema: dict[Any, Any] = {
-            vol.Required("lieu", default=lieu.nom(coord.store)): str,
             vol.Optional("personnes_affichage", default=list(coord.store.personnes_affichage)): EntitySelector(
                 EntitySelectorConfig(domain="person", multiple=True)),
         }
+        # 2.5.6 (l'auteur, 15/10) : les téléphones se choisissent par Décideur (Réglages › Mes notifications, ou l'appli
+        # Vision) ; reste ici le salon Discord du lieu : un service notify (intégration Discord) et l'id du salon.
+        from homeassistant.helpers import selector as _sel
+        exclus = {"persistent_notification", "send_message", "notify"}
+        services = sorted(s for s in (self.hass.services.async_services().get("notify") or {})
+                          if not s.startswith("mobile_app_") and s not in exclus)
+        actuel = str((coord.store.discord or {}).get("service") or "")
+        options = sorted(set(services) | ({actuel} if actuel else set()))
+        if options:
+            schema[vol.Optional("discord_service", description={"suggested_value": actuel or None})] = _sel.SelectSelector(
+                _sel.SelectSelectorConfig(options=options, mode=_sel.SelectSelectorMode.DROPDOWN, custom_value=False))
+            schema[vol.Optional("discord_cible", description={"suggested_value": (coord.store.discord or {}).get("cible") or None})] = (
+                _sel.TextSelector(_sel.TextSelectorConfig()))
         return self.async_show_form(step_id="general", data_schema=vol.Schema(schema))
 
     async def async_step_appareils_essai(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
@@ -513,56 +836,6 @@ class PcParentalOptionsFlow(OptionsFlow):
                     message=accueil.rendre(self.hass, coord.store, lg, "apercu", exemple)),
         ))
 
-    async def async_step_vocabulaire(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
-        """Le vocabulaire (lot Accueil) : les mots Décideur / Demandeur (singulier, pluriel) dans la langue de
-        Home Assistant. Vide = le mot par défaut ; le lieu se règle dans « Réglages généraux »."""
-        from . import lieu
-
-        coord = self._coord()
-        if coord is None:
-            return self.async_abort(reason="not_loaded")
-        lg = langues.langue_hass(self.hass)
-        defauts = vocabulaire.defauts(lg)
-        actuels = {**defauts, **vocabulaire.reglage(coord.store, lg)}
-        erreurs: dict[str, str] = {}
-        if user_input is not None:
-            try:
-                mots = vocabulaire.preparer(user_input, lg)
-            except ValueError as err:
-                erreurs[str(err)] = "vocabulaire_trop_long"
-                actuels = {m: vocabulaire.nettoyer(user_input.get(m)) for m in vocabulaire.MOTS}
-            else:
-                avant = vocabulaire.reglage(coord.store, lg)
-                if vocabulaire.poser(coord.store, lg, mots):
-                    await coord.store.async_save()
-                    _LOGGER.warning("%s : vocabulaire (%s) %s → %s (par %s).", PRODUIT_AFFICHE, lg,
-                                    avant or "mots par défaut", mots or "mots par défaut", await self._qui())
-                    # Les textes du tableau de bord portent ces mots : il se refait (signature du tableau).
-                    try:
-                        await coord.async_maj_tableau()
-                    except Exception:  # noqa: BLE001 - le réglage est enregistré ; le tableau suivra au démarrage
-                        _LOGGER.exception("%s : tableau de bord après changement de vocabulaire", PRODUIT_AFFICHE)
-                return self.async_abort(reason="vocabulaire_ok",
-                                        description_placeholders={"apercu": self._apercu_vocabulaire(coord)})
-        return self.async_show_form(
-            step_id="vocabulaire",
-            data_schema=vol.Schema({
-                vol.Optional(m, description={"suggested_value": actuels.get(m) or None}): str
-                for m in vocabulaire.MOTS
-            }),
-            errors=erreurs,
-            description_placeholders={
-                "longueur": str(vocabulaire.LONGUEUR_MAX),
-                "defauts": ", ".join(defauts[m] for m in vocabulaire.MOTS),
-                "nom_lieu": lieu.nom(coord.store, lg),
-                "apercu": self._apercu_vocabulaire(coord),
-            },
-        )
-
-    def _apercu_vocabulaire(self, coord) -> str:
-        """Une phrase d'exemple avec les mots enregistrés, dans la langue de Home Assistant."""
-        return self._t("vocabulaire_apercu")
-
     async def async_step_soutien(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
         """Soutenir le projet (docs/soutien.md) : un badge décoratif, rien ne se débloque."""
         from . import soutien
@@ -574,22 +847,27 @@ class PcParentalOptionsFlow(OptionsFlow):
             # Une description à part (traduite) quand le badge est déjà là.
             return self.async_show_menu(step_id="soutien_actif", menu_options=["soutien_code", "soutien_retirer"],
                                         description_placeholders={"lien": soutien.LIEN_DON})
-        return self.async_show_menu(step_id="soutien", menu_options=["soutien_code", "soutien_cafe"],
-                                    description_placeholders={"lien": soutien.LIEN_DON})
+        # Retours de l'auteur (15/10) : plus de « café sur l'honneur » (un code est maintenant envoyé à chaque café) : la page
+        # de soutien demande directement le code reçu par e-mail.
+        return await self._soutien_formulaire("soutien", user_input, {"lien": soutien.LIEN_DON})
 
     # HA refuse d'afficher une étape sans méthode du même nom (UnknownStep, erreur 500) : le menu
     # « badge déjà là » a donc la sienne, qui revient au même choix.
     async_step_soutien_actif = async_step_soutien
 
     async def async_step_soutien_code(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
-        """« J'ai un code » : vérifié ici, hors ligne, avec la clé publique embarquée."""
+        """« J'ai un code » (badge déjà là : un autre code) : vérifié ici, hors ligne, avec la clé publique embarquée."""
+        if self._coord() is None:
+            return self.async_abort(reason="not_loaded")
+        return await self._soutien_formulaire("soutien_code", user_input)
+
+    async def _soutien_formulaire(self, etape: str, user_input: dict[str, Any] | None,
+                                  champs: dict[str, str] | None = None) -> "ConfigFlowResult":
         import time
 
         from . import soutien
 
         coord = self._coord()
-        if coord is None:
-            return self.async_abort(reason="not_loaded")
         erreurs: dict[str, str] = {}
         if user_input is not None:
             r = soutien.activer_code(coord.store, str(user_input.get("code") or ""), time.time())
@@ -598,23 +876,9 @@ class PcParentalOptionsFlow(OptionsFlow):
                 _LOGGER.warning("%s : badge Soutien activé par un code (émis le %s) par %s.", PRODUIT_AFFICHE, r.emis_le, await self._qui())
                 return self.async_abort(reason="soutien_merci")
             erreurs["code"] = "soutien_" + r.erreur
-        return self.async_show_form(step_id="soutien_code", data_schema=vol.Schema({
+        return self.async_show_form(step_id=etape, data_schema=vol.Schema({
             vol.Required("code", default=""): TextSelector(TextSelectorConfig(multiline=True)),
-        }), errors=erreurs)
-
-    async def async_step_soutien_cafe(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
-        """« J'ai offert un café » : sur l'honneur, sans vérification (décoratif)."""
-        import time
-
-        from . import soutien
-
-        coord = self._coord()
-        if coord is None:
-            return self.async_abort(reason="not_loaded")
-        soutien.activer_honneur(coord.store, time.time())
-        await coord.store.async_save()
-        _LOGGER.warning("%s : badge Soutien activé sur l'honneur par %s.", PRODUIT_AFFICHE, await self._qui())
-        return self.async_abort(reason="soutien_merci")
+        }), errors=erreurs, description_placeholders=champs)
 
     async def async_step_soutien_retirer(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
         from . import soutien
@@ -626,107 +890,6 @@ class PcParentalOptionsFlow(OptionsFlow):
         await coord.store.async_save()
         _LOGGER.warning("%s : badge Soutien retiré par %s.", PRODUIT_AFFICHE, await self._qui())
         return self.async_abort(reason="soutien_retire")
-
-    async def async_step_temps_gagne(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
-        """1.89.0 (point 14.6) : une liste de tâches par personne ; chaque tâche cochée donne du temps en plus."""
-        from homeassistant.helpers.selector import NumberSelector, NumberSelectorConfig, NumberSelectorMode
-
-        from . import modules, temps_gagne
-
-        coord = self._coord()
-        if coord is None:
-            return self.async_abort(reason="not_loaded")
-        if modules.coupe(coord.store, "temps_gagne") or modules.coupe(coord.store, "temps"):
-            return self.async_abort(reason="temps_gagne_coupe")
-        erreurs: dict[str, str] = {}
-        if user_input is not None:
-            try:
-                temps_gagne.regler(coord.store, str(user_input.get("personne") or ""), str(user_input.get("liste") or ""),
-                                   int(user_input.get("minutes") or 0), int(user_input.get("max") or 0))
-            except ValueError as err:
-                erreurs["base"] = "temps_gagne_" + (str(err) if str(err) in ("personne", "liste", "minutes") else "minutes")
-            else:
-                await coord.store.async_save()
-                temps_gagne.async_brancher(self.hass, coord)
-                _LOGGER.warning("%s : temps gagné réglé pour %s (par %s).", PRODUIT_AFFICHE, user_input.get("personne"), await self._qui())
-                return self.async_abort(reason="temps_gagne_ok", description_placeholders={"resume": self._resume_temps_gagne(coord)})
-        return self.async_show_form(
-            step_id="temps_gagne",
-            data_schema=vol.Schema({
-                vol.Required("personne"): EntitySelector(EntitySelectorConfig(domain="person")),
-                vol.Optional("liste"): EntitySelector(EntitySelectorConfig(domain="todo")),
-                vol.Required("minutes", default=temps_gagne.MINUTES_DEFAUT): NumberSelector(NumberSelectorConfig(
-                    min=1, max=240, step=5, unit_of_measurement="min", mode=NumberSelectorMode.BOX)),
-                vol.Required("max", default=temps_gagne.MAX_DEFAUT): NumberSelector(NumberSelectorConfig(
-                    min=5, max=720, step=5, unit_of_measurement="min", mode=NumberSelectorMode.BOX)),
-            }),
-            errors=erreurs,
-            description_placeholders={"resume": self._resume_temps_gagne(coord)},
-        )
-
-    async def async_step_regles_lieu(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
-        """1.91.0 (point 14.8) : des catégories fermées tant qu'une personne est dans une zone."""
-        from homeassistant.helpers.selector import SelectOptionDict
-
-        from . import modules, regles_lieu
-
-        coord = self._coord()
-        if coord is None:
-            return self.async_abort(reason="not_loaded")
-        if modules.coupe(coord.store, "regles_lieu") or modules.coupe(coord.store, "blocage", "filtrage"):
-            return self.async_abort(reason="regles_lieu_coupe")
-        erreurs: dict[str, str] = {}
-        if user_input is not None:
-            try:
-                regles_lieu.poser(coord.store, str(user_input.get("personne") or ""), str(user_input.get("zone") or ""),
-                                  list(user_input.get("etiquettes") or []))
-            except ValueError as err:
-                erreurs["base"] = "regles_lieu_" + (str(err) if str(err) in ("personne", "zone", "trop") else "zone")
-            else:
-                await coord.store.async_save()
-                _LOGGER.warning("%s : règle de lieu %s / %s (par %s).", PRODUIT_AFFICHE, user_input.get("personne"),
-                                user_input.get("zone"), await self._qui())
-                return self.async_abort(reason="regles_lieu_ok", description_placeholders={"resume": self._resume_regles_lieu(coord)})
-        etiquettes = sorted(coord.store.toutes_etiquettes(), key=str.lower)
-        return self.async_show_form(
-            step_id="regles_lieu",
-            data_schema=vol.Schema({
-                vol.Required("personne"): EntitySelector(EntitySelectorConfig(domain="person")),
-                vol.Required("zone"): EntitySelector(EntitySelectorConfig(domain="zone")),
-                vol.Optional("etiquettes", default=[]): SelectSelector(SelectSelectorConfig(
-                    options=[SelectOptionDict(value=e, label=e) for e in etiquettes], multiple=True, mode=SelectSelectorMode.LIST)),
-            }),
-            errors=erreurs,
-            description_placeholders={"resume": self._resume_regles_lieu(coord)},
-        )
-
-    def _resume_regles_lieu(self, coord) -> str:
-        from . import regles_lieu
-
-        lignes = []
-        for r in regles_lieu.regles(coord.store):
-            etat = self.hass.states.get(r["personne"])
-            lignes.append(self._n(
-                "regle_lieu_ligne", len(r["etiquettes"]), personne=etat.name if etat else r["personne"],
-                zone=regles_lieu.nom_zone(self.hass, r["zone"]),
-                categories=", ".join(self._categorie(e) for e in r["etiquettes"])))
-        return "\n".join(lignes) if lignes else self._t("aucune_regle")
-
-    def _resume_temps_gagne(self, coord) -> str:
-        from . import temps_gagne
-
-        lignes = []
-        for personne, regle in sorted(temps_gagne.reglages(coord.store).items()):
-            etat = self.hass.states.get(personne)
-            nom = etat.name if etat else personne
-            liste = self.hass.states.get(regle["liste"])
-            lignes.append(self._t("temps_gagne_ligne", personne=nom, liste=liste.name if liste else regle["liste"],
-                                  minutes=regle["minutes"], max=regle["max"]))
-        return "\n".join(lignes) if lignes else self._t("aucune_personne")
-
-    async def async_step_avance(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
-        return self.async_show_menu(step_id="avance", menu_options=["installer", "qr", "cle", "sauvegarde",
-                                                                        "appareils_essai"])
 
     # ------------------------------------------------ 1.87.0 : sauvegarde / restauration (point 14.3)
 
@@ -794,10 +957,6 @@ class PcParentalOptionsFlow(OptionsFlow):
             errors=erreurs,
         )
 
-    async def async_step_appareils(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
-        return self.async_show_menu(step_id="appareils", menu_options=["appareils_relier", "roles_appareils",
-                                                                         "roles_validation_appareil"])
-
     # ------------------------------------------------ Ajouter un appareil (assistant, une question par écran)
 
     def _ajout(self) -> dict[str, Any]:
@@ -818,6 +977,14 @@ class PcParentalOptionsFlow(OptionsFlow):
         etat = self.hass.states.get(personne)
         return etat.name if etat is not None else personne
 
+    def _genre_propose(self) -> str:
+        """Le premier appareil choisi dans l'assistant d'ajout (lot 4), tant qu'aucun appareil n'est relié."""
+        choix = str(((self.config_entry.data or {}).get("assistant") or {}).get("appareil") or "")
+        coord = self._coord()
+        if choix in ("telephone", "tele", "pc") and coord is not None and not coord.store.pcs:
+            return choix
+        return "telephone"
+
     async def async_step_ajouter(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
         """1/4 : quel appareil ?"""
         if self._coord() is None:
@@ -826,7 +993,7 @@ class PcParentalOptionsFlow(OptionsFlow):
             self._aj = {"genre": user_input["genre"]}
             return await self.async_step_ajouter_qui()
         return self.async_show_form(step_id="ajouter", data_schema=vol.Schema({
-            vol.Required("genre", default="telephone"): SelectSelector(SelectSelectorConfig(
+            vol.Required("genre", default=self._genre_propose()): SelectSelector(SelectSelectorConfig(
                 options=["telephone", "tele", "pc"], translation_key="genre", mode=SelectSelectorMode.LIST)),
         }), last_step=False)
 

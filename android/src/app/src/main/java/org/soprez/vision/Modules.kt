@@ -40,6 +40,10 @@ object Modules {
     const val PROTECTIONS = "protections"
     const val PAUSE_GENERALE = "pause_generale"
     const val CONCENTRATION = "concentration"
+    /** Réveil (coupé par défaut côté HA) : absent de `modules` = l'appareil désarme ses réveils. */
+    const val REVEIL = "reveil"
+    /** Niveau sonore (backlog n° 31) : coupé par défaut dans Home Assistant ; le micro de l'appareil, des nombres seulement. */
+    const val SON = "son"
 
     val TOUS: List<String> = listOf(PLAGES, TEMPS, BLOCAGE, FILTRAGE, DEMANDES, DEVERROUILLAGE, DOUBLE_VALIDATION, PAUSE,
         MESSAGES, VEILLE, VEILLE_TABLEAUX, ENTITES, ACCUEIL, WIDGETS, HABILLAGE, OPTIMISATIONS, PROTECTIONS,
@@ -120,7 +124,11 @@ object Modules {
         return cache
     }
 
-    fun actif(ctx: Context, id: String): Boolean = actifDans(actifs(ctx), id)
+    fun actif(ctx: Context, id: String): Boolean =
+        actifDans(actifs(ctx), id) &&
+            // 17-10 (retour d'essai) : l'écran de veille de Vision coupé pour CET appareil depuis Home Assistant (EcranAppareil) —
+            // toutes les entrées de la veille passent par ce contrôle.
+            (id != VEILLE || EcranAppareil.veilleVision(ctx))
 
     /** Sans contexte (le VPN) : ce qui a déjà été lu ; rien de lu encore = tout actif. */
     fun actifEnMemoire(id: String): Boolean = !charge || actifDans(cache, id)
@@ -148,6 +156,7 @@ object Modules {
         if (FILTRAGE in repris && DnsVpnService.autorise(ctx)) DnsVpnService.demarrer(ctx)
         if (VEILLE in coupes) principal.post { try { Veille.fermer() } catch (_: Exception) {} }
         if (MESSAGES in coupes) MessagesRiches.suspendre()
+        if (SON in coupes) MesureSonService.arreter(ctx)
         if (PROTECTIONS in coupes) retirerAdministrateur(ctx)
         // Les protections reprises : l'administrateur de l'appareil doit être redonné à l'écran
         // (Android l'exige) ; l'étape réapparaît dans les réglages de Vision et la notification le signale.

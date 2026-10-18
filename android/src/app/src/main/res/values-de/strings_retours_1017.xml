@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 17-10 (l'auteur, point 18b) : « Vider la file » dans le menu d'un titre de la file (télé). -->
+<resources>
+    <string name="partyecran_vider_file">Warteschlange leeren</string>
+    <string name="partyecran_vider_titre">Warteschlange leeren?</string>
+    <string name="partyecran_vider_texte">Die %1$d folgenden Titel werden entfernt. Der aktuelle Titel läuft weiter.</string>
+    <string name="partyecran_vider_bouton">Leeren</string>
+    <!-- 17-10 (l'auteur, point 8) : le mode soirée (invités par QR code), ouvert ou fermé depuis le lecteur. -->
+    <string name="musrech_soiree_mode">Partymodus (Gäste): %1$s</string>
+    <string name="partyecran_soiree_fermer">Partymodus beenden</string>
+    <string name="partyecran_soiree_ouvrir">Für Gäste öffnen</string>
+    <string name="partyecran_soiree_fermee">Partymodus aus: kein QR-Code, der Gästelink funktioniert nicht mehr.</string>
+    <!-- 1.93.05 (l'auteur, retour 33) : la mise à jour depuis les réglages de la télé. -->
+    <string name="reglagestv_maj_rechercher">Nach Update suchen</string>
+    <string name="reglagestv_maj_recherche_en_cours">Suche bei Home Assistant…</string>
+    <string name="reglagestv_maj_aucune">Noch keine Informationen zu Updates.</string>
+    <string name="reglagestv_st_demandes">Anfragen</string>
+    <string name="jauge_volume">Lautstärke %1$d %%</string>
+    <string name="zonehaut_widget_lecteur">Musikplayer</string>
+    <string name="veille_option_lecteur">Musikplayer im Bildschirmschoner</string>
+    <string name="veille_qr_ajoute">Füge deine Musik hinzu</string>
+    <string name="veille_option_qr">QR-Code für Gäste</string>
+    <string name="veille_option_logo">Vision-Logo</string>
+    <string name="veille_coin_haut_gauche">Oben links</string>
+    <string name="veille_coin_haut_droite">Oben rechts</string>
+    <string name="veille_coin_bas_gauche">Unten links</string>
+    <string name="veille_coin_bas_droite">Unten rechts</string>
+    <string name="veille_coin_cache">Ausgeblendet</string>
+    <string name="veille_coin_pris">Diese Ecke ist schon belegt: %1$s</string>
+</resources>

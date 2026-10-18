@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Niveau sonore (backlog n° 31) : mesure par le micro, des nombres seulement vers Home Assistant. -->
+<resources>
+    <string name="son_titre">Sound level</string>
+    <string name="son_alerte_titre">Too much noise</string>
+    <string name="son_alerte_sur">Alert %1$d of %2$d: the device closes at the last one.</string>
+    <string name="son_alerte">The room is too noisy.</string>
+    <string name="son_canal">Sound level measurement</string>
+    <string name="son_canal_desc">Shown while Vision measures the noise level (nothing is recorded).</string>
+    <string name="son_canal_alerte">Noise alerts</string>
+    <string name="son_canal_alerte_desc">When the room stays above the threshold.</string>
+    <string name="son_notif_titre">Vision measures the noise level</string>
+    <string name="son_notif_texte">Only the level is measured, here on the device. No sound is recorded or sent.</string>
+    <string name="son_etat_sans_micro">No microphone on this device</string>
+    <string name="son_etat_autoriser">Microphone to allow</string>
+    <string name="son_etat_en_cours">Measuring</string>
+    <string name="son_etat_attente">Starts on the next return to Vision</string>
+    <string name="son_vie_privee">Vision measures how loud the room is, with this device\'s microphone.\n\nWhat is measured: only the noise level, here on the device.\nWhat is not: no sound is recorded, kept or sent.\nWhat goes to Home Assistant: numbers only (level, highest level, time of an alert).\n\nThe system\'s “microphone in use” indicator stays visible: that is intended. Above the threshold for too long, an alert appears; after several alerts, the device may close for a while.</string>
+    <string name="son_vie_privee_sans_micro">This device has no microphone: the sound level cannot be measured here.</string>
+    <string name="son_autoriser">Allow the microphone</string>
+    <string name="son_plus_tard">Later</string>
+    <string name="son_ok">OK</string>
+</resources>

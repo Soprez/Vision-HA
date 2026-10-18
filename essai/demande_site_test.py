@@ -15,15 +15,15 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 async def _installer(hass, hass_storage, version_appli="1.77.0"):
-    robin = _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent")
-    robin["agent"] = {"version": version_appli, "platform": "android"}
+    nolan = _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent")
+    nolan["agent"] = {"version": version_appli, "platform": "android"}
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": {
             "e1": _fiche("e1", "PC-CAMILLE", ENFANT["secret"], person="person.camille"),
-            "p1": robin,
+            "p1": nolan,
         }}}
     hass.states.async_set("person.camille", "home", {"friendly_name": "Camille"})
-    hass.states.async_set("person.robin", "home", {"friendly_name": "Robin"})
+    hass.states.async_set("person.nolan", "home", {"friendly_name": "Nolan"})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)

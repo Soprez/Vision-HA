@@ -367,7 +367,6 @@
     <string name="reglagestv_mode_nuit">Modalità notte</string>
     <string name="reglagestv_jamais">Mai</string>
     <string name="reglagestv_son_veille">Audio durante il salvaschermo</string>
-    <string name="reglagestv_source_son">Sorgente audio</string>
     <string name="reglagestv_silence">Silenzio</string>
     <string name="reglagestv_flux_perso">Flusso personalizzato</string>
     <string name="reglagestv_autre_appli_joue">Se un\'altra app sta già suonando (Spotify, YouTube Music…), il salvaschermo la lascia.</string>
@@ -436,7 +435,7 @@
     <string name="reglagestv_fond_titre">Durante il salvaschermo, queste app continuano in background</string>
     <string name="reglagestv_applis_accueil">App nella schermata Home</string>
     <string name="scan_titre">Scansiona il QR di Home Assistant</string>
-    <string name="scan_explication">In Home Assistant: Vision → Configura → Genera un QR di abbinamento. Inquadra il QR con questo dispositivo.</string>
+    <string name="scan_explication">In Home Assistant: Vision → Configura → Aggiungi un dispositivo, fino al QR di abbinamento. Inquadra il QR con questo dispositivo.</string>
     <string name="scan_pas_de_camera">Questo dispositivo non ha una fotocamera. Scegli «Mostra un QR su questo dispositivo» o un altro modo per collegarlo.</string>
     <string name="scan_besoin_camera">Vision ha bisogno della fotocamera per leggere il QR (solo in questa schermata).</string>
     <string name="scan_sans_camera">Senza fotocamera, collega il dispositivo in un altro modo: mostrare un QR, incollare il blocco o inserire l\'indirizzo e la chiave.</string>
@@ -544,13 +543,7 @@
     <string name="vuewidget_suivant">Successivo</string>
     <string name="vuewidget_baisser_volume">Abbassa il volume</string>
     <string name="vuewidget_monter_volume">Alza il volume</string>
-    <string name="accueildefaut_ancienne_titre">La vecchia Vision è ancora installata</string>
-    <string name="accueildefaut_ancienne_texte">Android la mostra anche lei come «Vision» nella scelta della schermata Home, e sceglierla non funziona. Prima disinstallala: resterà una sola Vision da scegliere.</string>
-    <string name="accueildefaut_desinstaller_ancienne">Disinstalla la vecchia</string>
-    <string name="accueildefaut_a_la_main_titre">Da disinstallare a mano</string>
-    <string name="accueildefaut_a_la_main_texte">Non è firmata come Vision: rimuovila dalle impostazioni di Android (App ▸ Vision ▸ Disinstalla).</string>
     <string name="commun_lot2_ok">OK</string>
-    <string name="accueildefaut_continuer">Continua comunque</string>
     <string name="commun_lot2_annuler">Annulla</string>
     <string name="install_confirmer_titre">Vision: conferma l\'aggiornamento</string>
     <string name="install_confirmer_texte">Tocca per consentire l\'installazione. Sarà l\'ultima volta: i prossimi aggiornamenti si faranno da soli.</string>
@@ -792,6 +785,6 @@
     <string name="manifeste_appairage">Abbinamento</string>
     <string name="manifeste_couleurs">Colori</string>
     <string name="manifeste_fermes">Cosa è bloccato</string>
-    <string name="manifeste_maison">Gestione</string>
+    <string name="manifeste_maison">Da decidere</string>
     <string name="manifeste_musique">Musica</string>
 </resources>

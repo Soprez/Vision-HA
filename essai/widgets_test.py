@@ -82,12 +82,12 @@ async def _monter(hass, hass_storage, sans_voir=False):
         "pcs": {
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", role="enfant"),
             "e2": _fiche("e2", "TEL-NOA", ENFANT2["secret"], person="person.noa", platform="android", role="enfant"),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
             "t1": _fiche("t1", "TELE-SALON", TELE["secret"], platform="android", role="enfant"),
         },
         "entites_personnes": {
             "person.lou": ["light.salon", "sensor.temp", "lock.porte", "binary_sensor.porte", "climate.salon"],
-            "person.robin": ["light.salon", "light.chambre", "sensor.temp"],
+            "person.nolan": ["light.salon", "light.chambre", "sensor.temp"],
         },
         "entites_appareils": {
             "e1": {"plus": ["weather.maison"], "moins": ["sensor.temp"]},
@@ -100,7 +100,7 @@ async def _monter(hass, hass_storage, sans_voir=False):
             "lock.porte": ["unlock", "lock"], "climate.salon": ["set_temperature", "set_hvac_mode"],
         },
     }}
-    for p in ("lou", "noa", "robin"):
+    for p in ("lou", "noa", "nolan"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     for eid, (etat, attrs) in ETATS.items():
         hass.states.async_set(eid, etat, attrs)
@@ -197,7 +197,7 @@ async def test_actions(hass, integrations, hass_storage, hass_client):
     # Sans « piloter » (Lou) : 403 piloter, même pour une entité de sa liste.
     st, rep = await _post(client, "/action", ENFANT, entite="light.salon", service="toggle")
     assert (st, rep["error"]) == (403, "piloter")
-    # Entité non permise (pas dans la liste de Robin).
+    # Entité non permise (pas dans la liste de Nolan).
     st, rep = await _post(client, "/action", PARENT, entite="light.cuisine", service="toggle")
     assert (st, rep["error"]) == (403, "entite")
     # Hors liste blanche : la chambre n'a que « toggle » ; la température n'a rien.
@@ -365,15 +365,15 @@ async def test_version_dans_le_releve(hass, integrations, hass_storage, hass_cli
         assert r.status == 200
         return (await r.json())["widgets"]["version"]
 
-    v1, v_robin = await releve(ENFANT), await releve(PARENT)
+    v1, v_nolan = await releve(ENFANT), await releve(PARENT)
     assert isinstance(v1, int) and v1 == await releve(ENFANT)  # stable tant que rien ne change
     caplog.set_level(logging.WARNING)
     _w().regler_personne(hass, _actuel(hass).store, "person.lou", ["light.salon"], "essai")
     assert "person.lou" in caplog.text and "-sensor.temp" in caplog.text
     v2 = await releve(ENFANT)
-    assert v2 != v1 and await releve(PARENT) == v_robin  # seuls les droits de Lou ont changé
+    assert v2 != v1 and await releve(PARENT) == v_nolan  # seuls les droits de Lou ont changé
     _w().regler_actions(hass, _actuel(hass).store, {"light.salon": ["toggle"]}, "essai")
-    assert await releve(PARENT) != v_robin
+    assert await releve(PARENT) != v_nolan
 
 
 # ----------------------------------------------------------------------------- Écrans Configurer
@@ -387,8 +387,9 @@ async def _suite(admin, flux, corps):
 
 async def _menu(admin, entree):
     flux = await (await admin.post(FLUX, json={"handler": entree.entry_id})).json()
+    flux = await _suite(admin, flux, {"next_step_id": "autres"})
     opts = flux["menu_options"]
-    assert opts.index("modules") + 1 == opts.index("entites") == opts.index("general") - 1
+    assert opts.index("entites") == opts.index("general") - 1  # lot 5 : Modules est dans Réglages › Réservé
     return await _suite(admin, flux, {"next_step_id": "entites"})
 
 

@@ -24,7 +24,7 @@ async def test_fiche_tele_type_version_accueil(hass, hass_storage):
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": {
             "e1": salon, "e2": parents_tv,
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], platform="android", role="parent"),
         }}}
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -38,7 +38,7 @@ async def test_fiche_tele_type_version_accueil(hass, hass_storage):
 
 
 def test_carte_signale_toute_appli_trop_ancienne():
-    """1.97.9 : téléphone ou tablette d'enfant trop ancien (Pixel 8a 1.10.0, tablette de Lou 1.48.0) : « mettre
+    """1.97.9 : téléphone ou tablette d'enfant trop ancien : « mettre
     Vision à jour », pas « tout est en place ». Le téléphone d'un parent et un appareil à jour ne sont pas signalés."""
     import json
     import pathlib

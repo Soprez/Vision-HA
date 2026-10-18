@@ -27,14 +27,15 @@ class AnimTest {
         assertEquals(Anim.DUREE_ENTREE_MS, Anim.duree(Anim.DUREE_ENTREE_MS, true))
     }
 
-    @Test fun courbes_entree_ease_out_et_sortie_ease_in() {
+    @Test fun courbes_entree_et_sortie_ease_out() {
         val e = Anim.COURBE_ENTREE; val s = Anim.COURBE_SORTIE
         assertTrue(e.contentEquals(floatArrayOf(0f, 0f, 0.2f, 1f)))
         assertEquals(0f, Anim.courbe(e, 0f), 1e-4f); assertEquals(1f, Anim.courbe(e, 1f), 1e-4f)
         // Entrée : rapide au début, ralentit à l'arrivée (au-dessus de la diagonale).
         for (x in listOf(0.1f, 0.25f, 0.5f, 0.75f, 0.9f)) assertTrue("entrée à $x", Anim.courbe(e, x) > x)
-        // Sortie : lente au départ, accélère (sous la diagonale).
-        for (x in listOf(0.1f, 0.25f, 0.5f, 0.75f, 0.9f)) assertTrue("sortie à $x", Anim.courbe(s, x) < x)
+        // 1.93.05 (règles d'Emil Kowalski) : la sortie aussi part vite et se pose (au-dessus de la diagonale) — jamais d'ease-in.
+        for (x in listOf(0.1f, 0.25f, 0.5f, 0.75f, 0.9f)) assertTrue("sortie à $x", Anim.courbe(s, x) > x)
+        assertEquals(0f, Anim.courbe(s, 0f), 1e-4f); assertEquals(1f, Anim.courbe(s, 1f), 1e-4f)
         // Monotone : pas de rebond.
         var avant = 0f
         for (i in 1..100) { val v = Anim.courbe(e, i / 100f); assertTrue(v >= avant - 1e-4f); avant = v }

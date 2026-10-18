@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.4 (decision de l'auteur) : liaison sans code ; Nouvel appareil chez un Decideur. -->
+<resources>
+    <string name="liaison_sans_code_attente">En attente de validation…</string>
+    <string name="liaison_sans_code_explication">Un %1$s reçoit la demande sur son téléphone et l\'accepte en un geste.</string>
+    <string name="liaison_sans_code_aucun">Aucun téléphone de %1$s n\'a reçu la demande : passe par « Autre méthode ».</string>
+    <string name="liaison_sans_code_valable">Demande valable encore %1$d:%2$02d</string>
+    <string name="liaison_sans_code_autre_methode">Autre méthode</string>
+    <string name="liaison_sans_code_expiree">La demande a expiré.</string>
+    <string name="liaison_sans_code_remplacee">Une nouvelle demande a remplacé celle-ci.</string>
+    <string name="liaison_sans_code_redemander">Redemander</string>
+    <string name="nouvel_appareil_titre">Nouvel appareil</string>
+    <string name="nouvel_appareil_pas_de_droits">Seul l\'appareil d\'un %1$s peut accepter un nouvel appareil.</string>
+    <string name="nouvel_appareil_aucune">Aucune demande en attente.</string>
+    <string name="nouvel_appareil_demande">Demande reçue à %1$s</string>
+    <string name="nouvel_appareil_reprise">Reprend la fiche « %1$s ».</string>
+    <string name="nouvel_appareil_a_qui">À qui est cet appareil ?</string>
+    <string name="nouvel_appareil_partage">Écran partagé — %1$s</string>
+    <string name="nouvel_appareil_accepter">Accepter</string>
+    <string name="nouvel_appareil_refuser">Refuser</string>
+    <string name="nouvel_appareil_choisir">Choisis à qui est cet appareil.</string>
+    <string name="nouvel_appareil_accepte">« %1$s » est relié.</string>
+    <string name="nouvel_appareil_refuse">Demande refusée.</string>
+    <string name="nouvel_appareil_deja">Cette demande a déjà été traitée ou a expiré.</string>
+    <string name="nouvel_appareil_notif">« %1$s » demande à être relié. Touche pour accepter ou refuser.</string>
+    <string name="manifeste_nouvel_appareil">Nouvel appareil</string>
+</resources>

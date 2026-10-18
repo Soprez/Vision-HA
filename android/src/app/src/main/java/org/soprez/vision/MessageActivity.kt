@@ -47,7 +47,8 @@ class MessageActivity : Activity() {
         val carte = Ui.carte(this, Ui.CARTE)
         val entete = Ui.rangee(this)
         // L'œil de Vision tel quel (une teinte en ferait un rond uni).
-        entete.addView(android.widget.ImageView(this).apply { setImageResource(R.drawable.ic_vision) },
+        // Lot 6 (APP-22) : le logo est un décor (le titre suit) : il n'est pas lu.
+        entete.addView(android.widget.ImageView(this).apply { setImageResource(R.drawable.ic_vision); importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO },
             android.widget.LinearLayout.LayoutParams(Ui.dp(this, 28f), Ui.dp(this, 28f)))
         entete.addView(Ui.marge(this, Ui.poids(Ui.texte(this,
             intent.getStringExtra("titre") ?: "Vision", 13f, if (urgent) Ui.ROUGE else Ui.OR, gras = true)), gauche = 10f))
@@ -57,16 +58,17 @@ class MessageActivity : Activity() {
         if (demande != null) {
             carte.addView(Ui.marge(this, Ui.texte(this,
                 getString(R.string.messageecran_accorder_a, demande.optString("nom", getString(R.string.messageecran_cet_appareil))), 14f, Ui.TEXTE_2), haut = 8f))
+            // Lot 6 (APP-08) : les mêmes réponses que la notification et la gestion : accorder ce qui est demandé,
+            // une autre durée (dessous), refuser.
             val r = Ui.rangeeBoutons(this)
-            listOf(30 to Tr.duree(30), 60 to Tr.duree(60), 0 to getString(R.string.messagesnotif_non)).forEachIndexed { k, (minutes, lbl) ->
-                val btn = if (minutes > 0) Ui.boutonPrimaire(this, lbl) { repondre(demande, minutes) }
-                          else Ui.boutonDanger(this, lbl) { repondre(demande, 0) }
-                r.addView(Ui.marge(this, Ui.poids(btn), gauche = if (k == 0) 0f else 8f))
-            }
+            val accordee = Durees.accordee(demande.optInt("minutes", 0))
+            val (lblAccorder, _, lblRefuser) = Durees.reponsesTemps(accordee)
+            r.addView(Ui.poids(Ui.boutonPrimaire(this, lblAccorder) { repondre(demande, accordee) }))
+            r.addView(Ui.marge(this, Ui.poids(Ui.boutonDanger(this, lblRefuser) { repondre(demande, 0) }), gauche = 8f))
             carte.addView(Ui.marge(this, r, haut = 18f))
             val prochain = Etat.lireDate(demande.optString("prochain"))
             carte.addView(Ui.marge(this, Ui.boutonSecondaire(this, if (prochain > System.currentTimeMillis()) getString(R.string.messageecran_autre_duree_jusqua, Etat.heure(prochain)) else getString(R.string.messageecran_autre_duree)) {
-                Garde.exiger(this, ParentsActivity.RAISON) {
+                Garde.exigerOctroi(this, ParentsActivity.RAISON) {  // FAILLE (l'auteur, 16-10) : à chaque fois
                     Temps.choisir(this, getString(R.string.messageecran_accorder_du_temps), prochain) { ch ->
                         Geste.enCours()
                         ReponseReceiver.envoyer(this, demande.optString("pc"), demande.optString("id"),
@@ -85,8 +87,8 @@ class MessageActivity : Activity() {
             if (motif.isNotEmpty()) carte.addView(Ui.marge(this, Ui.texte(this, getString(R.string.messageecran_motif, motif), 13f, Ui.TEXTE_2), haut = 4f))
             acces.optString("raison").takeIf { it.isNotEmpty() }?.let { carte.addView(Ui.marge(this, Ui.texte(this, getString(R.string.messageecran_ferme_car, it), 13f, Ui.TEXTE_3), haut = 6f)) }
             val r = Ui.rangeeBoutons(this)
-            listOf("temporaire" to Tr.duree(60), "toujours" to getString(R.string.messagesnotif_autoriser), "non" to getString(R.string.messagesnotif_non)).forEachIndexed { k, (dec, lbl) ->
-                val btn = if (dec != "non") Ui.boutonPrimaire(this, lbl) { Garde.exiger(this, ParentsActivity.RAISON) { Geste.enCours(); Acces.repondre(this, acces.optString("pc"), acces.optString("id"), dec) { res -> finirOuRelacher(res) } } }
+            listOf("temporaire", "toujours", "non").zip(Durees.reponsesAcces()).forEachIndexed { k, (dec, lbl) ->
+                val btn = if (dec != "non") Ui.boutonPrimaire(this, lbl) { Garde.exigerOctroi(this, ParentsActivity.RAISON) { Geste.enCours(); Acces.repondre(this, acces.optString("pc"), acces.optString("id"), dec) { res -> finirOuRelacher(res) } } }
                           else Ui.boutonDanger(this, lbl) { Garde.exiger(this, ParentsActivity.RAISON) { Geste.enCours(); Acces.repondre(this, acces.optString("pc"), acces.optString("id"), dec) { res -> finirOuRelacher(res) } } }
                 r.addView(Ui.marge(this, Ui.poids(btn), gauche = if (k == 0) 0f else 8f))
             }
@@ -186,7 +188,8 @@ class MessageActivity : Activity() {
         } catch (_: Exception) {}
     }
 
-    private fun repondre(demande: JSONObject, minutes: Int) = Garde.exiger(this, ParentsActivity.RAISON) {
+    private fun repondre(demande: JSONObject, minutes: Int) = Garde.exigerPour(this, ParentsActivity.RAISON, "/api/pc_parental/reponse",
+        JSONObject().put("minutes", minutes)) {
         Geste.enCours()
         ReponseReceiver.envoyer(this, demande.optString("pc"), demande.optString("id"), minutes) { res -> finirOuRelacher(res) }
     }

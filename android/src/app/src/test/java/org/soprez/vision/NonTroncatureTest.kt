@@ -50,6 +50,10 @@ class NonTroncatureTest {
         // et l'heure du widget horloge, qui rapetisse pour tenir sur une ligne (jamais de « … »).
         "VueWidgetHa.kt" to "texte(t, taille, couleur, police).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; contentDescription = t }",
         "Ui.kt" to "tv.maxLines = 1; tv.setHorizontallyScrolling(false); tv.ellipsize = null",
+        // 16-10 : nom de widget qui rapetisse jusqu'à 9 sp avant les « … » ; le nom entier reste dit (contentDescription).
+        "Ui.kt" to "tv.maxLines = 1; tv.ellipsize = android.text.TextUtils.TruncateAt.END",
+        // Refonte lot 5 : libellés de la barre des espaces sur une ligne, sans « … » : la taille s'ajuste (jamais de mot coupé).
+        "SetupActivity.kt" to "t.maxLines = 1; t.ellipsize = null; t.setHorizontallyScrolling(false)",
         // 1.88.0 (l'auteur : « liste tronquée avec +N, détail complet à l'appui ») : une ligne du détail d'un widget, et le choix
         // d'une liste ; le texte entier en description, le détail complet en touchant le widget.
         "VueWidgetHa.kt" to "maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; contentDescription = WidgetsHa.texteLigne(l)",

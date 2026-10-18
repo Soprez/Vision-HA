@@ -181,7 +181,7 @@ object Ui {
         }
 
     /** Fond avec un état « focus » net pour la télécommande, et une ondulation au toucher. */
-    private fun fondInteractif(ctx: Context, normal: Int, focus: Int, rayon: Float, bordFocus: Int = OR, bord: Int = 0): android.graphics.drawable.Drawable {
+    fun fondInteractif(ctx: Context, normal: Int, focus: Int, rayon: Float, bordFocus: Int = OR, bord: Int = 0): android.graphics.drawable.Drawable {
         val etats = StateListDrawable().apply {
             addState(intArrayOf(android.R.attr.state_focused), fond(focus, rayon, dp(ctx, 2f), bordFocus))
             addState(intArrayOf(android.R.attr.state_pressed), fond(focus, rayon, if (bord != 0) dp(ctx, 1f) else 0, bord))
@@ -257,7 +257,10 @@ object Ui {
         text = if (ok) "✓" else ""
         // La coche est un pictogramme dans un rond de taille fixe : elle ne suit pas la taille du texte.
         setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15f); includeFontPadding = false
-        setTextColor(Color.WHITE); typeface = policeGras ?: Typeface.DEFAULT_BOLD
+        // 17-10 (audit des couleurs, point 19) : la coche s'accorde au vert du thème (clair sur les thèmes sombres : une
+        // coche blanche y était presque invisible), comme l'encre des boutons rouges.
+        setTextColor(if (Palette.luminance(VERT) > 0.45f) Palette.melanger(VERT, 0xFF000000.toInt(), 0.82f) else Color.WHITE)
+        typeface = policeGras ?: Typeface.DEFAULT_BOLD
         background = if (ok) fond(VERT, d / 2f) else fond(Color.TRANSPARENT, d / 2f, dp(ctx, 2f), TEXTE_3)
     }
 
@@ -341,7 +344,7 @@ object Ui {
         setOnClickListener { Geste.retenir(this); action() }
     }
 
-    fun champ(ctx: Context, indice: String, valeur: String, chiffres: Boolean = false): EditText = EditText(ctx).apply {
+    fun champ(ctx: Context, indice: String, valeur: String, chiffres: Boolean = false): EditText = EditText(ctx).also { ClavierTele.brancher(it) }.apply {
         hint = indice; setText(valeur)
         setTextColor(TEXTE); setHintTextColor(TEXTE_3); textSize = 15f; typeface = police ?: typeface
         background = fondChamp(ctx, FOND, TEXTE, LIGNE)
@@ -377,10 +380,29 @@ object Ui {
      * mot (pas de césure automatique), et n'est jamais coupé par des points de suspension.
      * Posée par tous les fabricants de textes et de boutons (Ui, lanceur, écrans TV, boîtes).
      */
+    /** Lot 6 (B8 / APP-29) : une colonne de gestion centrée, de largeur de lecture limitée sur tablette. */
+    fun largeurLecture(v: View) {
+        val c = dp(v.context, Marges.coteLecture(v.resources.configuration.screenWidthDp))
+        v.setPadding(c, v.paddingTop, c, v.paddingBottom)
+    }
+
     fun <T : TextView> sansCesure(v: T): T = v.apply {
         if (Build.VERSION.SDK_INT >= 23) {
             hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_NONE
             breakStrategy = android.text.Layout.BREAK_STRATEGY_SIMPLE
+        }
+        // Lot 6 (B9 / APP-22) : les émojis décoratifs (🔒 ✅ ✉ ☕…) ne sont pas lus ; posé ici, chez tous les fabricants.
+        setAccessibilityDelegate(LectureSansEmojis)
+    }
+
+    /** Lot 6 (APP-22) : le lecteur d'écran dit le texte sans ses émojis décoratifs (sauf un texte fait d'émojis seuls). */
+    private object LectureSansEmojis : View.AccessibilityDelegate() {
+        override fun onInitializeAccessibilityNodeInfo(host: View, info: android.view.accessibility.AccessibilityNodeInfo) {
+            super.onInitializeAccessibilityNodeInfo(host, info)
+            if (!host.contentDescription.isNullOrEmpty() || host !is TextView) return
+            val t = host.text?.toString() ?: return
+            val lu = Lisibilite.sansEmojis(t)
+            if (lu != t && lu.isNotEmpty()) info.contentDescription = lu
         }
     }
 
@@ -743,14 +765,69 @@ object Ui {
     private var dernierToast: android.widget.Toast? = null
 
     /** 1.86.15 : un retour court et visible (le suivant remplace le précédent). */
-    fun toast(ctx: android.content.Context, texte: String, court: Boolean = false) {
+    fun toast(ctx: android.content.Context, texte: String, court: Boolean = false,
+              genre: OeilModele.Genre = OeilModele.Genre.INFO) {
         if (texte.isBlank()) return
+        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) {
+            android.os.Handler(android.os.Looper.getMainLooper()).post { toast(ctx, texte, court, genre) }
+            return
+        }
+        // 1.90.5 (l'auteur, variante B) : sur un écran de Vision, la réaction de l'œil remplace le bandeau gris (ReactionOeil) ;
+        // hors d'un écran (service, récepteur), le bandeau reste.
+        if (ctx is android.app.Activity && ReactionOeil.actif(ctx)) {
+            val ok = try { ReactionOeil.montrer(ctx, genre, texte, court) } catch (_: Exception) { false }
+            if (ok) { dernierToast?.cancel(); return }
+        }
         try {
             dernierToast?.cancel()
             dernierToast = android.widget.Toast.makeText(ctx.applicationContext, texte,
                 if (court) android.widget.Toast.LENGTH_SHORT else android.widget.Toast.LENGTH_LONG).also { it.show() }
         } catch (_: Exception) {}
     }
+
+    const val TAG_CONFIRMATION = "confirmation_discrete"
+
+    /**
+     * 17-10 (l'auteur, point 14 : « au lancement, l'œil de Vision est TROP GROS ») : une confirmation discrète aux couleurs du
+     * thème — une petite pastille posée à une place libre (comme l'œil, sans rien couvrir de ce qu'on lit ou touche ;
+     * dans la zone sûre de la télé), qui paraît et s'efface en fondu. La suivante remplace la précédente. Les erreurs gardent [toast] (l'œil, qui se voit).
+     */
+    fun confirmation(a: android.app.Activity, texte: String, dureeMs: Long = 1800) {
+        if (texte.isBlank()) return
+        val racine = a.window?.decorView as? ViewGroup
+        if (racine == null || a.isFinishing) { toast(a, texte, court = true); return }
+        val th = Local.themeEffectif(a, Palette.APPLI)
+        val tele = ReglagesTvActivity.estTele(a)
+        racine.findViewWithTag<View>(TAG_CONFIRMATION)?.let { racine.removeView(it) }
+        val v = TextView(a).apply {
+            tag = TAG_CONFIRMATION; text = texte; setTextColor(th.encre); textSize = if (tele) 15f else 13f; typeface = Polices.texte(a)
+            gravity = Gravity.CENTER  // jamais coupée : une phrase longue passe à la ligne (largeur bornée)
+            val p = dp(a, if (tele) 14f else 12f); setPadding(p, p / 2, p, p / 2)
+            maxWidth = (a.resources.displayMetrics.widthPixels * 0.6f).toInt()
+            background = GradientDrawable().apply { cornerRadius = dp(a, 999f).toFloat(); setColor(th.carte); setStroke(dp(a, 1.5f), th.or) }
+            alpha = 0f; isFocusable = false; isClickable = false
+            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+            if (Build.VERSION.SDK_INT >= 21) translationZ = dp(a, 16f).toFloat()
+        }
+        val zx = if (tele) ZoneSure.x(a, 0.05f) else 0; val zy = if (tele) ZoneSure.y(a, 0.05f) else 0
+        val utile = ReactionOeil.Boite(zx, zy, racine.width - zx, racine.height - zy)
+        v.measure(View.MeasureSpec.makeMeasureSpec(utile.d - utile.g, View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(utile.b - utile.h, View.MeasureSpec.AT_MOST))
+        val ou = ReactionOeil.placer(utile, v.measuredWidth, v.measuredHeight, dp(a, if (tele) 8f else 16f),
+            ReactionOeil.occupes(racine).map { ReactionOeil.Boite(it.left, it.top, it.right, it.bottom) }, racine.layoutDirection == View.LAYOUT_DIRECTION_RTL)
+        racine.addView(v, android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+            Gravity.TOP or Gravity.START).apply { leftMargin = ou.g; topMargin = ou.h })
+        v.animate().alpha(1f).setDuration(180).start()
+        v.postDelayed({ v.animate().alpha(0f).setDuration(260).withEndAction { racine.removeView(v) }.start() }, dureeMs)
+    }
+
+    /**
+     * 16-10 (recette télé 1080p, 130 %) : la taille en pixels de [sp] telle qu'Android la pose vraiment. Depuis Android 14,
+     * les grandes polices ne sont plus proportionnelles (13 sp à 130 % : 34,4 px, et non 13 × 2,6 = 33,8) ; mesurer avec
+     * scaledDensity laissait croire qu'un nom tenait, et il prenait des « … » pour un demi-pixel.
+     */
+    private fun pxSp(tv: TextView, sp: Float): Float =
+        android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP, sp, tv.resources.displayMetrics)
+
     /**
      * 1.87.0 (recette visuelle) : un nom sur plusieurs lignes (nom d'appli du tiroir) ne se coupe jamais au milieu d'un mot :
      * sa taille descend de [maxSp] à [minSp] jusqu'à ce que le mot le plus long tienne sur une ligne.
@@ -765,10 +842,9 @@ object Ui {
             val mots = tv.text.toString().split(' ', 160.toChar(), 8239.toChar(), 10.toChar(), 8203.toChar()).filter { it.isNotEmpty() }  // 8203 : coupure posée par coupable()
             if (mots.isEmpty()) return
             val p = android.text.TextPaint(tv.paint)
-            val echelle = tv.resources.displayMetrics.scaledDensity
             var sp = maxSp
-            while (sp > minSp) { p.textSize = sp * echelle; if (mots.all { p.measureText(it) <= dispo }) break; sp -= 0.5f }
-            if (kotlin.math.abs(tv.textSize - sp * echelle) > 0.5f) tv.post { tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, sp) }
+            while (sp > minSp) { p.textSize = pxSp(tv, sp); if (mots.all { p.measureText(it) + 1f <= dispo }) break; sp -= 0.5f }
+            if (kotlin.math.abs(tv.textSize - pxSp(tv, sp)) > 0.5f) tv.post { tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, sp) }
         }
         tv.addOnLayoutChangeListener { _, l, _, r, _, ol, _, or2, _ -> if (r - l != or2 - ol) ajuster() }
     }
@@ -783,10 +859,9 @@ object Ui {
             val dispo = tv.width - tv.paddingLeft - tv.paddingRight
             if (dispo <= 0) return
             val p = android.text.TextPaint(tv.paint)
-            val echelle = tv.resources.displayMetrics.scaledDensity
             var sp = maxSp
-            while (sp > minSp) { p.textSize = sp * echelle; if (p.measureText(tv.text.toString()) <= dispo) break; sp -= 1f }
-            if (kotlin.math.abs(tv.textSize - sp * echelle) > 0.5f) tv.post { tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, sp) }
+            while (sp > minSp) { p.textSize = pxSp(tv, sp); if (p.measureText(tv.text.toString()) + 1f <= dispo) break; sp -= 1f }
+            if (kotlin.math.abs(tv.textSize - pxSp(tv, sp)) > 0.5f) tv.post { tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, sp) }
         }
         tv.addOnLayoutChangeListener { _, l, _, r, _, ol, _, or2, _ -> if (r - l != or2 - ol) ajuster() }
         tv.addTextChangedListener(object : android.text.TextWatcher {
@@ -795,4 +870,58 @@ object Ui {
             override fun afterTextChanged(s: android.text.Editable?) { ajuster() }
         })
     }
+
+    /**
+     * 17-10 (widget chauffage lisible) : une phrase sur deux lignes au plus ; sa taille descend de [maxSp] à [minSp]
+     * jusqu'à ce qu'elle tienne, sans « … » (au plus petit, une troisième ligne plutôt qu'un texte coupé).
+     */
+    fun surDeuxLignes(tv: TextView, maxSp: Float, minSp: Float) {
+        tv.ellipsize = null
+        fun ajuster() {
+            val dispo = tv.width - tv.paddingLeft - tv.paddingRight
+            if (dispo <= 0) return
+            val p = android.text.TextPaint(tv.paint)
+            var sp = maxSp
+            while (sp > minSp) {
+                p.textSize = pxSp(tv, sp)
+                @Suppress("DEPRECATION")
+                val l = android.text.StaticLayout(tv.text, p, dispo, android.text.Layout.Alignment.ALIGN_NORMAL, 1f, 0f, false)
+                if (l.lineCount <= 2) break
+                sp -= 0.5f
+            }
+            if (kotlin.math.abs(tv.textSize - pxSp(tv, sp)) > 0.5f) tv.post { tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, sp) }
+        }
+        tv.addOnLayoutChangeListener { _, l, _, r, _, ol, _, or2, _ -> if (r - l != or2 - ol) ajuster() }
+    }
+
+    /**
+     * 16-10 (l'auteur : « réduis-le proprement, aucun texte ne disparaît en silence ») : un nom sur une ligne qui rapetisse de
+     * [maxSp] à [minSp] pour tenir, et ne prend « … » qu'au plus petit (le texte entier reste dit : contentDescription).
+     */
+    fun surUneLigneOuPoints(tv: TextView, maxSp: Float, minSp: Float) {
+        tv.maxLines = 1; tv.ellipsize = android.text.TextUtils.TruncateAt.END
+        if (tv.contentDescription.isNullOrEmpty()) tv.contentDescription = tv.text
+        fun ajuster() {
+            val dispo = tv.width - tv.paddingLeft - tv.paddingRight
+            if (dispo <= 0) return
+            val p = android.text.TextPaint(tv.paint)
+            var sp = maxSp
+            while (sp > minSp) { p.textSize = pxSp(tv, sp); if (p.measureText(tv.text.toString()) + 1f <= dispo) break; sp -= 0.5f }
+            if (kotlin.math.abs(tv.textSize - pxSp(tv, sp)) > 0.5f) tv.post { tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, sp) }
+        }
+        tv.addOnLayoutChangeListener { _, l, _, r, _, ol, _, or2, _ -> if (r - l != or2 - ol) ajuster() }
+    }
+
+    /**
+     * 15-10 (règle UX de l'auteur) : un choix unique parmi des options — étiquettes si 3 ou moins tiennent sur une ligne, sinon
+     * liste déroulante (ChoixAdaptatif). [change] reçoit la clé choisie.
+     */
+    fun choix(ctx: Context, titre: String, options: List<ChoixAdaptatif.Option>, choisie: String, theme: Theme = themeActif(ctx),
+              tailleSp: Float = 14f, change: (String) -> Unit): ChoixAdaptatif =
+        ChoixAdaptatif(ctx, titre, options, setOf(choisie), multiple = false, theme = theme, tailleSp = tailleSp) { l -> l.firstOrNull()?.let(change) }
+
+    /** Le même, en choix multiple : [change] reçoit les clés choisies. */
+    fun choixMultiple(ctx: Context, titre: String, options: List<ChoixAdaptatif.Option>, choisies: Set<String>, theme: Theme = themeActif(ctx),
+                      tailleSp: Float = 14f, change: (Set<String>) -> Unit): ChoixAdaptatif =
+        ChoixAdaptatif(ctx, titre, options, choisies, multiple = true, theme = theme, tailleSp = tailleSp, change = change)
 }

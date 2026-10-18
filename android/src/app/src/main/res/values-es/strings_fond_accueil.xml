@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.x (retour d'essai) : l'arrière-plan de l'accueil (FondAccueil). -->
+<resources>
+    <string name="fondacc_titre">Fondo de la pantalla de inicio</string>
+    <string name="fondacc_sorte_defaut">Actual (animación discreta)</string>
+    <string name="fondacc_sorte_uni">Color liso</string>
+    <string name="fondacc_sorte_degrade">Degradado</string>
+    <string name="fondacc_sorte_photo">Foto</string>
+    <string name="fondacc_sorte_anime">Fondo animado</string>
+    <string name="fondacc_teinte_fond">Fondo del tema</string>
+    <string name="fondacc_teinte_n">Tono %1$d</string>
+    <string name="fondacc_voile">Velo de legibilidad</string>
+    <string name="fondacc_voile_auto">Automático</string>
+    <string name="fondacc_voile_plus">Reforzado</string>
+    <string name="fondacc_voile_max">Muy reforzado</string>
+    <string name="fondacc_demandeur">Fondo modificable por %1$s</string>
+    <string name="fondacc_raison">Cambiar el fondo de la pantalla de inicio</string>
+    <string name="fondacc_photo_echec">No se pudo leer la foto.</string>
+    <string name="fondacc_note">Un velo mantiene legibles la hora y las tarjetas; las tarjetas conservan su propio fondo.</string>
+    <string name="fondacc_style">Estilo</string>
+</resources>

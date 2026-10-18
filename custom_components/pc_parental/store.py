@@ -16,6 +16,13 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    MODES_AUTORISATION,
+    MODES_DURABLES,
+    ETIQUETTES_SANS_LIEN_AUTO,
+    NAVIGATEURS,
+    LIENS_AUTO_MAX,
+    ETIQUETTES_SECURITE,
+    ETIQUETTE_ECOLE,
     PAQUETS_VISION,
     DELAI_REFUS,
     APPS_INTOUCHABLES,
@@ -381,10 +388,14 @@ class PcStore:
         self.roles_migres: bool = False
         # 1.80.0 : noms de rôles neutres et personnes rattachées, une seule fois (roles.neutraliser).
         self.vocabulaire_neutre: bool = False
+        # Refonte lot 5 : installation faite avec l'assistant, sur un magasin vide → moins d'entités (entites_reduites.py).
+        self.entites_reduites: bool = False
         # 1.81.0 : le nom du lieu (lieu.py) ; vide = le mot neutre par défaut (« Lieu », lieu.DEFAUTS).
         self.lieu: str = ""
         # 2.2.5 (retour d'essai) : Musique — les lecteurs Music Assistant proposés comme enceintes (None = tous, réglage par défaut)
         # et les lecteurs hors ligne masqués ou montrés grisés.
+        # 2.5.9 (l'auteur, point 16) : « invites_mode », le mode des invités de la Party une fois choisi, est gardé ici aussi ;
+        # avant, il ne vivait qu'en mémoire et un redémarrage de HA le remettait en silence sur « en fin de file ».
         self.musique: dict = {"enceintes": None, "masquer_hors_ligne": False}
         # Chantier « Générique » : ce qui était propre à une maison devient un réglage (réglages généraux).
         # Vide = découverte : les personnes nommées « Affichage ».
@@ -421,6 +432,11 @@ class PcStore:
         # 2.0.0 (notifications v2) : types de messages de l'utilisateur, et les derniers envois (suivi).
         self.types_messages: list[dict[str, Any]] = []
         self.envois_messages: list[dict[str, Any]] = []
+        # Lot 2 (« À décider ») : les services notify.mobile_app_* des Décideurs (notifications avec boutons).
+        self.notif_decideurs: list[str] = []
+        # 2.5.6 (l'auteur, 15/10) : par Décideur, les canaux de chaque évènement (canaux.py) ; le salon Discord du lieu.
+        self.canaux_notif: dict[str, dict[str, list[str]]] = {}
+        self.discord: dict[str, str] = {}
         # Soutien du projet (docs/soutien.md) : {"mode": "code"|"honneur", ...} ; décoratif.
         self.soutien: dict[str, Any] = {}
         # 1.71.0 : modèles de rôles (id → nom, fonctions, pause_max) et rôle de chaque personne.
@@ -430,6 +446,10 @@ class PcStore:
         self.auto_update: bool = True
         # Faille 2.2-1 : empreinte du code de gestion des PC, jamais le code (code_gestion.py).
         self.code_gestion: dict[str, Any] = {}
+        # FAILLE (l'auteur, 16/10) : le code de déverrouillage de chaque Décideur (octroi.py) — l'empreinte, jamais le code ;
+        # le même pour l'appli et le tableau. Et les essais faux récents, pour tout le Lieu.
+        self.codes_decideurs: dict[str, dict[str, Any]] = {}
+        self.codes_decideurs_echecs: list[float] = []
         # 1.77.0 : la veille des appareils montre les vraies cartes par la passerelle (essai, éteint par défaut).
         self.veille_rendu: bool = False
         # Les agents ont-ils le droit de désinstaller ce qu'un adulte a
@@ -533,11 +553,14 @@ class PcStore:
         # 1.69.0 : rôle et biométrie par appareil (au lieu de l'étiquette « Parents » et du réglage global).
         self.roles_migres = bool(data.get("roles_migres", False))
         self.vocabulaire_neutre = bool(data.get("vocabulaire_neutre", False))
+        self.entites_reduites = bool(data.get("entites_reduites", False))
         self.lieu = str(data.get("lieu") or "")
         m = data.get("musique") if isinstance(data.get("musique"), dict) else {}
         enc = m.get("enceintes")
         self.musique = {"enceintes": [str(x) for x in enc] if isinstance(enc, list) else None,
                         "masquer_hors_ligne": bool(m.get("masquer_hors_ligne"))}
+        if m.get("invites_mode") in ("validation", "ensuite", "direct"):
+            self.musique["invites_mode"] = m["invites_mode"]
         self.personnes_affichage = [str(p) for p in (data.get("personnes_affichage") or []) if p]
         self.appareils_essai = [str(p) for p in (data.get("appareils_essai") or []) if p]
         accueil = data.get("accueil")
@@ -554,6 +577,9 @@ class PcStore:
         self.roles_reveil = bool(data.get("roles_reveil", False))
         self.signature_tableau = str(data.get("signature_tableau") or "")
         self.code_gestion = dict(data.get("code_gestion") or {})
+        self.codes_decideurs = {str(k): dict(v) for k, v in dict(data.get("codes_decideurs") or {}).items()
+                                if str(k).startswith("person.") and isinstance(v, dict)}
+        self.codes_decideurs_echecs = [float(t) for t in (data.get("codes_decideurs_echecs") or []) if isinstance(t, (int, float))]
         self.pause_generale = data.get("pause_generale") if isinstance(data.get("pause_generale"), dict) else None
         # 1.95.0 : l'apparence du tableau de bord (palette, mode, accent).
         self.apparence = dict(data.get("apparence") or {}) if isinstance(data.get("apparence"), dict) else {}
@@ -580,6 +606,11 @@ class PcStore:
         self.types_messages = [dict(t) for t in (data.get("types_messages") or []) if isinstance(t, dict)]
         self.envois_messages = [dict(e) for e in (data.get("envois_messages") or []) if isinstance(e, dict)][-30:]
         # 2.4.2 : « veille_pc » (interrupteur de la veille des PC, retirée) est ignoré s'il est encore enregistré.
+        self.notif_decideurs = [str(s) for s in (data.get("notif_decideurs") or []) if isinstance(s, str)]
+        from . import canaux as _canaux
+
+        self.canaux_notif = _canaux.nettoyer(data.get("canaux_notif"))
+        self.discord = {k: str(v) for k, v in dict(data.get("discord") or {}).items() if k in ("service", "cible")}
         self.soutien = dict(data.get("soutien") or {})
         self.roles = dict(data.get("roles") or {})
         self.roles_personnes = dict(data.get("roles_personnes") or {})
@@ -620,6 +651,32 @@ class PcStore:
                 fiche["etiquette"] = str(fiche.get("etiquette") or str(cle).split("|")[0])
                 rangees[_cle_fermeture(fiche["etiquette"], fiche["source"])] = fiche
             self.fermetures[str(personne)] = rangees
+        # Refonte des autorisations (CONCEPTION-autorisations.md). Les trois modes s'écrivent dans les champs de
+        # toujours : « exception » = `autorises` (recopié sur tous les appareils de la personne), « toujours
+        # disponible » = `toujours` (applis) ou `toujours_sites`, lus pour toute la personne ; « pour un temps » =
+        # `laissez_passer` (cet appareil). Le nouveau moteur de décision ne s'applique qu'une fois la reprise
+        # validée par un Décideur (lot 2) ; une installation neuve n'a rien à reprendre.
+        if "autorisations_v2" in data:
+            self.autorisations_v2 = bool(data.get("autorisations_v2"))
+        else:
+            self.autorisations_v2 = not (data.get("pcs") or {})
+        # Lot 3 (fiches logiciels) : les sites liés d'une appli validés par un Décideur, en plus de la table connue.
+        self.domaines_lies = {
+            str(app): [str(d) for d in doms if _nom_site(str(d))]
+            for app, doms in (data.get("domaines_lies") or {}).items() if isinstance(doms, list)
+        }
+        # 2.5.1 : les sites liés tout seuls (« suit » : il suit le logiciel ; sinon il était fermé au moment du lien et
+        # attend un geste du Décideur), et ceux qu'un Décideur a déliés à la main (jamais reliés tout seuls).
+        self.domaines_auto = {
+            str(app): {str(d): dict(f) for d, f in doms.items() if _nom_site(str(d)) and isinstance(f, dict)}
+            for app, doms in (data.get("domaines_auto") or {}).items() if isinstance(doms, dict)
+        }
+        self.domaines_delies = {
+            str(app): [str(d) for d in doms if _nom_site(str(d))]
+            for app, doms in (data.get("domaines_delies") or {}).items() if isinstance(doms, list)
+        }
+        self.reprise_autorisations = data.get("reprise_autorisations") if isinstance(
+            data.get("reprise_autorisations"), dict) else None
         self.veille_entites = [
             str(v).strip() for v in (data.get("veille_entites") or []) if str(v).strip()
         ]
@@ -640,6 +697,8 @@ class PcStore:
         self.vocabulaire = []
         for nom in data.get("vocabulaire") or []:
             self.declarer_etiquette(nom)
+        # Lot 1 : la catégorie dédiée à l'école existe d'emblée (son nom suit la langue, i18n/categories.json).
+        self.declarer_etiquette(ETIQUETTE_ECOLE)
         ajouts = data.get("ajouts") or {}
         self.ajouts = {
             "apps": [_nom_app(n) for n in (ajouts.get("apps") or []) if _nom_app(n)],
@@ -716,6 +775,7 @@ class PcStore:
         self.version_cache = getattr(self, "version_cache", 0) + 1
         self._memos = {}
         self._cache_a_classer = {}
+        self._cache_demandeurs = None
         self._cache_etiquettes_bas = None
         try:
             self.harmoniser_personnes()
@@ -732,6 +792,7 @@ class PcStore:
                 "enroll_jusqua": self.enroll_jusqua,
                 "roles_migres": self.roles_migres,
                 "vocabulaire_neutre": self.vocabulaire_neutre,
+                "entites_reduites": self.entites_reduites,
                 "lieu": self.lieu,
                 "musique": getattr(self, "musique", {"enceintes": None, "masquer_hors_ligne": False}),
                 "personnes_affichage": self.personnes_affichage,
@@ -757,11 +818,16 @@ class PcStore:
                 "entites_reglages": self.entites_reglages,
                 "types_messages": self.types_messages,
                 "envois_messages": self.envois_messages,
+                "notif_decideurs": list(getattr(self, "notif_decideurs", []) or []),
+                "canaux_notif": getattr(self, "canaux_notif", {}) or {},
+                "discord": getattr(self, "discord", {}) or {},
                 "soutien": self.soutien,
                 "roles": self.roles,
                 "roles_personnes": self.roles_personnes,
                 "auto_update": self.auto_update,
                 "code_gestion": self.code_gestion,
+                "codes_decideurs": getattr(self, "codes_decideurs", {}) or {},
+                "codes_decideurs_echecs": list(getattr(self, "codes_decideurs_echecs", []) or []),
                 "veille_rendu": self.veille_rendu,
                 "desinstallation": self.desinstallation,
                 "warn_minutes": self.warn_minutes,
@@ -775,7 +841,12 @@ class PcStore:
                 "bannis": self.bannis,
                 "autorises_maison": self.autorises_maison,
                 "categories_choix": self.categories_choix,
+                "domaines_lies": getattr(self, "domaines_lies", {}),
+                "domaines_auto": getattr(self, "domaines_auto", {}),
+                "domaines_delies": getattr(self, "domaines_delies", {}),
                 "fermetures": getattr(self, "fermetures", {}),
+                "autorisations_v2": getattr(self, "autorisations_v2", False),
+                "reprise_autorisations": getattr(self, "reprise_autorisations", None),
                 "veille_entites": self.veille_entites,
                 "veille_courbe": self.veille_courbe,
                 "veille_cameras": self.veille_cameras,
@@ -1611,7 +1682,7 @@ class PcStore:
 
     # ------------------------------------------------------------ Alertes
 
-    def noter_alerte(self, pc: dict[str, Any], domaine: str, source: str) -> bool:
+    def noter_alerte(self, pc: dict[str, Any], domaine: str, source: str, app: str = "") -> bool:
         """Retient une tentative vers un domaine dangereux.
 
         Rend True s'il faut en parler. Un même domaine réessayé dix fois
@@ -1629,6 +1700,8 @@ class PcStore:
                 alerte["quand"] = maintenant
                 alerte["fois"] = int(alerte.get("fois") or 1) + 1
                 alerte["source"] = source or alerte.get("source") or ""
+                if app:
+                    alerte["app"] = app
                 alertes.sort(key=lambda a: -float(a.get("quand") or 0))
                 return not recent
         alertes.insert(
@@ -1638,6 +1711,9 @@ class PcStore:
                 "source": source,
                 "quand": maintenant,
                 "fois": 1,
+                # 2.5.1 : le logiciel au premier plan pendant la tentative (jamais un navigateur) : le site lui est
+                # lié tout seul (`lier_auto`) et la liste des blocages récents le nomme.
+                **({"app": app} if app else {}),
             },
         )
         del alertes[MAX_ALERTES:]
@@ -2337,6 +2413,496 @@ class PcStore:
         listes.remove(hote)
         return True
 
+    # ---------------------------------------------------- Autorisations (refonte des autorisations)
+
+    @staticmethod
+    def personne_de(pc: dict[str, Any]) -> str:
+        """À qui une autorisation durable est rattachée : la personne de l'appareil, sinon l'appareil seul."""
+        return str((pc or {}).get("person") or "").strip() or "pc:" + str((pc or {}).get("id") or "")
+
+    @staticmethod
+    def _champ_toujours(genre: str) -> str:
+        return "toujours" if genre == "apps" else "toujours_sites"
+
+    def _toujours_de(self, pc: dict[str, Any], genre: str) -> list[str]:
+        """« Toujours disponible » pour la personne de cet appareil (tous ses appareils confondus), noms normalisés."""
+        vus: dict[str, None] = {}
+        for a in self._siens(pc):
+            for n in a.get(self._champ_toujours(genre)) or []:
+                cle = self._cle(genre, str(n).strip())
+                if cle:
+                    vus.setdefault(cle, None)
+        return list(vus)
+
+    def mode_accorde(self, pc: dict[str, Any], genre: str, nom: str) -> str | None:
+        """« toujours » ou « exception » si le Demandeur de cet appareil l'a pour ce nom, sinon None."""
+        cible = self._cle(genre, nom)
+        if not cible:
+            return None
+        if cible in self._toujours_de(pc, genre):
+            return "toujours"
+        if self._dans(pc.get("autorises"), cible):
+            return "exception"
+        return None
+
+    def bloque_explicite(self, pc: dict[str, Any], genre: str, nom: str) -> str | None:
+        """Ce qu'aucune autorisation ne passe (CONCEPTION § 2), ou None.
+
+        « lieu » : le nom ou une de ses catégories bloqué pour tout le Lieu ; « securite » : une catégorie de
+        sécurité ou d'âge fermée sur cet appareil ; « liste_noire » : un site signalé dangereux ; « nomme » : le
+        nom bloqué exprès sur cet appareil (il cède à la décision suivante du Décideur, validé en essai)."""
+        cible = self._cle(genre, nom)
+        if not cible:
+            return None
+        etiquettes = self.etiquettes_de(genre, nom)
+        if self.est_banni(cible) or any(self.est_banni(e) for e in etiquettes):
+            return "lieu"
+        securite = [e for e in etiquettes if str(e).strip().lower() in ETIQUETTES_SECURITE]
+        if securite and (any(self._dans(pc.get("bloques"), e) for e in securite)
+                         or self.fermeture_de(pc, securite) is not None):
+            return "securite"
+        if genre == "sites" and self.est_dangereux(cible):
+            return "liste_noire"
+        if self._dans(pc.get("bloques"), cible):
+            return "nomme"
+        return None
+
+    def accorder(self, pc: dict[str, Any], genre: str, nom: str, mode: str, minutes: int = 0,
+                 par: str = "") -> dict[str, Any]:
+        """Accorde une appli ou un site au Demandeur de cet appareil, selon l'un des trois modes.
+
+        « temps » : sur cet appareil seulement, pour `minutes` ; « exception » et « toujours » : sur toutes ses
+        machines, sans fin. Le Lieu, la sécurité et l'âge, la liste noire ne sont jamais percés : l'erreur le dit.
+        Le « Bloquer » d'un Décideur cède : « temps » le passe sur cet appareil, une exception ou « toujours »
+        le lève sur toutes les machines du Demandeur (décision du projet)."""
+        if mode not in MODES_AUTORISATION:
+            raise textes.Erreur("store.mode_inconnu")
+        if genre not in ("apps", "sites"):
+            genre = self._genre_de(nom)
+        cible = self._cle(genre, nom)
+        if not cible:
+            raise textes.Erreur("store.choisir_logiciel" if genre == "apps" else "store.choisir_site")
+        if self.bloque_explicite(pc, genre, cible) in ("lieu", "securite", "liste_noire"):
+            raise textes.Erreur("store.bloque_explicite", nom=cible)
+        if mode == "temps":
+            fin = (self.laisser_passer_app if genre == "apps" else self.laisser_passer)(pc, cible, minutes)
+            return {"genre": genre, "nom": cible, "mode": "temps", "fin": fin, "appareil": pc.get("id")}
+        champ_tj = self._champ_toujours(genre)
+        for a in self._siens(pc):
+            a["bloques"] = [v for v in (a.get("bloques") or []) if not self._dans([str(v)], cible)]
+            autorises = a.setdefault("autorises", [])
+            if not self._dans(autorises, cible):
+                autorises.append(cible)
+            a[champ_tj] = [n for n in (a.get(champ_tj) or []) if self._cle(genre, str(n)) != cible]
+        if mode == "toujours":
+            pc.setdefault(champ_tj, []).append(cible)
+        return {"genre": genre, "nom": cible, "mode": mode, "par": str(par or "")}
+
+    def retirer_autorisation(self, pc: dict[str, Any], genre: str, nom: str, mode: str | None = None) -> bool:
+        """Retire une autorisation. Sans mode : tout (pour un temps ici, exception et « toujours » partout) ;
+        « toujours » : redevient une exception ; « exception » : plus rien de durable ; « temps » : ce seul accord."""
+        if genre not in ("apps", "sites"):
+            genre = self._genre_de(nom)
+        cible = self._cle(genre, nom)
+        if not cible:
+            return False
+        retire = False
+        if mode in (None, "temps"):
+            cle_lp = "app:" + cible if genre == "apps" else cible
+            retire = (pc.get("laissez_passer") or {}).pop(cle_lp, None) is not None
+        if mode in (None, *MODES_DURABLES):
+            champ_tj = self._champ_toujours(genre)
+            for a in self._siens(pc):
+                avant = list(a.get(champ_tj) or [])
+                a[champ_tj] = [n for n in avant if self._cle(genre, str(n)) != cible]
+                retire = retire or len(a[champ_tj]) != len(avant)
+                if mode in (None, "exception"):
+                    avant_a = list(a.get("autorises") or [])
+                    a["autorises"] = [v for v in avant_a if not self._dans([str(v)], cible)]
+                    retire = retire or len(a["autorises"]) != len(avant_a)
+        return retire
+
+    # --- Lot 3 : la fiche d'un logiciel (ses sites liés) ------------------
+
+    def dependances(self, app: str) -> tuple[str, ...]:
+        """Les sites dont l'appli a besoin : ceux connus de Vision, ceux qu'un Décideur a liés, puis ceux liés tout
+        seuls qui suivent le logiciel (2.5.1). Un site délié à la main n'en fait plus partie."""
+        famille = FAMILLES_APPS.get(_nom_app(app), _nom_app(app))
+        delies = set((getattr(self, "domaines_delies", None) or {}).get(famille, []))
+        connus = [d for d in DEPENDANCES_APPS.get(famille, ()) if d not in delies]
+        if delies:
+            # Délier le chef d'une famille de sites (« discord.com ») délie aussi ses membres.
+            connus = [d for d in connus if _nom_site(d) not in delies]
+        for d in (getattr(self, "domaines_lies", None) or {}).get(famille, []):
+            if d not in connus:
+                connus.append(d)
+        for d, fiche in ((getattr(self, "domaines_auto", None) or {}).get(famille) or {}).items():
+            if fiche.get("suit") and d not in connus and d not in delies:
+                connus.append(d)
+        return tuple(connus)
+
+    def sites_du_logiciel(self, app: str) -> list[dict[str, Any]]:
+        """Tous les sites rangés sous un logiciel, pour l'affichage : `auto` s'il a été lié tout seul, `attente`
+        s'il était fermé au moment du lien (il ne suit le logiciel qu'après un geste du Décideur)."""
+        famille = FAMILLES_APPS.get(_nom_app(app), _nom_app(app))
+        auto = (getattr(self, "domaines_auto", None) or {}).get(famille) or {}
+        rendu: list[dict[str, Any]] = [{"nom": d, **({"auto": True} if d in auto else {})} for d in self.dependances(famille)]
+        delies = set((getattr(self, "domaines_delies", None) or {}).get(famille, []))
+        for d, fiche in auto.items():
+            if not fiche.get("suit") and d not in delies:
+                rendu.append({"nom": d, "auto": True, "attente": True})
+        return rendu
+
+    def domaines_proposes(self, pc: dict[str, Any], app: str, maximum: int = 8) -> list[str]:
+        """Des sites vus sur les appareils de la personne qui portent le nom de l'appli (« roblox » → robloxlabs.com,
+        rbx…) et pas encore liés. Depuis la 2.5.1, `lier_auto` les lie tout seuls : la liste se vide."""
+        famille = FAMILLES_APPS.get(_nom_app(app), _nom_app(app))
+        racine = famille.split(".")[0]
+        if len(racine) < 4:
+            return []
+        deja = {s["nom"] for s in self.sites_du_logiciel(famille)}
+        deja |= set((getattr(self, "domaines_delies", None) or {}).get(famille, []))
+        vus: list[str] = []
+        for a in self._siens(pc):
+            for site in (a.get("sites_vus") or {}):
+                site = _nom_site(str(site))
+                if site and racine in site.replace("-", "") and site not in deja and site not in vus:
+                    vus.append(site)
+        return sorted(vus)[:maximum]
+
+    @staticmethod
+    def famille_premier_plan(focus: str) -> str:
+        """Le logiciel au premier plan, ramené à sa famille ; vide pour un navigateur ou un programme du système."""
+        nom = _nom_app(str(focus or ""))
+        famille = FAMILLES_APPS.get(nom, nom)
+        if not famille or famille in NAVIGATEURS or est_bruit_app(famille):
+            return ""
+        return famille
+
+    def lien_auto_permis(self, famille: str, site: str) -> bool:
+        """Les garde-fous du lien automatique (décision du projet du 14-10) : ni Adulte, Dangereux, Contournement ou
+        Pub & traçage, ni l'infrastructure commune, ni la liste noire, ni ce qui est banni du Lieu, ni par un
+        navigateur, ni un site délié à la main."""
+        if not famille or not site or famille in NAVIGATEURS or est_bruit_app(famille):
+            return False
+        if est_bruit_site(site) or self.est_dangereux(site) or self.est_banni(site):
+            return False
+        if site in (getattr(self, "domaines_delies", None) or {}).get(famille, []):
+            return False
+        return not ({str(e).strip().lower() for e in self.etiquettes_de("sites", site)} & ETIQUETTES_SANS_LIEN_AUTO)
+
+    def lier_auto(self, pc: dict[str, Any]) -> int:
+        """Lie tout seuls les sites vus pendant qu'un logiciel tourne : les origines remontées par l'agent (quel
+        programme parlait à quel domaine), les tentatives bloquées notées avec le logiciel au premier plan, et les
+        sites qui portent le nom d'un logiciel vu. Rend le nombre de liens nouveaux.
+
+        Un lien ne débloque rien (« On garde ce qui est bloqué ») : un site fermé sur l'un des appareils au moment du
+        lien est rangé sous le logiciel, mais ne le suit qu'après un geste du Décideur (demande groupée, ou son
+        propre interrupteur)."""
+        candidats: dict[str, set[str]] = {}
+        for site, fiche in (pc.get("sites_vus") or {}).items():
+            for programme in (fiche.get("origines") or {}):
+                nom = _nom_app(str(programme))
+                candidats.setdefault(FAMILLES_APPS.get(nom, nom), set()).add(str(site))
+        for alerte in pc.get("alertes") or []:
+            if alerte.get("app"):
+                candidats.setdefault(str(alerte["app"]), set()).add(domaine_principal(str(alerte.get("domaine") or "")))
+        for app in {FAMILLES_APPS.get(n, n) for a in self._siens(pc) for n in (a.get("apps_vues") or {})}:
+            for site in self.domaines_proposes(pc, app, LIENS_AUTO_MAX):
+                candidats.setdefault(app, set()).add(site)
+        nouveaux = 0
+        auto = self.__dict__.setdefault("domaines_auto", {})
+        for famille, sites in candidats.items():
+            deja = set(self.dependances(famille))
+            liste = auto.get(famille) or {}
+            for site in sorted(s for s in sites if s):
+                if site in deja or site in liste or len(liste) >= LIENS_AUTO_MAX:
+                    continue
+                if not self.lien_auto_permis(famille, site):
+                    continue
+                ouvert = all(self.statut(a, "sites", site) == AUTORISE for a in self.pcs.values() if a.get("person"))
+                liste[site] = {"depuis": time.time(), "suit": ouvert}
+                auto[famille] = liste
+                nouveaux += 1
+        return nouveaux
+
+    def lier_domaine(self, app: str, domaine: str, lier: bool = True) -> bool:
+        """Un Décideur lie (ou délie) un site à une appli, pour tout le Lieu. Lier un site lié tout seul et en
+        attente le fait suivre le logiciel ; délier l'écarte pour de bon des liens automatiques (un site connu de
+        Vision aussi)."""
+        famille = FAMILLES_APPS.get(_nom_app(app), _nom_app(app))
+        # Le domaine tel quel (« rbxcdn.com »), pas le chef de sa famille : c'est lui qu'on range sous le logiciel.
+        site = domaine_principal(domaine)
+        if not famille or not site:
+            raise textes.Erreur("store.choisir_site")
+        auto = self.__dict__.setdefault("domaines_auto", {})
+        delies = self.__dict__.setdefault("domaines_delies", {})
+        lies = self.__dict__.setdefault("domaines_lies", {})
+        liste = lies.get(famille) or []
+        change = False
+        if lier:
+            if site in (delies.get(famille) or []):
+                delies[famille].remove(site)
+                change = True
+            fiche = (auto.get(famille) or {}).get(site)
+            if fiche is not None:
+                change = change or not fiche.get("suit")
+                fiche["suit"] = True
+            elif site not in liste and site not in DEPENDANCES_APPS.get(famille, ()):
+                liste.append(site)
+                change = True
+        else:
+            if site in liste:
+                liste.remove(site)
+                change = True
+            if site in (auto.get(famille) or {}):
+                auto[famille].pop(site)
+                change = True
+            if (change or site in DEPENDANCES_APPS.get(famille, ())) and site not in (delies.get(famille) or []):
+                delies.setdefault(famille, []).append(site)
+                change = True
+        for table, valeur in ((lies, liste), (auto, auto.get(famille)), (delies, delies.get(famille))):
+            if valeur:
+                table[famille] = valeur
+            else:
+                table.pop(famille, None)
+        return change
+
+    def suivre_categorie(self, pc: dict[str, Any], genre: str, nom: str) -> bool:
+        """« Suivre la catégorie » (le mode par défaut, 2.5.1) : retire le réglage propre de l'élément pour le
+        Demandeur de cet appareil (pour un temps ici, exception et « toujours disponible » partout, nom bloqué
+        exprès sur ses machines). Il suit de nouveau sa catégorie, ses plages et son temps."""
+        if genre not in ("apps", "sites"):
+            genre = self._genre_de(nom)
+        cible = self._cle(genre, nom)
+        if not cible:
+            return False
+        change = self.retirer_autorisation(pc, genre, cible)
+        for a in self._siens(pc):
+            for champ in ("bloques", "autorises"):
+                avant = list(a.get(champ) or [])
+                a[champ] = [v for v in avant if not self._dans([str(v)], cible)]
+                change = change or len(a[champ]) != len(avant)
+        return change
+
+    def noms_durables(self, pc: dict[str, Any], genre: str, mode: str | None = None) -> list[str]:
+        """Les noms accordés durablement au Demandeur de cet appareil (un mode, ou les deux)."""
+        toujours = self._toujours_de(pc, genre)
+        if mode == "toujours":
+            return toujours
+        exceptions = []
+        for v in pc.get("autorises") or []:
+            v = str(v).strip()
+            if not v or self._est_etiquette(v) or self._genre_de(v) != genre:
+                continue
+            cle = self._cle(genre, v)
+            if cle and cle not in toujours and cle not in exceptions:
+                exceptions.append(cle)
+        return exceptions if mode == "exception" else toujours + exceptions
+
+    def autorisations_de(self, pc: dict[str, Any]) -> list[dict[str, Any]]:
+        """Ce qui est accordé au Demandeur de cet appareil : exceptions et « toujours disponible » (toutes ses
+        machines), et ce qui est ouvert pour un temps sur cet appareil (avec l'heure de fin)."""
+        rendu = []
+        for genre in ("apps", "sites"):
+            for mode in MODES_DURABLES:
+                rendu += [{"genre": genre, "nom": n, "mode": mode} for n in self.noms_durables(pc, genre, mode)]
+        for cle_lp, fin in self.laissez_passer_actifs(pc):
+            genre, nom = ("apps", cle_lp[4:]) if cle_lp.startswith("app:") else ("sites", cle_lp)
+            rendu.append({"genre": genre, "nom": nom, "mode": "temps", "fin": fin, "appareil": pc.get("id")})
+        for f in rendu:
+            if f["genre"] == "apps":
+                famille = FAMILLES_APPS.get(f["nom"], f["nom"])
+                f["lies"] = list(self.dependances(f["nom"]))
+                f["lies_valides"] = list((getattr(self, "domaines_lies", None) or {}).get(famille, []))
+                f["proposes"] = self.domaines_proposes(pc, f["nom"])
+        return sorted(rendu, key=lambda f: (f["genre"], f["nom"], f["mode"]))
+
+    def ferme_par(self, pc: dict[str, Any], genre: str, nom: str) -> str:
+        """Ce qui ferme cet élément, en un code : « lieu », « securite », « liste_noire », « nomme » (bloqué exprès),
+        « temps » (temps du jour épuisé), « plage » ou « categorie ». Même ordre que `statut`."""
+        if explicite := self.bloque_explicite(pc, genre, nom):
+            return explicite
+        if self.limite_atteinte(pc, genre, nom) is not None:
+            return "temps"
+        if self.plage_nomme(pc, genre, nom) is not None or self._plage_de(pc, genre, nom) is not None:
+            return "plage"
+        return "categorie"
+
+    def etat_element(self, pc: dict[str, Any], genre: str, nom: str, langue: str | None = None) -> dict[str, Any]:
+        """L'état d'une ligne de l'écran d'une catégorie : ouvert ou fermé, le mode accordé (avec la fin d'un
+        « pour un temps »), ce qui ferme et pourquoi (dans `langue`). Sans mode : il suit sa catégorie. Lecture
+        seule."""
+        rendu: dict[str, Any] = {"genre": genre, "nom": nom, "ouvert": self.statut(pc, genre, nom) == AUTORISE}
+        if genre == "apps" and (libelle := self._libelle_de("apps", nom)):
+            rendu["libelle"] = libelle  # le nom affiché d'une appli Android (« Roblox » pour com.roblox.client)
+        cle_lp = "app:" + _nom_app(nom) if genre == "apps" else _nom_site(nom)
+        fin = float((pc.get("laissez_passer") or {}).get(cle_lp) or 0)
+        if fin > time.time():
+            rendu.update(mode="temps", fin=fin)
+        elif mode := self.mode_accorde(pc, genre, nom):
+            rendu["mode"] = mode
+        elif self.bloque_explicite(pc, genre, nom) == "nomme":
+            rendu["mode"] = "bloquer"
+        if not rendu["ouvert"]:
+            rendu["ferme_par"] = self.ferme_par(pc, genre, nom)
+            if langue:
+                raison = self.raison_enfant(pc, genre, nom, langue)
+                if raison:
+                    rendu["raison"] = raison["texte"]
+        return rendu
+
+    def logiciel_des_sites(self) -> dict[str, str]:
+        """Pour chaque site rangé sous un logiciel (connu, lié à la main ou tout seul), la famille du logiciel."""
+        familles = set(DEPENDANCES_APPS) | set(getattr(self, "domaines_lies", None) or {}) | set(
+            getattr(self, "domaines_auto", None) or {})
+        rendu: dict[str, str] = {}
+        for famille in sorted(familles):
+            for s in self.sites_du_logiciel(famille):
+                rendu.setdefault(s["nom"], famille)
+        return rendu
+
+    def _ligne_logiciel(self, pc: dict[str, Any], app: str, langue: str | None) -> dict[str, Any]:
+        """Un logiciel, ses services (les programmes de sa famille : ils suivent toujours le logiciel, une règle
+        porte sur la famille) et ses sites (ils suivent le logiciel tant qu'ils n'ont pas de réglage propre)."""
+        ligne = self.etat_element(pc, "apps", app, langue)
+        ligne["services"] = [{"nom": s, "suit": True, "ouvert": ligne["ouvert"]} for s in membres_app(app)[1:]]
+        sites = []
+        for fiche in self.sites_du_logiciel(app):
+            s = {**self.etat_element(pc, "sites", fiche["nom"], langue), **fiche}
+            propre = "mode" in s or s.get("ferme_par") in ("lieu", "securite", "liste_noire")
+            if not fiche.get("attente") and not propre:
+                s["suit"] = True
+                if ligne["ouvert"] and "mode" in ligne:
+                    # L'appli accordée garde ses sites ouverts (règle des sites liés, lot 1).
+                    s.update(ouvert=True, par_logiciel=True)
+                    s.pop("ferme_par", None)
+                    s.pop("raison", None)
+            sites.append(s)
+        ligne["sites"] = sites
+        return ligne
+
+    def detail_categorie(self, pc: dict[str, Any], etiquette: str, sites_max: int = 8,
+                         langue: str | None = None) -> dict[str, Any]:
+        """L'écran d'une catégorie pour le Demandeur de cet appareil (maquette du 13-10, validée en essai le 14-10) :
+        chaque logiciel avec ses services et ses sites, puis les sites sans logiciel, les fermés d'abord, puis les
+        premiers ; « autres » compte le reste. Lecture seule : rien n'est ouvert ni fermé ici."""
+        vues = {n for a in self._siens(pc) for n in (a.get("apps_vues") or {})}
+        apps = sorted({n for n in self.noms_par_etiquette("apps", etiquette)
+                       if n in vues or self.etiquettes.get("apps", {}).get(n)})
+        logiciels = [self._ligne_logiciel(pc, app, langue) for app in apps]
+        rattaches = {s["nom"] for lg in logiciels for s in lg["sites"]}
+        rattaches |= {s for s in self.noms_par_etiquette("sites", etiquette)
+                      if any(s.endswith("." + r) for r in rattaches)}
+        ailleurs = self.logiciel_des_sites()
+        seuls = []
+        for s in self.noms_par_etiquette("sites", etiquette):
+            if s in rattaches:
+                continue
+            ligne = self.etat_element(pc, "sites", s, langue)
+            if s in ailleurs:
+                ligne["logiciel"] = ailleurs[s]
+            seuls.append(ligne)
+        seuls.sort(key=lambda s: (s["ouvert"], s["nom"]))
+        fermee = bool(self._dans(pc.get("bloques"), etiquette) or self.fermeture_de(pc, [etiquette]) is not None)
+        return {"etiquette": etiquette, "fermee": fermee, "logiciels": logiciels,
+                "sites": seuls[:sites_max], "autres": max(0, len(seuls) - sites_max)}
+
+    def rechercher(self, pc: dict[str, Any], texte: str, langue: str | None = None,
+                   maximum: int = 30) -> list[dict[str, Any]]:
+        """Retrouve une catégorie, un logiciel (ou l'un de ses services) ou un site, où qu'il soit rangé, avec son
+        état, ce qui le ferme et pourquoi, ses catégories et son logiciel (2.5.1, ajout 4 de l'auteur). Lecture seule."""
+        cherche = str(texte or "").strip().lower()
+        if len(cherche) < 2:
+            return []
+        trouves: list[dict[str, Any]] = []
+        noms_cat = sorted({str(e) for g in ("apps", "sites") for es in (self.etiquettes.get(g) or {}).values()
+                           for e in es if str(e).strip()})
+        for e in noms_cat:
+            if cherche in e.lower() or cherche in textes.categorie(e, langue).lower():
+                trouves.append({"genre": "categorie", "nom": e,
+                                "fermee": bool(self._dans(pc.get("bloques"), e) or self.fermeture_de(pc, [e]))})
+        familles: dict[str, str] = {}
+        for n in self.catalogue_maison("apps"):
+            for m in membres_app(n):
+                familles.setdefault(m, _nom_app(n))
+        for programme, famille in FAMILLES_APPS.items():
+            familles.setdefault(programme, famille)
+            familles.setdefault(famille, famille)
+        vus_apps = set()
+        for programme, famille in sorted(familles.items()):
+            if cherche in programme and famille not in vus_apps:
+                vus_apps.add(famille)
+                ligne = self.etat_element(pc, "apps", famille, langue)
+                ligne["categories"] = self.etiquettes_de("apps", famille)
+                if programme != famille:
+                    ligne["service"] = programme
+                trouves.append(ligne)
+        ailleurs = self.logiciel_des_sites()
+        for s in sorted(set(self.catalogue_maison("sites")) | set(ailleurs)):
+            if cherche not in s:
+                continue
+            ligne = self.etat_element(pc, "sites", s, langue)
+            ligne["categories"] = self.etiquettes_de("sites", s)
+            if s in ailleurs:
+                ligne["logiciel"] = ailleurs[s]
+            trouves.append(ligne)
+        trouves.sort(key=lambda r: (not str(r["nom"]).lower().startswith(cherche), r.get("ouvert", True), r["nom"]))
+        return trouves[:maximum]
+
+    def groupes_a_demander(self, pc: dict[str, Any], langue: str | None = None) -> list[dict[str, Any]]:
+        """Les sites bloqués récemment qu'on peut demander, regroupés par logiciel (ajout 5 de l'auteur) : « Roblox ne
+        marche pas : 6 sites bloqués → demander l'accès pour Roblox ». Avec les sites liés en attente du logiciel,
+        s'ils sont fermés. Un logiciel sans site à demander n'y figure pas."""
+        groupes: dict[str, list[str]] = {}
+        for ligne in self.blocages_recents(pc, langue, pour_demandeur=True, maximum=60):
+            if ligne.get("logiciel"):
+                groupes.setdefault(ligne["logiciel"], []).append(ligne["nom"])
+        rendu = []
+        for famille, sites in groupes.items():
+            for fiche in self.sites_du_logiciel(famille):
+                if fiche.get("attente") and fiche["nom"] not in sites and self.statut(pc, "sites", fiche["nom"]) != AUTORISE \
+                        and self.bloque_explicite(pc, "sites", fiche["nom"]) not in ("lieu", "securite", "liste_noire"):
+                    sites.append(fiche["nom"])
+            rendu.append({"logiciel": famille, "libelle": self._libelle_de("apps", famille) or famille,
+                          "ouvert": self.statut(pc, "apps", famille) == AUTORISE, "sites": sites})
+        return sorted(rendu, key=lambda g: (-len(g["sites"]), g["logiciel"]))
+
+    def blocages_recents(self, pc: dict[str, Any], langue: str | None = None, pour_demandeur: bool = False,
+                         maximum: int = 20) -> list[dict[str, Any]]:
+        """Les derniers sites qui ont posé problème sur les appareils de cette personne (ajout 6 de l'auteur) : l'heure,
+        l'appareil, le logiciel s'il est connu, le nombre de tentatives, ce qui ferme et si on peut le demander.
+        Côté Demandeur, seulement ce qu'il peut demander (ni sécurité, ni âge, ni liste noire, ni Lieu)."""
+        ailleurs = self.logiciel_des_sites()
+        par_site: dict[str, dict[str, Any]] = {}
+        for a in self._siens(pc):
+            for alerte in a.get("alertes") or []:
+                domaine = domaine_principal(str(alerte.get("domaine") or ""))
+                if not domaine or est_bruit_site(domaine):
+                    continue
+                quand = float(alerte.get("quand") or 0)
+                fiche = par_site.get(domaine)
+                if fiche is None or quand > fiche["quand"]:
+                    fois = int(alerte.get("fois") or 1) + (fiche["fois"] if fiche else 0)
+                    fiche = par_site[domaine] = {
+                        "nom": domaine, "quand": quand, "fois": fois, "appareil": a.get("id"),
+                        "appareil_nom": a.get("name") or a.get("id"), "source": alerte.get("source") or "",
+                        "logiciel": alerte.get("app") or ailleurs.get(domaine) or ""}
+                else:
+                    fiche["fois"] += int(alerte.get("fois") or 1)
+        rendu = []
+        for fiche in sorted(par_site.values(), key=lambda f: -f["quand"]):
+            ligne = {**fiche, **self.etat_element(self.pcs.get(fiche["appareil"]) or pc, "sites", fiche["nom"], langue)}
+            ligne["demandable"] = not ligne["ouvert"] and ligne.get("ferme_par") not in ("lieu", "securite", "liste_noire")
+            if pour_demandeur and not ligne["demandable"]:
+                continue
+            if not ligne["logiciel"]:
+                ligne.pop("logiciel")
+            rendu.append(ligne)
+            if len(rendu) >= maximum:
+                break
+        return rendu
+
     # ---------------------------------------------------- Laissez-passer
 
     def laisser_passer(
@@ -2354,7 +2920,10 @@ class PcStore:
         if minutes < LAISSEZ_PASSER_MIN or minutes > LAISSEZ_PASSER_MAX:
             raise textes.Erreur("store.duree_entre", min=LAISSEZ_PASSER_MIN, max=LAISSEZ_PASSER_MAX)
         fin = time.time() + minutes * 60
-        pc.setdefault("laissez_passer", {})[domaine] = fin
+        passes = pc.setdefault("laissez_passer", {})
+        # 2.4.4 : un second accord ne raccourcit jamais un accord en cours (la fin d'un accord ne coupe pas l'autre).
+        fin = max(fin, float(passes.get(domaine) or 0))
+        passes[domaine] = fin
         return fin
 
     def fin_laissez_passer(self, pc: dict[str, Any], nom: str) -> bool:
@@ -2386,7 +2955,10 @@ class PcStore:
             raise textes.Erreur("store.choisir_logiciel")
         minutes = max(LAISSEZ_PASSER_MIN, min(LAISSEZ_PASSER_MAX, int(minutes or 0)))
         fin = sum([time.time(), minutes * 60])
-        pc.setdefault("laissez_passer", {})["".join(["app:", cle])] = fin
+        passes = pc.setdefault("laissez_passer", {})
+        # 2.4.4 : comme pour un site, un second accord plus court ne raccourcit pas celui en cours.
+        fin = max(fin, float(passes.get("".join(["app:", cle])) or 0))
+        passes["".join(["app:", cle])] = fin
         return fin
 
     def _laissez_passer(self, pc: dict[str, Any], genre: str, nom: str) -> bool:
@@ -2868,6 +3440,125 @@ class PcStore:
         cible = _nom_app(nom) if genre == "apps" else _nom_site(nom)
         etiquettes = self.etiquettes_de(genre, nom)
 
+        if not getattr(self, "autorisations_v2", False):
+            return self._statut_v1(pc, genre, nom)
+        # --- Le blocage explicite, sans appel (refonte, lot 1) --------------
+        # Le Lieu, une catégorie de sécurité ou d'âge fermée ici, un nom bloqué exprès sur cet appareil : aucune
+        # autorisation ne passe (CONCEPTION-autorisations.md § 2). Une adresse exacte épargnée garde son sens
+        # sous un site bloqué nommément (l'adresse précise d'un cours sous « youtube.com »).
+        # Le Lieu et une catégorie de sécurité ou d'âge fermée ici : aucune autorisation ne passe
+        # (CONCEPTION-autorisations.md § 2). Le « Bloquer » d'un Décideur sur ce nom cède à un « pour un temps »
+        # (la rallonge qu'il accorde lui-même) ; une exception ou « toujours disponible » le lève à l'octroi.
+        # Une adresse exacte épargnée garde son sens sous un site bloqué nommément.
+        explicite = self.bloque_explicite(pc, genre, nom)
+        if explicite in ("lieu", "securite"):
+            return BLOQUE
+        mode = self.mode_accorde(pc, genre, cible)
+
+        # --- Les deux portes qu'un adulte ouvre exprès ---------------------
+        if self._laissez_passer(pc, genre, nom):
+            return AUTORISE
+        if explicite == "nomme" and not self._excepte(pc, genre, nom):
+            return BLOQUE
+        # --- « Toujours disponible » : ni catégorie, ni plage, ni temps --------
+        if mode == "toujours":
+            return AUTORISE
+        # La limite de temps du jour : un laissez-passer la perce (c'est la
+        # rallonge qu'un adulte accorde), une autorisation permanente non,
+        # sinon limiter un logiciel autorisé ne voudrait rien dire.
+        if self.limite_atteinte(pc, genre, nom) is not None:
+            return BLOQUE
+        if self._excepte(pc, genre, nom):
+            return AUTORISE
+
+        # --- Le PC : le plus restrictif l'emporte -------------------------
+        # Une plage qui **cite ce nom** est ce qu'on peut dire de plus
+        # précis sur lui : elle passe avant les listes, sinon « Discord
+        # autorisé » viderait de son sens « plus de Discord après 21h ».
+        if self.plage_nomme(pc, genre, nom) is not None:
+            return BLOQUE
+        if self._dans(bloques, cible):
+            return BLOQUE
+        # La plage horaire passe devant l'autorisation par machine : sans
+        # cela, un site autorisé sur le PC ne connaîtrait plus d'horaires,
+        # et « plus d'écrans après 21h » ne voudrait rien dire.
+        if self._plage_de(pc, genre, nom) is not None:
+            return BLOQUE
+        # « Exception » du Demandeur (toutes ses machines), ou l'ancienne autorisation posée sur ce PC : passe la
+        # catégorie fermée, suit les plages et le temps (déjà jugés plus haut).
+        if mode == "exception" or self._dans(autorises, cible):
+            return AUTORISE
+        # Une catégorie fermée par une automatisation : comme une catégorie coupée par les parents, donc
+        # derrière le « toujours autorisé » posé sur ce nom, qui reste ouvert.
+        if self.fermeture_de(pc, etiquettes) is not None:
+            return BLOQUE
+        if any(self._dans(bloques, e) for e in etiquettes):
+            return BLOQUE
+        if any(self._dans(autorises, e) for e in etiquettes):
+            return AUTORISE
+
+        # Ce que la maison autorise n'a plus rien à dire ici : à ce stade,
+        # plus personne ne le ferme. L'autorisation de maison n'est pas une
+        # protection, c'est une admission — la nuance est tout le sujet.
+        return AUTORISE
+
+    def _statut_v1(self, pc: dict[str, Any], genre: str, nom: str) -> str:
+        """L'ancien moteur de décision (jusqu'à la reprise des autorisations) : autorisé ou bloqué, pour ce PC.
+
+        Deux étages, et c'est tout le système.
+
+        **La maison décide d'abord, et sans appel.** Ce qui est banni pour
+        la famille est fermé partout : ni une autorisation posée sur une
+        machine, ni une étiquette, ni un laissez-passer ne le rouvre. C'est
+        la seule décision irrévocable — c'est ce qui lui donne son sens.
+
+        **Le PC décide ensuite, et le plus restrictif l'emporte.** À cet
+        étage, « autorisé » veut dire *admis dans la maison*, pas
+        *intouchable* : YouTube peut être autorisé chez nous et fermé sur
+        le PC d'un enfant en période d'école. Une étiquette coupée sur la
+        machine, ou une plage en cours, ferme donc un site autorisé — c'est
+        exactement ce qu'on attend d'un contrôle parental.
+
+        L'ordre, du plus fort au plus faible :
+
+        1. le **nom banni pour la maison** — définitif ;
+        2. une de ses **étiquettes bannies pour la maison** — définitif ;
+        3. un **laissez-passer** en cours, puis l'**adresse exacte
+           épargnée** : les deux portes qu'un adulte ouvre exprès. Elles
+           percent l'étage du PC, jamais celui de la maison ;
+        4. une **plage qui cite ce nom** à cette heure ;
+        5. le **nom** cité dans les bloqués du PC ;
+        6. une **plage** qui ferme l'une de ses étiquettes à cette heure ;
+        7. le **nom** cité dans les autorisés du PC — la dérogation par
+           machine : elle exempte des étiquettes coupées ici, rien de plus ;
+        8. une de ses **étiquettes** coupée sur ce PC ;
+        9. une de ses **étiquettes** autorisée sur ce PC ;
+        10. sinon **autorisé** : ce que personne n'a fermé passe.
+
+        Ainsi « bloque les jeux, sauf minecraft » s'écrit toujours en deux
+        lignes, et « autorise YouTube, mais pas pendant l'école » aussi —
+        ce qui était impossible avant 1.48.0 : une autorisation de maison
+        rendait alors un site insensible à toutes les étiquettes, et
+        l'étiquette « Vidéos » coupée sur un PC ne fermait rien.
+
+        Un test échoue si un blocage de maison redevient franchissable, si
+        une autorisation repasse devant une étiquette ou une plage, ou si
+        le défaut cesse d'être « autorisé ».
+        """
+        # 1.82.0 : « Blocage d'applis » (apps) ou « Filtrage web » (sites) coupé : plus rien ne ferme ce
+        # genre (ni maison, ni catégories, ni âge, ni noms, ni plages d'étiquettes), sauf la limite du
+        # jour d'une appli, qui relève du module « Temps d'écran ».
+        if self.genre_coupe(genre):
+            if self.limite_atteinte(pc, genre, nom) is not None and not self._laissez_passer(pc, genre, nom):
+                return BLOQUE
+            return AUTORISE
+        bloques = pc.get("bloques") or []
+        autorises = pc.get("autorises") or []
+        # Une règle porte sur un site, jamais sur l'un de ses sous-domaines :
+        # « m.youtube.com » se juge donc comme « youtube.com ».
+        cible = _nom_app(nom) if genre == "apps" else _nom_site(nom)
+        etiquettes = self.etiquettes_de(genre, nom)
+
         # --- La maison, sans appel ----------------------------------------
         if self.est_banni(cible):
             return BLOQUE
@@ -2937,6 +3628,12 @@ class PcStore:
                 return FILTRE_AUTORISES
             if self.est_banni(cible) or any(self.est_banni(e) for e in etiquettes):
                 return FILTRE_BLOQUES
+            # 2.5.9 (l'auteur, 17/10) : un élément déjà rangé dans une catégorie et décidé sur chaque appareil des Demandeurs
+            # est tranché, même sans décision pour tout le Lieu (Adulte reste ouvert aux Décideurs, choix de l'auteur).
+            if etiquettes:
+                decide = self._decide_chez_demandeurs(genre, nom)
+                if decide:
+                    return decide
             return FILTRE_A_CLASSER
         for champ, reponse in (
             ("autorises", FILTRE_AUTORISES),
@@ -2969,6 +3666,37 @@ class PcStore:
         cache[cle] = (_t.monotonic(), n)
         self._cache_a_classer = cache
         return n
+
+    def appareils_demandeurs(self) -> list[dict[str, Any]]:
+        """2.5.9 : les appareils personnels des Demandeurs : rôle effectif avec « Demander l'accès », et une personne.
+
+        Sans personne (télé du salon, banc d'essai), un appareil a aussi le rôle Demandeur par défaut, mais il ne reçoit
+        pas les décisions prises nom par nom pour les Demandeurs : il n'en est pas. Pas davantage un écran commun
+        (personne d'affichage) ni un appareil d'essai. Relu au plus toutes les 5 s (la file est recomptée souvent)."""
+        import time as _t
+
+        from . import roles as _roles
+        cache = getattr(self, "_cache_demandeurs", None)
+        if cache is not None and _t.monotonic() - cache[0] < 5:
+            return cache[1]
+        sortie = [
+            pc for i, pc in self.pcs.items()
+            if pc.get("person") and not self._est_pseudo(str(pc["person"])) and i not in self.appareils_essai
+            and _roles.a(self, pc, "demander_acces")
+        ]
+        self._cache_demandeurs = (_t.monotonic(), sortie)
+        return sortie
+
+    def _decide_chez_demandeurs(self, genre: str, nom: str) -> str | None:
+        """Bloqué (au moins un appareil le bloque) ou autorisé, si chacun des appareils des Demandeurs (au moins un) en
+        a décidé ; None sinon."""
+        demandeurs = self.appareils_demandeurs()
+        if not demandeurs:
+            return None
+        decisions = [self.classe(pc, genre, nom) for pc in demandeurs]
+        if FILTRE_A_CLASSER in decisions:
+            return None
+        return FILTRE_BLOQUES if FILTRE_BLOQUES in decisions else FILTRE_AUTORISES
 
     def _compter_a_classer(self, pc: dict[str, Any] | None) -> int:
         return sum(
@@ -3225,10 +3953,17 @@ class PcStore:
                 return
             if self.statut(pc, genre, nom) != AUTORISE:
                 return
+            if getattr(self, "autorisations_v2", False) and genre == "sites" and self.est_dangereux(nom):
+                return
             epargnes.append(nom)
 
         for valeur in list(pc.get("autorises") or []) + list(self.autorises_maison):
             _epargner(valeur)
+        # Lot 1 : les sites accordés durablement au Demandeur (jamais contre la liste noire : seule une adresse
+        # exacte épargnée le fait).
+        for nom_d in self.noms_durables(pc, "sites"):
+            if nom_d not in epargnes and not self.est_dangereux(nom_d) and self.statut(pc, "sites", nom_d) == AUTORISE:
+                epargnes.append(nom_d)
         for domaine, _fin in self.laissez_passer_actifs(pc):
             if domaine.startswith("app:"):
                 continue
@@ -3243,12 +3978,21 @@ class PcStore:
                 for v in list(pc.get("bloques") or []) + list(self.bannis)
                 if str(v).strip() and not self._est_etiquette(str(v).strip()) and self._genre_de(str(v).strip()) == "sites"
             }
+            ouvertes: list[str] = []
             for valeur in list(pc.get("autorises") or []) + list(self.autorises_maison):
                 valeur = str(valeur).strip()
                 if not valeur or self._est_etiquette(valeur) or self._genre_de(valeur) != "apps":
                     continue
-                app = _nom_app(valeur)
-                deps = DEPENDANCES_APPS.get(FAMILLES_APPS.get(app, app))
+                ouvertes.append(_nom_app(valeur))
+            # 2.4.4 : une appli ouverte « pour un temps » garde aussi ses sites, le temps de l'accord ; à
+            # l'échéance, le laissez-passer est purgé et les sites se referment avec l'appli.
+            for cle_lp, _fin in self.laissez_passer_actifs(pc):
+                if cle_lp.startswith("app:") and cle_lp[4:]:
+                    ouvertes.append(cle_lp[4:])
+            # Lot 1 : une appli accordée en exception ou « toujours disponible » garde aussi ses sites.
+            ouvertes += self.noms_durables(pc, "apps")
+            for app in dict.fromkeys(ouvertes):
+                deps = self.dependances(app)
                 if not deps or self.statut(pc, "apps", app) != AUTORISE:
                     continue
                 for dep in deps:

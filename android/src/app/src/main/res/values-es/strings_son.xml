@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Niveau sonore (backlog n° 31) : mesure par le micro, des nombres seulement vers Home Assistant. -->
+<resources>
+    <string name="son_titre">Nivel de ruido</string>
+    <string name="son_alerte_titre">Demasiado ruido</string>
+    <string name="son_alerte_sur">Aviso %1$d de %2$d: el dispositivo se cierra con el último.</string>
+    <string name="son_alerte">La habitación está demasiado ruidosa.</string>
+    <string name="son_canal">Medición del nivel de ruido</string>
+    <string name="son_canal_desc">Se muestra mientras Vision mide el nivel de ruido (no se graba nada).</string>
+    <string name="son_canal_alerte">Avisos de ruido</string>
+    <string name="son_canal_alerte_desc">Cuando la habitación sigue por encima del umbral.</string>
+    <string name="son_notif_titre">Vision mide el nivel de ruido</string>
+    <string name="son_notif_texte">Solo se mide el nivel, aquí, en el dispositivo. No se graba ni se envía ningún sonido.</string>
+    <string name="son_etat_sans_micro">Sin micrófono en este dispositivo</string>
+    <string name="son_etat_autoriser">Micrófono por autorizar</string>
+    <string name="son_etat_en_cours">Midiendo</string>
+    <string name="son_etat_attente">Empieza al volver a Vision</string>
+    <string name="son_vie_privee">Vision mide lo ruidosa que está la habitación con el micrófono de este dispositivo.\n\nQué se mide: solo el nivel de ruido, aquí, en el dispositivo.\nQué no: no se graba, guarda ni envía ningún sonido.\nQué va a Home Assistant: solo números (nivel, nivel más alto, hora de un aviso).\n\nEl indicador «micrófono en uso» del sistema sigue visible: es intencionado. Demasiado tiempo por encima del umbral, aparece un aviso; tras varios avisos, el dispositivo puede cerrarse un rato.</string>
+    <string name="son_vie_privee_sans_micro">Este dispositivo no tiene micrófono: aquí no se puede medir el nivel de ruido.</string>
+    <string name="son_autoriser">Autorizar el micrófono</string>
+    <string name="son_plus_tard">Más tarde</string>
+    <string name="son_ok">OK</string>
+</resources>

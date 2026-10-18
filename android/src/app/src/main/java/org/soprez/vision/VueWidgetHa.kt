@@ -41,7 +41,21 @@ class VueWidgetHa(
     historiqueInitial: WidgetsHa.Historique? = null,
     /** 1.81.0 (lecteur) : une action avec données (volume). */
     private val agirAvec: ((WidgetsHa.Entite, String, org.json.JSONObject) -> Unit)? = null,
+    /** 1.90.1 : widget d'écran d'accueil à liste défilante — la zone du détail reste vide ([zoneDetail]), le système y
+     *  pose sa propre liste. */
+    private val detailExterne: Boolean = false,
+    /** 16-10 (télé) : le menu du widget (détail, modifier, retirer) — touche Menu, ou appui long sur ses commandes. */
+    private val menu: (() -> Unit)? = null,
 ) : FrameLayout(ctx) {
+    /** 16-10 : vrai si le widget agit (interrupteur, bouton, réglage, liste) — sur la télé, OK le fait agir. */
+    var pilote = false
+        private set
+
+    /** 16-10 (télé) : les commandes du widget qui prennent le focus de la télécommande (− et +). */
+    fun commandes(): List<View> = listOfNotNull(findViewWithTag("widget_moins"), findViewWithTag("widget_plus"))
+    /** 1.90.1 : la zone laissée au détail quand [detailExterne] (sa position sert à couper l'image du widget). */
+    var zoneDetail: View? = null
+        private set
     /** Lecteur à plusieurs enceintes : celle qu'on pilote (toucher son nom passe à la suivante). */
     private var enceinte = 0
     /** 1.82.1 : ce que montre le widget ; inchangé → aucun redessin. Déclaré AVANT init (qui appelle maj). */
@@ -61,20 +75,72 @@ class VueWidgetHa(
 
     private fun dp(v: Float): Float = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, resources.displayMetrics)
 
+    /**
+     * 16-10 (l'auteur : « parfois seule la moitié du widget est dessinée ») : le widget était bâti avant de connaître sa taille
+     * (0 × 0 au premier passage) et ne se rebâtissait qu'au prochain changement d'état ; il se refait maintenant dès
+     * que sa taille change (la signature garde d'un redessin inutile).
+     */
+    override fun onSizeChanged(w: Int, h: Int, ancienW: Int, ancienH: Int) {
+        super.onSizeChanged(w, h, ancienW, ancienH)
+        if (w != ancienW || h != ancienH) main.post { maj() }
+    }
+
     /** L'entité (catalogue, ou exemple), et son état le plus frais (flux, sinon catalogue). */
     private fun entite(id: String): WidgetsHa.Entite =
         WidgetsHaStock.entite(context, id) ?: if (exemple) WidgetsHa.exemple(reglage.style).copy(entityId = id)
         else WidgetsHa.Entite(id, id, id.substringBefore('.'), "", "", "", "", emptyMap(), emptyList(), emptyList())
 
-    private fun etat(e: WidgetsHa.Entite): WidgetsHa.EtatEntite =
-        FluxWidgets.etats[e.entityId] ?: WidgetsHa.EtatEntite(e.etat, e.attributs, "")
+    private fun etat(e: WidgetsHa.Entite): WidgetsHa.EtatEntite {
+        val st = FluxWidgets.etats[e.entityId] ?: WidgetsHa.EtatEntite(e.etat, e.attributs, "")
+        // 17-10 : la valeur demandée (− / +) reste montrée jusqu'à la confirmation de Home Assistant ; la ligne sous la
+        // valeur vient du flux, sinon du catalogue.
+        return AppuisReglage.affiche(e.entityId, st, android.os.SystemClock.elapsedRealtime()).let { if (it.texte == null) it.copy(texte = e.texte) else it }
+    }
+
+    /**
+     * 17-10 (l'auteur, « widget chauffage lisible » : « 16 » seul faisait croire à une panne en mode Réduit) : la ligne sous la
+     * valeur (« Réduit jusqu'à 12:00, puis Confort 20 °C »), aux couleurs du thème. Deux lignes au plus, la police
+     * rapetisse pour tenir, jamais de « … » ; en une case de large, le mode et l'heure seulement.
+     */
+    /**
+     * 17-10 (recette télé : en 2 × 2 dans une zone de l'accueil, la carte fait 112 dp de haut ; le nom, la valeur et − / +
+     * la remplissent et la ligne tombait sous le bord, coupée) : la place qui reste sous [occupe] (dp, la hauteur des
+     * autres éléments) décide — la phrase entière, sa forme courte sur une ligne, ou rien (elle reste dite). Hauteur
+     * pas encore connue : la phrase (le widget se redessine dès qu'il connaît sa taille).
+     */
+    private fun ligneSelonPlace(c: LinearLayout, st: WidgetsHa.EtatEntite, occupe: Float, gravite: Int = Gravity.CENTER_HORIZONTAL) {
+        if (height <= 0) { ligneTexte(c, st, gravite); return }
+        val reste = height - dp(occupe)
+        when {
+            reste < dp(16f) -> return
+            reste < dp(34f) -> ligneTexte(c, st, gravite, court = true)
+            else -> ligneTexte(c, st, gravite)
+        }
+    }
+
+    private fun ligneTexte(c: LinearLayout, st: WidgetsHa.EtatEntite, gravite: Int = Gravity.CENTER_HORIZONTAL, court: Boolean = false) {
+        val t = st.texte?.trim().orEmpty()
+        if (t.isEmpty()) return
+        // 1 × 1 : pas la place pour le nom, la valeur, − / + ET une ligne (recette) ; le nom et − / + restent (l'auteur, 16-10),
+        // la ligne se lit dans la description et le détail. Conseil : 2 × 1 au moins pour une consigne.
+        if (reglage.w <= 1 && reglage.h < 2) return
+        val montre = if (court || reglage.w <= 1) WidgetsHa.texteCourt(t) else t
+        val max = if (petit()) 12f else 14f
+        c.addView(texte(montre, max, theme.encre2).apply {
+            tag = "widget_texte"; gravity = gravite; contentDescription = t; setTag(R.id.nom_ajuste, true)
+            // La forme courte (une case de haut, entre − et +) tient sur UNE ligne (recette 360 dp à 130 % : sur deux lignes,
+            // elle sortait du widget) ; la phrase entière, sur deux au plus.
+            if (court) Ui.surUneLigne(this, max, 8f) else Ui.surDeuxLignes(this, max, 9f)
+        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(2f).toInt() })
+    }
 
     private fun libelle(e: WidgetsHa.Entite) = reglage.libelle.ifEmpty { e.nom }
 
 
     private fun signatureCourante(): String = buildString {
         append(reglage).append('|').append(enceinte).append('|').append(lectureSeule).append('|').append(exemple).append('|')
-        append(petit()).append('|')
+        // 16-10 : la taille réelle (par pas de 8 dp) — la mise en page se refait quand le widget connaît enfin sa taille.
+        append(petit()).append('|').append((width / dp(8f)).toInt()).append('x').append((height / dp(8f)).toInt()).append('|')
         reglage.entites.forEach { id -> val e = entite(id); append(e).append(etat(e)).append(';') }
         append(System.identityHashCode(historique)).append(historiqueEchec)
     }
@@ -87,7 +153,14 @@ class VueWidgetHa(
         if (sig == signature && childCount > 0) return
         signature = sig
         redessins++
+        // 17-10 (l'auteur, retour 20, recette télé) : sur la télé, OK sur − redessine le widget (la valeur demandée s'affiche) ;
+        // le − pris disparaissait avec l'ancien dessin et le focus partait ailleurs sur l'accueil — l'appui suivant ne
+        // réglait plus la consigne. Le focus est gardé dans le widget le temps du redessin, puis rendu à la même commande.
+        val focusAvant = findFocus()?.tag as? String
+        if (focusAvant != null && isFocusable) requestFocus()
         removeAllViews()
+        listeDetail = null
+        defilement = null
         val e = entite(reglage.entites.first())
         val st = etat(e)
         val contenu = ContenuAjuste(context).apply { orientation = LinearLayout.VERTICAL; val p = dp(12f).toInt(); setPadding(p, p, p, p) }
@@ -105,10 +178,14 @@ class VueWidgetHa(
             WidgetsHa.REGLAGE -> reglerValeur(contenu, e, st, valeur)
             else -> tuile(contenu, e, st, valeur)
         }
+        if (focusAvant != null) findViewWithTag<View>(focusAvant)?.takeIf { it.isFocusable }?.requestFocus()
         contentDescription = if (reglage.style == WidgetsHa.LECTEUR) descriptionLecteur()
-            else if (reglage.style == WidgetsHa.MINI_CARTE) reglage.entites.joinToString(" · ") { val x = entite(it); x.nom + " " + WidgetsHa.valeurAffichee(etat(x).etat, x.unite, x.domaine, x.deviceClass) } else context.getString(R.string.vuewidget_libelle_valeur, libelle(e), valeur)
+            else if (reglage.style == WidgetsHa.MINI_CARTE) reglage.entites.joinToString(" · ") { val x = entite(it); x.nom + " " + WidgetsHa.valeurAffichee(etat(x).etat, x.unite, x.domaine, x.deviceClass) } else context.getString(R.string.vuewidget_libelle_valeur, libelle(e), valeur) +
+                // 17-10 : la ligne sous la valeur est toujours dite (même en 1 × 1, où elle ne s'affiche pas).
+                (st.texte?.trim()?.takeIf { it.isNotEmpty() }?.let { ", $it" } ?: "")
         alpha = if (!exemple && FluxWidgets.statut == FluxWidgets.Statut.HORS_LIGNE) 0.75f else 1f
-        val pilote = !lectureSeule && agir != null && WidgetsHa.pilotable(WidgetsHaStock.entite(context, e.entityId) ?: if (exemple) e else null, false)
+        val pilote = !lectureSeule && (agir != null || agirAvec != null) && WidgetsHa.pilotable(WidgetsHaStock.entite(context, e.entityId) ?: if (exemple) e else null, false)
+        this.pilote = pilote
         setOnClickListener {
             // 1.90.0 (retour d'essai) : « Au toucher » — les détails de l'entité ou une vue de Home Assistant, ou rien.
             if (!exemple && !lectureSeule) {
@@ -128,6 +205,9 @@ class VueWidgetHa(
             }
         }
     }
+
+    /** Les détails de l'entité (menu « Voir le détail » de la télé), sans faire agir le widget. */
+    fun voirDetails() = montrerDetails()
 
     private fun montrerDetails() {
         val d = details ?: return
@@ -162,16 +242,35 @@ class VueWidgetHa(
 
     private fun petit(): Boolean = height in 1 until dp(110f).toInt() || width in 1 until dp(110f).toInt()
 
-    private fun entete(c: LinearLayout, e: WidgetsHa.Entite, couleurPicto: Int = theme.or) {
-        val r = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
-        picto(e, couleurPicto)?.let { r.addView(it, LinearLayout.LayoutParams(dp(20f).toInt(), dp(20f).toInt()).apply { rightMargin = dp(8f).toInt() }) }
-        val nom = nomHa(libelle(e), 13f, theme.encre2, Polices.demiGras(context))
-        r.addView(nom, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        c.addView(r)
+    /**
+     * Le titre du widget : picto et nom. 1.91.3 (mise en page) : chacun peut être caché, et la ligne s'aligne à gauche, au
+     * centre ou à droite ([graviteH]) ; par défaut (autres styles) : picto et nom, à gauche.
+     */
+    private fun entete(c: LinearLayout, e: WidgetsHa.Entite, couleurPicto: Int = theme.or, avecNom: Boolean = true, avecPicto: Boolean = true,
+                       graviteH: Int = Gravity.START) {
+        if (!avecNom && !avecPicto) return
+        val r = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL or graviteH; tag = "widget_titre" }
+        // 16-10 : un widget d'une case de large laisse sa place au nom (le picto, décor, s'efface quand le nom est là).
+        if (avecPicto && !(avecNom && reglage.w <= 1)) picto(e, couleurPicto)?.let { r.addView(it, LinearLayout.LayoutParams(dp(20f).toInt(), dp(20f).toInt()).apply { if (avecNom) rightMargin = dp(8f).toInt() }) }
+        if (avecNom) {
+            // 16-10 : le nom rapetisse (jusqu'à 9 sp, voir nomMinSp) pour tenir avant d'en venir aux « … » (petit widget, police 130 %).
+            // ContenuAjuste ne le touche pas (tag « nom_ajuste ») : il remettait la taille d'origine à chaque mesure.
+            val nom = nomHa(libelle(e), 13f, theme.encre2, Polices.demiGras(context)).also { it.setTag(R.id.nom_ajuste, true); Ui.surUneLigneOuPoints(it, 13f, nomMinSp()) }
+            // À gauche : le nom prend la place qui reste (« … » au bout) ; centré ou à droite : il garde sa largeur.
+            if (graviteH == Gravity.START) r.addView(nom, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            else r.addView(nom, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { weight = 0f })
+        }
+        c.addView(r, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
     }
 
     /** 1.87.0 (recette visuelle) : un nom venu de Home Assistant, d'une longueur quelconque : une ligne, « … » au bout,
      *  le nom entier en description (avant : coupé au milieu d'un mot en grands caractères). */
+    /**
+     * Le plus petit corps du nom d'un widget : 9 sp, à la taille qu'il aurait avec la police à 100 %. 16-10 (recette 360 dp,
+     * police 130 %) : en 2 × 1 sur un petit téléphone, « Température ambiante » ne tenait pas à 9 sp agrandis et prenait des « … ».
+     */
+    private fun nomMinSp(): Float = 9f / maxOf(1f, resources.configuration.fontScale)
+
     private fun nomHa(t: String, taille: Float, couleur: Int, police: android.graphics.Typeface): TextView =
         texte(t, taille, couleur, police).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; contentDescription = t }
 
@@ -179,37 +278,181 @@ class VueWidgetHa(
 
     // ------------------------------------------------------------------ styles
 
+    /** 1.91.3 : la gravité horizontale et verticale de la mise en page [m]. */
+    private fun graviteH(m: WidgetsHa.MiseEnPage) = when (m.alignH) { WidgetsHa.GAUCHE -> Gravity.START; WidgetsHa.DROITE -> Gravity.END; else -> Gravity.CENTER_HORIZONTAL }
+    private fun graviteV(m: WidgetsHa.MiseEnPage) = when (m.alignV) { WidgetsHa.HAUT -> Gravity.TOP; WidgetsHa.BAS -> Gravity.BOTTOM; else -> Gravity.CENTER_VERTICAL }
+
+    /** 1.91.3 : l'en-tête selon la mise en page (titre, icône, alignement) — pour les styles qui ont un titre. */
+    private fun enteteSelon(c: LinearLayout, e: WidgetsHa.Entite, couleurPicto: Int = theme.or) {
+        val m = WidgetsHa.miseEnPage(reglage, e)
+        entete(c, e, couleurPicto, avecNom = m.titre, avecPicto = m.icone, graviteH = graviteH(m))
+    }
+
+    /** 1.91.3 : la taille (sp) d'une valeur en texte : S..XL selon la mise en page, sinon [parDefaut] (« remplir »). */
+    private fun tailleValeur(e: WidgetsHa.Entite, parDefaut: Float): Float {
+        val m = WidgetsHa.miseEnPage(reglage, e)
+        return if (m.taille == WidgetsHa.REMPLIR) parDefaut else WidgetsHa.tailleSp(m.taille, petit())
+    }
+
     private fun tuile(c: LinearLayout, e: WidgetsHa.Entite, st: WidgetsHa.EtatEntite, valeur: String) {
-        entete(c, e)
+        // 1.91.3 (retour d'essai) : la mise en page réglée dans Home Assistant (ou en cours de choix dans l'éditeur).
+        val m = WidgetsHa.miseEnPage(reglage, e)
+        val gh = graviteH(m)
+        val gv = graviteV(m)
+        entete(c, e, avecNom = m.titre, avecPicto = m.icone, graviteH = gh)
         val aff = WidgetsHa.affichage(reglage, e)
         if (!WidgetsHa.montreDetail(aff)) {
-            ressort(c)
-            c.addView(texte(valeur, if (petit()) 20f else 28f, theme.encre, Polices.outfitLeger(context)))
+            // La valeur seule : toute la place sous le titre, alignée comme réglé ; « remplir » : la plus grande qui tient.
+            val v: View = if (m.taille == WidgetsHa.REMPLIR) ValeurQuiRemplit(context, valeur, theme.encre, Polices.outfitLeger(context), gh or gv)
+                else texte(valeur, WidgetsHa.tailleSp(m.taille, petit()), theme.encre, Polices.outfitLeger(context)).apply { gravity = gh or gv }
+            v.tag = "widget_valeur"
+            c.addView(v, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+            ligneTexte(c, st, gh)
             return
         }
-        if (WidgetsHa.montreValeur(aff)) c.addView(texte(valeur, if (petit()) 18f else 24f, theme.encre, Polices.outfitLeger(context)).apply { setPadding(0, dp(2f).toInt(), 0, 0) })
-        detailCourt(c, e, st, if (WidgetsHa.montreValeur(aff)) 0 else 1)
-        ressort(c)
+        if (WidgetsHa.montreValeur(aff)) {
+            val taille = if (m.taille == WidgetsHa.REMPLIR) (if (petit()) 18f else 24f) else WidgetsHa.tailleSp(m.taille, petit())
+            c.addView(texte(valeur, taille, theme.encre, Polices.outfitLeger(context)).apply { setPadding(0, dp(2f).toInt(), 0, 0); gravity = gh; tag = "widget_valeur" },
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        }
+        detailCourt(c, e, st)
+    }
+
+    /**
+     * 1.91.3 : la valeur « remplir » — une ligne, la plus grande taille qui tient dans la place donnée (bornée de 12 à
+     * 160 sp), alignée par [gravite]. Dessinée à part : la réduction d'ensemble des textes (ContenuAjuste) ne la touche
+     * pas, et elle ne réclame que peu de hauteur à la mesure (elle prend ce qui reste).
+     */
+    private class ValeurQuiRemplit(ctx: Context, private val valeur: String, couleur: Int, police: android.graphics.Typeface,
+                                   private val gravite: Int) : TextView(ctx) {
+        private val p = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = couleur; typeface = police; textSize = 100f }
+        private val sp = ctx.resources.displayMetrics.scaledDensity
+        private val largeurA100 = p.measureText(valeur)
+        private val hauteurA100 = p.fontMetrics.let { it.descent - it.ascent }
+
+        // Le texte est porté (lecteurs d'écran, essais), mais dessiné ici : la taille du TextView n'y joue pas.
+        init { text = valeur; includeFontPadding = false }
+
+        override fun onMeasure(l: Int, h: Int) {
+            val min = (14f * sp * 1.3f).toInt()
+            // La place qui reste (poids 1) arrive en EXACTLY ; sinon (mesure libre), juste une ligne de texte courant.
+            setMeasuredDimension(MeasureSpec.getSize(l), if (MeasureSpec.getMode(h) == MeasureSpec.EXACTLY) MeasureSpec.getSize(h) else min)
+        }
+
+        /** La taille (px) utilisée au dernier dessin (essais). */
+        var tailleDessinee = 0f; private set
+
+        override fun onDraw(c: Canvas) {
+            val w = (width - paddingLeft - paddingRight).toFloat(); val h = (height - paddingTop - paddingBottom).toFloat()
+            val t = WidgetsHa.tailleQuiTient(largeurA100, hauteurA100, w, h, 12f * sp, 160f * sp)
+            tailleDessinee = t
+            p.textSize = t
+            val fm = p.fontMetrics
+            val lt = p.measureText(valeur)
+            val x = when (gravite and Gravity.HORIZONTAL_GRAVITY_MASK) {
+                Gravity.START, Gravity.LEFT -> paddingLeft.toFloat()
+                Gravity.END, Gravity.RIGHT -> paddingLeft + w - lt
+                else -> paddingLeft + (w - lt) / 2
+            }
+            val hl = fm.descent - fm.ascent
+            val haut = when (gravite and Gravity.VERTICAL_GRAVITY_MASK) {
+                Gravity.TOP -> paddingTop.toFloat()
+                Gravity.BOTTOM -> paddingTop + h - hl
+                else -> paddingTop + (h - hl) / 2
+            }
+            c.drawText(valeur, x, haut - fm.ascent, p)
+        }
     }
 
     /**
      * 1.88.0 (l'auteur : « je vois la quantité et pas le détail ») : les premières lignes du détail (éléments d'une liste,
      * attributs), autant que la taille du widget en permet, puis « +N » ; le détail complet à l'appui.
      */
-    private fun detailCourt(c: LinearLayout, e: WidgetsHa.Entite, st: WidgetsHa.EtatEntite, bonus: Int) {
+    private fun detailCourt(c: LinearLayout, e: WidgetsHa.Entite, st: WidgetsHa.EtatEntite) {
         val (lignes, total) = WidgetsHa.detail(e, st)
-        if (total == 0) { c.addView(texte(context.getString(R.string.wha_detail_vide), 13f, theme.encre3).apply { setPadding(0, dp(4f).toInt(), 0, 0) }); return }
-        val place = (when (reglage.h) { 1 -> 1; 2 -> 3; 3 -> 5; else -> 7 } + bonus).coerceAtLeast(1)
-        val (montrees, autres) = WidgetsHa.detailTronque(lignes, total, place)
-        montrees.forEach { l ->
-            c.addView(texte("• " + WidgetsHa.texteLigne(l), 13f, theme.encre2).apply {
+        if (detailExterne && total > 0) {
+            val z = View(context)
+            zoneDetail = z
+            c.addView(z, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+            return
+        }
+        if (total == 0) {
+            c.addView(texte(context.getString(R.string.wha_detail_vide), 13f, theme.encre3).apply { setPadding(0, dp(4f).toInt(), 0, 0) })
+            ressort(c); return
+        }
+        val max = WidgetsHa.lignesMax(reglage.hauteur)
+        // Une ligne de détail : 13 sp et son petit écart (pour la hauteur maximale choisie).
+        val hauteurLigne = (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 13f, resources.displayMetrics) * 1.25f + dp(3f)).toInt()
+        if (reglage.defilement) {
+            // 1.91.2 (retour d'essai) : tout le détail reçu DÉFILE dans la tuile, sans « +N » ni texte coupé (une ligne longue passe
+            // à la ligne) ; au plus [max] lignes de haut, avec un fondu discret quand il reste à lire.
+            val col = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+            lignes.forEach { l ->
+                col.addView(texte("• " + WidgetsHa.texteLigne(l), 13f, theme.encre2).apply {
+                    contentDescription = WidgetsHa.texteLigne(l); setPadding(0, dp(3f).toInt(), 0, 0)
+                })
+            }
+            // Home Assistant n'a pas tout envoyé : on le dit, et « Voir tout » mène au détail complet.
+            if (total > lignes.size) col.addView(voirTout(total - lignes.size))
+            val defile = DefilementWidget(context, this, max * hauteurLigne).apply { addView(col); tag = "defilement_widget" }
+            defilement = defile
+            c.addView(defile, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+            return
+        }
+        // Défilement coupé (retour d'essai) : ce qui tient (au plus [max] lignes), puis « Voir tout » vers le détail complet.
+        val vues = lignes.take(max).map { l ->
+            texte("• " + WidgetsHa.texteLigne(l), 13f, theme.encre2).apply {
                 maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; contentDescription = WidgetsHa.texteLigne(l)
                 setPadding(0, dp(3f).toInt(), 0, 0)
-            })
+            }
         }
-        if (autres > 0) c.addView(texte(context.getString(R.string.wha_plus_n, autres), 12f, theme.or, Polices.demiGras(context)).apply {
-            setPadding(0, dp(3f).toInt(), 0, 0); contentDescription = context.getString(R.string.wha_detail_autres, autres)
-        })
+        val plus = texte("", 12f, theme.or, Polices.demiGras(context)).apply {
+            setPadding(0, dp(3f).toInt(), 0, 0); isClickable = true; setOnClickListener { montrerDetails() }
+        }
+        val liste = ListeDetail(context, vues, plus, total, { context.getString(R.string.wha_voir_tout) },
+            { n -> context.getString(R.string.wha_voir_tout_desc, n) }, debutDetail)
+        listeDetail = liste
+        c.addView(liste, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+    }
+
+    /** « Voir tout » (le détail complet), quand Home Assistant n'a pas envoyé tout le détail. */
+    private fun voirTout(reste: Int): TextView = texte(context.getString(R.string.wha_voir_tout), 12f, theme.or, Polices.demiGras(context)).apply {
+        setPadding(0, dp(6f).toInt(), 0, dp(2f).toInt()); contentDescription = context.getString(R.string.wha_voir_tout_desc, reste)
+        isClickable = true; setOnClickListener { montrerDetails() }
+    }
+
+    /** 1.91.2 : la liste qui défile (défilement activé), pour la télécommande. */
+    private var defilement: DefilementWidget? = null
+
+    /** 1.90.1 : la liste du détail de cette tuile (défilement à la télécommande sur TV), et sa position, gardée quand
+     *  la tuile se redessine (nouvel état). */
+    private var listeDetail: ListeDetail? = null
+    private var debutDetail = 0
+
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        // 16-10 (télé) : la touche Menu ouvre le menu du widget, même quand le focus est sur − ou +.
+        if (menu != null && event.keyCode == android.view.KeyEvent.KEYCODE_MENU) {
+            if (event.action == android.view.KeyEvent.ACTION_UP) menu.invoke()
+            return true
+        }
+        // TV : la tuile a le focus et son détail ne tient pas en entier : haut et bas font défiler ses lignes ; aux
+        // bouts, la touche repart vers la navigation habituelle (le focus passe à la tuile voisine).
+        // 1.91.2 : défilement activé — haut et bas font défiler le contenu, puis la touche repart (focus voisin).
+        val d = defilement
+        if (d != null && event.action == android.view.KeyEvent.ACTION_DOWN && ReglagesTvActivity.estTele(context)) {
+            when (event.keyCode) {
+                android.view.KeyEvent.KEYCODE_DPAD_DOWN -> if (d.pas(true)) return true
+                android.view.KeyEvent.KEYCODE_DPAD_UP -> if (d.pas(false)) return true
+            }
+        }
+        val l = listeDetail
+        if (l != null && event.action == android.view.KeyEvent.ACTION_DOWN && ReglagesTvActivity.estTele(context)) {
+            when (event.keyCode) {
+                android.view.KeyEvent.KEYCODE_DPAD_DOWN -> if (l.descendre()) { debutDetail = l.debut; return true }
+                android.view.KeyEvent.KEYCODE_DPAD_UP -> if (l.monter()) { debutDetail = l.debut; return true }
+            }
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     /** 1.88.0 : régler une valeur (− / +, pas et bornes de l'entité) ou choisir dans une liste (appui : les choix). */
@@ -217,43 +460,102 @@ class VueWidgetHa(
         val pilote = !lectureSeule && agirAvec != null && WidgetsHa.pilotable(WidgetsHaStock.entite(context, e.entityId) ?: if (exemple) e else null, false)
         val liste = e.domaine in setOf("select", "input_select")
         val boutons = !liste && pilote && "set_value" in e.actions
-        // Étroit et bas (2 × 1) avec − / + : pas de place pour le nom ; il reste dit (description du widget).
-        val sansNom = boutons && reglage.w < 4 && reglage.h < 2
-        if (!sansNom) { entete(c, e); ressort(c) }
+        // 16-10 (l'auteur : « le libellé Consigne activé ne s'affiche pas ») : le nom n'est plus jamais retiré en silence ; ce
+        // sont les boutons − / + qui prennent la taille que le widget leur laisse ([coteBouton]).
+        enteteSelon(c, e)
+        ressort(c)
         if (liste) {
-            c.addView(texte(if (pilote) "$valeur  ▾" else valeur, if (petit()) 17f else 22f, theme.encre, Polices.demiGras(context)).apply {
+            c.addView(texte(if (pilote) "$valeur  ▾" else valeur, tailleValeur(e, if (petit()) 17f else 22f), theme.encre, Polices.demiGras(context)).apply {
+                gravity = graviteH(WidgetsHa.miseEnPage(reglage, e)); tag = "widget_valeur"
                 maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END; contentDescription = if (pilote) context.getString(R.string.wha_choisir, libelle(e)) + ", " + valeur else valeur
             })
             return
         }
-        fun touche(signe: String, sens: Int, desc: Int) = texte(signe, 22f, theme.encre, Polices.outfit(context)).apply {
-            gravity = Gravity.CENTER; minWidth = dp(48f).toInt(); minHeight = dp(48f).toInt()
+        // 16-10 (recette télé) : − valeur + sur une ligne seulement si la place réelle le permet (deux boutons et de la
+        // place pour la valeur) ; sinon la valeur au-dessus, les boutons dessous (1 × 1, 2 × 1 étroit).
+        // 16-10 (recette 360 dp) : un widget d'une case de haut n'a pas la hauteur d'empiler nom, valeur et boutons (en 2 × 1,
+        // les boutons sortaient par le bas) : 48 dp suffisent à la valeur, qui rapetisse sur sa ligne. Empilés, les deux
+        // boutons tiennent dans la largeur (en 1 × 1, le « + » s'écrasait en ovale).
+        val largeurUtile = (if (width > 0) width.toFloat() else dp(80f) * reglage.w) - dp(24f)
+        val cote0 = coteBouton()
+        val enLigne = (reglage.w >= 4 || reglage.h < 2) && largeurUtile >= 2 * cote0 + if (reglage.h < 2) dp(48f) else dp(64f)
+        val cote = if (enLigne) cote0 else minOf(cote0, ((largeurUtile - dp(4f)) / 2f).toInt()).coerceAtLeast(dp(20f).toInt())
+        val ecart = (largeurUtile - 2 * cote).coerceIn(dp(4f), dp(12f)).toInt()
+        val tailleEnLigne = (cote / resources.displayMetrics.density * 0.6f).coerceIn(14f, 24f)
+        fun touche(signe: String, sens: Int, desc: Int) = texte(signe, cote / resources.displayMetrics.density * 0.46f, theme.encre, Polices.outfit(context)).apply {
+            gravity = Gravity.CENTER; minWidth = cote; minHeight = cote; minimumWidth = cote; minimumHeight = cote; tag = if (sens < 0) "widget_moins" else "widget_plus"
             background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setStroke(dp(1.5f).toInt(), theme.carteBord) }
             contentDescription = context.getString(desc, libelle(e)); isClickable = true; isFocusable = true
-            setOnClickListener { WidgetsHa.valeurApres(e, st, sens)?.let { v -> agirAvec?.invoke(e, "set_value", org.json.JSONObject().put("value", v)) } }
+            // 17-10 (double envoi du 15/10) : la valeur part de la dernière demandée, les appuis rapprochés sont regroupés
+            // (un seul envoi, la valeur finale), et la valeur demandée se montre tout de suite.
+            setOnClickListener {
+                val v = AppuisReglage.appui(e, st, sens, android.os.SystemClock.elapsedRealtime()) ?: return@setOnClickListener
+                maj()
+                AppuisReglage.programmer(e.entityId) { agirAvec?.invoke(e, "set_value", org.json.JSONObject().put("value", v)) }
+            }
+            Ui.anneauFocus(this, theme, 999f, agrandir = false)
+            if (menu != null) setOnLongClickListener { menu.invoke(); true }
         }
         // La valeur et son unité sur une ligne (« 20,5 °C » ne se coupe pas) : la police rapetisse au besoin.
-        val v = texte(valeur, if (petit()) 18f else 24f, theme.encre, Polices.outfitLeger(context)).apply { gravity = Gravity.CENTER; Ui.surUneLigne(this, if (petit()) 18f else 24f, 10f) }
-        if (!boutons) { c.addView(v); return }
-        if (reglage.w >= 4) {
-            // Large : − valeur + sur une ligne.
+        val tv0 = if (boutons && enLigne) tailleEnLigne else if (petit()) 18f else 24f
+        // 16-10 (recette 360 dp, 130 %) : ContenuAjuste ne la retaille pas (tag « nom_ajuste ») — il lui rendait sa taille
+        // de départ à chaque mesure et « 20,5 °C » perdait son « C » sur une ligne cachée.
+        val v = texte(valeur, tv0, theme.encre, Polices.outfitLeger(context)).apply { gravity = Gravity.CENTER; tag = "widget_valeur"; setTag(R.id.nom_ajuste, true); Ui.surUneLigne(this, tv0, 10f) }
+        // Hauteurs des autres éléments (dp) : marges 24, nom 22, valeur 34, boutons (côté).
+        val coteDp = cote / resources.displayMetrics.density
+        if (!boutons) { c.addView(v); ligneSelonPlace(c, st, 24f + 22f + 34f); return }
+        if (enLigne) {
+            // Large, ou bas (2 × 1, 3 × 1) : − valeur + sur une ligne, sous le nom.
             val r = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
             r.addView(touche("−", -1, R.string.wha_diminuer))
+            // 17-10 (recette calculée, 360 dp à 130 %) : un écart de 4 dp de chaque côté — la valeur touchait le « + ».
+            v.setPadding(dp(4f).toInt(), 0, dp(4f).toInt(), 0)
+            // 17-10 (recette : en 4 × 1, la ligne sous la valeur était coupée en bas) : un widget d'une case de haut met
+            // la ligne, en court (« Réduit → 12:00 »), sous la valeur, entre − et + ; plus haut, elle passe sous la rangée.
+            // La forme courte n'y va que si elle tient entre − et + à 9 sp (360 dp à 130 % en 2 × 1 : non) ; sinon elle reste
+            // dite (description).
+            val court = st.texte?.trim()?.takeIf { it.isNotEmpty() }?.let { WidgetsHa.texteCourt(it) }
+            val tientAuMilieu = court != null && android.graphics.Paint().apply {
+                textSize = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP, 9f, resources.displayMetrics); typeface = Polices.texte(context)
+            }.measureText(court) <= largeurUtile - 2 * cote - dp(12f) &&
+                // … et en hauteur : marges, nom, valeur et la ligne (recette télé 2 × 1 : elle dépassait de 11 à 16 px).
+                (height <= 0 || height >= dp(24f + 22f + 34f + 16f))
+            if (reglage.h < 2 && tientAuMilieu) {
+                val milieu = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER }
+                milieu.addView(v, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+                ligneTexte(milieu, st, court = true)
+                r.addView(milieu, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                r.addView(touche("+", 1, R.string.wha_augmenter))
+                c.addView(r)
+                return
+            }
             r.addView(v, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             r.addView(touche("+", 1, R.string.wha_augmenter))
             c.addView(r)
+            if (reglage.h >= 2) ligneSelonPlace(c, st, 24f + 22f + maxOf(coteDp, 34f))  // une case de haut : pas de place sous la rangée
         } else {
             // Étroit : la valeur sur toute la largeur, puis − et + (cibles de 48 dp).
             c.addView(v, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
             val r = LinearLayout(context).apply { gravity = Gravity.CENTER }
             r.addView(touche("−", -1, R.string.wha_diminuer))
-            r.addView(View(context), LinearLayout.LayoutParams(dp(12f).toInt(), 1))
+            r.addView(View(context), LinearLayout.LayoutParams(ecart, 1))
             r.addView(touche("+", 1, R.string.wha_augmenter))
             c.addView(r, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(2f).toInt() })
+            ligneSelonPlace(c, st, 24f + 22f + 34f + coteDp + 2f)
         }
     }
 
     /** Les choix d'une liste (select) : la boîte de choix, puis l'action (avec confirmation si elle est demandée). */
+    /**
+     * 16-10 : le côté des boutons − / + selon la place réelle du widget (avant : 48 dp fixes, qui chassaient le nom d'un
+     * petit widget) : un peu moins de la moitié de la hauteur, au plus un quart de la largeur ; entre 30 et 48 dp.
+     */
+    private fun coteBouton(): Int {
+        val l = if (width > 0) width.toFloat() else dp(80f) * reglage.w
+        val h = if (height > 0) height.toFloat() else dp(80f) * reglage.h
+        return WidgetsHa.coteBouton(l, h, dp(1f)).toInt()
+    }
+
     private fun choisirOption(e: WidgetsHa.Entite, st: WidgetsHa.EtatEntite) {
         val options = WidgetsHa.options(st)
         if (options.isEmpty() || context !is android.app.Activity) { montrerDetails(); return }
@@ -275,29 +577,32 @@ class VueWidgetHa(
 
     private fun interrupteur(c: LinearLayout, e: WidgetsHa.Entite, st: WidgetsHa.EtatEntite) {
         val allume = WidgetsHa.estAllume(st.etat)
-        entete(c, e, if (allume) theme.or else theme.encre3)
+        enteteSelon(c, e, if (allume) theme.or else theme.encre3)
         ressort(c)
         val r = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
-        val et = texte(WidgetsHa.libelleEtat(e.domaine, e.deviceClass, st.etat), 17f, theme.encre, Polices.demiGras(context))
+        val et = texte(WidgetsHa.libelleEtat(e.domaine, e.deviceClass, st.etat), tailleValeur(e, 17f), theme.encre, Polices.demiGras(context)).apply { tag = "widget_valeur" }
         r.addView(et, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         r.addView(Bascule(context, allume, theme), LinearLayout.LayoutParams(dp(44f).toInt(), dp(26f).toInt()))
         c.addView(r)
     }
 
     private fun jauge(c: LinearLayout, e: WidgetsHa.Entite, st: WidgetsHa.EtatEntite, valeur: String) {
-        entete(c, e)
+        enteteSelon(c, e)
         val v = st.etat.replace(',', '.').toDoubleOrNull()
         val (mi, ma) = WidgetsHa.minMax(st.attributs, e.unite, v)
         val cadre = FrameLayout(context)
         cadre.addView(Jauge(context, if (v == null) 0f else WidgetsHa.fraction(v, mi, ma), theme), LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        cadre.addView(texte(valeur, if (petit()) 15f else 22f, theme.encre, Polices.outfit(context)).apply { gravity = Gravity.CENTER }, LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
+        cadre.addView(texte(valeur, tailleValeur(e, if (petit()) 15f else 22f), theme.encre, Polices.outfit(context)).apply { gravity = Gravity.CENTER; tag = "widget_valeur" }, LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
         c.addView(cadre, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f).apply { topMargin = dp(4f).toInt() })
     }
 
     private fun graphique(c: LinearLayout, e: WidgetsHa.Entite, valeur: String) {
         val haut = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
-        picto(e)?.let { haut.addView(it, LinearLayout.LayoutParams(dp(18f).toInt(), dp(18f).toInt()).apply { rightMargin = dp(8f).toInt() }) }
-        haut.addView(nomHa(libelle(e), 13f, theme.encre2, Polices.demiGras(context)), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        // 16-10 (recette, 1 × 1 à 130 %) : comme les autres titres — le picto laisse sa place sur une case de large, le nom
+        // rapetisse avant les « … ».
+        if (reglage.w > 1) picto(e)?.let { haut.addView(it, LinearLayout.LayoutParams(dp(18f).toInt(), dp(18f).toInt()).apply { rightMargin = dp(8f).toInt() }) }
+        haut.addView(nomHa(libelle(e), 13f, theme.encre2, Polices.demiGras(context)).also { it.setTag(R.id.nom_ajuste, true); Ui.surUneLigneOuPoints(it, 13f, nomMinSp()) },
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         // Large : la valeur à droite du nom ; étroit : dessous, pour que le nom garde la place de passer à la ligne entre les mots.
         val v = texte(valeur, 17f, theme.encre, Polices.outfit(context))
         if (reglage.w >= 4) { v.setPadding(dp(8f).toInt(), 0, 0, 0); haut.addView(v); c.addView(haut) } else { c.addView(haut); c.addView(v) }
@@ -357,11 +662,16 @@ class VueWidgetHa(
 
     private fun ouverture(c: LinearLayout, e: WidgetsHa.Entite, st: WidgetsHa.EtatEntite) {
         val ouvert = WidgetsHa.estAllume(st.etat)
-        entete(c, e, if (ouvert) theme.pourpre else theme.or)
-        ressort(c)
-        c.addView(texte(WidgetsHa.libelleEtat(e.domaine, e.deviceClass, st.etat), 18f, if (ouvert) theme.pourpre else theme.encre, Polices.demiGras(context)))
+        enteteSelon(c, e, if (ouvert) theme.pourpre else theme.or)
+        val m = WidgetsHa.miseEnPage(reglage, e)
+        val etat = WidgetsHa.libelleEtat(e.domaine, e.deviceClass, st.etat)
+        val couleur = if (ouvert) theme.pourpre else theme.encre
+        val v: TextView = if (m.taille == WidgetsHa.REMPLIR) ValeurQuiRemplit(context, etat, couleur, Polices.demiGras(context), graviteH(m) or graviteV(m))
+            else texte(etat, WidgetsHa.tailleSp(m.taille, petit()), couleur, Polices.demiGras(context)).apply { gravity = graviteH(m) or graviteV(m) }
+        v.tag = "widget_valeur"
+        c.addView(v, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         val d = depuis(st.depuis)
-        if (d.isNotEmpty()) c.addView(texte(d, 11f, theme.encre3))
+        if (d.isNotEmpty()) c.addView(texte(d, 11f, theme.encre3).apply { gravity = graviteH(m) }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
     }
 
     private fun miniCarte(c: LinearLayout) {
@@ -473,7 +783,7 @@ class VueWidgetHa(
         private fun textes(v: View, l: MutableList<TextView>) { if (v is TextView) l.add(v) else if (v is ViewGroup) for (i in 0 until v.childCount) textes(v.getChildAt(i), l) }
 
         override fun onMeasure(largeurSpec: Int, hauteurSpec: Int) {
-            val l = ArrayList<TextView>(); textes(this, l)
+            val l = ArrayList<TextView>(); textes(this, l); l.removeAll { it.getTag(R.id.nom_ajuste) == true }
             l.forEach { t -> bases.getOrPut(t) { t.textSize / resources.displayMetrics.scaledDensity } }
             val dispo = MeasureSpec.getSize(hauteurSpec)
             var f = 1f
@@ -542,10 +852,14 @@ class VueWidgetHa(
                             c.drawRoundRect(RectF(k * pas + pas * 0.15f, y.coerceAtMost(ht - 2f), (k + 1) * pas - pas * 0.15f, ht), 3f, 3f, p)
                         }
                     } else {
-                        val pts = WidgetsHa.reduire(h.points.filter { it.ts >= debut }, (w / 3f).toInt().coerceAtLeast(2))
+                        // 16-10 : toute la largeur — la dernière valeur tient jusqu'à maintenant, la fenêtre suit les données.
+                        val (fenetre, traces) = WidgetsHa.courbe(h.points, debut, finMs)
+                        val pts = WidgetsHa.reduire(traces, (w / 3f).toInt().coerceAtLeast(2)).let { r ->
+                            if (r.isEmpty()) r else (listOf(traces.first()) + r.drop(1).dropLast(1) + traces.last()).distinctBy { it.ts } }
                         if (pts.size < 2) return
                         val (mi, ma) = WidgetsHa.echelle(pts.map { it.v })
-                        fun x(t: Long) = ((t - debut).toFloat() / (finMs - debut)) * w
+                        val (t0, t1) = fenetre
+                        fun x(t: Long) = (((t - t0).toFloat() / (t1 - t0).coerceAtLeast(1L)) * w).coerceIn(0f, w)
                         fun y(v: Double) = ht - ((v - mi) / (ma - mi)).toFloat() * ht
                         chemin.reset(); chemin.moveTo(x(pts[0].ts), y(pts[0].v))
                         pts.drop(1).forEach { chemin.lineTo(x(it.ts), y(it.v)) }

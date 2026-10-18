@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 5 : icone d espace (maquette 06-maquette-architecture-cible.html). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:pathData="M8 8a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M4 21c1-4.5 4.2-7 8-7s7 2.5 8 7" android:strokeColor="#FFFFFFFF" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000"/>
+</vector>

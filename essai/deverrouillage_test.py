@@ -86,12 +86,12 @@ async def _monter(hass: HomeAssistant, hass_storage, parents=("p1",)):
         "enroll_key": "x" * 16, "enroll_key_v": 2, "pcs": {
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android"),
             "e2": _fiche("e2", "TEL-NOA", ENFANT2["secret"], person="person.noa", platform="android"),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android"),
         }, "roles_migres": True}}
     # 1.69.0 : le rôle Parent est un réglage de l'appareil (l'étiquette « Parents » ne compte plus).
     for pc_id in parents:
         hass_storage[DOMAIN]["data"]["pcs"][pc_id]["role"] = "parent"
-    for p in ("lou", "noa", "robin"):
+    for p in ("lou", "noa", "nolan"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -194,7 +194,7 @@ async def test_parcours_remise_directe(hass, hass_storage, hass_client, caplog):
 
     statut, e = await lou.appel("etat", demande=lou.demande)
     a = e["approbation"]
-    assert a["minutes"] == 20 and a["par"] == "Robin" and a["action"] == "app:com.roblox.client"
+    assert a["minutes"] == 20 and a["par"] == "Nolan" and a["action"] == "app:com.roblox.client"
     # Le relevé porte la clé, la biométrie (éteinte) et la même approbation.
     releve = await (await client.post("/api/pc_parental/poll", json=ENFANT)).json()
     assert releve["deverrouillage_cle"] == lou.cle and releve["biometrie"] is False
@@ -205,8 +205,8 @@ async def test_parcours_remise_directe(hass, hass_storage, hass_client, caplog):
     statut, c = await lou.appel("consommer", demande=lou.demande, applique=int(time.time()))
     assert statut == 200 and c["fin"] >= time.time() + 19 * 60
     await hass.async_block_till_done()
-    assert any("déverrouillage de « TEL-LOU » (Lou)" in m and "approuvé par Robin" in m for m in caplog.messages)
-    assert evenements and evenements[0]["remise"] == "directe" and evenements[0]["par"] == "Robin"
+    assert any("déverrouillage de « TEL-LOU » (Lou)" in m and "approuvé par Nolan" in m for m in caplog.messages)
+    assert evenements and evenements[0]["remise"] == "directe" and evenements[0]["par"] == "Nolan"
     assert (await lou.appel("consommer", demande=lou.demande))[0] == 409
     releve = await (await client.post("/api/pc_parental/poll", json=ENFANT)).json()
     assert "deverrouillage" not in releve
@@ -381,9 +381,9 @@ async def test_enfant_qui_se_dit_parent(hass, hass_storage, hass_client):
 async def test_parent_ne_decide_pas_pour_lui_meme(hass, hass_storage, hass_client):
     client = await hass_client()
     await _monter(hass, hass_storage)
-    robin = Appareil(client, PARENT)
-    await robin.demander(action="parent", minutes=10)
-    assert (await _parent_decide(client, robin.demande))[0] == 403
+    nolan = Appareil(client, PARENT)
+    await nolan.demander(action="parent", minutes=10)
+    assert (await _parent_decide(client, nolan.demande))[0] == 403
 
 
 async def test_decision_deja_traitee_ou_annulee(hass, hass_storage, hass_client):
@@ -427,10 +427,10 @@ async def test_approbation_par_un_non_admin(hass, hass_storage, hass_client):
     # Un administrateur, si : par la vue, et par le service (code renvoyé).
     liste = await (await admin.get("/api/pc_parental/deverrouillage")).json()
     assert [x["demande"] for x in liste["demandes"]] == [lou.demande]
-    robin_ha = await hass.auth.async_create_user("Mia", group_ids=["system-admin"])
+    nolan_ha = await hass.auth.async_create_user("Mia", group_ids=["system-admin"])
     r = await hass.services.async_call(DOMAIN, "approuver_deverrouillage",
                                        {"demande": lou.demande, "remise": "code", "minutes": 5},
-                                       blocking=True, context=Context(user_id=robin_ha.id), return_response=True)
+                                       blocking=True, context=Context(user_id=nolan_ha.id), return_response=True)
     assert len(r["code"]) == 6
     statut, a = await lou.appel("code", demande=lou.demande, code=r["code"])
     assert statut == 200 and a["approbation"]["par"] == "Mia" and lou.verifier(a["approbation"]) == "ok"
@@ -479,17 +479,17 @@ async def test_biometrie(hass, hass_storage, hass_client):
     mia = await hass.auth.async_create_user("Mia", group_ids=["system-admin"])
     hass.states.async_set("person.noa", "home", {"friendly_name": "Noa", "user_id": mia.id})
     assert await flag(ENFANT2) is False
-    # L'appareil de robin reprend le rôle Enfant (surcharge) : plus de biométrie.
-    role_robin = er.async_get(hass).async_get_entity_id("select", DOMAIN, f"{DOMAIN}_role_p1")
+    # L'appareil de nolan reprend le rôle Enfant (surcharge) : plus de biométrie.
+    role_nolan = er.async_get(hass).async_get_entity_id("select", DOMAIN, f"{DOMAIN}_role_p1")
     enfant_ha = await hass.auth.async_create_user("Lou", group_ids=["system-users"])
     with pytest.raises(Unauthorized):
-        await hass.services.async_call("select", "select_option", {"entity_id": role_robin, "option": "Demandeur"}, blocking=True,
+        await hass.services.async_call("select", "select_option", {"entity_id": role_nolan, "option": "Demandeur"}, blocking=True,
                                        context=Context(user_id=enfant_ha.id))
     # Le dernier appareil qui peut gérer et approuver ne peut pas perdre son rôle.
     with pytest.raises(HomeAssistantError):
-        await hass.services.async_call("select", "select_option", {"entity_id": role_robin, "option": "Demandeur"}, blocking=True)
+        await hass.services.async_call("select", "select_option", {"entity_id": role_nolan, "option": "Demandeur"}, blocking=True)
     coord.store.pcs["e2"]["role"] = "parent"  # un second appareil Parent : le premier peut redevenir Enfant
-    await hass.services.async_call("select", "select_option", {"entity_id": role_robin, "option": "Demandeur"}, blocking=True)
+    await hass.services.async_call("select", "select_option", {"entity_id": role_nolan, "option": "Demandeur"}, blocking=True)
     assert await flag(PARENT) is False
 
 

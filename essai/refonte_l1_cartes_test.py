@@ -5,7 +5,7 @@
 - HA-08 : « Tout fermer » (ex-pause générale) avec confirmation ; « Rouvrir ».
 - A6 / HA-11 : textes du tableau neutres dans les six langues ; pastille « Règle du {lieu} ».
 - HA-06 : un seul formulaire dans Messages (l'aide aux automatisations reste, repliée, exemple neutre).
-- HA-04 : onglets écrits (sans icône), première vue « Aujourd'hui » au chemin « maison » inchangé.
+- HA-04 : onglets écrits (sans icône), première vue « Utilisateur » (2.5.10 ; avant « Aujourd'hui ») au chemin « maison » inchangé.
 - HA-02 : décisions en mots et lignes empilées sous 600 px (rendu vérifié par clics_test.py).
 - HA-01 : plus aucune tuile qui supprime un appareil en un appui (ni le bouton, ni une cible préremplie à côté) ;
   le retrait passe par « Retirer… » dans la carte de la personne (le geste lui-même est vérifié dans un vrai
@@ -72,16 +72,19 @@ async def test_ha04_onglets_ecrits_et_aujourdhui(hass, hass_storage):
     « Aujourd'hui » et garde son chemin « maison » ; les pages des personnes y reviennent toujours."""
     _, _, config = await _tableau(hass, hass_storage, "fr")
     barre = [v for v in config["views"] if not v.get("subview")]
-    assert barre[0]["path"] == "maison" and barre[0]["title"] == "Aujourd'hui"
+    assert barre[0]["path"] == "maison" and barre[0]["title"] == "Utilisateur"  # 2.5.10 (l'auteur, retour 28)
     assert not any("icon" in v for v in barre)
-    assert {v["title"] for v in barre} >= {"Aujourd'hui", "Autorisations", "Activité", "Messages", "Protection", "Appareils"}
-    personnes = [v for v in config["views"] if v.get("subview")]
-    assert personnes and all(v["back_path"] == "/vision-maison/maison" for v in personnes)
+    # Retours de l'auteur (15/10) : Autorisations et Protection rejoignent le menu du haut ; les fiches des personnes
+    # reviennent à la page d'où l'on vient (pas de back_path imposé).
+    # Décision de l'auteur (15/10) : plus d'onglets Personnes ni Appareils (Aujourd'hui les montre déjà).
+    assert [v["title"] for v in barre] == ["Utilisateur", "Autorisations", "Protection", "Activité", "Réglages"]
+    personnes = [v for v in config["views"] if v.get("subview") and v["path"].startswith("personne-")]
+    assert personnes and not any("back_path" in v for v in personnes)
 
 
 async def test_ha04_aujourdhui_en_allemand(hass, hass_storage):
     _, _, config = await _tableau(hass, hass_storage, "de")
-    assert config["views"][0]["path"] == "maison" and config["views"][0]["title"] == "Heute"
+    assert config["views"][0]["path"] == "maison" and config["views"][0]["title"] == "Benutzer"
 
 
 async def test_ha06_un_seul_formulaire_de_message(hass, hass_storage):
@@ -155,11 +158,27 @@ async def test_ha08_tout_fermer_demande_confirmation(hass, hass_storage):
                 parcourir(v)
 
     parcourir(_vue(config, "maison"))
-    assert boutons[fermer]["name"] == "Tout fermer 30 min" and boutons[rouvrir]["name"] == "Rouvrir"
-    action = boutons[fermer]["tap_action"]
-    assert action["perform_action"] == "button.press" and action["target"] == {"entity_id": fermer}
-    assert "30 minutes" in action["confirmation"]["text"]
-    assert "confirmation" not in boutons[rouvrir]["tap_action"]
+    # Lot 2 (A8) : plus de bouton « Tout fermer 30 min » (l'entité reste, pour les automatisations) ; une durée au
+    # choix, par le service, chacune confirmée en la répétant.
+    # Faille du 16/10 : plus le bouton standard « Rouvrir » (button.press, sans code) : la carte Vision, code d'octroi.
+    assert fermer not in boutons and rouvrir not in boutons
+    assert '"mode": "rouvrir"' in json.dumps(_vue(config, "maison"))
+    durees = []
+
+    def chercher(n):
+        if isinstance(n, list):
+            for x in n:
+                chercher(x)
+        elif isinstance(n, dict):
+            if n.get("type") == "button" and (n.get("tap_action") or {}).get("perform_action") == f"{DOMAIN}.pause_generale":
+                durees.append(n)
+            for v in n.values():
+                chercher(v)
+
+    chercher(_vue(config, "maison"))
+    assert [b["tap_action"]["data"]["minutes"] for b in durees] == [15, 30, 60, 120]
+    assert all("Tout fermer" in b["tap_action"]["confirmation"]["text"] for b in durees)
+    assert "30 min" in durees[1]["tap_action"]["confirmation"]["text"]
     texte = json.dumps(_vue(config, "maison"), ensure_ascii=False)
     assert "Pause générale" not in texte and "repas" not in texte
 

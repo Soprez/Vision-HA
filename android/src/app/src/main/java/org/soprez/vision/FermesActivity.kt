@@ -57,6 +57,7 @@ class FermesActivity : Activity() {
 
     private fun remplir() {
         liste.removeAllViews()
+        if (filtre.isEmpty()) recentsEtGroupes()
         // Applis : celles installées ici et fermées.
         val pm = packageManager
         val apps = Etat.apps.filter { Etat.raisonDe(it).isNotEmpty() && !securite(it) }
@@ -91,6 +92,42 @@ class FermesActivity : Activity() {
             liste.addView(Ui.carte(this).apply { addView(Ui.texte(this@FermesActivity, getString(R.string.fermes_rien), 14f, Ui.TEXTE_2)) })
         }
         liste.addView(Ui.espace(this, 24f))
+    }
+
+    /**
+     * HA 2.5.1 (ajouts 5 et 6 de l'auteur) : ce qui a posé problème récemment (heure, appareil, logiciel, tentatives),
+     * et une seule demande par logiciel pour ses sites bloqués.
+     */
+    private fun recentsEtGroupes() {
+        val groupes = Acces.groupes
+        val recents = Acces.recents
+        if (groupes.length() == 0 && recents.length() == 0) return
+        liste.addView(Ui.section(this, getString(R.string.el_recents_titre)))
+        for (i in 0 until groupes.length()) {
+            val g = groupes.optJSONObject(i) ?: continue
+            val sites = g.optJSONArray("sites")?.let { a -> (0 until a.length()).map { a.optString(it) } }.orEmpty()
+            if (sites.isEmpty()) continue
+            val app = g.optString("logiciel"); val lib = g.optString("libelle").ifEmpty { app }
+            val c = Ui.carte(this)
+            c.addView(Ui.texte(this, lib, 15f, Ui.TEXTE, gras = true))
+            c.addView(Ui.texte(this, resources.getQuantityString(R.plurals.el_groupe_sites, sites.size, sites.size) + " : " + sites.joinToString(", "), 12f, Ui.TEXTE_2))
+            if (Acces.dejaDemande("apps", app)) c.addView(Ui.marge(this, Ui.chip(this, getString(R.string.fermes_demande), Ui.OR), haut = 8f))
+            else c.addView(Ui.marge(this, Ui.boutonPrimaire(this, getString(R.string.el_demander_pour, lib)) {
+                Acces.demanderGroupe(this, app, lib, sites) { remplir() }
+            }.apply { tag = "el_groupe:$app" }, haut = 8f))
+            liste.addView(Ui.marge(this, c, bas = 8f))
+        }
+        if (recents.length() > 0) {
+            val c = Ui.carte(this)
+            for (i in 0 until minOf(recents.length(), 8)) {
+                val o = recents.optJSONObject(i) ?: continue
+                if (i > 0) c.addView(Ui.separateur(this))
+                val nom = o.optString("nom")
+                c.addView(ligne(nom, listOf(o.optString("raison"), detailRecent(this, o)).filter { it.isNotEmpty() }.joinToString(" · "),
+                    "sites", nom, nom, recent = true))
+            }
+            liste.addView(Ui.marge(this, c, bas = 8f))
+        }
     }
 
     private fun securite(nom: String): Boolean {

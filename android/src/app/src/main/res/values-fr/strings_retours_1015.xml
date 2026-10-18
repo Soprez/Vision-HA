@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 15-10 (retours d'essai) : widget Demandes, soutien sur la première page. -->
+<resources>
+    <string name="lanceur_demandes_inconnues">Demandes indisponibles pour l\'instant : Home Assistant ne répond pas.</string>
+    <string name="lanceur_voir_a_decider">Voir ce qui est à décider</string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.1 : une ligne du détail d'un widget d'écran d'accueil (texte entier, sur plusieurs lignes au besoin). -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_ligne"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="3dp"
+    android:paddingBottom="1dp"
+    android:textSize="13sp" />

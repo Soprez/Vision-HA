@@ -47,9 +47,22 @@ object Bulle {
     private var dejaMontreePour: String? = null
     private val masquer = Runnable { retirer() }
 
-    /** La décision du tour, sans Android : montrer, laisser, ou retirer. */
-    internal fun decision(voulue: Boolean, tele: Boolean, paquet: String, dejaPour: String?): String = when {
-        !voulue -> "retirer"
+    /**
+     * Veille-lot (l'auteur : « la petite info doit disparaître seule, comme avant ») : depuis que Vision joue elle-même la
+     * musique de la télé (1.86.11), le son « s'arrête » un instant entre deux titres et l'écran de Vision passe parfois
+     * devant (Musique, mini-lecteur). Chaque blanc effaçait la mémoire : l'astuce revenait à chaque titre et semblait
+     * ne plus jamais partir. Une absence plus courte que [OUBLI_MS] ne compte plus comme un changement.
+     */
+    const val OUBLI_MS = 45_000L
+    /** Depuis quand l'astuce n'a plus lieu d'être (0 : elle l'a). */
+    private var sansObjetDepuis = 0L
+
+    /**
+     * La décision du tour, sans Android : montrer, laisser, retirer (et oublier), ou retirer en gardant la mémoire.
+     * [absenteMs] : depuis combien de temps l'astuce n'a plus lieu d'être (0 au premier tour sans objet).
+     */
+    internal fun decision(voulue: Boolean, tele: Boolean, paquet: String, dejaPour: String?, absenteMs: Long = Long.MAX_VALUE): String = when {
+        !voulue -> if (tele && dejaPour != null && absenteMs < OUBLI_MS) "retirer_garder" else "retirer"
         !tele -> "montrer"
         dejaPour == paquet -> "laisser"
         else -> "montrer_un_temps"
@@ -76,10 +89,13 @@ object Bulle {
             try {
                 val am = ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager
                 val nous = Usage.dernierPaquet == ctx.packageName || Usage.dernierPaquet.isEmpty()
-                val musique = am.isMusicActive && !Musique.enCours
+                val musique = am.isMusicActive && !Musique.nous
                 val voulue = activee(ctx) && Modules.actif(ctx, Modules.VEILLE) && permise(ctx) && musique && !nous && !Veille.ouverte
-                when (decision(voulue, ReglagesTvActivity.estTele(ctx), Usage.dernierPaquet, dejaMontreePour)) {
+                val maintenant = android.os.SystemClock.uptimeMillis()
+                if (voulue) sansObjetDepuis = 0L else if (sansObjetDepuis == 0L) sansObjetDepuis = maintenant
+                when (decision(voulue, ReglagesTvActivity.estTele(ctx), Usage.dernierPaquet, dejaMontreePour, if (voulue) 0L else maintenant - sansObjetDepuis)) {
                     "retirer" -> { retirer(); dejaMontreePour = null }
+                    "retirer_garder" -> retirer()
                     "montrer" -> montrer(ctx)
                     "montrer_un_temps" -> montrerUnTemps(ctx, Usage.dernierPaquet)
                 }
@@ -110,10 +126,10 @@ object Bulle {
             setPadding(dp(6f), dp(6f), dp(if (tele) 14f else 6f), dp(6f))
             alpha = ALPHA
         }
-        boite.addView(ImageView(ctx).apply { setImageResource(R.drawable.ic_vision) }, LinearLayout.LayoutParams(dp(if (tele) 34f else 40f), dp(if (tele) 34f else 40f)))
+        boite.addView(ImageView(ctx).apply { setImageResource(R.drawable.ic_vision); importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO }, LinearLayout.LayoutParams(dp(if (tele) 34f else 40f), dp(if (tele) 34f else 40f)))
         if (tele) boite.addView(Ui.sansCesure(TextView(ctx)).apply { text = ctx.getString(R.string.bulle_astuce_tele); textSize = 12f; setTextColor(theme.encre2); typeface = Polices.moyen(ctx); setPadding(dp(8f), 0, 0, 0) })
         boite.setOnClickListener { Veille.ouvrir(ctx, demande = true) }
-        boite.setOnLongClickListener { poser(ctx, false); Toast.makeText(ctx, ctx.getString(R.string.bulle_rangee), Toast.LENGTH_LONG).show(); true }
+        boite.setOnLongClickListener { poser(ctx, false); Ui.toast(ctx, ctx.getString(R.string.bulle_rangee)); true }
         val type = if (Build.VERSION.SDK_INT >= 26) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else @Suppress("DEPRECATION") WindowManager.LayoutParams.TYPE_PHONE
         val lp = WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, PixelFormat.TRANSLUCENT)

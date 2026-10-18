@@ -27,7 +27,7 @@ import kotlin.math.sin
  * Soutenir le projet : un badge décoratif, rien ne se débloque.
  *
  * Home Assistant dit dans le relevé si le lieu soutient Vision (`"soutien": {"actif": true, "mode": "code"}`) ;
- * le code se saisit dans Home Assistant, jamais ici. L'appli montre une carte « Payez-nous un café » (QR, badge si actif) et, de temps
+ * le code se saisit dans Home Assistant, jamais ici. L'appli montre une carte « Payez-moi un café » (QR, badge si actif) et, de temps
  * en temps, un clin d'œil discret sur la veille. Rien du tout quand le soutien est inactif.
  */
 object Soutien {
@@ -68,7 +68,7 @@ object Soutien {
         if (tele || !Etat.parent) d.setPositiveButton(act.getString(R.string.soutien_fermer), null)
         else d.setPositiveButton(act.getString(R.string.soutien_ouvrir)) { _, _ ->
             try { act.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LIEN))) }
-            catch (_: Exception) { android.widget.Toast.makeText(act, act.getString(R.string.soutien_lien), android.widget.Toast.LENGTH_LONG).show() }
+            catch (_: Exception) { Ui.toast(act, act.getString(R.string.soutien_lien)) }
         }.setNegativeButton(act.getString(R.string.soutien_fermer), null)
         d.show()
     }

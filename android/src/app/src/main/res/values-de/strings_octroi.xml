@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Faille du 16-10 : un appareil Décideur choisit son code dès qu'il l'est devenu. -->
+<resources>
+    <string name="garde_code_decideur_titre">Wähle deinen Verwaltungscode</string>
+    <string name="garde_code_decideur_texte">Dieses Gerät ist jetzt ein %1$s-Gerät: Wähle jetzt einen Code. Er wird vor jeder Freigabe abgefragt (oder der Fingerabdruck, sobald er in den Einstellungen aktiviert ist).</string>
+    <string name="garde_code_pose_refaire">Code gespeichert. Wiederhole die Aktion: Sie fragt nach dem Code oder dem Fingerabdruck.</string>
+    <string name="garde_code_suspendu">Zu viele falsche Codes: Versuche es in einer Viertelstunde erneut.</string>
+    <string name="garde_code_verrouille">Entsperrcode gesperrt (zu viele Fehlversuche): Ein Administrator muss ihn in Home Assistant neu setzen (Konfigurieren › Sicherheit).</string>
+    <string name="garde_code_ha_injoignable">Home Assistant ist nicht erreichbar: Der Code wurde nicht gespeichert. Versuche es erneut.</string>
+    <string name="garde_code_actuel">Aktueller Code</string>
+</resources>

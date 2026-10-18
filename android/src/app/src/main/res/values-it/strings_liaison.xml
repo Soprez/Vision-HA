@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.4 (decision de l'auteur) : liaison sans code ; Nouvel appareil chez un Decideur. -->
+<resources>
+    <string name="liaison_sans_code_attente">In attesa di approvazione…</string>
+    <string name="liaison_sans_code_explication">Un %1$s riceve la richiesta sul telefono e la accetta con un tocco.</string>
+    <string name="liaison_sans_code_aucun">Nessun telefono di %1$s ha ricevuto la richiesta: usa «Altro metodo».</string>
+    <string name="liaison_sans_code_valable">Richiesta valida ancora %1$d:%2$02d</string>
+    <string name="liaison_sans_code_autre_methode">Altro metodo</string>
+    <string name="liaison_sans_code_expiree">La richiesta è scaduta.</string>
+    <string name="liaison_sans_code_remplacee">Una nuova richiesta ha sostituito questa.</string>
+    <string name="liaison_sans_code_redemander">Richiedi di nuovo</string>
+    <string name="nouvel_appareil_titre">Nuovo dispositivo</string>
+    <string name="nouvel_appareil_pas_de_droits">Solo il dispositivo di un %1$s può accettare un nuovo dispositivo.</string>
+    <string name="nouvel_appareil_aucune">Nessuna richiesta in attesa.</string>
+    <string name="nouvel_appareil_demande">Richiesta ricevuta alle %1$s</string>
+    <string name="nouvel_appareil_reprise">Riprende «%1$s».</string>
+    <string name="nouvel_appareil_a_qui">Di chi è questo dispositivo?</string>
+    <string name="nouvel_appareil_partage">Schermo condiviso — %1$s</string>
+    <string name="nouvel_appareil_accepter">Accetta</string>
+    <string name="nouvel_appareil_refuser">Rifiuta</string>
+    <string name="nouvel_appareil_choisir">Scegli di chi è questo dispositivo.</string>
+    <string name="nouvel_appareil_accepte">«%1$s» è collegato.</string>
+    <string name="nouvel_appareil_refuse">Richiesta rifiutata.</string>
+    <string name="nouvel_appareil_deja">Questa richiesta è già stata gestita o è scaduta.</string>
+    <string name="nouvel_appareil_notif">«%1$s» chiede di collegarsi. Tocca per accettare o rifiutare.</string>
+    <string name="manifeste_nouvel_appareil">Nuovo dispositivo</string>
+</resources>

@@ -40,8 +40,8 @@ async def test_ecran_commun(hass, hass_storage):
 def test_reseaux_prives():
     from custom_components.pc_parental.http import adresse_locale
 
-    for a in ("192.168.1.10", "10.1.2.3", "172.16.0.5", "172.31.255.254", "169.254.3.4",
-              "fd12:3456::1", "fe80::1", "::ffff:192.168.1.10"):
+    for a in ("10.1.1.10", "10.1.2.3", "172.16.0.5", "172.31.255.254", "169.254.3.4",
+              "fd12:3456::1", "fe80::1", "::ffff:10.1.1.10"):
         assert adresse_locale(ipaddress.ip_address(a)), a
     for a in ("172.32.0.1", "8.8.8.8", "100.64.0.1", "127.0.0.1", "::1", "2a01:e34::1", "::ffff:8.8.8.8"):
         assert not adresse_locale(ipaddress.ip_address(a)), a
@@ -50,7 +50,7 @@ def test_reseaux_prives():
 async def test_liste_noire_epargne_ce_home_assistant(hass):
     from custom_components.pc_parental import listenoire
 
-    await hass.config.async_update(external_url="https://maison.exemple.org:8123", internal_url="http://192.168.1.10:8123")
+    await hass.config.async_update(external_url="https://maison.exemple.org:8123", internal_url="http://10.1.1.10:8123")
     hotes = listenoire.hotes_home_assistant(hass)
     assert hotes == {"maison.exemple.org"}
     epargnes = listenoire.JAMAIS | hotes
@@ -69,8 +69,8 @@ def test_essai_par_identifiant():
 
     avant = android_maj._ETAT["essai"]
     try:
-        android_maj._ETAT["essai"] = {"version": "1.90.0", "sha256": "0" * 64, "appareils": {"télé des parents"}}
-        assert android_maj.infos_pour(None, "Télé des parents", "1.89.0")["version"] == "1.90.0"
+        android_maj._ETAT["essai"] = {"version": "1.90.0", "sha256": "0" * 64, "appareils": {"télé du bureau"}}
+        assert android_maj.infos_pour(None, "Télé du bureau", "1.89.0")["version"] == "1.90.0"
         assert android_maj.infos_pour(None, "Pixel", "1.89.0", "a1b2", ["a1b2"])["version"] == "1.90.0"
         assert android_maj.infos_pour(None, "Pixel", "1.89.0", "a1b2", ["zz"]).get("version") != "1.90.0"
         assert android_maj.infos_pour(None, "Pixel", "1.89.0", "", [""]).get("version") != "1.90.0"
@@ -84,16 +84,16 @@ async def test_reglages_generaux(hass, hass_storage):
     entree = hass.config_entries.async_entries(DOMAIN)[0]
     hass.states.async_set("person.salon", "home", {"friendly_name": "Télé du salon"})
     flux = await hass.config_entries.options.async_init(entree.entry_id)
+    flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "autres"})
     flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "general"})
     assert flux["step_id"] == "general"
     # EX-06 : les appareils Android d'essai ne sont plus dans Réglages généraux, mais sous Avancé.
     assert "appareils_essai" not in {str(k) for k in flux["data_schema"].schema}
-    flux = await hass.config_entries.options.async_configure(flux["flow_id"], {
-        "lieu": store.lieu, "personnes_affichage": ["person.salon"]})
+    flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"personnes_affichage": ["person.salon"]})
     await hass.async_block_till_done()
     assert store.personnes_affichage == ["person.salon"]
     flux = await hass.config_entries.options.async_init(entree.entry_id)
-    flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "avance"})
+    flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "autres"})
     flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "appareils_essai"})
     assert flux["step_id"] == "appareils_essai"
     flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"appareils_essai": ["t1"]})
@@ -102,11 +102,11 @@ async def test_reglages_generaux(hass, hass_storage):
     assert hass_storage[DOMAIN]["data"]["appareils_essai"] == ["t1"]
     # Tout vider : retour à la découverte.
     flux = await hass.config_entries.options.async_init(entree.entry_id)
+    flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "autres"})
     flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "general"})
-    flux = await hass.config_entries.options.async_configure(flux["flow_id"], {
-        "lieu": store.lieu, "personnes_affichage": []})
+    flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"personnes_affichage": []})
     flux = await hass.config_entries.options.async_init(entree.entry_id)
-    flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "avance"})
+    flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "autres"})
     flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "appareils_essai"})
     flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"appareils_essai": []})
     await hass.async_block_till_done()

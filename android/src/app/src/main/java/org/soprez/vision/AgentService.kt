@@ -50,13 +50,36 @@ class AgentService : Service() {
                     val repos = System.currentTimeMillis() - maxOf(Usage.derniereInteraction, Veille.fermeeA)
                     if (pk != null && !Local.seRegarde(pk) && repos >= min * 60_000L) Veille.ouvrir(ctx)
                 }
+                repliSurAccueilTiers(ctx)
             } catch (_: Exception) {}
             principal.postDelayed(this, 20_000)
         }
     }
 
+    /**
+     * Veille-lot (point 5) : l'économiseur de la télé n'est pas Vision (Google TV, Chromecast…) et l'accueil est celui
+     * du fabricant : sans télécommande depuis le délai, la veille de Vision vient quand même, retirée au premier appui.
+     * Seulement sur un accueil (jamais devant une autre appli) et seulement si l'accessibilité de Vision voit les touches
+     * (sinon l'inactivité ne se mesure pas). L'accueil de Vision a sa propre minuterie (LanceurActivity).
+     */
+    private fun repliSurAccueilTiers(ctx: android.content.Context) {
+        if (!ReglagesTvActivity.estTele(ctx) || !VisionAccessibility.actif || Veille.ouverte || PartyActivity.affichee || LanceurActivity.devant || VeilleActivity.devant) return
+        if (!Modules.actif(ctx, Modules.VEILLE) || !Usage.ecranAllume(ctx) || VeilleMusique.bloque(ctx)) return
+        val min = ReglesVeille.delaiAccueilsTiers(Local.delaiVeille(ctx), EconomiseurTv.planRecent(ctx), Local.delaiRepli(ctx))
+        if (min <= 0) return
+        // La couche de la veille, une fois retirée, laisse « Vision » comme dernière fenêtre vue : c'est l'accueil d'avant qui compte.
+        val pk = Usage.dernierPaquet.let { if (it == ctx.packageName) Usage.paquetQuitte else it }
+        if (pk.isEmpty() || pk == ctx.packageName || pk !in Usage.lanceurs(ctx)) return
+        if (System.currentTimeMillis() - maxOf(Usage.derniereInteraction, Veille.fermeeA) < min * 60_000L) return
+        if (try { Local.appAProteger(ctx) } catch (_: Exception) { true }) return
+        if (Veille.permise(ctx)) Veille.ouvrir(ctx, premierAppui = true)
+        else try { startActivity(android.content.Intent(ctx, VeilleActivity::class.java).putExtra(VeilleActivity.PREMIER_APPUI, true).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) {}
+    }
+
     override fun onCreate() {
         super.onCreate()
+        // Un Décideur a choisi Vision comme économiseur et Vision a le droit d'écrire : une mise à jour de la télé ne le défait pas.
+        EconomiseurTv.maintenir(this)
         principal.postDelayed(veilleSurAppli, 20_000)
         fil = HandlerThread("vision-agent").apply { start() }
         h = Handler(fil.looper)
@@ -129,10 +152,19 @@ class AgentService : Service() {
         if (cfg.personneAEnvoyer) cfg.personneAEnvoyer = false
         Deverrouillage.releve(this, r)
         Acces.poserRefus(r.optJSONArray("refus"))
+        Acces.poserRecents(r)
         Pauses.releve(this, r)
         Profil.releve(this, r)
         // 1.81.0 (point 14 bis) : la tuile Mode Party, et l'écran Party qui s'ouvre sur la télé choisie.
         try { Party.releve(this, r.optJSONObject("party")) } catch (_: Exception) {}
+        // 1.93.05 (retour 36) : les options de la veille de cet appareil, réglées depuis Home Assistant.
+        try { OptionsVeille.releve(this, r.optJSONObject("veille_options")) } catch (_: Exception) {}
+        // Réveil : les événements remontés sont reçus ; la liste à armer et les ordres arrivent (l'appareil sonne seul).
+        try { Reveils.acquitter(this, corps.optJSONObject("reveils")); Reveils.releve(this, r) } catch (_: Exception) {}
+        // Niveau sonore : dépassements remis, puis réglages de la mesure (« actif: false » arrête le micro).
+        try { NiveauSonore.acquitter(this, corps.optJSONObject("son")); NiveauSonore.releve(this, r.optJSONObject("son")) } catch (_: Exception) {}
+        // 17-10 (retour d'essai) : l'écran de cet appareil (veille de Vision, écran gardé allumé), réglé depuis Home Assistant.
+        try { EcranAppareil.releve(this, r.optJSONObject("ecran")) } catch (_: Exception) {}
         Deverrouillage.directe(this, r.optJSONObject("deverrouillage"))?.let { Messages.info(this, "Vision", it) }
         synchroniserListeNoire(cfg, r.optString("liste_noire", ""))
         appliquerConsignesVpn()
@@ -187,12 +219,13 @@ class AgentService : Service() {
             } else false
         } catch (e: Net.Echec) {
             if (cfg.sansCle) Decouverte.etat = if (e.code == 403) getString(R.string.agent_inscriptions_fermees)
-                else getString(R.string.agent_vision_ne_repond_pas, e.code)
+                else getString(R.string.lot6_err_vision_ne_repond_pas)
             // Refus net (inscriptions fermées) : on ne réessaie pas en boucle ; « Se relier » le redemandera.
             if (e.code == 403 && cfg.sansCle) cfg.sansCle = false
             false
         } catch (e: Exception) {
-            if (cfg.sansCle) Decouverte.etat = getString(R.string.agent_injoignable, (e.message ?: e.javaClass.simpleName).take(70))
+            // Lot 6 (APP-24) : ce qu'il faut faire, plutôt que le texte de l'exception.
+            if (cfg.sansCle) Decouverte.etat = getString(R.string.lot6_err_injoignable)
             false
         }
     }
@@ -227,6 +260,10 @@ class AgentService : Service() {
             put("ecran", ecranEteint()?.let { if (it) "eteint" else "allume" } ?: "")
             put("apps_ouverts", ouvertes)
             put("pauses", Pauses.aEnvoyer(this@AgentService))
+            // Réveil : ce que l'appareil a armé, ses capacités et ses événements en attente.
+            try { put("reveils", Reveils.aEnvoyer(this@AgentService)) } catch (_: Exception) {}
+            // Niveau sonore : des nombres seulement (niveau, maximum, dépassements), jamais d'audio.
+            try { NiveauSonore.aEnvoyer(this@AgentService)?.let { put("son", it) } } catch (_: Exception) {}
             put("sites_vus", sites)
             put("alertes", alertes)
             // Noms affichés des applis citées (le catalogue montre « YouTube »).
@@ -420,7 +457,7 @@ class AgentService : Service() {
 
     private fun uid(): String = Identite.uid(this)
 
-    /** Le nom donné à la télé (« Chambre De Alex ») ; vide sur téléphone. */
+    /** Le nom donné à la télé (« Salle De jeux ») ; vide sur téléphone. */
     private fun nomAppareil(): String = Identite.nom(this)
 
     private fun appareil(): String = Identite.appareil()

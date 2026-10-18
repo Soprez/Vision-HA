@@ -14,6 +14,11 @@
 // ---- i18n:debut — les textes de cette carte, dans les six langues de Vision (fr source, en repli) ----
 const TEXTES = /*i18n-json*/{
   "fr": {
+    "pg_rouvrir": "Rouvrir",
+    "octroi_titre": "Code de déverrouillage",
+    "octroi_champ": "Code",
+    "octroi_valider": "Valider",
+    "octroi_annuler": "Annuler",
     "erreur_admin": "Réservé aux administrateurs de Home Assistant.",
     "erreur_loading": "Vision démarre : réessaie dans un instant.",
     "erreur_pc": "Cet appareil n'existe plus dans Vision.",
@@ -69,6 +74,7 @@ const TEXTES = /*i18n-json*/{
     "bouton_accorder": "Accorder {quoi}",
     "bouton_accorder_min": "Accorder {minutes} min",
     "bouton_non": "Non",
+    "bouton_refuser": "Refuser",
     "bouton_toujours": "Toujours",
     "tuile_accessibilite": "rouvrir l'accessibilité de Vision",
     "tuile_usage": "autoriser les données d'usage",
@@ -175,9 +181,84 @@ const TEXTES = /*i18n-json*/{
     "cats_coupees_other": "{n} coupées sur {total}",
     "cats_legende": "Couper une catégorie vaut pour {prenom} sur tous ses appareils. Ce que ferment les interdits communs, la moyenne ou le planning reste coché, avec la raison.",
     "carte_nom": "Vision — Personnes",
-    "carte_description": "Une ligne par personne, et la page d'une personne : appareils, accès, catégories."
+    "carte_description": "Une ligne par personne, et la page d'une personne : appareils, accès, catégories.",
+    "titre_autorisations": "Autorisations",
+    "autorisations_legende": "Pour un temps : sur un appareil, même pendant une plage ou temps d’écran épuisé, puis se referme. Exception : sur tous les appareils de {prenom}, passe la catégorie fermée mais suit les plages et le temps d’écran. Toujours disponible : sur tous ses appareils, rien ne le ferme. Les blocages de sécurité et d’âge ne se passent jamais.",
+    "aut_groupe_toujours": "Toujours disponible",
+    "aut_groupe_exception": "Exceptions",
+    "aut_groupe_temps": "Pour un temps",
+    "aucune_autorisation": "Aucune autorisation pour l’instant.",
+    "aut_jusqua": "jusqu’à {heure} sur {appareil}",
+    "aut_appli": "Appli",
+    "aut_site": "Site",
+    "aut_vers_toujours": "Toujours disponible",
+    "aut_vers_exception": "En exception",
+    "aut_retirer_titre": "Retirer cette autorisation",
+    "aut_nom_placeholder": "Appli ou site (ex. minecraft)",
+    "aut_choix_min": "{minutes} min",
+    "aut_choix_h": "{h} h",
+    "mode_exception": "Exception",
+    "mode_toujours": "Toujours disponible",
+    "aut_sur_titre": "Sur quel appareil (pour un temps)",
+    "bouton_accorder_aut": "Accorder",
+    "bouton_refuser": "Refuser",
+    "reprise_attente": "Les trois modes s’appliqueront pleinement après la reprise des autorisations : regarde d’abord ce qui change, puis applique.",
+    "bouton_reprise_simuler": "Voir ce qui change",
+    "bouton_reprise_appliquer": "Appliquer les nouvelles règles",
+    "bouton_reprise_annuler": "Revenir aux anciennes règles",
+    "reprise_confirmer": "Appliquer les nouvelles règles d’autorisation ? L’état d’avant est sauvegardé ; tu peux revenir en arrière.",
+    "reprise_annuler_confirmer": "Revenir aux anciennes règles d’autorisation ?",
+    "aut_sites_lies": "Ouvre aussi : {sites}",
+    "aut_lier_titre": "Ouvrir aussi ce site avec l’appli (pour tout le PC)",
+    "aut_delier_titre": "Ne plus ouvrir ce site avec l’appli",
+    "el_logiciels": "Applis et logiciels",
+    "el_sites_seuls": "Sites sans logiciel · {n}",
+    "el_services": "Services",
+    "el_services_suivent": "Ses services suivent toujours le logiciel.",
+    "el_sites": "Sites",
+    "el_suit": "Suit {nom}",
+    "el_auto": "Lié automatiquement",
+    "el_attente": "Lié alors qu’il était bloqué : attend une décision",
+    "el_delier": "Délier",
+    "el_suivre": "Suivre {nom}",
+    "el_badge_ouvert": "Ouvert",
+    "el_badge_par_logiciel": "Ouvert avec {nom}",
+    "el_badge_temps": "Pour un temps · jusqu’à {heure}",
+    "el_badge_nomme": "Bloqué (nommé)",
+    "el_badge_categorie": "Fermé par la catégorie",
+    "el_badge_plage": "Fermé par une plage",
+    "el_badge_temps_epuise": "Temps du jour épuisé",
+    "el_badge_securite": "Fermé (sécurité ou âge)",
+    "el_badge_lieu": "Fermé pour tous",
+    "el_badge_liste_noire": "Signalé dangereux",
+    "el_mode_choisir": "{nom} : choisir",
+    "el_mode_categorie": "Suivre la catégorie",
+    "el_mode_bloquer": "Bloquer",
+    "el_voir_autres_one": "Voir {n} autre",
+    "el_voir_autres_other": "Voir les {n} autres",
+    "el_recherche": "Chercher un site, une appli, un logiciel",
+    "el_recherche_rien": "Rien de trouvé.",
+    "el_logiciel_de": "Logiciel : {nom}",
+    "el_service_de": "Service : {nom}",
+    "el_categories_de": "Catégories : {liste}",
+    "el_categorie": "Catégorie",
+    "el_recents_titre": "Bloqués récemment",
+    "el_recents_vide": "Rien de bloqué récemment.",
+    "el_tentatives_one": "{n} tentative",
+    "el_tentatives_other": "{n} tentatives",
+    "el_groupe_sites_one": "{n} site bloqué avec lui",
+    "el_groupe_sites_other": "{n} sites bloqués avec lui",
+    "el_demande_inclus": "Compris dans la réponse :",
+    "el_cat_fermee": "Fermée",
+    "el_cat_ouverte": "Ouverte",
+    "el_recherche_court": "Chercher"
   },
   "en": {
+    "pg_rouvrir": "Allow again",
+    "octroi_titre": "Unlock code",
+    "octroi_champ": "Code",
+    "octroi_valider": "Confirm",
+    "octroi_annuler": "Cancel",
     "erreur_admin": "Only Home Assistant administrators can do this.",
     "erreur_loading": "Vision is starting: try again in a moment.",
     "erreur_pc": "This device no longer exists in Vision.",
@@ -233,6 +314,7 @@ const TEXTES = /*i18n-json*/{
     "bouton_accorder": "Grant {quoi}",
     "bouton_accorder_min": "Grant {minutes} min",
     "bouton_non": "No",
+    "bouton_refuser": "Refuse",
     "bouton_toujours": "Always",
     "tuile_accessibilite": "turn Vision's accessibility back on",
     "tuile_usage": "allow usage data",
@@ -339,9 +421,84 @@ const TEXTES = /*i18n-json*/{
     "cats_coupees_other": "{n} blocked out of {total}",
     "cats_legende": "Blocking a category applies to {prenom} on all their devices. What shared bans, the average or the schedule block stays checked, with the reason.",
     "carte_nom": "Vision — People",
-    "carte_description": "One row per person, and a page for each person: devices, access, categories."
+    "carte_description": "One row per person, and a page for each person: devices, access, categories.",
+    "titre_autorisations": "Permissions",
+    "autorisations_legende": "For a while: on one device, even during a time slot or with screen time used up, then it closes again. Exception: on all of {prenom}’s devices, gets past a blocked category but follows time slots and screen time. Always available: on all their devices, nothing closes it. Safety and age blocks are never bypassed.",
+    "aut_groupe_toujours": "Always available",
+    "aut_groupe_exception": "Exceptions",
+    "aut_groupe_temps": "For a while",
+    "aucune_autorisation": "No permissions yet.",
+    "aut_jusqua": "until {heure} on {appareil}",
+    "aut_appli": "App",
+    "aut_site": "Site",
+    "aut_vers_toujours": "Always available",
+    "aut_vers_exception": "As exception",
+    "aut_retirer_titre": "Remove this permission",
+    "aut_nom_placeholder": "App or site (e.g. minecraft)",
+    "aut_choix_min": "{minutes} min",
+    "aut_choix_h": "{h} h",
+    "mode_exception": "Exception",
+    "mode_toujours": "Always available",
+    "aut_sur_titre": "On which device (for a while)",
+    "bouton_accorder_aut": "Grant",
+    "bouton_refuser": "Decline",
+    "reprise_attente": "The three modes fully apply after the permissions takeover: first look at what changes, then apply.",
+    "bouton_reprise_simuler": "See what changes",
+    "bouton_reprise_appliquer": "Apply the new rules",
+    "bouton_reprise_annuler": "Back to the previous rules",
+    "reprise_confirmer": "Apply the new permission rules? The previous state is saved; you can roll back.",
+    "reprise_annuler_confirmer": "Go back to the previous permission rules?",
+    "aut_sites_lies": "Also opens: {sites}",
+    "aut_lier_titre": "Also open this site with the app (for the whole PC)",
+    "aut_delier_titre": "Stop opening this site with the app",
+    "el_logiciels": "Apps and programs",
+    "el_sites_seuls": "Sites without a program · {n}",
+    "el_services": "Services",
+    "el_services_suivent": "Its services always follow the program.",
+    "el_sites": "Sites",
+    "el_suit": "Follows {nom}",
+    "el_auto": "Linked automatically",
+    "el_attente": "Linked while blocked: waits for a decision",
+    "el_delier": "Unlink",
+    "el_suivre": "Follow {nom}",
+    "el_badge_ouvert": "Open",
+    "el_badge_par_logiciel": "Open with {nom}",
+    "el_badge_temps": "For a while · until {heure}",
+    "el_badge_nomme": "Blocked (named)",
+    "el_badge_categorie": "Blocked by the category",
+    "el_badge_plage": "Blocked by a time slot",
+    "el_badge_temps_epuise": "Daily time used up",
+    "el_badge_securite": "Blocked for safety or age",
+    "el_badge_lieu": "Blocked for everyone",
+    "el_badge_liste_noire": "Reported dangerous",
+    "el_mode_choisir": "{nom}: choose",
+    "el_mode_categorie": "Follow the category",
+    "el_mode_bloquer": "Block",
+    "el_voir_autres_one": "See {n} more",
+    "el_voir_autres_other": "See {n} more",
+    "el_recherche": "Search a site, app or program",
+    "el_recherche_rien": "Nothing found.",
+    "el_logiciel_de": "Program: {nom}",
+    "el_service_de": "Service: {nom}",
+    "el_categories_de": "Categories: {liste}",
+    "el_categorie": "Category",
+    "el_recents_titre": "Recently blocked",
+    "el_recents_vide": "Nothing blocked recently.",
+    "el_tentatives_one": "{n} attempt",
+    "el_tentatives_other": "{n} attempts",
+    "el_groupe_sites_one": "{n} site blocked with it",
+    "el_groupe_sites_other": "{n} sites blocked with it",
+    "el_demande_inclus": "Included in the answer:",
+    "el_cat_fermee": "Blocked",
+    "el_cat_ouverte": "Open",
+    "el_recherche_court": "Search"
   },
   "de": {
+    "pg_rouvrir": "Wieder freigeben",
+    "octroi_titre": "Entsperrcode",
+    "octroi_champ": "Code",
+    "octroi_valider": "Bestätigen",
+    "octroi_annuler": "Abbrechen",
     "erreur_admin": "Nur für Home Assistant-Administratoren.",
     "erreur_loading": "Vision startet gerade: versuch es gleich noch einmal.",
     "erreur_pc": "Dieses Gerät gibt es in Vision nicht mehr.",
@@ -397,6 +554,7 @@ const TEXTES = /*i18n-json*/{
     "bouton_accorder": "{quoi} gewähren",
     "bouton_accorder_min": "{minutes} Min. gewähren",
     "bouton_non": "Nein",
+    "bouton_refuser": "Ablehnen",
     "bouton_toujours": "Immer",
     "tuile_accessibilite": "die Bedienungshilfe von Vision wieder einschalten",
     "tuile_usage": "Nutzungsdaten erlauben",
@@ -503,9 +661,84 @@ const TEXTES = /*i18n-json*/{
     "cats_coupees_other": "{n} von {total} gesperrt",
     "cats_legende": "Eine Kategorie zu sperren gilt für {prenom} auf allen Geräten. Was gemeinsame Verbote, der Durchschnitt oder der Zeitplan sperren, bleibt angehakt, mit dem Grund.",
     "carte_nom": "Vision — Personen",
-    "carte_description": "Eine Zeile pro Person und die Seite einer Person: Geräte, Zugang, Kategorien."
+    "carte_description": "Eine Zeile pro Person und die Seite einer Person: Geräte, Zugang, Kategorien.",
+    "titre_autorisations": "Erlaubnisse",
+    "autorisations_legende": "Für eine Weile: auf einem Gerät, auch während eines Zeitfensters oder bei aufgebrauchter Bildschirmzeit, danach wieder zu. Ausnahme: auf allen Geräten von {prenom}, kommt an der gesperrten Kategorie vorbei, folgt aber Zeitfenstern und Bildschirmzeit. Immer verfügbar: auf allen Geräten, nichts schließt es. Sperren für Sicherheit und Alter gelten immer.",
+    "aut_groupe_toujours": "Immer verfügbar",
+    "aut_groupe_exception": "Ausnahmen",
+    "aut_groupe_temps": "Für eine Weile",
+    "aucune_autorisation": "Noch keine Erlaubnisse.",
+    "aut_jusqua": "bis {heure} auf {appareil}",
+    "aut_appli": "App",
+    "aut_site": "Website",
+    "aut_vers_toujours": "Immer verfügbar",
+    "aut_vers_exception": "Als Ausnahme",
+    "aut_retirer_titre": "Diese Erlaubnis entfernen",
+    "aut_nom_placeholder": "App oder Website (z. B. minecraft)",
+    "aut_choix_min": "{minutes} Min.",
+    "aut_choix_h": "{h} Std.",
+    "mode_exception": "Ausnahme",
+    "mode_toujours": "Immer verfügbar",
+    "aut_sur_titre": "Auf welchem Gerät (für eine Weile)",
+    "bouton_accorder_aut": "Erlauben",
+    "bouton_refuser": "Ablehnen",
+    "reprise_attente": "Die drei Modi gelten voll nach der Übernahme der Erlaubnisse: zuerst ansehen, was sich ändert, dann anwenden.",
+    "bouton_reprise_simuler": "Ansehen, was sich ändert",
+    "bouton_reprise_appliquer": "Neue Regeln anwenden",
+    "bouton_reprise_annuler": "Zurück zu den vorherigen Regeln",
+    "reprise_confirmer": "Die neuen Erlaubnisregeln anwenden? Der vorherige Zustand wird gesichert; du kannst zurück.",
+    "reprise_annuler_confirmer": "Zu den vorherigen Erlaubnisregeln zurückkehren?",
+    "aut_sites_lies": "Öffnet auch: {sites}",
+    "aut_lier_titre": "Diese Website mit der App mitöffnen (für den ganzen PC)",
+    "aut_delier_titre": "Diese Website nicht mehr mit der App öffnen",
+    "el_logiciels": "Apps und Programme",
+    "el_sites_seuls": "Websites ohne Programm · {n}",
+    "el_services": "Dienste",
+    "el_services_suivent": "Seine Dienste folgen immer dem Programm.",
+    "el_sites": "Websites",
+    "el_suit": "Folgt {nom}",
+    "el_auto": "Automatisch verknüpft",
+    "el_attente": "Verknüpft, als es gesperrt war: wartet auf eine Entscheidung",
+    "el_delier": "Lösen",
+    "el_suivre": "{nom} folgen",
+    "el_badge_ouvert": "Offen",
+    "el_badge_par_logiciel": "Offen mit {nom}",
+    "el_badge_temps": "Eine Weile · bis {heure}",
+    "el_badge_nomme": "Gesperrt (namentlich)",
+    "el_badge_categorie": "Durch die Kategorie gesperrt",
+    "el_badge_plage": "Durch ein Zeitfenster gesperrt",
+    "el_badge_temps_epuise": "Tageszeit aufgebraucht",
+    "el_badge_securite": "Gesperrt (Sicherheit oder Alter)",
+    "el_badge_lieu": "Für alle gesperrt",
+    "el_badge_liste_noire": "Als gefährlich gemeldet",
+    "el_mode_choisir": "{nom}: auswählen",
+    "el_mode_categorie": "Der Kategorie folgen",
+    "el_mode_bloquer": "Sperren",
+    "el_voir_autres_one": "{n} weitere anzeigen",
+    "el_voir_autres_other": "{n} weitere anzeigen",
+    "el_recherche": "Website, App oder Programm suchen",
+    "el_recherche_rien": "Nichts gefunden.",
+    "el_logiciel_de": "Programm: {nom}",
+    "el_service_de": "Dienst: {nom}",
+    "el_categories_de": "Kategorien: {liste}",
+    "el_categorie": "Kategorie",
+    "el_recents_titre": "Kürzlich gesperrt",
+    "el_recents_vide": "Kürzlich nichts gesperrt.",
+    "el_tentatives_one": "{n} Versuch",
+    "el_tentatives_other": "{n} Versuche",
+    "el_groupe_sites_one": "{n} Website damit gesperrt",
+    "el_groupe_sites_other": "{n} Websites damit gesperrt",
+    "el_demande_inclus": "In der Antwort enthalten:",
+    "el_cat_fermee": "Gesperrt",
+    "el_cat_ouverte": "Offen",
+    "el_recherche_court": "Suchen"
   },
   "es": {
+    "pg_rouvrir": "Volver a permitir",
+    "octroi_titre": "Código de desbloqueo",
+    "octroi_champ": "Código",
+    "octroi_valider": "Confirmar",
+    "octroi_annuler": "Cancelar",
     "erreur_admin": "Solo para administradores de Home Assistant.",
     "erreur_loading": "Vision se está iniciando: inténtalo de nuevo en un momento.",
     "erreur_pc": "Este dispositivo ya no existe en Vision.",
@@ -561,6 +794,7 @@ const TEXTES = /*i18n-json*/{
     "bouton_accorder": "Conceder {quoi}",
     "bouton_accorder_min": "Conceder {minutes} min",
     "bouton_non": "No",
+    "bouton_refuser": "Rechazar",
     "bouton_toujours": "Siempre",
     "tuile_accessibilite": "volver a activar la accesibilidad de Vision",
     "tuile_usage": "permitir los datos de uso",
@@ -667,9 +901,84 @@ const TEXTES = /*i18n-json*/{
     "cats_coupees_other": "{n} bloqueadas de {total}",
     "cats_legende": "Bloquear una categoría vale para {prenom} en todos sus dispositivos. Lo que bloquean las prohibiciones comunes, la media o el horario sigue marcado, con el motivo.",
     "carte_nom": "Vision — Personas",
-    "carte_description": "Una fila por persona y la página de cada persona: dispositivos, acceso, categorías."
+    "carte_description": "Una fila por persona y la página de cada persona: dispositivos, acceso, categorías.",
+    "titre_autorisations": "Autorizaciones",
+    "autorisations_legende": "Por un tiempo: en un aparato, incluso durante una franja o con el tiempo de pantalla agotado, y luego se cierra. Excepción: en todos los aparatos de {prenom}, salta la categoría cerrada pero sigue las franjas y el tiempo de pantalla. Siempre disponible: en todos sus aparatos, nada lo cierra. Los bloqueos de seguridad y de edad no se saltan nunca.",
+    "aut_groupe_toujours": "Siempre disponible",
+    "aut_groupe_exception": "Excepciones",
+    "aut_groupe_temps": "Por un tiempo",
+    "aucune_autorisation": "Ninguna autorización por ahora.",
+    "aut_jusqua": "hasta las {heure} en {appareil}",
+    "aut_appli": "Aplicación",
+    "aut_site": "Sitio",
+    "aut_vers_toujours": "Siempre disponible",
+    "aut_vers_exception": "Como excepción",
+    "aut_retirer_titre": "Quitar esta autorización",
+    "aut_nom_placeholder": "Aplicación o sitio (p. ej. minecraft)",
+    "aut_choix_min": "{minutes} min",
+    "aut_choix_h": "{h} h",
+    "mode_exception": "Excepción",
+    "mode_toujours": "Siempre disponible",
+    "aut_sur_titre": "En qué aparato (por un tiempo)",
+    "bouton_accorder_aut": "Conceder",
+    "bouton_refuser": "Rechazar",
+    "reprise_attente": "Los tres modos se aplicarán por completo tras el traspaso de las autorizaciones: mira primero qué cambia y luego aplica.",
+    "bouton_reprise_simuler": "Ver qué cambia",
+    "bouton_reprise_appliquer": "Aplicar las nuevas reglas",
+    "bouton_reprise_annuler": "Volver a las reglas anteriores",
+    "reprise_confirmer": "¿Aplicar las nuevas reglas de autorización? Se guarda el estado anterior; puedes volver atrás.",
+    "reprise_annuler_confirmer": "¿Volver a las reglas de autorización anteriores?",
+    "aut_sites_lies": "También abre: {sites}",
+    "aut_lier_titre": "Abrir también este sitio con la aplicación (para todo el PC)",
+    "aut_delier_titre": "Dejar de abrir este sitio con la aplicación",
+    "el_logiciels": "Apps y programas",
+    "el_sites_seuls": "Sitios sin programa · {n}",
+    "el_services": "Servicios",
+    "el_services_suivent": "Sus servicios siempre siguen al programa.",
+    "el_sites": "Sitios",
+    "el_suit": "Sigue a {nom}",
+    "el_auto": "Vinculado automáticamente",
+    "el_attente": "Vinculado cuando estaba bloqueado: espera una decisión",
+    "el_delier": "Desvincular",
+    "el_suivre": "Seguir a {nom}",
+    "el_badge_ouvert": "Abierto",
+    "el_badge_par_logiciel": "Abierto con {nom}",
+    "el_badge_temps": "Por un tiempo · hasta las {heure}",
+    "el_badge_nomme": "Bloqueado (por nombre)",
+    "el_badge_categorie": "Cerrado por la categoría",
+    "el_badge_plage": "Cerrado por una franja",
+    "el_badge_temps_epuise": "Tiempo del día agotado",
+    "el_badge_securite": "Cerrado (seguridad o edad)",
+    "el_badge_lieu": "Cerrado para todos",
+    "el_badge_liste_noire": "Señalado como peligroso",
+    "el_mode_choisir": "{nom}: elegir",
+    "el_mode_categorie": "Seguir la categoría",
+    "el_mode_bloquer": "Bloquear",
+    "el_voir_autres_one": "Ver {n} más",
+    "el_voir_autres_other": "Ver {n} más",
+    "el_recherche": "Buscar un sitio, una app o un programa",
+    "el_recherche_rien": "No se encontró nada.",
+    "el_logiciel_de": "Programa: {nom}",
+    "el_service_de": "Servicio: {nom}",
+    "el_categories_de": "Categorías: {liste}",
+    "el_categorie": "Categoría",
+    "el_recents_titre": "Bloqueados recientemente",
+    "el_recents_vide": "Nada bloqueado recientemente.",
+    "el_tentatives_one": "{n} intento",
+    "el_tentatives_other": "{n} intentos",
+    "el_groupe_sites_one": "{n} sitio bloqueado con él",
+    "el_groupe_sites_other": "{n} sitios bloqueados con él",
+    "el_demande_inclus": "Incluido en la respuesta:",
+    "el_cat_fermee": "Cerrada",
+    "el_cat_ouverte": "Abierta",
+    "el_recherche_court": "Buscar"
   },
   "it": {
+    "pg_rouvrir": "Consenti di nuovo",
+    "octroi_titre": "Codice di sblocco",
+    "octroi_champ": "Codice",
+    "octroi_valider": "Conferma",
+    "octroi_annuler": "Annulla",
     "erreur_admin": "Riservato agli amministratori di Home Assistant.",
     "erreur_loading": "Vision si sta avviando: riprova tra un momento.",
     "erreur_pc": "Questo dispositivo non esiste più in Vision.",
@@ -725,6 +1034,7 @@ const TEXTES = /*i18n-json*/{
     "bouton_accorder": "Concedi {quoi}",
     "bouton_accorder_min": "Concedi {minutes} min",
     "bouton_non": "No",
+    "bouton_refuser": "Rifiuta",
     "bouton_toujours": "Sempre",
     "tuile_accessibilite": "riattivare l'accessibilità di Vision",
     "tuile_usage": "consentire i dati di utilizzo",
@@ -831,9 +1141,84 @@ const TEXTES = /*i18n-json*/{
     "cats_coupees_other": "{n} bloccate su {total}",
     "cats_legende": "Bloccare una categoria vale per {prenom} su tutti i suoi dispositivi. Ciò che bloccano i divieti comuni, la media o il programma resta selezionato, con il motivo.",
     "carte_nom": "Vision — Persone",
-    "carte_description": "Una riga per persona e la pagina di ogni persona: dispositivi, accesso, categorie."
+    "carte_description": "Una riga per persona e la pagina di ogni persona: dispositivi, accesso, categorie.",
+    "titre_autorisations": "Autorizzazioni",
+    "autorisations_legende": "Per un po’: su un dispositivo, anche durante una fascia oraria o a tempo schermo esaurito, poi si richiude. Eccezione: su tutti i dispositivi di {prenom}, supera la categoria chiusa ma segue fasce orarie e tempo schermo. Sempre disponibile: su tutti i suoi dispositivi, niente lo chiude. I blocchi di sicurezza e di età non si superano mai.",
+    "aut_groupe_toujours": "Sempre disponibile",
+    "aut_groupe_exception": "Eccezioni",
+    "aut_groupe_temps": "Per un po’",
+    "aucune_autorisation": "Nessuna autorizzazione per ora.",
+    "aut_jusqua": "fino alle {heure} su {appareil}",
+    "aut_appli": "App",
+    "aut_site": "Sito",
+    "aut_vers_toujours": "Sempre disponibile",
+    "aut_vers_exception": "Come eccezione",
+    "aut_retirer_titre": "Rimuovi questa autorizzazione",
+    "aut_nom_placeholder": "App o sito (es. minecraft)",
+    "aut_choix_min": "{minutes} min",
+    "aut_choix_h": "{h} h",
+    "mode_exception": "Eccezione",
+    "mode_toujours": "Sempre disponibile",
+    "aut_sur_titre": "Su quale dispositivo (per un po’)",
+    "bouton_accorder_aut": "Concedi",
+    "bouton_refuser": "Rifiuta",
+    "reprise_attente": "I tre modi si applicheranno pienamente dopo il passaggio delle autorizzazioni: guarda prima cosa cambia, poi applica.",
+    "bouton_reprise_simuler": "Vedi cosa cambia",
+    "bouton_reprise_appliquer": "Applica le nuove regole",
+    "bouton_reprise_annuler": "Torna alle regole precedenti",
+    "reprise_confirmer": "Applicare le nuove regole di autorizzazione? Lo stato precedente viene salvato; puoi tornare indietro.",
+    "reprise_annuler_confirmer": "Tornare alle regole di autorizzazione precedenti?",
+    "aut_sites_lies": "Apre anche: {sites}",
+    "aut_lier_titre": "Apri anche questo sito con l’app (per tutto il PC)",
+    "aut_delier_titre": "Non aprire più questo sito con l’app",
+    "el_logiciels": "App e programmi",
+    "el_sites_seuls": "Siti senza programma · {n}",
+    "el_services": "Servizi",
+    "el_services_suivent": "I suoi servizi seguono sempre il programma.",
+    "el_sites": "Siti",
+    "el_suit": "Segue {nom}",
+    "el_auto": "Collegato automaticamente",
+    "el_attente": "Collegato mentre era bloccato: attende una decisione",
+    "el_delier": "Scollega",
+    "el_suivre": "Segui {nom}",
+    "el_badge_ouvert": "Aperto",
+    "el_badge_par_logiciel": "Aperto con {nom}",
+    "el_badge_temps": "Per un po’ · fino alle {heure}",
+    "el_badge_nomme": "Bloccato (per nome)",
+    "el_badge_categorie": "Chiuso dalla categoria",
+    "el_badge_plage": "Chiuso da una fascia oraria",
+    "el_badge_temps_epuise": "Tempo del giorno esaurito",
+    "el_badge_securite": "Chiuso (sicurezza o età)",
+    "el_badge_lieu": "Chiuso per tutti",
+    "el_badge_liste_noire": "Segnalato come pericoloso",
+    "el_mode_choisir": "{nom}: scegli",
+    "el_mode_categorie": "Seguire la categoria",
+    "el_mode_bloquer": "Blocca",
+    "el_voir_autres_one": "Vedi altri {n}",
+    "el_voir_autres_other": "Vedi altri {n}",
+    "el_recherche": "Cerca un sito, un’app o un programma",
+    "el_recherche_rien": "Nessun risultato.",
+    "el_logiciel_de": "Programma: {nom}",
+    "el_service_de": "Servizio: {nom}",
+    "el_categories_de": "Categorie: {liste}",
+    "el_categorie": "Categoria",
+    "el_recents_titre": "Bloccati di recente",
+    "el_recents_vide": "Niente bloccato di recente.",
+    "el_tentatives_one": "{n} tentativo",
+    "el_tentatives_other": "{n} tentativi",
+    "el_groupe_sites_one": "{n} sito bloccato con esso",
+    "el_groupe_sites_other": "{n} siti bloccati con esso",
+    "el_demande_inclus": "Incluso nella risposta:",
+    "el_cat_fermee": "Chiusa",
+    "el_cat_ouverte": "Aperta",
+    "el_recherche_court": "Cerca"
   },
   "nl": {
+    "pg_rouvrir": "Weer toestaan",
+    "octroi_titre": "Ontgrendelcode",
+    "octroi_champ": "Code",
+    "octroi_valider": "Bevestigen",
+    "octroi_annuler": "Annuleren",
     "erreur_admin": "Alleen voor beheerders van Home Assistant.",
     "erreur_loading": "Vision start op: probeer het zo opnieuw.",
     "erreur_pc": "Dit apparaat bestaat niet meer in Vision.",
@@ -889,6 +1274,7 @@ const TEXTES = /*i18n-json*/{
     "bouton_accorder": "{quoi} geven",
     "bouton_accorder_min": "{minutes} min geven",
     "bouton_non": "Nee",
+    "bouton_refuser": "Weigeren",
     "bouton_toujours": "Altijd",
     "tuile_accessibilite": "de toegankelijkheid van Vision weer aanzetten",
     "tuile_usage": "gebruiksgegevens toestaan",
@@ -995,11 +1381,81 @@ const TEXTES = /*i18n-json*/{
     "cats_coupees_other": "{n} van {total} geblokkeerd",
     "cats_legende": "Een categorie blokkeren geldt voor {prenom} op al hun apparaten. Wat gedeelde verboden, het gemiddelde of de planning blokkeren, blijft aangevinkt, met de reden.",
     "carte_nom": "Vision — Personen",
-    "carte_description": "Eén regel per persoon, en de pagina van een persoon: apparaten, toegang, categorieën."
+    "carte_description": "Eén regel per persoon, en de pagina van een persoon: apparaten, toegang, categorieën.",
+    "titre_autorisations": "Toestemmingen",
+    "autorisations_legende": "Voor even: op één apparaat, ook tijdens een tijdvak of als de schermtijd op is, daarna weer dicht. Uitzondering: op alle apparaten van {prenom}, komt langs een gesloten categorie maar volgt tijdvakken en schermtijd. Altijd beschikbaar: op al die apparaten, niets sluit het. Blokkeringen voor veiligheid en leeftijd gaan nooit open.",
+    "aut_groupe_toujours": "Altijd beschikbaar",
+    "aut_groupe_exception": "Uitzonderingen",
+    "aut_groupe_temps": "Voor even",
+    "aucune_autorisation": "Nog geen toestemmingen.",
+    "aut_jusqua": "tot {heure} op {appareil}",
+    "aut_appli": "App",
+    "aut_site": "Website",
+    "aut_vers_toujours": "Altijd beschikbaar",
+    "aut_vers_exception": "Als uitzondering",
+    "aut_retirer_titre": "Deze toestemming intrekken",
+    "aut_nom_placeholder": "App of website (bijv. minecraft)",
+    "aut_choix_min": "{minutes} min",
+    "aut_choix_h": "{h} u",
+    "mode_exception": "Uitzondering",
+    "mode_toujours": "Altijd beschikbaar",
+    "aut_sur_titre": "Op welk apparaat (voor even)",
+    "bouton_accorder_aut": "Toestaan",
+    "bouton_refuser": "Weigeren",
+    "reprise_attente": "De drie modi gelden volledig na de overname van de toestemmingen: kijk eerst wat er verandert, pas dan toe.",
+    "bouton_reprise_simuler": "Bekijk wat er verandert",
+    "bouton_reprise_appliquer": "Nieuwe regels toepassen",
+    "bouton_reprise_annuler": "Terug naar de vorige regels",
+    "reprise_confirmer": "De nieuwe toestemmingsregels toepassen? De vorige toestand wordt bewaard; je kunt terug.",
+    "reprise_annuler_confirmer": "Terug naar de vorige toestemmingsregels?",
+    "aut_sites_lies": "Opent ook: {sites}",
+    "aut_lier_titre": "Deze website ook openen met de app (voor de hele pc)",
+    "aut_delier_titre": "Deze website niet meer met de app openen",
+    "el_logiciels": "Apps en programma's",
+    "el_sites_seuls": "Sites zonder programma · {n}",
+    "el_services": "Diensten",
+    "el_services_suivent": "Zijn diensten volgen altijd het programma.",
+    "el_sites": "Sites",
+    "el_suit": "Volgt {nom}",
+    "el_auto": "Automatisch gekoppeld",
+    "el_attente": "Gekoppeld toen het geblokkeerd was: wacht op een beslissing",
+    "el_delier": "Loskoppelen",
+    "el_suivre": "{nom} volgen",
+    "el_badge_ouvert": "Open",
+    "el_badge_par_logiciel": "Open met {nom}",
+    "el_badge_temps": "Even · tot {heure}",
+    "el_badge_nomme": "Geblokkeerd (op naam)",
+    "el_badge_categorie": "Gesloten door de categorie",
+    "el_badge_plage": "Gesloten door een tijdvak",
+    "el_badge_temps_epuise": "Tijd van vandaag op",
+    "el_badge_securite": "Gesloten (veiligheid of leeftijd)",
+    "el_badge_lieu": "Voor iedereen gesloten",
+    "el_badge_liste_noire": "Als gevaarlijk gemeld",
+    "el_mode_choisir": "{nom}: kiezen",
+    "el_mode_categorie": "De categorie volgen",
+    "el_mode_bloquer": "Blokkeren",
+    "el_voir_autres_one": "Nog {n} bekijken",
+    "el_voir_autres_other": "Nog {n} bekijken",
+    "el_recherche": "Zoek een site, app of programma",
+    "el_recherche_rien": "Niets gevonden.",
+    "el_logiciel_de": "Programma: {nom}",
+    "el_service_de": "Dienst: {nom}",
+    "el_categories_de": "Categorieën: {liste}",
+    "el_categorie": "Categorie",
+    "el_recents_titre": "Onlangs geblokkeerd",
+    "el_recents_vide": "Onlangs niets geblokkeerd.",
+    "el_tentatives_one": "{n} poging",
+    "el_tentatives_other": "{n} pogingen",
+    "el_groupe_sites_one": "{n} site samen ermee geblokkeerd",
+    "el_groupe_sites_other": "{n} sites samen ermee geblokkeerd",
+    "el_demande_inclus": "Inbegrepen in het antwoord:",
+    "el_cat_fermee": "Gesloten",
+    "el_cat_ouverte": "Open",
+    "el_recherche_court": "Zoeken"
   }
 }/*i18n-json:fin*/;
 // Les catégories (étiquettes de la maison) : copie de pc_parental/i18n/categories.json, pour trCat().
-const CATEGORIES_I18N = /*i18n-categories*/{"jeux": {"fr": "Jeux", "en": "Games", "de": "Spiele", "es": "Juegos", "it": "Giochi", "nl": "Games"}, "videos": {"fr": "Vidéos", "en": "Videos", "de": "Videos", "es": "Vídeos", "it": "Video", "nl": "Video's"}, "reseaux_sociaux": {"fr": "Réseaux sociaux", "en": "Social media", "de": "Soziale Medien", "es": "Redes sociales", "it": "Social network", "nl": "Sociale media"}, "tv": {"fr": "TV", "en": "TV", "de": "TV", "es": "TV", "it": "TV", "nl": "tv"}, "vod": {"fr": "VOD", "en": "Streaming", "de": "Streaming", "es": "Streaming", "it": "Streaming", "nl": "Streaming"}, "musique": {"fr": "Musique", "en": "Music", "de": "Musik", "es": "Música", "it": "Musica", "nl": "Muziek"}, "ia": {"fr": "IA", "en": "AI", "de": "KI", "es": "IA", "it": "IA", "nl": "AI"}, "internet": {"fr": "Internet", "en": "Internet", "de": "Internet", "es": "Internet", "it": "Internet", "nl": "Internet"}, "travail": {"fr": "Travail", "en": "Work", "de": "Arbeit", "es": "Trabajo", "it": "Lavoro", "nl": "Werk"}, "creation": {"fr": "Création", "en": "Creativity", "de": "Kreativität", "es": "Creatividad", "it": "Creatività", "nl": "Creativiteit"}, "actu_medias": {"fr": "Actu & médias", "en": "News & media", "de": "Nachrichten & Medien", "es": "Noticias y medios", "it": "Notizie e media", "nl": "Nieuws & media"}, "pub_tracage": {"fr": "Pub & traçage", "en": "Ads & tracking", "de": "Werbung & Tracking", "es": "Anuncios y rastreo", "it": "Pubblicità e tracciamento", "nl": "Advertenties & tracking"}, "contournement": {"fr": "Contournement", "en": "Bypass tools", "de": "Umgehung", "es": "Elusión", "it": "Aggiramento", "nl": "Omzeiling"}, "dangereux": {"fr": "Dangereux", "en": "Dangerous", "de": "Gefährlich", "es": "Peligroso", "it": "Pericoloso", "nl": "Gevaarlijk"}, "adulte": {"fr": "Adulte", "en": "Adult", "de": "Erwachsene", "es": "Adultos", "it": "Adulti", "nl": "Volwassenen"}, "pegi_12": {"fr": "PEGI 12", "en": "PEGI 12", "de": "PEGI 12", "es": "PEGI 12", "it": "PEGI 12", "nl": "PEGI 12"}, "pegi_16": {"fr": "PEGI 16", "en": "PEGI 16", "de": "PEGI 16", "es": "PEGI 16", "it": "PEGI 16", "nl": "PEGI 16"}, "pegi_18": {"fr": "PEGI 18", "en": "PEGI 18", "de": "PEGI 18", "es": "PEGI 18", "it": "PEGI 18", "nl": "PEGI 18"}, "systeme": {"fr": "Système", "en": "System", "de": "System", "es": "Sistema", "it": "Sistema", "nl": "Systeem"}, "google": {"fr": "Google", "en": "Google", "de": "Google", "es": "Google", "it": "Google", "nl": "Google"}, "discord": {"fr": "Discord", "en": "Discord", "de": "Discord", "es": "Discord", "it": "Discord", "nl": "Discord"}, "annuaires_discord": {"fr": "Annuaires Discord", "en": "Discord directories", "de": "Discord-Verzeichnisse", "es": "Directorios de Discord", "it": "Directory Discord", "nl": "Discord-gidsen"}, "toujours_autorise": {"fr": "Toujours autorisé", "en": "Always allowed", "de": "Immer erlaubt", "es": "Siempre permitido", "it": "Sempre consentito", "nl": "Altijd toegestaan"}}/*i18n-categories:fin*/;
+const CATEGORIES_I18N = /*i18n-categories*/{"jeux": {"fr": "Jeux", "en": "Games", "de": "Spiele", "es": "Juegos", "it": "Giochi", "nl": "Games"}, "videos": {"fr": "Vidéos", "en": "Videos", "de": "Videos", "es": "Vídeos", "it": "Video", "nl": "Video's"}, "reseaux_sociaux": {"fr": "Réseaux sociaux", "en": "Social media", "de": "Soziale Medien", "es": "Redes sociales", "it": "Social network", "nl": "Sociale media"}, "tv": {"fr": "TV", "en": "TV", "de": "TV", "es": "TV", "it": "TV", "nl": "tv"}, "vod": {"fr": "VOD", "en": "Streaming", "de": "Streaming", "es": "Streaming", "it": "Streaming", "nl": "Streaming"}, "musique": {"fr": "Musique", "en": "Music", "de": "Musik", "es": "Música", "it": "Musica", "nl": "Muziek"}, "ia": {"fr": "IA", "en": "AI", "de": "KI", "es": "IA", "it": "IA", "nl": "AI"}, "internet": {"fr": "Internet", "en": "Internet", "de": "Internet", "es": "Internet", "it": "Internet", "nl": "Internet"}, "travail": {"fr": "Travail", "en": "Work", "de": "Arbeit", "es": "Trabajo", "it": "Lavoro", "nl": "Werk"}, "creation": {"fr": "Création", "en": "Creativity", "de": "Kreativität", "es": "Creatividad", "it": "Creatività", "nl": "Creativiteit"}, "actu_medias": {"fr": "Actu & médias", "en": "News & media", "de": "Nachrichten & Medien", "es": "Noticias y medios", "it": "Notizie e media", "nl": "Nieuws & media"}, "pub_tracage": {"fr": "Pub & traçage", "en": "Ads & tracking", "de": "Werbung & Tracking", "es": "Anuncios y rastreo", "it": "Pubblicità e tracciamento", "nl": "Advertenties & tracking"}, "contournement": {"fr": "Contournement", "en": "Bypass tools", "de": "Umgehung", "es": "Elusión", "it": "Aggiramento", "nl": "Omzeiling"}, "dangereux": {"fr": "Dangereux", "en": "Dangerous", "de": "Gefährlich", "es": "Peligroso", "it": "Pericoloso", "nl": "Gevaarlijk"}, "adulte": {"fr": "Adulte", "en": "Adult", "de": "Erwachsene", "es": "Adultos", "it": "Adulti", "nl": "Volwassenen"}, "pegi_12": {"fr": "PEGI 12", "en": "PEGI 12", "de": "PEGI 12", "es": "PEGI 12", "it": "PEGI 12", "nl": "PEGI 12"}, "pegi_16": {"fr": "PEGI 16", "en": "PEGI 16", "de": "PEGI 16", "es": "PEGI 16", "it": "PEGI 16", "nl": "PEGI 16"}, "pegi_18": {"fr": "PEGI 18", "en": "PEGI 18", "de": "PEGI 18", "es": "PEGI 18", "it": "PEGI 18", "nl": "PEGI 18"}, "systeme": {"fr": "Système", "en": "System", "de": "System", "es": "Sistema", "it": "Sistema", "nl": "Systeem"}, "google": {"fr": "Google", "en": "Google", "de": "Google", "es": "Google", "it": "Google", "nl": "Google"}, "discord": {"fr": "Discord", "en": "Discord", "de": "Discord", "es": "Discord", "it": "Discord", "nl": "Discord"}, "annuaires_discord": {"fr": "Annuaires Discord", "en": "Discord directories", "de": "Discord-Verzeichnisse", "es": "Directorios de Discord", "it": "Directory Discord", "nl": "Discord-gidsen"}, "toujours_autorise": {"fr": "Toujours autorisé", "en": "Always allowed", "de": "Immer erlaubt", "es": "Siempre permitido", "it": "Sempre consentito", "nl": "Altijd toegestaan"}, "ecole": {"fr": "École", "en": "School", "de": "Schule", "es": "Escuela", "it": "Scuola", "nl": "School"}}/*i18n-categories:fin*/;
 // ---- i18n:code — le même dans toutes les cartes de Vision (essai/i18n_cartes_test.py le vérifie) ----
 // Langue : celle de l'utilisateur Home Assistant (hass.locale.language, sinon hass.language), sur deux lettres ;
 // une langue que Vision ne parle pas → l'anglais. Un texte absent → l'anglais, puis le français, puis la clé.
@@ -1141,6 +1597,91 @@ const CODES = {
   regle: { libelle: "code_regle", teinte: "var(--primary-color)" },
 };
 
+// FAILLE DE SÉCURITÉ (l'auteur, 16/10) : accorder (accepter, déverrouiller, donner du temps, ouvrir, autoriser, valider un
+// appareil, donner un rôle) exige le code de déverrouillage du Décideur À CHAQUE geste. Home Assistant le réclame (403 « code_octroi »,
+// octroi.py) : on le demande, puis on renvoie le même geste avec lui. Le code n'est jamais gardé.
+const ERREURS_CODE_OCTROI = ["code_octroi", "code_octroi_faux"];
+const demanderCodeOctroi = (racine, message) => new Promise((resoudre) => {
+  const d = document.createElement("dialog");
+  d.setAttribute("aria-label", tr("octroi_titre"));
+  d.style.cssText = "border:0;border-radius:16px;padding:20px;max-width:min(360px,calc(100vw - 48px));box-sizing:border-box;"
+    + "background:var(--card-background-color,#fff);color:var(--primary-text-color,#000);";
+  d.innerHTML = `<form method="dialog" style="display:grid;gap:12px;margin:0">
+      <b style="font-size:18px">${esc(tr("octroi_titre"))}</b>
+      <div style="color:var(--secondary-text-color);overflow-wrap:anywhere">${esc(message || "")}</div>
+      <input name="code" type="password" autocomplete="off" aria-label="${esc(tr("octroi_champ"))}" placeholder="${esc(tr("octroi_champ"))}"
+        style="font:inherit;padding:10px;border-radius:10px;border:1px solid var(--divider-color);min-height:44px;box-sizing:border-box;width:100%;background:var(--card-background-color);color:var(--primary-text-color)">
+      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+        <button value="" type="button" data-annuler style="font:inherit;min-height:44px;padding:8px 14px;border-radius:999px;border:1px solid var(--divider-color);background:none;color:var(--primary-text-color)">${esc(tr("octroi_annuler"))}</button>
+        <button value="ok" style="font:inherit;min-height:44px;padding:8px 14px;border-radius:999px;border:0;background:var(--primary-color);color:var(--text-primary-color)">${esc(tr("octroi_valider"))}</button>
+      </div></form>`;
+  const champ = d.querySelector("input");
+  const fin = (v) => { d.remove(); resoudre(v); };
+  d.querySelector("[data-annuler]").addEventListener("click", () => { d.close(); fin(""); });
+  d.addEventListener("cancel", () => fin(""));
+  d.querySelector("form").addEventListener("submit", () => fin(champ.value));
+  racine.appendChild(d);
+  d.showModal();
+  champ.focus();
+});
+const avecCodeOctroi = async (hass, racine, chemin, corps) => {
+  try { return await hass.callApi("POST", chemin, corps); } catch (e) {
+    let erreur = e;
+    for (let essai = 0; essai < 3; essai += 1) {
+      const b = erreur && erreur.body;
+      if (!b || !ERREURS_CODE_OCTROI.includes(b.error)) throw erreur;
+      const code = await demanderCodeOctroi(racine, b.retour);
+      if (!code) throw erreur;
+      try { return await hass.callApi("POST", chemin, Object.assign({}, corps, { code_octroi: code })); } catch (e2) { erreur = e2; }
+    }
+    throw erreur;
+  }
+};
+
+// 1.93.2 (l'auteur, 17/10 : « quand je clique sur une catégorie, la page remonte tout en haut ») : la carte se redessine
+// en entier (innerHTML) à chaque geste ; pendant un instant elle est plus courte (les ha-icon, ha-card, vision-choix
+// s'initialisent après coup) et le navigateur ramène la page vers le haut, et le bouton cliqué disparaît avec son
+// focus. Avant le dessin : on retient la place de chaque conteneur qui défile (y compris à travers les shadow roots
+// de Home Assistant) et le bouton qui a le focus, et la carte garde sa hauteur. Après : on remet tout, puis encore à
+// l'image suivante, quand les éléments ont pris leur taille.
+function vxGarderPlace(carte) {
+  const places = [];
+  let n = carte;
+  while (n) {
+    if (n.nodeType === 1 && n.scrollHeight > n.clientHeight) {
+      const oy = getComputedStyle(n).overflowY;
+      if (oy === "auto" || oy === "scroll" || oy === "overlay") places.push([n, n.scrollTop]);
+    }
+    n = n.parentNode || n.host || null;
+  }
+  const doc = document.scrollingElement || document.documentElement;
+  places.push([doc, doc.scrollTop]);
+  const actif = carte.shadowRoot && carte.shadowRoot.activeElement;
+  let focus = null;
+  if (actif && actif.attributes) {
+    const cles = [...actif.attributes].filter((a) => a.name.startsWith("data-"));
+    if (cles.length) focus = actif.tagName.toLowerCase() + cles.map((a) => `[${a.name}="${CSS.escape(a.value)}"]`).join("");
+  }
+  // Pendant un geste, le bouton est grisé un instant et ne peut pas garder le focus : on se souvient de lui.
+  if (focus) carte._vxFocus = { sel: focus, t: Date.now() };
+  else if (carte._vxFocus && Date.now() - carte._vxFocus.t < 5000) focus = carte._vxFocus.sel;
+  const hauteur = carte.offsetHeight;
+  if (hauteur) carte.style.minHeight = hauteur + "px";
+  return { places, focus };
+}
+
+function vxRendrePlace(carte, garde) {
+  const remettre = () => {
+    for (const [el, haut] of garde.places) if (Math.abs(el.scrollTop - haut) > 1) el.scrollTop = haut;
+  };
+  remettre();
+  if (garde.focus && carte.shadowRoot) {
+    const b = carte.shadowRoot.querySelector(garde.focus);
+    if (b && typeof b.focus === "function" && !b.disabled) b.focus({ preventScroll: true });
+  }
+  requestAnimationFrame(() => { remettre(); carte.style.minHeight = ""; requestAnimationFrame(remettre); });
+}
+
 class VisionMaisonCard extends HTMLElement {
   constructor() {
     super();
@@ -1157,6 +1698,15 @@ class VisionMaisonCard extends HTMLElement {
     }, true);
     this._ouverts = new Set();
     this._details = new Set();
+    // HA 2.5.1 : les catégories détaillées (étiquette → réponse), les logiciels dépliés, les catégories montrées en
+    // entier, la ligne dont le choix du mode est ouvert, la recherche et les blocages récents de la personne.
+    this._elCats = new Map();
+    this._elCharge = new Set();
+    this._elDeplies = new Set();
+    this._elTous = new Set();
+    this._elMode = "";
+    this._elRech = { texte: "", resultats: null, focus: false };
+    this._elRecents = null;
     this._mots = new Map();
     this._partages = new Set();
     this._ajout = false;
@@ -1210,6 +1760,12 @@ class VisionMaisonCard extends HTMLElement {
   set hass(hass) {
     const premier = !this._hass;
     this._hass = hass;
+    // Mode « rouvrir » : « Tout fermer » commence ou finit (le capteur change) → on relit tout de suite.
+    if (this._config && this._config.mode === "rouvrir" && this._config.entity) {
+      const etat = hass.states[this._config.entity] && hass.states[this._config.entity].state;
+      if (!premier && etat !== this._etatPause) { this._etatPause = etat; this._charger(); }
+      this._etatPause = etat;
+    }
     const langue = suivreLangue(hass);
     if (premier) { this._langue = langue; this._charger(); this._abonner(); }
     else if (langue !== this._langue) { this._langue = langue; this._rendre(); }
@@ -1238,9 +1794,14 @@ class VisionMaisonCard extends HTMLElement {
     this._fait = "";
     this._rendre();
     try {
-      const r = await this._hass.callApi("POST", API, corps);
+      const r = await avecCodeOctroi(this._hass, this.shadowRoot, API, corps);
       if (r && r.appareils) this._donnees = r;
       this._fait = (r && r.retour) || tr("geste_fait");
+      // HA 2.5.1 : un geste change l'état des lignes : catégories détaillées, recherche et blocages récents relus.
+      // 1.93.2 (l'auteur : « la page remonte tout en haut ») : les catégories ouvertes gardent leur contenu pendant qu'on les
+      // relit. Les vider faisait tout retomber à « Chargement… » : la page raccourcissait et repartait en haut.
+      this._elRelire(); this._elRecents = null; this._elMode = "";
+      if (this._elRech.texte.length >= 2) this._elRechercher(corps.pc || this._pcLimites);
     } catch (e) {
       this._erreur = messageErreur(e);
     }
@@ -1378,20 +1939,25 @@ class VisionMaisonCard extends HTMLElement {
     const lien = d.lien ? `<a href="${esc(d.lien)}" target="_blank" rel="noopener">${esc(d.lien)}</a>` : "";
     const motif = d.motif ? `<span class="motif">${esc(tr("motif_cite", { motif: d.motif }))}</span>` : "";
     const raison = d.raison ? `<span class="pourquoi">${esc(d.raison)}</span>` : "";
-    const b = (dec, txt, min) =>
-      `<button data-acces="${esc(d.id)}" data-pc="${esc(d.pc)}" data-dec="${dec}" ${min ? `data-min="${min}"` : ""} ${this._occupe ? "disabled" : ""}>${txt}</button>`;
+    const b = (dec, txt, min, mode) =>
+      `<button data-acces="${esc(d.id)}" data-pc="${esc(d.pc)}" data-dec="${dec}" ${min ? `data-min="${min}"` : ""} ${mode ? `data-mode="${mode}"` : ""} ${this._occupe ? "disabled" : ""}>${txt}</button>`;
     return `
       <div class="demande">
         <div class="corps">
           ${tr(d.genre === "temps" ? "demande_temps" : "demande_acces", { prenom: esc(d.prenom), quoi: esc(quoi) })}${d.genre === "deverrouillage" ? ` <span class="pourquoi">${esc(tr("demande_deverrouillage"))}</span>` : ""}
           ${d.genre === "sites" && d.cle && d.cle !== quoi ? `<span class="pourquoi">${esc(tr("demande_site", { site: d.cle }))}</span>` : ""}
           ${lien} ${motif} ${raison}
+          ${(this._donnees || {}).elements && d.genre === "apps" && (d.sites || []).length ? `
+            <div class="groupe-dem"><b>${esc(trn("el_groupe_sites", d.sites.length))}</b><span class="sous">${esc(tr("el_demande_inclus"))}</span>
+              <span class="puces">${["app:" + d.cle, ...d.sites].map((x) => `<label class="puce"><input type="checkbox" data-el-case="${esc(d.id)}" value="${esc(x)}" checked><span class="nom">${esc(x.startsWith("app:") ? quoi : x)}</span></label>`).join("")}</span></div>` : ""}
         </div>
         <div class="actions">${d.genre === "temps"
-          ? b("temporaire", esc(tr("bouton_accorder", { quoi })), d.minutes) + b("non", esc(tr("bouton_non")))
+          ? b("temporaire", esc(tr("bouton_accorder", { quoi })), d.minutes) + b("non", esc(tr("bouton_refuser")))
           : d.genre === "deverrouillage"
-          ? b("temporaire", esc(tr("bouton_accorder_min", { minutes: String(d.minutes) })), d.minutes) + b("non", esc(tr("bouton_non")))
-          : b("temporaire", esc(tr("duree_h", { h: 1 })), 60) + b("toujours", esc(tr("bouton_toujours"))) + b("non", esc(tr("bouton_non")))}</div>
+          ? b("temporaire", esc(tr("bouton_accorder_min", { minutes: String(d.minutes) })), d.minutes) + b("non", esc(tr("bouton_refuser")))
+          : b("temporaire", esc(tr("aut_choix_min", { minutes: "15" })), 15) + b("temporaire", esc(tr("duree_h", { h: 1 })), 60)
+            + b("accorder", esc(tr("mode_exception")), 0, "exception") + b("accorder", esc(tr("mode_toujours")), 0, "toujours")
+            + b("non", esc(tr("bouton_refuser")))}</div>
       </div>`;
   }
 
@@ -1430,6 +1996,10 @@ class VisionMaisonCard extends HTMLElement {
     const d = this._donnees;
     const personnes = this._personnes();
     const demandes = (d && d.demandes) || [];
+    const lots = (d && d.a_decider_lots) || [];
+    // Le badge compte les demandes (et les appareils qui attendent d'être validés) : les éléments à classer et les
+    // logiciels à décider ne sont pas des demandes, ils ont chacun leur ligne et leur nombre juste en dessous.
+    const aDecider = demandes.length + lots.filter((l) => l.genre === "appairage").reduce((s, l) => s + (Number(l.nombre) || 0), 0);
     const lignes = personnes
       .map((p) => {
         const cible = `${this._config.chemin}/personne-${esc(p.cle)}`;
@@ -1449,11 +2019,25 @@ class VisionMaisonCard extends HTMLElement {
       <ha-card>
         <div class="entete">
           <h2>${esc(this._config.titre || this._lieu())}</h2>
-          ${demandes.length ? `<span class="badge">${esc(trn("badge_demandes", demandes.length))}</span>` : ""}
+          ${aDecider ? `<span class="badge">${esc(trn("badge_demandes", aDecider))}</span>` : ""}
         </div>
         ${this._erreur ? `<div class="erreur" role="alert">${esc(this._erreur)}</div>` : ""}${this._fait ? `<div class="fait" role="status">${esc(this._fait)}</div>` : ""}
         ${demandes.length ? `<div class="demandes">${demandes.map((x) => this._demande(x)).join("")}</div>` : ""}
+        ${lots.length ? `<div class="lots">${lots.map((l) => `<div class="lot" data-nav="${esc(l.ou)}" role="link" tabindex="0"><ha-icon icon="mdi:tray-full"></ha-icon><span>${esc(l.libelle)}</span><ha-icon class="chevron" icon="mdi:chevron-right"></ha-icon></div>`).join("")}</div>` : ""}
         ${d ? lignes || `<div class="vide">${esc(tr("aucun_inscrit"))}</div>` : `<div class="vide">${esc(tr("chargement"))}</div>`}
+      </ha-card>`;
+  }
+
+  // --- rendu : « Rouvrir » (« Tout fermer » en cours) -------------------------
+  // FAILLE DE SÉCURITÉ (l'auteur, 16/10) : rouvrir avant l'heure accorde : le geste passe par /maison et exige le code
+  // de déverrouillage (avecCodeOctroi). Rien ne s'affiche quand rien n'est fermé.
+  _rendreRouvrir() {
+    const pg = this._donnees && this._donnees.pause_generale;
+    if (!pg || !(Number(pg.fin) * 1000 > Date.now())) return "";
+    return `<ha-card class="rouvrir">
+        <button class="ferme" data-action="fin_pause_generale" ${this._occupe ? "disabled" : ""}>
+          <ha-icon icon="mdi:lock-open-variant-outline"></ha-icon> ${esc(tr("pg_rouvrir"))}</button>
+        ${this._erreur ? `<div class="erreur" role="alert">${esc(this._erreur)}</div>` : ""}${this._fait ? `<div class="fait" role="status">${esc(this._fait)}</div>` : ""}
       </ha-card>`;
   }
 
@@ -1621,7 +2205,13 @@ class VisionMaisonCard extends HTMLElement {
     if (!apps.length) return "";
     const t = this._temps;
     const off = this._occupe ? "disabled" : "";
-    const duree_b = (min, txt) => `<button data-duree="${min}" class="${t && !t.autre && t.minutes === min ? "principal" : ""}" ${off}>${txt}</button>`;
+    // La durée : un choix (vision-choix, étiquettes ou liste selon la place).
+    const durees = [
+      { cle: "30", libelle: "+" + tr("duree_min", { m: 30 }) },
+      { cle: "60", libelle: "+" + tr("duree_h", { h: 1 }) },
+      { cle: "autre", libelle: tr("bouton_autre") },
+    ];
+    const dureeChoisie = !t ? "" : t.autre ? "autre" : String(t.minutes);
     let etape = "";
     if (t) {
       const saisie = t.autre
@@ -1630,7 +2220,8 @@ class VisionMaisonCard extends HTMLElement {
       const choix = apps.length > 1
         ? `<div class="question">${esc(tr("question_appareil"))}</div>
            <div class="choix">
-             ${apps.map((a) => `<label class="coche"><input type="checkbox" data-choix="${esc(a.id)}" ${t.choix.has(a.id) ? "checked" : ""}> ${esc(a.nom)}${a.en_ligne ? "" : esc(tr("choix_hors_ligne"))}</label>`).join("")}
+             <vision-choix data-choix multiple titre="${esc(tr("question_appareil"))}" valeurs="${esc(JSON.stringify([...t.choix]))}"
+               options="${esc(JSON.stringify(apps.map((a) => ({ cle: a.id, libelle: a.nom + (a.en_ligne ? "" : tr("choix_hors_ligne")) }))))}"></vision-choix>
              <button class="lien" data-tous-choix>${esc(tr(t.choix.size === apps.length ? "bouton_aucun" : "bouton_tous"))}</button>
            </div>`
         : "";
@@ -1652,7 +2243,7 @@ class VisionMaisonCard extends HTMLElement {
     return `
       <h3>${esc(tr("titre_ajouter_temps"))}</h3>
       <div class="temps-bloc">
-        <div class="boutons">${duree_b(30, esc("+" + tr("duree_min", { m: 30 })))}${duree_b(60, esc("+" + tr("duree_h", { h: 1 })))}<button data-duree="autre" class="${t && t.autre ? "principal" : ""}" ${off}>${esc(tr("bouton_autre"))}</button></div>
+        <vision-choix data-duree titre="${esc(tr("titre_ajouter_temps"))}" valeur="${esc(dureeChoisie)}" options="${esc(JSON.stringify(durees))}"></vision-choix>
         ${etape}
         ${encours}
       </div>`;
@@ -1710,6 +2301,146 @@ class VisionMaisonCard extends HTMLElement {
     }
   }
 
+  // ------------------------------------------------------------------ HA 2.5.1 : par élément
+
+  async _elLire(corps) {
+    return this._hass.callApi("POST", API, corps);
+  }
+
+  _chargerCategorie(nom, pc) {
+    const cle = nom + "|" + pc;
+    if (this._elCharge.has(cle)) return;
+    this._elCharge.add(cle);
+    this._elLire({ action: "categorie", pc, etiquette: nom, sites_max: this._elTous.has(nom) ? 400 : 8 })
+      .then((r) => { this._elCats.set(cle, r); })
+      .catch((e) => { this._elCats.set(cle, { erreur: messageErreur(e) }); })
+      .finally(() => { this._elCharge.delete(cle); this._rendre(); });
+  }
+
+  // 1.93.2 : relit les catégories déjà détaillées (toutes, ou celles de ce nom) sans effacer ce qui est affiché.
+  _elRelire(nom) {
+    for (const cle of [...this._elCats.keys()]) {
+      const i = cle.lastIndexOf("|");
+      const n = cle.slice(0, i);
+      if (nom === undefined || n === nom) this._chargerCategorie(n, cle.slice(i + 1));
+    }
+  }
+
+  _elRechercher(pc) {
+    const texte = this._elRech.texte;
+    clearTimeout(this._elMinuteRech);
+    this._elMinuteRech = setTimeout(() => {
+      this._elLire({ action: "recherche", pc, texte })
+        .then((r) => { if (texte === this._elRech.texte) { this._elRech.resultats = r.resultats || []; this._rendre(); } })
+        .catch(() => {});
+    }, 350);
+  }
+
+  /** L'état d'une ligne en toutes lettres. */
+  _elBadge(o, logiciel) {
+    if (o.ouvert) {
+      if (o.mode === "temps") return tr("el_badge_temps", { heure: heureTs(o.fin) });
+      if (o.mode === "exception") return tr("mode_exception");
+      if (o.mode === "toujours") return tr("mode_toujours");
+      return o.par_logiciel && logiciel ? tr("el_badge_par_logiciel", { nom: logiciel }) : tr("el_badge_ouvert");
+    }
+    const cles = { nomme: "el_badge_nomme", plage: "el_badge_plage", temps: "el_badge_temps_epuise", securite: "el_badge_securite",
+      lieu: "el_badge_lieu", liste_noire: "el_badge_liste_noire" };
+    return tr(cles[o.ferme_par] || "el_badge_categorie");
+  }
+
+  /**
+   * Une ligne : le nom, son état (badge), la raison s'il est fermé, et l'interrupteur (vert : ouvert) qui ouvre le
+   * choix du mode — Suivre la catégorie (le défaut), 15 min, 1 h, 2 h, Exception, Toujours disponible, Bloquer.
+   */
+  _elLigne(o, genre, pc, logiciel = "", nomLogiciel = "") {
+    const nom = o.nom;
+    const libelle = o.libelle || nom;
+    const cle = genre + ":" + nom;
+    const verrou = ["lieu", "securite", "liste_noire"].includes(o.ferme_par);
+    const dis = this._occupe ? "disabled" : "";
+    const puces = [
+      `<span class="badge-el ${o.ouvert ? "ok" : "ko"}">${esc(this._elBadge(o, logiciel))}</span>`,
+      o.suit && !o.par_logiciel && logiciel ? `<span class="badge-el">${esc(tr("el_suit", { nom: logiciel }))}</span>` : "",
+      o.attente ? `<span class="badge-el attente">${esc(tr("el_attente"))}</span>` : o.auto ? `<span class="badge-el">${esc(tr("el_auto"))}</span>` : "",
+    ].join("");
+    const actuel = o.mode || "categorie";
+    const choix = (mode, texte, min) => `<button data-el-choix="${esc(cle)}" data-el-genre="${esc(genre)}" data-el-nom="${esc(nom)}" data-pc="${esc(pc)}" data-el-m="${mode}" ${min ? `data-min="${min}"` : ""} aria-pressed="${mode === actuel && !min ? "true" : "false"}" ${dis}>${esc(texte)}</button>`;
+    const modes = this._elMode === cle && !verrou ? `
+      <div class="puces modes" role="group" aria-label="${esc(tr("el_mode_choisir", { nom: libelle }))}">
+        ${choix("categorie", tr("el_mode_categorie"))}${choix("temps", tr("aut_choix_min", { minutes: "15" }), 15)}${choix("temps", tr("duree_h", { h: 1 }), 60)}${choix("temps", tr("duree_h", { h: 2 }), 120)}
+        ${choix("exception", tr("mode_exception"))}${choix("toujours", tr("mode_toujours"))}${choix("bloquer", tr("el_mode_bloquer"))}
+      </div>` : "";
+    const liens = nomLogiciel && genre === "sites" ? `<span class="puces">${o.attente ? `<button class="lien" data-lier="${esc(nom)}" data-aut-app="${esc(nomLogiciel)}" data-pc="${esc(pc)}" ${dis}>+ ${esc(tr("el_suivre", { nom: logiciel }))}</button>` : ""}<button class="lien" data-delier="${esc(nom)}" data-aut-app="${esc(nomLogiciel)}" data-pc="${esc(pc)}" ${dis}>✕ ${esc(tr("el_delier"))}</button></span>` : "";
+    return `
+      <div class="el">
+        <div class="elnom"><span class="nomel">${esc(libelle)}</span><span class="puces">${puces}</span>
+          ${!o.ouvert && o.raison ? `<span class="sous">${esc(o.raison)}</span>` : ""}${liens}</div>
+        <button class="inter-el ${o.ouvert ? "on" : ""}" role="switch" aria-checked="${o.ouvert ? "true" : "false"}" aria-expanded="${this._elMode === cle}" data-el-mode="${esc(cle)}" title="${esc(tr("el_mode_choisir", { nom: libelle }))}" ${verrou || this._occupe ? "disabled" : ""}><span class="glissiere"></span></button>
+        ${modes}
+      </div>`;
+  }
+
+  _contenuElements(nom, pc) {
+    const det = this._elCats.get(nom + "|" + pc);
+    if (!det) { this._chargerCategorie(nom, pc); return `<div class="vide">${esc(tr("chargement"))}</div>`; }
+    if (det.erreur) return `<div class="erreur">${esc(det.erreur)}</div>`;
+    const logiciels = (det.logiciels || []).map((lg) => {
+      const lib = lg.libelle || lg.nom;
+      const ouvert = this._elDeplies.has(lg.nom);
+      const dedans = ouvert ? `
+        <div class="el-dedans">
+          ${(lg.services || []).length ? `<div class="g">${esc(tr("el_services"))}</div>${lg.services.map((x) => `<div class="sous">${esc(x.nom)}</div>`).join("")}<div class="sous">${esc(tr("el_services_suivent"))}</div>` : ""}
+          ${(lg.sites || []).length ? `<div class="g">${esc(tr("el_sites"))}</div>${lg.sites.map((x) => this._elLigne(x, "sites", pc, lib, lg.nom)).join("")}` : ""}
+        </div>` : "";
+      return `<div class="el-logiciel"><button class="ouvrir" data-el-deplier="${esc(lg.nom)}" aria-expanded="${ouvert}"><ha-icon icon="${ouvert ? "mdi:chevron-down" : "mdi:chevron-right"}"></ha-icon></button>${this._elLigne(lg, "apps", pc)}${dedans}</div>`;
+    }).join("");
+    const sites = det.sites || [];
+    const total = sites.length + (det.autres || 0);
+    return `
+      ${logiciels ? `<div class="g">${esc(tr("el_logiciels"))}</div>${logiciels}` : ""}
+      ${sites.length ? `<div class="g">${esc(tr("el_sites_seuls", { n: trNombre(total) }))}</div>${sites.map((x) => this._elLigne(x, "sites", pc, x.logiciel || "")).join("")}` : ""}
+      ${det.autres ? `<button class="lien" data-el-tous="${esc(nom)}">${esc(trn("el_voir_autres", det.autres))}</button>` : ""}
+      ${!logiciels && !sites.length ? `<div class="vide">${esc(tr("rien_classe"))}</div>` : ""}`;
+  }
+
+  _blocRecherche(pc) {
+    const r = this._elRech;
+    let res = "";
+    if (r.texte.length >= 2) {
+      res = r.resultats === null ? `<div class="vide">${esc(tr("chargement"))}</div>`
+        : !r.resultats.length ? `<div class="vide">${esc(tr("el_recherche_rien"))}</div>`
+        : r.resultats.map((o) => {
+          if (o.genre === "categorie") {
+            return `<div class="el"><div class="elnom"><span class="nomel">${esc(tr("el_categorie"))} · ${esc(trCat(o.nom))}</span></div><span class="badge-el ${o.fermee ? "ko" : "ok"}">${esc(tr(o.fermee ? "el_cat_fermee" : "el_cat_ouverte"))}</span></div>`;
+          }
+          const infos = [o.service ? tr("el_service_de", { nom: o.service }) : "", o.logiciel ? tr("el_logiciel_de", { nom: o.logiciel }) : "",
+            (o.categories || []).length ? tr("el_categories_de", { liste: o.categories.map(trCat).join(", ") }) : ""].filter(Boolean);
+          return this._elLigne(o, o.genre, pc, o.logiciel || "") + (infos.length ? `<div class="sous el-infos">${infos.map(esc).join("<br>")}</div>` : "");
+        }).join("");
+    }
+    return `
+      <input class="el-recherche" type="search" data-el-recherche="${esc(pc)}" value="${esc(r.texte)}" placeholder="${esc(tr("el_recherche_court"))}" aria-label="${esc(tr("el_recherche"))}" title="${esc(tr("el_recherche"))}">
+      ${res}`;
+  }
+
+  _blocRecents(pc) {
+    if (this._elRecents === null) {
+      this._elRecents = { charge: false, liste: [] };
+      this._elLire({ action: "recents", pc })
+        .then((r) => { this._elRecents = { charge: true, liste: r.recents || [] }; this._rendre(); })
+        .catch(() => { this._elRecents = { charge: true, liste: [] }; });
+    }
+    const liste = this._elRecents.liste || [];
+    const lignes = liste.slice(0, 8).map((o) => {
+      const detail = [heureTs(o.quand), o.appareil_nom, o.logiciel, trn("el_tentatives", o.fois || 1)].filter(Boolean).join(" · ");
+      return this._elLigne(o, "sites", pc, o.logiciel || "") + `<div class="sous el-infos">${esc(detail)}</div>`;
+    }).join("");
+    return `
+      <h3>${esc(tr("el_recents_titre"))} <span class="n">${esc(String(liste.length))}</span></h3>
+      ${!this._elRecents.charge ? `<div class="vide">${esc(tr("chargement"))}</div>` : lignes || `<div class="vide">${esc(tr("el_recents_vide"))}</div>`}`;
+  }
+
   _categorie(c, pc) {
     const ouvert = this._ouverts.has(c.nom);
     const code = c.coupe ? CODES[c.code] || CODES.regle : null;
@@ -1718,7 +2449,9 @@ class VisionMaisonCard extends HTMLElement {
       : c.choix === "autoriser" ? `<span class="badge-cat" style="--t:var(--success-color,#2e7d32)">${esc(tr("badge_autorisee"))}</span>` : "";
     const compte = [c.apps.length ? trn("compte_applis", c.apps.length) : "", c.sites.length ? trn("compte_sites", c.sites.length) : ""]
       .filter(Boolean).join(" · ");
-    const contenu = ouvert
+    const contenu = ouvert && (this._donnees || {}).elements
+      ? `<div class="contenu">${c.raison ? `<div class="raison">${esc(c.raison)}</div>` : ""}${this._contenuElements(c.nom, pc)}</div>`
+      : ouvert
       ? `<div class="contenu">
           ${c.raison ? `<div class="raison">${esc(c.raison)}</div>` : ""}
           ${c.apps.length ? `<div class="groupe"><span class="g">${esc(tr("groupe_applis"))}</span>${c.apps.map((x) => `<span class="chip">${esc(x.libelle)}</span>`).join("")}</div>` : ""}
@@ -1787,6 +2520,66 @@ class VisionMaisonCard extends HTMLElement {
       ${ajout}`;
   }
 
+  // 2.5.0 (refonte des autorisations) : ce qui est accordé à la personne, selon les trois modes, et le geste pour
+  // accorder, changer de mode ou retirer. Une exception et « toujours disponible » valent sur toutes ses machines ;
+  // « pour un temps » sur l'appareil choisi.
+  _blocAutorisations(p, pc) {
+    const d = this._donnees || {};
+    const liste = p.autorisations || [];
+    const dis = this._occupe ? "disabled" : "";
+    const propres = p.appareils.filter((a) => a.personne === p.entite);
+    const ligne = (f) => {
+      const quand = f.mode === "temps" ? tr("aut_jusqua", { heure: heureTs(f.fin), appareil: f.appareil || "" }) : "";
+      const vers = f.mode === "toujours" ? "exception" : "toujours";
+      const changer = f.mode === "temps" ? ""
+        : `<button data-aut-changer="${esc(f.nom)}" data-aut-genre="${esc(f.genre)}" data-aut-vers="${vers}" data-pc="${esc(pc)}" ${dis}>${esc(tr(vers === "toujours" ? "aut_vers_toujours" : "aut_vers_exception"))}</button>`;
+      return `
+        <div class="limite">
+          <div class="lnom"><b>${esc(f.nom)}</b><span class="sous">${esc(tr(f.genre === "apps" ? "aut_appli" : "aut_site"))}${quand ? " · " + esc(quand) : ""}</span>
+            ${f.genre === "apps" && (f.lies || []).length ? `<span class="sous">${esc(tr("aut_sites_lies", { sites: f.lies.join(", ") }))}</span>` : ""}
+            ${f.genre === "apps" ? `<span class="puces">${(f.lies_valides || []).map((x) => `<button class="lien" data-delier="${esc(x)}" data-aut-app="${esc(f.nom)}" data-pc="${esc(f.pc || pc)}" title="${esc(tr("aut_delier_titre"))}" ${dis}>✕ ${esc(x)}</button>`).join("")}${(f.proposes || []).map((x) => `<button class="lien" data-lier="${esc(x)}" data-aut-app="${esc(f.nom)}" data-pc="${esc(f.pc || pc)}" title="${esc(tr("aut_lier_titre"))}" ${dis}>+ ${esc(x)}</button>`).join("")}</span>` : ""}</div>
+          ${changer}
+          <button data-aut-retirer="${esc(f.nom)}" data-aut-genre="${esc(f.genre)}" data-aut-mode="${esc(f.mode)}" data-pc="${esc(f.pc || pc)}" title="${esc(tr("aut_retirer_titre"))}" ${dis}>✕</button>
+        </div>`;
+    };
+    const groupe = (mode, titre) => {
+      const lignes = liste.filter((f) => f.mode === mode);
+      return lignes.length ? `<div class="sous aut-groupe">${esc(tr(titre))}</div>${lignes.map(ligne).join("")}` : "";
+    };
+    // Ce qu'on peut accorder : ce que ses appareils ont vu tourner (comme pour les limites), et tout nom tapé.
+    const vus = new Map();
+    for (const a of propres) for (const x of ((a.temps || {}).total || [])) vus.set(x.nom, x.libelle || x.nom);
+    // Le choix de l'appareil (pour un temps) : un choix (vision-choix, étiquettes ou liste selon la place).
+    const appareils = `<vision-choix data-aut-pc titre="${esc(tr("aut_sur_titre"))}" valeur="${esc(pc)}"
+      options="${esc(JSON.stringify(propres.map((a) => ({ cle: a.id, libelle: a.nom }))))}"></vision-choix>`;
+    const reprise = d.autorisations_v2 ? "" : `
+      <div class="alerte"><ha-icon icon="mdi:information-outline"></ha-icon><span>${esc(tr("reprise_attente"))}</span></div>
+      <div class="boutons">
+        <button data-reprise="simuler" ${dis}>${esc(tr("bouton_reprise_simuler"))}</button>
+        <button class="principal" data-reprise="appliquer" ${dis}>${esc(tr("bouton_reprise_appliquer"))}</button>
+      </div>`;
+    return `
+      <h3>${esc(tr("titre_autorisations"))} <span class="n">${esc(String(liste.length))}</span></h3>
+      <div class="legende">${esc(tr("autorisations_legende", { prenom: p.prenom }))}</div>
+      ${reprise}
+      ${groupe("toujours", "aut_groupe_toujours")}${groupe("exception", "aut_groupe_exception")}${groupe("temps", "aut_groupe_temps")}
+      ${liste.length ? "" : `<div class="vide">${esc(tr("aucune_autorisation"))}</div>`}
+      <form class="limite ajout" data-aut-ajout="${esc(pc)}">
+        <input data-aut-nom list="vision-aut-${esc(p.cle)}" required placeholder="${esc(tr("aut_nom_placeholder"))}">
+        <datalist id="vision-aut-${esc(p.cle)}">${[...vus.entries()].map(([n, l]) => `<option value="${esc(n)}">${esc(l)}</option>`).join("")}</datalist>
+        <select data-aut-choix>
+          <option value="t15">${esc(tr("aut_choix_min", { minutes: "15" }))}</option>
+          <option value="t60" selected>${esc(tr("aut_choix_h", { h: "1" }))}</option>
+          <option value="t120">${esc(tr("aut_choix_h", { h: "2" }))}</option>
+          <option value="exception">${esc(tr("mode_exception"))}</option>
+          <option value="toujours">${esc(tr("mode_toujours"))}</option>
+        </select>
+        ${propres.length > 1 ? appareils : ""}
+        <button type="submit" ${dis}>${esc(tr("bouton_accorder_aut"))}</button>
+      </form>
+      ${d.autorisations_v2 ? `<button class="lien" data-reprise="annuler" ${dis}>${esc(tr("bouton_reprise_annuler"))}</button>` : ""}`;
+  }
+
   _rendrePersonne() {
     const d = this._donnees;
     const voulu = this._config.personne || "";
@@ -1809,23 +2602,31 @@ class VisionMaisonCard extends HTMLElement {
         ? tr("moyenne_regle_valeur", { etat: p.moyenne.etat, valeur: trNombre(Number(p.moyenne.valeur), { maximumFractionDigits: 2 }), seuil: trNombre(Number(p.moyenne.seuil)) })
         : tr("moyenne_regle", { etat: p.moyenne.etat }))}</div>`
       : "";
+    // Refonte lot 3 : la fiche personne (vision-personne-card) intègre cette carte par parties, sans son en-tête :
+    // « parties » = ["resume"] (temps, appareils, ajout, limites) et/ou ["categories"] ; sans option, tout (comme avant).
+    const parties = Array.isArray(this._config.parties) ? this._config.parties : ["resume", "categories"];
+    const resume = parties.includes("resume");
+    const categories = parties.includes("categories");
     return `
       <ha-card>
-        <div class="entete personne">
+        ${this._config.integre ? (moy ? `<div class="moyenne">${moy}</div>` : "") : `<div class="entete personne">
           ${this._avatar(p)}
           <div><h2>${esc(p.prenom)}</h2>${moy}</div>
           <button class="retour" data-nav="${this._config.chemin}/maison" title="${esc(tr("retour_liste"))}"><ha-icon icon="mdi:home-outline"></ha-icon></button>
-        </div>
+        </div>`}
         ${this._erreur ? `<div class="erreur" role="alert">${esc(this._erreur)}</div>` : ""}${this._fait ? `<div class="fait" role="status">${esc(this._fait)}</div>` : ""}
         ${d.retour ? `<div class="retour-texte">${esc(d.retour)}</div>` : ""}
-        ${this._blocTemps(p)}
+        ${resume ? `${this._blocTemps(p)}
         <h3>${esc(tr("titre_appareils"))}</h3>
         ${p.appareils.length ? p.appareils.map((a) => this._appareil(a)).join("") : `<div class="vide">${esc(tr("aucun_appareil_instant"))}</div>`}
         ${p.entite ? this._blocAjout(p) : ""}
-        ${p.entite ? this._blocLimites(p, pc) : ""}
-        <h3>${esc(tr("titre_categories"))} <span class="n">${esc(trn("cats_coupees", coupees, { total: cats.length }))}</span></h3>
+        ${p.entite ? this._blocLimites(p, pc) : ""}` : ""}
+        ${categories ? `<h3>${esc(tr("titre_categories"))} <span class="n">${esc(trn("cats_coupees", coupees, { total: cats.length }))}</span></h3>
         <div class="legende">${esc(tr("cats_legende", { prenom: p.prenom }))}</div>
-        ${cats.map((c) => this._categorie(c, pc)).join("")}
+        ${(d.elements && pc) ? this._blocRecherche(pc) : ""}
+        ${this._elRech.texte.length >= 2 && d.elements ? "" : cats.map((c) => this._categorie(c, pc)).join("")}
+        ${(d.elements && pc) ? this._blocRecents(pc) : ""}` : ""}
+        ${categories && p.entite ? this._blocAutorisations(p, pc) : ""}
       </ha-card>
       ${this._dialogueRetrait()}`;
   }
@@ -1885,8 +2686,14 @@ class VisionMaisonCard extends HTMLElement {
         .erreur { color: var(--vision-texte-erreur); margin:6px 0; }
         .fait { color: var(--vision-texte-succes); margin:6px 0; font-weight:500; }
         button.en-cours { opacity:.75; cursor:progress; }
-        .retour-texte { color: var(--vision-texte-succes); font-size:.9em; margin:4px 0; }
+        .retour-texte { color: var(--vision-texte-succes); font-size:.9em; margin:4px 0; white-space:pre-line; }
+        .aut-groupe { margin:8px 0 2px; font-weight:600; }
+        .limite.ajout input[data-aut-nom] { flex:1 1 100%; min-width:0; padding:6px 8px; border:1px solid var(--divider-color); border-radius:6px; background:var(--card-background-color); color:var(--primary-text-color); font: inherit; }
         .demandes { margin: 6px 0 10px; }
+        .lots { margin: 0 0 10px; display: flex; flex-direction: column; gap: 4px; }
+        .lot { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer; min-height: 40px;
+          background: var(--secondary-background-color); color: var(--primary-text-color); overflow-wrap: anywhere; }
+        .lot span { flex: 1; min-width: 0; }
         .demande { display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:10px; background: var(--secondary-background-color); margin-bottom:6px; flex-wrap:wrap; }
         .demande .corps { flex:1; min-width:200px; }
         .demande a { color: var(--primary-color); word-break:break-all; }
@@ -1896,6 +2703,7 @@ class VisionMaisonCard extends HTMLElement {
         button:disabled { opacity:.45; cursor:default; }
         button.principal { background: var(--primary-color); color: var(--text-primary-color,#fff); border-color: var(--primary-color); }
         button.ferme { border-color: var(--error-color,#c62828); color: var(--vision-texte-erreur); }
+        ha-card.rouvrir { padding: 12px 16px; } ha-card.rouvrir button { width: 100%; min-height: 44px; justify-content: center; }
         .appareil { border:1px solid var(--divider-color); border-radius:12px; padding:10px 12px; margin-bottom:8px; }
         .tete { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
         .tete ha-icon { color: var(--secondary-text-color); }
@@ -1912,7 +2720,7 @@ class VisionMaisonCard extends HTMLElement {
         .item { display:flex; gap:8px; align-items:center; padding:3px 0; font-size:.9em; }
         .item ha-icon { --mdc-icon-size: 16px; color: var(--secondary-text-color); }
         .legende { font-size:.86em; color: var(--secondary-text-color); margin-bottom:8px; }
-        .cat { display:grid; grid-template-columns: 1fr auto 48px; gap:10px; align-items:center; padding:6px 4px; border-top:1px solid var(--divider-color); }
+        .cat { display:grid; grid-template-columns: minmax(0,1fr) auto 48px; gap:10px; align-items:center; padding:6px 4px; border-top:1px solid var(--divider-color); }
         .cat.coupee .nomcat { font-weight:600; }
         .cat .ouvrir { border:none; background:none; text-align:left; display:flex; align-items:center; gap:4px; padding:4px 0; color: var(--primary-text-color); font-size:1em; }
         .cat .ouvrir ha-icon { color: var(--secondary-text-color); --mdc-icon-size: 20px; }
@@ -1925,8 +2733,34 @@ class VisionMaisonCard extends HTMLElement {
         .inter input:checked + .glissiere { background: var(--error-color,#c62828); }
         .inter input:checked + .glissiere:before { transform: translateX(20px); }
         .inter.fige { cursor:not-allowed; }
+        /* HA 2.5.1 : par élément. Les noms longs passent à la ligne, jamais d'ellipse (recette). */
+        .el { display:grid; grid-template-columns: minmax(0,1fr) 48px; gap:6px 10px; align-items:center; padding:6px 0; border-top:1px solid var(--divider-color); }
+        .el .elnom { display:grid; gap:3px; min-width:0; }
+        .el .nomel { font-weight:500; overflow-wrap:anywhere; }
+        .el .modes { grid-column: 1 / -1; }
+        .el .modes button { border:1px solid var(--divider-color); background:var(--secondary-background-color); color:var(--primary-text-color); border-radius:14px; padding:4px 10px; cursor:pointer; min-height:32px; }
+        .el .modes button[aria-pressed=true] { border-color: var(--primary-color); font-weight:600; }
+        .badge-el { border:1px solid var(--divider-color); border-radius:10px; padding:1px 8px; font-size:.86em; overflow-wrap:anywhere; max-width:100%; box-sizing:border-box; color: var(--secondary-text-color); }
+        .badge-el.ok { color: color-mix(in srgb, var(--success-color,#2e7d32) 75%, var(--primary-text-color,#212121)); border-color: var(--success-color,#2e7d32); }
+        .badge-el.ko { color: var(--vision-texte-erreur, var(--error-color,#c62828)); border-color: var(--error-color,#c62828); }
+        .badge-el.attente { border-style:dashed; }
+        .inter-el { position:relative; width:44px; height:24px; border:none; padding:0; background:none; cursor:pointer; }
+        .inter-el .glissiere { background: var(--secondary-text-color,#757575); }
+        .inter-el.on .glissiere { background: var(--success-color,#2e7d32); }
+        .inter-el.on .glissiere:before { transform: translateX(20px); }
+        .inter-el:disabled { cursor:not-allowed; opacity:.55; }
+        .el-logiciel { display:grid; grid-template-columns: 28px minmax(0,1fr); align-items:start; min-width:0; }
+        .el-logiciel > .ouvrir { border:none; background:none; padding:10px 0 0; color: var(--secondary-text-color); cursor:pointer; }
+        .el-logiciel > .el { grid-column: 2; }
+        .el-dedans { grid-column: 2; min-width:0; padding-left:12px; border-left:2px solid var(--divider-color); }
+        .el .puces { min-width:0; }
+        .el .lien { overflow-wrap:anywhere; text-align:left; min-width:0; max-width:100%; }
+        .contenu .g, .el-dedans .g { font-size:.8em; letter-spacing:.08em; text-transform:uppercase; color: var(--secondary-text-color); margin-top:8px; }
+        .el-infos { padding-bottom:6px; overflow-wrap:anywhere; }
+        .el-recherche { width:100%; box-sizing:border-box; padding:8px 10px; margin:6px 0; border:1px solid var(--divider-color); border-radius:8px; background:var(--card-background-color); color:var(--primary-text-color); font: inherit; }
+        .groupe-dem { display:grid; gap:4px; margin-top:6px; }
         .inter.fige .glissiere { opacity:.6; }
-        .contenu { grid-column: 1 / -1; padding: 2px 0 8px 28px; }
+        .contenu { grid-column: 1 / -1; padding: 2px 0 8px 28px; min-width:0; }
         .raison { font-size:.86em; color: var(--secondary-text-color); margin-bottom:6px; }
         .groupe { display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin:4px 0; }
         .g { font-size:.78em; text-transform:uppercase; letter-spacing:.04em; color: var(--secondary-text-color); margin-right:4px; }
@@ -1986,9 +2820,12 @@ class VisionMaisonCard extends HTMLElement {
   _rendre() {
     this._lieu();
     const corps = this._config.mode === "personne" ? this._rendrePersonne()
-      : this._config.mode === "protections" ? this._rendreProtections() : this._rendreMaison();
+      : this._config.mode === "protections" ? this._rendreProtections()
+      : this._config.mode === "rouvrir" ? this._rendreRouvrir() : this._rendreMaison();
+    const garde = vxGarderPlace(this);
     this.shadowRoot.innerHTML = this._styles() + corps;
     this._brancher();
+    vxRendrePlace(this, garde);
     if (this._enCours) {
       for (const b of this.shadowRoot.querySelectorAll("button")) {
         if (JSON.stringify(Object.assign({}, b.dataset)) + "|" + b.textContent.trim() === this._enCours) {
@@ -2010,14 +2847,20 @@ class VisionMaisonCard extends HTMLElement {
     r.querySelectorAll("[data-acces]").forEach((b) =>
       b.addEventListener("click", (ev) => {
         ev.stopPropagation();
-        this._agir({ action: "acces", pc: b.dataset.pc, demande: b.dataset.acces, decision: b.dataset.dec, minutes: Number(b.dataset.min || 0) });
+        // HA 2.5.1 : une demande groupée dont un élément est décoché : la réponse ne vaut que pour les cochés.
+        const cases = [...r.querySelectorAll(`[data-el-case="${CSS.escape(b.dataset.acces)}"]`)];
+        const elements = cases.some((c) => !c.checked) && b.dataset.dec !== "non" ? cases.filter((c) => c.checked).map((c) => c.value) : undefined;
+        this._agir({ action: "acces", pc: b.dataset.pc, demande: b.dataset.acces, decision: b.dataset.dec, minutes: Number(b.dataset.min || 0), mode: b.dataset.mode || "", elements });
       }));
     r.querySelectorAll("[data-action]").forEach((b) =>
       b.addEventListener("click", () =>
         this._agir({ action: b.dataset.action, pc: b.dataset.pc, minutes: Number(b.dataset.min || 0) })));
     // --- temps : durée, puis appareil
-    r.querySelectorAll("[data-duree]").forEach((b) =>
-      b.addEventListener("click", () => this._choisirDuree(this._personne, b.dataset.duree)));
+    r.querySelectorAll("[data-duree]").forEach((c) =>
+      c.addEventListener("vision-choix", (ev) => {
+        if (this._occupe) return;
+        this._choisirDuree(this._personne, ev.detail.valeur);
+      }));
     r.querySelectorAll("[data-minutes]").forEach((c) =>
       c.addEventListener("input", () => {
         if (!this._temps) return;
@@ -2030,10 +2873,15 @@ class VisionMaisonCard extends HTMLElement {
         }
       }));
     r.querySelectorAll("[data-choix]").forEach((c) =>
-      c.addEventListener("change", () => {
+      c.addEventListener("vision-choix", (ev) => {
         if (!this._temps) return;
-        c.checked ? this._temps.choix.add(c.dataset.choix) : this._temps.choix.delete(c.dataset.choix);
-        this._rendre();
+        this._temps.choix = new Set(ev.detail.valeurs);
+        // Sans tout redessiner (la liste dépliée resterait ouverte) : le bouton « Donner » et « Tous / Aucun ».
+        const m = Number(this._temps.minutes || 0);
+        const ok = r.querySelector("[data-donner]");
+        if (ok) ok.disabled = !(m >= 5 && m <= 720 && this._temps.choix.size > 0) || this._occupe;
+        const tous = r.querySelector("[data-tous-choix]");
+        if (tous && this._personne) tous.textContent = tr(this._temps.choix.size === this._personne.appareils.length ? "bouton_aucun" : "bouton_tous");
       }));
     r.querySelectorAll("[data-tous-choix]").forEach((b) =>
       b.addEventListener("click", () => {
@@ -2166,6 +3014,53 @@ class VisionMaisonCard extends HTMLElement {
         if (!nom || m < 5 || m > 1440) return;
         this._agir({ action: "limite", pc: f.dataset.limAjout, nom, minutes: m });
       }));
+    r.querySelectorAll("[data-aut-ajout]").forEach((f) =>
+      f.addEventListener("submit", (ev) => {
+        ev.preventDefault();
+        const nom = f.querySelector("[data-aut-nom]").value.trim();
+        const choix = f.querySelector("[data-aut-choix]").value;
+        const sel = f.querySelector("[data-aut-pc]");
+        const pcChoisi = sel ? sel.value : "";
+        if (!nom) return;
+        const temps = choix.startsWith("t");
+        this._agir({ action: "accorder", pc: temps && pcChoisi ? pcChoisi : f.dataset.autAjout, nom,
+          mode: temps ? "temps" : choix, minutes: temps ? Number(choix.slice(1)) : 0 });
+      }));
+    r.querySelectorAll("[data-aut-retirer]").forEach((b) =>
+      b.addEventListener("click", () =>
+        this._agir({ action: "retirer_autorisation", pc: b.dataset.pc, nom: b.dataset.autRetirer, genre: b.dataset.autGenre, mode: b.dataset.autMode })));
+    r.querySelectorAll("[data-aut-changer]").forEach((b) =>
+      b.addEventListener("click", () =>
+        this._agir({ action: "accorder", pc: b.dataset.pc, nom: b.dataset.autChanger, genre: b.dataset.autGenre, mode: b.dataset.autVers })));
+    r.querySelectorAll("[data-lier], [data-delier]").forEach((b) =>
+      b.addEventListener("click", () =>
+        this._agir({ action: "lier_domaine", pc: b.dataset.pc, nom: b.dataset.autApp, domaine: b.dataset.lier || b.dataset.delier, lier: !!b.dataset.lier })));
+    r.querySelectorAll("[data-reprise]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const etape = b.dataset.reprise;
+        if (etape !== "simuler" && !window.confirm(tr(etape === "appliquer" ? "reprise_confirmer" : "reprise_annuler_confirmer"))) return;
+        this._agir({ action: "reprise_autorisations", etape });
+      }));
+    // HA 2.5.1 : par élément.
+    r.querySelectorAll("[data-el-mode]").forEach((b) =>
+      b.addEventListener("click", () => { this._elMode = this._elMode === b.dataset.elMode ? "" : b.dataset.elMode; this._rendre(); }));
+    r.querySelectorAll("[data-el-choix]").forEach((b) =>
+      b.addEventListener("click", () =>
+        this._agir({ action: "accorder", pc: b.dataset.pc, genre: b.dataset.elGenre, nom: b.dataset.elNom, mode: b.dataset.elM, minutes: Number(b.dataset.min || 0) })));
+    r.querySelectorAll("[data-el-deplier]").forEach((b) =>
+      b.addEventListener("click", () => { const n = b.dataset.elDeplier; this._elDeplies.has(n) ? this._elDeplies.delete(n) : this._elDeplies.add(n); this._rendre(); }));
+    r.querySelectorAll("[data-el-tous]").forEach((b) =>
+      b.addEventListener("click", () => { this._elTous.add(b.dataset.elTous); this._elRelire(b.dataset.elTous); }));
+    r.querySelectorAll("[data-el-recherche]").forEach((champ) => {
+      champ.addEventListener("input", () => {
+        this._elRech = { texte: champ.value.trim(), resultats: null, focus: true };
+        if (this._elRech.texte.length >= 2) this._elRechercher(champ.dataset.elRecherche);
+        this._rendre();
+      });
+      champ.addEventListener("blur", () => { this._elRech.focus = false; });
+      // Le dessin refait la carte : le champ retrouve le focus et le curseur en fin de saisie.
+      if (this._elRech.focus) { champ.focus(); const n = champ.value.length; try { champ.setSelectionRange(n, n); } catch (e) { /* type search */ } }
+    });
     r.querySelectorAll("[data-etq]").forEach((c) =>
       c.addEventListener("change", () =>
         this._agir({ action: "etiquette", pc: c.dataset.pc, etiquette: c.dataset.etq, etat: c.checked ? "bloquer" : "neutre" })));

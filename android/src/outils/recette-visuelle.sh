@@ -13,6 +13,8 @@
 # Tailles (dp = px / (densité/160)) :
 #   360dp             1080x2340 @480  → 360×780 dp
 #   412dp             1236x2745 @480  → 412×915 dp
+#   360dp-paysage     1080x2400 @480, rotation 270° → 800×360 dp, barre de navigation à gauche (1.90.1)
+#   412dp-paysage     1236x2745 @480, rotation 90° → 915×412 dp (1.90.1)
 #   tablette-portrait 1600x2560 @320  → 800×1280 dp
 #   tablette-paysage  1600x2560 @320, rotation 90° → 1280×800 dp
 #   tv-720p           1280x720  @213  → 960×540 dp (densité d'une vraie TV 720p)
@@ -51,7 +53,8 @@ if [ "$INSTALLER" = 1 ]; then
   APK="$ICI/../app/build/outputs/apk/debug/app-debug.apk"
   APKT="$ICI/../app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk"
   [ -f "$APK" ] && [ -f "$APKT" ] || { echo "APK debug absents : compiler d'abord (gradle :app:assembleDebug :app:assembleDebugAndroidTest)."; exit 1; }
-  A install -r -g "$(ICI_LOCAL "$APK")" && A install -r "$(ICI_LOCAL "$APKT")" || exit 1
+  # -d : une autre branche a pu installer un versionCode plus haut (émulateur partagé entre branches).
+  A install -r -d -g "$(ICI_LOCAL "$APK")" && A install -r -d "$(ICI_LOCAL "$APKT")" || exit 1
 fi
 SH pm list instrumentation | grep -q "$PKG.test" || { echo "APK d'essai absent sur $SERIE (option -i)."; exit 1; }
 
@@ -72,7 +75,8 @@ trap remettre EXIT
 SH cmd connectivity airplane-mode enable >/dev/null 2>&1 || { SH settings put global airplane_mode_on 1 >/dev/null; }
 
 if SH pm has-feature android.software.leanback | grep -q true; then TELE=1; else TELE=0; fi
-TOUTES_TEL="360dp:1080x2340:480:0 412dp:1236x2745:480:0 tablette-portrait:1600x2560:320:0 tablette-paysage:1600x2560:320:1"
+# 1.90.1 (l'auteur, accueil d'un Pixel en paysage) : deux téléphones en paysage, 360×800 et 412×915 dp.
+TOUTES_TEL="360dp:1080x2340:480:0 412dp:1236x2745:480:0 360dp-paysage:1080x2400:480:3 412dp-paysage:1236x2745:480:1 tablette-portrait:1600x2560:320:0 tablette-paysage:1600x2560:320:1"
 TOUTES_TV="tv-720p:1280x720:213:0 tv-1080p:1920x1080:320:0"
 if [ "$TELE" = 1 ]; then LISTE="$TOUTES_TV"; else LISTE="$TOUTES_TEL"; fi
 
@@ -86,6 +90,9 @@ for cas in $LISTE; do
   if [ -n "$TAILLES" ] && ! echo ",$TAILLES," | grep -q ",$NOM,"; then continue; fi
   echo "=== $NOM ($TAILLE @$DENSITE, rotation $ROT) ==="
   SH wm size "$TAILLE" >/dev/null; SH wm density "$DENSITE" >/dev/null
+  # 1.90.1 : l'accueil d'origine de l'émulateur refuse la rotation 270° (« paysage inversé ») ; les Réglages d'Android,
+  # au premier plan pendant la rotation, l'acceptent.
+  SH am start -W -a android.settings.SETTINGS >/dev/null 2>&1
   SH settings put system accelerometer_rotation 0 >/dev/null; SH settings put system user_rotation "$ROT" >/dev/null
   # « settings user_rotation » seul ne suffit pas toujours (Android 14+) : verrouillage explicite, puis vérification.
   SH wm user-rotation lock "$ROT" >/dev/null 2>&1
@@ -94,10 +101,17 @@ for cas in $LISTE; do
   done
   sleep 2
   SH rm -rf "$DISTANT" >/dev/null 2>&1
+  SH logcat -b crash -c >/dev/null 2>&1; SH logcat -c >/dev/null 2>&1
   # Les deux polices dans un même passage : le test pose font_scale lui-même et écrit un rapport par police.
   # shellcheck disable=SC2086
   SORTIE_TEST="$(A shell am instrument -w -e class "$CLASSE" -e taille "$NOM" -e police "$POLICES" $ARGS_LANGUE $ARGS_ECRANS "$RUNNER" | tr -d '\r')"
   echo "$SORTIE_TEST" | tail -n 15
+  # 16-10 : un « Process crashed » (passe 1080p) ne laissait aucune trace : le journal du plantage est gardé.
+  if ! echo "$SORTIE_TEST" | grep -q "^Time:"; then
+    { SH logcat -b crash -d; echo "--- journal (extraits)"; SH logcat -d | grep -E "OutOfMemory|FATAL|AndroidRuntime|lowmemorykiller|Low on memory|soprez.*(died|Died)" | tail -n 80; } \
+      >"$SORTIE/recette-lot1-android-plantage-$NOM.txt" 2>&1
+    echo "Plantage : $SORTIE/recette-lot1-android-plantage-$NOM.txt"
+  fi
   if echo "$SORTIE_TEST" | grep -q "^OK ("; then BILAN="$BILAN\n  $NOM : OK"; else ECHECS=$((ECHECS + 1)); BILAN="$BILAN\n  $NOM : DÉFAUTS (voir recette-lot1-android-rapport-$NOM-*.txt)"; fi
   # Rapatriement à plat dans etude-ux/captures (les noms portent déjà écran, taille et police).
   TMPD="$(mktemp -d)"

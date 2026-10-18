@@ -28,10 +28,10 @@ async def _monter(hass, hass_storage):
             "e2": _fiche("e2", "TEL-NOA", ENFANT2["secret"], person="person.noa", platform="android", **usage(10)),
             "t1": _fiche("t1", "TÉLÉ", TELE["secret"], person="person.lou", platform="android",
                          partage=["*"], **usage(120)),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android",
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android",
                          role="parent", **usage(5)),
         }}}
-    for p in ("lou", "noa", "robin"):
+    for p in ("lou", "noa", "nolan"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)

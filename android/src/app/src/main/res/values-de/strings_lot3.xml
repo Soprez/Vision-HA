@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 3 : fiche d'une personne (espace Décideur) ; apparence, veille et son à un seul endroit. -->
+<resources>
+    <string name="fiche_de">Profil von %1$s</string>
+    <string name="fiche_voir">Profil ansehen</string>
+    <string name="fiche_precedente">Vorherige Person</string>
+    <string name="fiche_suivante">Nächste Person</string>
+    <string name="fiche_resume">Übersicht</string>
+    <string name="fiche_temps_aujourdhui">Heute: %1$s</string>
+    <string name="fiche_horaires">Zeiten</string>
+    <string name="fiche_prochain_changement">Nächste Änderung</string>
+    <string name="fiche_aucun_horaire">Keine Zeiten</string>
+    <string name="fiche_voir_appareils">Geräte ansehen</string>
+    <string name="fiche_contenus">Inhalte</string>
+    <string name="fiche_selon_lieu">Je nach Ort</string>
+    <string name="fiche_regle_lieu">%1$s: %2$s</string>
+    <string name="fiche_aucune_regle_lieu">Keine ortsabhängigen Regeln</string>
+    <string name="fiche_reveils">Wecker</string>
+    <string name="fiche_reveil_active">Ein</string>
+    <string name="fiche_reveil_desactive">Aus</string>
+    <string name="fiche_reveil_prochain">Nächster: %1$s</string>
+    <string name="fiche_aucun_reveil">Keine Wecker</string>
+    <string name="fiche_recompenses">Belohnungen</string>
+    <string name="fiche_recompense">%1$d Min. pro Aufgabe aus „%2$s“, höchstens %3$d Min. pro Tag; heute %4$d Min. verdient</string>
+    <string name="fiche_pas_recompense">Keine Belohnung eingestellt</string>
+    <string name="fiche_ecrans">Auf den eigenen Bildschirmen</string>
+    <string name="fiche_role">Rolle</string>
+    <string name="fiche_note">Diese Einstellungen werden in Home Assistant geändert (Profil von %1$s).</string>
+    <string name="lot3_apparence_veille_son">Aussehen, Bildschirmschoner und Ton</string>
+    <string name="lot3_apparence_veille_son_detail">Design, Farben, Töne</string>
+    <string name="lot3_son">Ton</string>
+    <plurals name="fiche_n_widgets">
+        <item quantity="one">%1$d Home-Assistant-Widget</item>
+        <item quantity="other">%1$d Home-Assistant-Widgets</item>
+    </plurals>
+</resources>

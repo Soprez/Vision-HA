@@ -238,11 +238,37 @@ class HubEntity(_ReserveAuxAdministrateurs, CoordinatorEntity[PcParentalCoordina
         super().__init__(coordinator)
         self._attr_device_info = infos_hub(coordinator)
 
+    # Refonte lot 5 : une nouvelle installation crée ses entités de hub cachées (entites_reduites.py).
+    @property
+    def entity_registry_visible_default(self) -> bool:
+        from . import entites_reduites
+
+        if entites_reduites.cachee(self.coordinator.store, self.unique_id, appareil=False):
+            return False
+        return super().entity_registry_visible_default
+
 
 class PcEntity(_ReserveAuxAdministrateurs, CoordinatorEntity[PcParentalCoordinator]):
     """Entité rattachée à un PC (un appareil Home Assistant par PC)."""
 
     _attr_has_entity_name = True
+
+    # Refonte lot 5 : une nouvelle installation ne montre que 6 entités par appareil (entites_reduites.py).
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        from . import entites_reduites
+
+        if entites_reduites.desactivee(self.coordinator.store, self.unique_id, appareil=True):
+            return False
+        return super().entity_registry_enabled_default
+
+    @property
+    def entity_registry_visible_default(self) -> bool:
+        from . import entites_reduites
+
+        if entites_reduites.cachee(self.coordinator.store, self.unique_id, appareil=True):
+            return False
+        return super().entity_registry_visible_default
 
     def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
         super().__init__(coordinator)

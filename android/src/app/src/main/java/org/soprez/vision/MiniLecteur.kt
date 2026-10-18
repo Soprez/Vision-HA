@@ -24,7 +24,11 @@ import org.json.JSONObject
  * clignotement) ; il ne prend jamais le focus de lui-même ; caché quand rien ne joue. En option (non par défaut), la
  * pochette floutée sert de fond à l'accueil.
  */
-class MiniLecteur(ctx: Context, private val theme: Theme, private val tele: Boolean, private val fond: ImageView?) : LinearLayout(ctx) {
+class MiniLecteur(ctx: Context, private val theme: Theme, private val tele: Boolean, var fond: ImageView?,
+                  /** 16-10 (recette, télé « Vertical ») : dans une colonne étroite, le titre prend la place qui reste (au lieu de 300 dp fixes). */
+                  private val souple: Boolean = false,
+                  /** 1.93.05 (retour 34) : le widget « Lecteur musique » ajouté par l'utilisateur reste visible (« Rien ne joue »). */
+                  private val toujours: Boolean = false) : LinearLayout(ctx) {
     private val main = Handler(Looper.getMainLooper())
     private var etat: Party.Etat? = null
     private var empreinte = ""
@@ -61,11 +65,22 @@ class MiniLecteur(ctx: Context, private val theme: Theme, private val tele: Bool
             v.typeface = if (v === titre) Polices.demiGras(ctx) else Polices.texte(ctx)
             col.addView(v)
         }
-        addView(col, LayoutParams(px(if (tele) 300f else 0f), LayoutParams.WRAP_CONTENT, if (tele) 0f else 1f))
+        addView(col, LayoutParams(px(if (tele && !souple) 300f else 0f), LayoutParams.WRAP_CONTENT, if (tele && !souple) 0f else 1f))
         boutons.gravity = Gravity.CENTER_VERTICAL
         boutons.addView(rond(picLecture, "Lecture ou pause") { basculer() })
         boutons.addView(rond(Picto(ctx, "suivant", theme.encre), "Titre suivant") { commande("suivant") })
         addView(boutons)
+        if (toujours) vide()
+    }
+
+    /** Le widget ajouté, quand rien ne joue : son nom et « Rien ne joue » ; OK ouvre toujours Musique. */
+    private fun vide() {
+        titre.text = context.getString(R.string.zonehaut_widget_lecteur)
+        artiste.text = context.getString(R.string.partyecran_rien_ne_joue); artiste.visibility = VISIBLE
+        boutons.visibility = GONE
+        img.setImageDrawable(null); img.tag = null
+        contentDescription = context.getString(R.string.zonehaut_widget_lecteur) + ". " + context.getString(R.string.partyecran_rien_ne_joue)
+        visibility = VISIBLE
     }
 
     private fun rond(p: Picto, desc: String, action: () -> Unit): View {
@@ -114,14 +129,17 @@ class MiniLecteur(ctx: Context, private val theme: Theme, private val tele: Bool
             } catch (_: Exception) { null }
             main.post {
                 if (!attache) return@post
-                if (e != null) montrer(e)
+                // 1.93.06 (retour 40) : lecture/pause suit le lecteur réel de cet appareil.
+                if (e != null) montrer(Party.corrigerParLocal(context, e, voulu.isNotEmpty()))
                 main.postDelayed(relire, if (visibility == VISIBLE) 5_000L else 15_000L)
             }
         }.also { it.isDaemon = true }.start()
     }
 
+    // Correctif (retour d'essai) : seulement les lecteurs de cet appareil, la Party de cet écran, ou ceux pilotés depuis l'appli
+    // (LecteursSuivis) ; jamais le lecteur « par défaut » d'une autre personne, d'un autre lieu ou d'un banc d'essai.
     private fun joue(e: Party.Etat?) = e != null && e.lecteur.isNotEmpty() && e.maintenant.titre.isNotEmpty() &&
-        e.maintenant.etat in setOf("playing", "paused", "buffering")
+        e.maintenant.etat in setOf("playing", "paused", "buffering") && LecteursSuivis.permis(context, e)
 
     private fun montrer(e: Party.Etat?) {
         etat = e
@@ -132,7 +150,7 @@ class MiniLecteur(ctx: Context, private val theme: Theme, private val tele: Bool
         val cle = if (!joue(e) || m == null) "" else listOf(m.titre, m.artiste, m.etat, m.pochette, e!!.actif, e.lecteur, Party.fondFloute(context)).joinToString("|")
         if (cle == empreinte) return  // rien n'a changé : rien n'est redessiné
         empreinte = cle
-        if (cle.isEmpty() || m == null || e == null) { visibility = GONE; fond?.visibility = GONE; return }
+        if (cle.isEmpty() || m == null || e == null) { if (toujours) vide() else visibility = GONE; fond?.visibility = GONE; return }
         titre.text = m.titre
         artiste.text = m.artiste
         artiste.visibility = if (m.artiste.isEmpty()) GONE else VISIBLE
@@ -150,7 +168,8 @@ class MiniLecteur(ctx: Context, private val theme: Theme, private val tele: Bool
     private fun poserFond(lecteur: String, cle: String, essai: Int) {
         val f = fond ?: return
         if (!Party.fondFloute(context)) { f.visibility = GONE; return }
-        val b: Bitmap? = Pochettes.garde(lecteur, cle)
+        // La pochette déjà montrée sert aussi : la mémoire des pochettes a pu être vidée entre-temps (écran Musique fermé).
+        val b: Bitmap? = Pochettes.garde(lecteur, cle) ?: (img.drawable as? BitmapDrawable)?.bitmap?.takeIf { img.tag == "$lecteur|$cle" }
         if (b == null) { if (essai < 10) main.postDelayed({ if (attache) poserFond(lecteur, cle, essai + 1) }, 500); return }
         val petit = Bitmap.createScaledBitmap(b, 16, 16, true)
         f.setImageDrawable(BitmapDrawable(resources, petit).apply { isFilterBitmap = true })

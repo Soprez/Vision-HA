@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.0 (retour d'essai) : la musique de la veille, une playlist de Music Assistant, favorites en premier (VeilleAudio). -->
+<resources>
+    <string name="veilleaudio_playlist">Playlist pendant la veille</string>
+    <string name="veilleaudio_desactivee">Désactivée</string>
+    <string name="veilleaudio_titre_choix">Playlist de Music Assistant (favorites en premier)</string>
+    <string name="veilleaudio_aucune">Music Assistant n\'a encore aucune playlist dans sa bibliothèque. Cherches-en une dans tes services (YouTube Music…) ici même.</string>
+    <string name="veilleaudio_erreur">Impossible de lire les playlists : %1$s</string>
+    <string name="veilleaudio_reessayer">Réessayer</string>
+    <string name="veilleaudio_note">Jouée par cet appareil pendant la veille, à la place de la radio ; elle s’arrête en sortant de la veille. Rien n’est lancé si de la musique joue déjà.</string>
+</resources>

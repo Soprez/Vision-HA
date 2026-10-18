@@ -309,7 +309,7 @@
     <string name="whc_titre">Home Assistant widget</string>
     <string name="whc_sous_titre">Choose the entity to show, then its style. Only entities allowed on this device are offered.</string>
     <string name="whc_pas_relie">Vision isn\'t connected to Home Assistant on this device yet: open Vision and connect it first.</string>
-    <string name="whc_desactives">Home Assistant widgets are turned off in Vision (Configure → Modules, in Home Assistant).</string>
+    <string name="whc_desactives">Home Assistant widgets are turned off in Vision (Vision → Settings → Features, in Home Assistant).</string>
     <string name="whc_chargement">Loading entities… If there are none, an administrator needs to allow some in Home Assistant (Vision → HA widgets).</string>
     <string name="whc_chercher">Search for an entity</string>
     <string name="whc_pilotable">%1$s · can be controlled</string>
@@ -689,7 +689,6 @@
     <string name="setup_p_accueil">Make Vision the home screen</string>
     <string name="setup_p_accueil_detail">The Home button opens Vision</string>
     <string name="setup_p_accueil_sans">Without it: the Home button goes back to the phone\'s launcher; Vision stays one app among others.</string>
-    <string name="setup_p_accueil_sans_ancienne">Without it: the Home button goes back to the phone\'s launcher; Vision stays one app among others. The old Vision is still installed: it has the same name in Android\'s list.</string>
     <string name="setup_p_maj">Updates</string>
     <string name="setup_p_maj_detail">Vision can install its new versions</string>
     <string name="setup_p_maj_sans">Without it: each new version waits for confirmation on screen.</string>
@@ -737,10 +736,6 @@
         <item quantity="other">And %1$d more: “Fix now” goes through all of them, or “All permissions”, at the bottom of the screen.</item>
     </plurals>
     <string name="setup_acces_refuse_aide">“Access denied” or a greyed-out switch? App info ▸ ⋮ menu ▸ “Allow restricted settings” (offered after a first refusal).</string>
-    <string name="setup_ancienne_titre">The old version of Vision is still here</string>
-    <string name="setup_ancienne_texte">This app replaces it. If the old Vision still protects this device, suspend its protection first (its management code).</string>
-    <string name="setup_ancienne_supprimer">Remove the old version</string>
-    <string name="setup_desinstallation_impossible">Can\'t open uninstall</string>
     <string name="setup_encore_accueil">Vision is still the home screen</string>
     <string name="setup_encore_accueil_texte">This feature is turned off in Home Assistant. Choose the original home screen in the system screen.</string>
     <string name="setup_rendre_accueil">Restore the original home screen</string>
@@ -780,20 +775,15 @@
     <string name="setup_voir_detail">%1$s, show details</string>
     <string name="setup_tes_appareils">On your own devices; shared screens don\'t count.</string>
     <string name="setup_reglages">Settings</string>
-    <string name="setup_apparence">Appearance</string>
-    <string name="setup_apparence_detail">Theme, colors, night mode</string>
     <string name="setup_accueil_detail_tele">Visible apps, bubble</string>
     <string name="setup_accueil_detail_oui">Vision is the home screen: yes · apps, layout</string>
     <string name="setup_accueil_detail_non">Vision is the home screen: no · apps, layout</string>
     <string name="setup_accueil_detail">Visible apps, layout</string>
     <string name="setup_accueil">Home screen</string>
     <string name="setup_accueil_widgets">Home screen and widgets</string>
-    <string name="setup_veille_detail_tableaux">Dashboards, sound, delay</string>
-    <string name="setup_veille_detail">Sound, delay</string>
     <string name="setup_statut_notif">Status in notifications</string>
     <string name="setup_statut_notif_affiche">Shown: allowed or blocked, and the time left</string>
     <string name="setup_masque">Hidden</string>
-    <string name="setup_son_messages">Message sound</string>
     <string name="setup_verrou">Style the lock screen</string>
     <string name="setup_verrou_fond_vision">Vision wallpaper: first name and status (allowed, protection suspended, time up, blocked)</string>
     <string name="setup_verrou_fond_origine">Original wallpaper</string>
@@ -808,7 +798,7 @@
     <string name="setup_en_pause_reprise">Protection suspended, resumes %1$s</string>
     <string name="setup_gestion_detail_max">Code, fingerprint, suspending the protection (%1$d min at most)</string>
     <string name="setup_gestion_detail">Code, fingerprint, suspending the protection</string>
-    <string name="setup_espace_gestion">Management area</string>
+    <string name="setup_espace_gestion">Unlock</string>
     <string name="setup_tout_en_ordre">✅ Everything is in order</string>
     <string name="setup_toutes_autorisations">All permissions</string>
     <plurals name="setup_n_accordees">
@@ -836,7 +826,7 @@
     <string name="setup_connecter">Connect</string>
     <string name="setup_pas_trouve">No address and key found in this text</string>
     <string name="setup_par_qr">Or by QR code, without a key</string>
-    <string name="setup_qr_camera_texte">In Home Assistant, an administrator opens Vision → Configure → Generate a pairing QR code; scan it with this device.</string>
+    <string name="setup_qr_camera_texte">In Home Assistant, an administrator opens Vision → Configure → Add a device, up to the pairing QR code; scan it with this device.</string>
     <string name="setup_scanner_qr_ha">Scan the Home Assistant QR code</string>
     <string name="setup_qr_inverse">Or the other way round: Vision shows a QR code and a code, a %1$s scans it with the Home Assistant app and confirms.</string>
     <string name="setup_qr_sans_camera">Vision shows a QR code and a code; a %1$s scans it with the Home Assistant app on their phone and confirms.</string>

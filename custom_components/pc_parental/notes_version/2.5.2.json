@@ -1,0 +1,45 @@
+{
+  "version": "2.5.2",
+  "date": "2026-10-13",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Agent PC 1.92.0 : sur le PC d'un Décideur, répondre à une demande avec 15 min, 1 h, Exception, Toujours ou Refuser.",
+        "en": "PC agent 1.92.0: on a Decider's PC, answer a request with 15 min, 1 h, Exception, Always or Decline.",
+        "de": "PC-Agent 1.92.0: Auf dem PC eines Entscheiders mit 15 Min., 1 Std., Ausnahme, Immer oder Ablehnen antworten.",
+        "es": "Agente PC 1.92.0: en el PC de un Responsable, responder con 15 min, 1 h, Excepción, Siempre o Rechazar.",
+        "it": "Agente PC 1.92.0: sul PC di un Decisore, rispondere con 15 min, 1 h, Eccezione, Sempre o Rifiuta.",
+        "nl": "Pc-agent 1.92.0: op de pc van een Beslisser antwoorden met 15 min, 1 u, Uitzondering, Altijd of Weigeren."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Les PC passent d'eux-mêmes à l'agent 1.92.0, sans aucun changement de règles.",
+        "en": "PCs move to agent 1.92.0 on their own, with no change to the rules.",
+        "de": "PCs wechseln von selbst auf Agent 1.92.0, ohne Änderung der Regeln.",
+        "es": "Los PC pasan solos al agente 1.92.0, sin ningún cambio de reglas.",
+        "it": "I PC passano da soli all'agente 1.92.0, senza alcun cambio di regole.",
+        "nl": "Pc's gaan vanzelf over op agent 1.92.0, zonder wijziging van de regels."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "La fenêtre Vision du PC dit les nouveaux choix dans les six langues.",
+        "en": "The Vision window on the PC shows the new choices in all six languages.",
+        "de": "Das Vision-Fenster auf dem PC zeigt die neuen Optionen in allen sechs Sprachen.",
+        "es": "La ventana de Vision del PC muestra las nuevas opciones en los seis idiomas.",
+        "it": "La finestra di Vision del PC mostra le nuove scelte nelle sei lingue.",
+        "nl": "Het Vision-venster op de pc toont de nieuwe keuzes in alle zes talen."
+      }
+    }
+  ]
+}

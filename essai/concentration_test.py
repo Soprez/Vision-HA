@@ -23,12 +23,12 @@ async def _installer(hass, hass_storage, modules=None):
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": {
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", type="telephone",
                          apps_vues=dict(VUES)),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
         }}
     if modules is not None:
         donnees["modules"] = modules
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": donnees}
-    for p in ("lou", "robin"):
+    for p in ("lou", "nolan"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -49,7 +49,7 @@ async def test_seules_les_applis_choisies_restent(hass, hass_storage):
     pc = coord.store.pcs["e1"]
     avant, _ = _fermees(coord)
     assert "com.google.android.youtube" not in avant
-    concentration.demarrer(coord.store, pc, 30, ["com.google.android.apps.docs"], "Robin")
+    concentration.demarrer(coord.store, pc, 30, ["com.google.android.apps.docs"], "Nolan")
     coord.store._memos = {}
     fermees, eff = _fermees(coord)
     assert {"com.google.android.youtube", "com.roblox.client"} <= fermees
@@ -70,7 +70,7 @@ async def test_module_coupe(hass, hass_storage):
     from custom_components.pc_parental import concentration
 
     coord = await _installer(hass, hass_storage, modules={"concentration": False})
-    concentration.demarrer(coord.store, coord.store.pcs["e1"], 30, [], "Robin")
+    concentration.demarrer(coord.store, coord.store.pcs["e1"], 30, [], "Nolan")
     coord.store._memos = {}
     fermees, _ = _fermees(coord)
     assert "com.roblox.client" not in fermees
@@ -82,7 +82,7 @@ async def test_geste_du_decideur(hass, hass_storage):
     coord = await _installer(hass, hass_storage)
     cible = coord.store.pcs["e1"]
     phrase = await parent.agir(hass, coord, cible, {"action": "concentration", "minutes": 45,
-                                                  "apps": ["com.google.android.apps.docs"]}, "Robin", "p1")
+                                                  "apps": ["com.google.android.apps.docs"]}, "Nolan", "p1")
     assert "concentration sur TEL-LOU jusqu'à" in phrase and "1 appli gardée" in phrase
     coord.store._memos = {}
     fiche = parent._fiche(hass, coord, cible, ["p1"])
@@ -93,7 +93,7 @@ async def test_geste_du_decideur(hass, hass_storage):
     # Les applis fermées par la concentration ne remplissent pas la liste des applis fermées une par une.
     assert all(a["nom"] != "com.roblox.client" for a in fiche["apps"])
     assert any("Concentration jusqu'à" in m.get("text", m.get("texte", "")) for m in cible["messages"])
-    phrase = await parent.agir(hass, coord, cible, {"action": "concentration", "fin": True}, "Robin", "p1")
+    phrase = await parent.agir(hass, coord, cible, {"action": "concentration", "fin": True}, "Nolan", "p1")
     assert "a arrêté la concentration" in phrase and "concentration" not in cible
 
 

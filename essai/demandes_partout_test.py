@@ -66,7 +66,7 @@ async def test_demande_partout(hass, hass_storage, hass_client, genre, enfant):
     accueil = [x for x in veille_plus.demandes(hass, coord) if x["pc"] == enfant]
     assert [(x["genre"], x["id"]) for x in accueil] == [(genre, d["id"])], accueil
     # 5. Réglée depuis la liste : elle disparaît de la carte et du widget.
-    retour = await parent.agir(hass, coord, coord.store.pcs[enfant], {"action": "acces", "demande": d["id"], "decision": "non"}, "Robin", "p1")
+    retour = await parent.agir(hass, coord, coord.store.pcs[enfant], {"action": "acces", "demande": d["id"], "decision": "non"}, "Nolan", "p1")
     assert retour and "déjà" not in retour, retour
     assert not [x for x in parent.etat_maison(hass, coord, "p1")["demandes"] if x["pc"] == enfant]
     assert not [x for x in veille_plus.demandes(hass, coord) if x["pc"] == enfant]
@@ -79,7 +79,7 @@ async def test_deverrouillage_accorde_depuis_la_liste(hass, hass_storage, hass_c
     coord = await _monter(hass, hass_storage)
     await _demander(client, ENFANT, "deverrouillage")
     d = next(x for x in parent.etat_maison(hass, coord, "p1")["demandes"] if x["genre"] == "deverrouillage")
-    retour = await parent.agir(hass, coord, coord.store.pcs["e1"], {"action": "acces", "demande": d["id"], "decision": "temporaire"}, "Robin", "p1")
+    retour = await parent.agir(hass, coord, coord.store.pcs["e1"], {"action": "acces", "demande": d["id"], "decision": "temporaire"}, "Nolan", "p1")
     assert "20 min" in retour or "accord" in retour.lower(), retour
     etat = deverrouillage._demandes(hass)[d["id"]]["etat"]
     assert etat in ("approuvee", "en_attente"), etat  # quorum à plusieurs : une voix est notée

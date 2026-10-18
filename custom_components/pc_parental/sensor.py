@@ -53,6 +53,12 @@ async def async_setup_entry(
         entites.append(BlocagesSensor(coordinator, pc_id))
     for personne in coordinator.store.personnes_suivies():
         entites.append(FermeturesSensor(coordinator, personne))
+    # Niveau sonore : un capteur par appareil, seulement quand le module est allumé (son.py).
+    from . import son as _son
+
+    son_actif = _son.actif_module(coordinator.store)
+    if son_actif:
+        entites.extend(NiveauSonoreSensor(coordinator, pc_id) for pc_id in coordinator.pcs)
     valides = {
         f"{DOMAIN}_{cle}_{pc}"
         for pc in coordinator.pcs
@@ -66,7 +72,7 @@ async def async_setup_entry(
             "alertes",
             "blocages",
         )
-    } | {
+    } | ({f"{DOMAIN}_son_{pc}" for pc in coordinator.pcs} if son_actif else set()) | {
         f"{DOMAIN}_fermetures_{p.split('.')[-1]}"
         for p in coordinator.store.personnes_suivies()
     } | {
@@ -254,6 +260,10 @@ class PcSessionSensor(PcEntity, SensorEntity):
             "derniere_nouvelle": (
                 dt_util.utc_from_timestamp(vu).isoformat() if vu else None
             ),
+            # 1.93.2 : ce que l'agent coûte à la machine (processeur sur toute la machine, mémoire, fichier hosts).
+            "agent_processeur_pct": (agent.get("charge") or {}).get("cpu_pct"),
+            "agent_memoire_mo": (agent.get("charge") or {}).get("mem_mo"),
+            "agent_hosts_ms": (agent.get("charge") or {}).get("hosts_ms"),
         }
 
 
@@ -832,3 +842,47 @@ class FermeturesSensor(HubEntity, SensorEntity):
                 for f in self._fermetures()
             ],
         }
+
+
+class NiveauSonoreSensor(PcEntity, SensorEntity):
+    """Niveau sonore de la pièce (dB relatifs, 0 à 100), mesuré par le micro de l'appareil ; jamais d'audio.
+
+    Indisponible quand la mesure est éteinte sur l'appareil ou sans relevé depuis cinq minutes. Attributs : le maximum
+    de la dernière minute, les alertes comptées et le seuil de la coupure.
+    """
+
+    _attr_translation_key = "niveau_sonore"
+    _attr_icon = "mdi:volume-vibrate"
+    _attr_native_unit_of_measurement = "dB"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
+        super().__init__(coordinator, pc_id)
+        self._attr_unique_id = f"{DOMAIN}_son_{pc_id}"
+
+    def _etat(self) -> dict[str, Any]:
+        from . import son
+
+        return son.etat(self.pc) if self.pc else {}
+
+    @property
+    def available(self) -> bool:
+        import time
+
+        from . import son
+
+        return bool(super().available and self.pc and son.mesure_active(self.coordinator.store, self.pc)
+                    and time.time() - float(self._etat().get("maj") or 0) < 300)
+
+    @property
+    def native_value(self):
+        return self._etat().get("niveau")
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        from . import son
+
+        e = self._etat()
+        r = son.reglages(self.pc) if self.pc else son.REGLAGES_DEFAUT
+        return {"maximum": e.get("maximum"), "alertes": e.get("alertes", 0), "alertes_avant_coupure": r["alertes_avant_coupure"],
+                "seuil": r["seuil_db"]}

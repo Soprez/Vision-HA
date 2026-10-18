@@ -12,7 +12,7 @@ from party_musique_test import (  # noqa: F401  (fixtures du banc)
     _integrations, _monter, expected_lingering_tasks, expected_lingering_timers,
 )
 
-BASE = "http://192.168.1.11:8095"
+BASE = "http://10.1.1.11:8095"
 
 
 async def test_chemin_interne_par_l_imageproxy(hass, hass_storage, monkeypatch):

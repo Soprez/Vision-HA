@@ -1,0 +1,62 @@
+{
+  "version": "2.5.9",
+  "date": "2026-10-17",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Musique : si un titre finit avant l'arrivée du suivant, Vision le redemande ; la file ne s'arrête plus.",
+        "en": "Music: when a track ends before the next one has arrived, Vision asks for it again; the queue no longer stops halfway.",
+        "de": "Musik: Endet ein Titel vor dem nächsten, fordert Vision ihn erneut an; die Warteschlange stoppt nicht mehr.",
+        "es": "Música: si una canción acaba antes de que llegue la siguiente, Vision la vuelve a pedir; la cola ya no se para.",
+        "it": "Musica: quando un brano finisce prima che arrivi il successivo, Vision lo richiede; la coda non si ferma più a metà.",
+        "nl": "Muziek: eindigt een nummer voordat het volgende er is, dan vraagt Vision het opnieuw; de wachtrij stopt niet meer."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Party : les titres des invités ajoutés en fin de file apparaissent dans la file, même derrière une longue playlist.",
+        "en": "Party: guest tracks added at the end of the queue now show in the queue, even behind a long playlist.",
+        "de": "Party: Titel von Gästen am Ende der Warteschlange erscheinen jetzt dort, auch hinter einer langen Playlist.",
+        "es": "Party: las canciones de invitados añadidas al final aparecen en la cola, incluso tras una lista larga.",
+        "it": "Party: i brani degli ospiti aggiunti in fondo alla coda ora compaiono nella coda, anche dietro una playlist lunga.",
+        "nl": "Party: nummers van gasten achteraan de wachtrij verschijnen nu ook daar, zelfs achter een lange afspeellijst."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Party : le mode des invités (valider avant, jouer après, en fin de file) reste après un redémarrage de HA.",
+        "en": "Party: the guest mode (approve first, play next, end of queue) is kept after a Home Assistant restart.",
+        "de": "Party: Der Gäste-Modus (vorher bestätigen, als Nächstes, ans Ende) bleibt nach einem Neustart erhalten.",
+        "es": "Party: el modo de los invitados (validar antes, después, al final) se mantiene tras reiniciar Home Assistant.",
+        "it": "Party: la modalità degli ospiti (approvare prima, dopo, in fondo) resta dopo un riavvio di Home Assistant.",
+        "nl": "Party: de modus voor gasten (eerst goedkeuren, hierna, achteraan) blijft na een herstart van Home Assistant."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "À classer : un site déjà rangé dans une catégorie et décidé sur chaque appareil des Demandeurs ne compte plus.",
+        "en": "To sort: a site already in a category and decided on every Requester device is no longer counted.",
+        "de": "Einzuordnen: Eine Seite mit Kategorie, über die auf jedem Gerät der Anfragenden entschieden ist, zählt nicht mehr.",
+        "es": "Por clasificar: un sitio con categoría y ya decidido en cada dispositivo de los Solicitantes ya no cuenta.",
+        "it": "Da classificare: un sito già in una categoria e deciso su ogni dispositivo dei Richiedenti non conta più.",
+        "nl": "Te sorteren: een site met een categorie waarover op elk apparaat van Aanvragers is beslist, telt niet meer."
+      }
+    }
+  ]
+}

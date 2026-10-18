@@ -8,6 +8,8 @@ Sans l'intégration (ou lecteur hors Music Assistant) : listes vides et un messa
 """
 from __future__ import annotations
 
+import re
+
 import asyncio
 import logging
 from typing import Any
@@ -164,21 +166,64 @@ async def _appel(hass: HomeAssistant, service: str, donnees: dict[str, Any]) -> 
     return r or {}
 
 
-async def chercher(hass: HomeAssistant, texte: str, types: tuple[str, ...] = TYPES_CHOIX) -> dict[str, list[dict[str, Any]]]:
+# Recherche instantanée (l'appli cherche pendant qu'on tape) : un texte déjà cherché il y a moins d'une minute est
+# rendu tout de suite, et Music Assistant a 8 s pour répondre (le fournisseur le plus lent fixait la durée).
+RECHERCHE_CACHE_S = 60
+RECHERCHE_CACHE_MAX = 64
+RECHERCHE_DELAI_S = 8
+
+
+async def chercher(hass: HomeAssistant, texte: str, types: tuple[str, ...] = TYPES_CHOIX,
+                   bibliotheque_seule: bool = False) -> dict[str, list[dict[str, Any]]]:
     """Recherche par titre, artiste, album ou playlist. Résultats groupés par type."""
+    import time as _time
+
     texte = " ".join(str(texte or "").split())[:MAX_TEXTE]
     if len(texte) < 2:
         return {}
-    # Tout le catalogue de chaque fournisseur (library_only=False), et assez de résultats par type (5 par défaut).
-    r = await _appel(hass, "search", {"name": texte, "media_type": list(types), "limit": MAX_RESULTATS, "library_only": False})
+    # Gardé dans l'instance de Home Assistant (un rechargement ou un autre Home Assistant repart de zéro).
+    recherches: dict[tuple[str, tuple[str, ...], bool], tuple[float, dict[str, list[dict[str, Any]]]]] = (
+        hass.data.setdefault("pc_parental_recherches", {}))
+    cle = (texte.casefold(), tuple(sorted(types)), bool(bibliotheque_seule))
+    maintenant = _time.monotonic()
+    if (garde := recherches.get(cle)) is not None and maintenant - garde[0] < RECHERCHE_CACHE_S:
+        return {t: list(l) for t, l in garde[1].items()}
+    # Tout le catalogue de chaque fournisseur (sauf « Ma bibliothèque seulement »), assez de résultats par type.
+    try:
+        r = await asyncio.wait_for(_appel(hass, "search", {"name": texte, "media_type": list(types), "limit": MAX_RESULTATS,
+                                                           "library_only": bool(bibliotheque_seule)}), RECHERCHE_DELAI_S)
+    except asyncio.TimeoutError as err:
+        _LOGGER.info("Music Assistant : recherche « %s » au-delà de %d s", texte, RECHERCHE_DELAI_S)
+        raise MusiqueIndisponible("mus.recherche_lente") from err
     sortie: dict[str, list[dict[str, Any]]] = {}
-    for cle, type_ in (("tracks", "track"), ("playlists", "playlist"), ("albums", "album"), ("artists", "artist"), ("radio", "radio")):
+    for cle_ma, type_ in (("tracks", "track"), ("playlists", "playlist"), ("albums", "album"), ("artists", "artist"), ("radio", "radio")):
         if type_ not in types:
             continue
-        l = [x for x in (element(i) for i in (r.get(cle) or [])[:MAX_RESULTATS]) if x]
+        l = [x for x in (element(i) for i in (r.get(cle_ma) or [])[:MAX_RESULTATS]) if x]
         if l:
             sortie[type_] = l
-    return sortie
+    for vieille in [k for k, v in recherches.items() if maintenant - v[0] >= RECHERCHE_CACHE_S]:
+        recherches.pop(vieille, None)
+    while len(recherches) >= RECHERCHE_CACHE_MAX:
+        recherches.pop(next(iter(recherches)))
+    recherches[cle] = (maintenant, sortie)
+    return {t: list(l) for t, l in sortie.items()}
+
+
+async def suggestions(hass: HomeAssistant, n: int = 8) -> list[str]:
+    """De quoi chercher sans taper : les artistes, puis les titres, les plus joués de la bibliothèque (sans doublon)."""
+    items = await souvent_joues(hass, 40)
+    sortie: list[str] = []
+    for x in items:
+        for a in str(x.get("artiste") or "").split(","):
+            a = a.strip()
+            if a and a.casefold() not in {s.casefold() for s in sortie}:
+                sortie.append(a)
+    for x in items:
+        t = str(x.get("nom") or "").strip()
+        if t and t.casefold() not in {s.casefold() for s in sortie}:
+            sortie.append(t)
+    return sortie[:n]
 
 
 # Fournisseurs « musique » de Music Assistant qui ne sont pas de la musique à chercher (bruits d'ambiance, démos…).
@@ -277,17 +322,19 @@ def hors_service(hass: HomeAssistant) -> bool:
 
 
 async def bibliotheque(hass: HomeAssistant, quoi: str) -> list[dict[str, Any]]:
-    """Playlists, radios ou favoris (titres et playlists marqués favoris) de la bibliothèque."""
+    """Playlists, radios, albums ou favoris (titres et playlists marqués favoris) de la bibliothèque."""
     if quoi == "favoris":
         sortie: list[dict[str, Any]] = []
         for t in ("playlist", "track", "album"):
             r = await _appel(hass, "get_library", {"media_type": t, "favorite": True})
             sortie += [x for x in (element(i) for i in (r.get("items") or [])[:MAX_RESULTATS]) if x]
         return sortie
-    if quoi not in ("playlist", "radio"):
+    if quoi not in ("playlist", "radio", "album"):
         raise MusiqueIndisponible("commun.choix_inconnu")
-    r = await _appel(hass, "get_library", {"media_type": quoi})
-    sortie = [x for x in (element(i) for i in (r.get("items") or [])[:50]) if x]
+    # 2.5.7 (l'auteur, 16/10 : « lire la musique locale du NUC ») : « album » = les albums de la bibliothèque de Music
+    # Assistant, où arrive aussi la musique locale (fournisseur Fichiers) ; par nom, plus nombreux que les playlists.
+    r = await _appel(hass, "get_library", {"media_type": quoi, **({"limit": 200, "order_by": "name"} if quoi == "album" else {})})
+    sortie = [x for x in (element(i) for i in (r.get("items") or [])[:200 if quoi == "album" else 50]) if x]
     if quoi == "playlist":
         # 2.2.11 (retour d'essai) : le nombre de titres de chaque playlist (en parallèle, au plus 4 à la fois, gardé 10 min).
         sem = asyncio.Semaphore(4)
@@ -297,6 +344,59 @@ async def bibliotheque(hass: HomeAssistant, quoi: str) -> list[dict[str, Any]]:
                 x["nb"] = await nb_titres(hass, x["uri"], "playlist")
         await asyncio.gather(*(compter(x) for x in sortie))
     return sortie
+
+
+_RE_BIBLIO = re.compile(r"^library://(track|album|artist|playlist|radio|audiobook|podcast)/(\w+)$")
+
+
+def _client(hass: HomeAssistant):
+    """Le client Music Assistant de l'intégration officielle (déjà connecté et authentifié), ou None."""
+    e = entree(hass)
+    donnees = getattr(e, "runtime_data", None) if e is not None else None
+    return getattr(donnees, "mass", None)
+
+
+async def basculer_favori(hass: HomeAssistant, uri: str, favori: bool) -> bool:
+    """l'auteur (15/10) : le cœur de Vision — ajoute ou retire un favori dans Music Assistant, sans ouvrir son interface.
+
+    Il n'existe pas de service Home Assistant pour cela (seul le bouton « favori du titre en cours » d'un lecteur) :
+    on passe par le client de l'intégration Music Assistant (commandes music/favorites/add_item et remove_item),
+    sans connexion ni jeton de plus. Ajouter accepte une uri de fournisseur (YouTube Music…) : Music Assistant l'ajoute
+    alors à sa bibliothèque. Retirer se fait par l'élément de bibliothèque (uri library://… ou retrouvé par l'uri).
+    Rend le nouvel état.
+    """
+    mass = _client(hass)
+    if mass is None:
+        raise MusiqueIndisponible("mus.pas_relie")
+    uri = str(uri or "").strip()
+    if not uri or "://" not in uri or len(uri) > 300:
+        raise MusiqueIndisponible("commun.choix_inconnu")
+    try:
+        if favori:
+            await mass.music.add_item_to_favorites(uri)
+        else:
+            m = _RE_BIBLIO.match(uri)
+            if m:
+                type_, ident = m.group(1), m.group(2)
+            else:
+                item = await mass.music.get_item_by_uri(uri)
+                type_ = str(getattr(getattr(item, "media_type", ""), "value", getattr(item, "media_type", "")) or "")
+                ident = str(getattr(item, "item_id", "") or "")
+                if str(getattr(item, "provider", "")) != "library" or not ident:
+                    return False  # pas dans la bibliothèque : il n'était pas favori
+            await mass.music.remove_item_from_favorites(type_, ident)
+    except MusiqueIndisponible:
+        raise
+    except Exception as err:  # noqa: BLE001 - l'appli reçoit une phrase, le journal le détail
+        _LOGGER.info("Music Assistant favori %s : %s", uri, err)
+        raise MusiqueIndisponible("mus.ne_repond_pas") from err
+    return favori
+
+
+async def playlists_bibliotheque(hass: HomeAssistant) -> list[dict[str, Any]]:
+    """Toutes les playlists de la bibliothèque de Music Assistant (favorites ou non), sans compter leurs titres."""
+    r = await _appel(hass, "get_library", {"media_type": "playlist", "limit": 200})
+    return [x for x in (element(i) for i in (r.get("items") or [])[:200]) if x]
 
 
 _SOUVENT: dict[str, Any] = {"ts": 0.0, "items": []}
@@ -385,7 +485,13 @@ def _client(hass: HomeAssistant):
 
 def _file_id(hass: HomeAssistant, lecteur: str) -> str:
     s = hass.states.get(lecteur)
-    return str(s.attributes.get("active_queue") or "") if s is not None else ""
+    q = str(s.attributes.get("active_queue") or "") if s is not None else ""
+    if q or (s is not None and s.state != "unavailable"):
+        return q
+    # 2.5.8 : un lecteur hors ligne n'a plus d'attribut ; sa file porte l'identifiant du lecteur dans Music Assistant
+    # (ex. « 16:c5:f4:17:73:61 » pour un lecteur Classique) : on le lit dans le registre des entités.
+    e = er.async_get(hass).async_get(lecteur)
+    return str(e.unique_id) if e is not None and e.platform == MA and e.unique_id else ""
 
 
 def _vers_dict(o: Any) -> dict[str, Any]:
@@ -417,8 +523,11 @@ def image_en_cours(hass: HomeAssistant, lecteur: str) -> str:
     return _image(media) or _image(d) or _image(album)
 
 
-async def file(hass: HomeAssistant, lecteur: str, n: int = 30) -> list[dict[str, Any]]:
-    """La suite après le titre en cours : [{id, titre, artiste, uri}]. Client MA si possible, sinon get_queue."""
+async def file(hass: HomeAssistant, lecteur: str, n: int = 30, depuis_fin: int = 0) -> list[dict[str, Any]]:
+    """La suite après le titre en cours : [{id, titre, artiste, uri}]. Client MA si possible, sinon get_queue.
+
+    [depuis_fin] (2.5.9) : les [depuis_fin] derniers titres de la file, au-delà des [n] titres à suivre (client MA
+    seulement ; rien sinon)."""
     if not lecteur or lecteur not in lecteurs_ma(hass):
         return []
     mass, qid = _client(hass), _file_id(hass, lecteur)
@@ -430,6 +539,11 @@ async def file(hass: HomeAssistant, lecteur: str, n: int = 30) -> list[dict[str,
             # 2.2.1 (l'auteur : « une file infinie ») : on lit à partir du titre en cours ; avant, la lecture partait du
             # début et, loin dans une longue file (372 titres), l'historique passait pour « à suivre ».
             depart = courant + 1 if isinstance(courant, int) and courant >= 0 else 0
+            if depuis_fin:
+                total = q.get("items")
+                if not isinstance(total, int) or total <= depart + n:
+                    return []
+                depart, n = max(depart + n, total - depuis_fin), depuis_fin
             items = await mass.player_queues.get_queue_items(qid, limit=n, offset=depart)
             sortie = []
             vus: set[str] = set()
@@ -448,6 +562,8 @@ async def file(hass: HomeAssistant, lecteur: str, n: int = 30) -> list[dict[str,
             return [x for x in sortie if x["titre"]]
         except Exception as err:  # noqa: BLE001 - repli sur le service
             _LOGGER.debug("File Music Assistant (client) illisible : %s", err)
+    if depuis_fin:
+        return []
     if not hass.services.has_service(MA, "get_queue"):
         return []
     try:
@@ -466,6 +582,38 @@ async def file(hass: HomeAssistant, lecteur: str, n: int = 30) -> list[dict[str,
     return []
 
 
+FILE_PASSES_N = 10
+
+
+async def file_passes(hass: HomeAssistant, lecteur: str, n: int = FILE_PASSES_N) -> list[dict[str, Any]]:
+    """2.5.8 (retour d'essai) : les [n] derniers titres joués de la file (du plus ancien au plus récent), pour que la file de
+    l'écran défile et suive le titre en cours. Rien sans le client de Music Assistant."""
+    if not lecteur or lecteur not in lecteurs_ma(hass):
+        return []
+    mass, qid = _client(hass), _file_id(hass, lecteur)
+    pq = getattr(mass, "player_queues", None) if mass is not None else None
+    if pq is None or not qid or not hasattr(pq, "get") or not hasattr(pq, "get_queue_items"):
+        return []
+    try:
+        courant = _vers_dict(pq.get(qid)).get("current_index")
+        if not isinstance(courant, int) or courant <= 0:
+            return []
+        depart = max(0, courant - n)
+        items = await pq.get_queue_items(qid, limit=courant - depart, offset=depart)
+    except Exception as err:  # noqa: BLE001
+        _LOGGER.debug("Titres joués de %s illisibles : %s", lecteur, err)
+        return []
+    sortie = []
+    for it in items or []:
+        d = _vers_dict(it)
+        media = d.get("media_item") if isinstance(d.get("media_item"), dict) else {}
+        t = _texte(media.get("name") or d.get("name"), 120)
+        if t:
+            sortie.append({"id": _texte(d.get("queue_item_id"), 80), "titre": t, "artiste": _artistes(media),
+                           "uri": _texte(media.get("uri"), 300), "image": _image(media) or _image(d)})
+    return sortie
+
+
 async def _sur_file(hass: HomeAssistant, lecteur: str, quoi: str, faire) -> None:
     mass, qid = _client(hass), _file_id(hass, lecteur)
     if mass is None or not qid:
@@ -478,10 +626,15 @@ async def _sur_file(hass: HomeAssistant, lecteur: str, quoi: str, faire) -> None
 
 
 async def jouer_element(hass: HomeAssistant, lecteur: str, id_element: str) -> None:
-    """2.2.1 : jouer tout de suite un titre déjà dans la file (sans rien retirer)."""
+    """2.2.1 : jouer tout de suite un titre déjà dans la file (sans rien retirer).
+
+    2.5.8 (l'auteur, 16/10 : « quand on rejoue un précédent, c'est un autre morceau qui part ») : avant, Music Assistant
+    sautait au titre (play_index) et tous ceux d'entre les deux passaient pour joués : « Précédent » ramenait le dernier
+    sauté, pas le titre qu'on écoutait. Le titre est maintenant placé juste après celui en cours ; l'appelant passe
+    ensuite au suivant (media_next_track) : l'ordre de la file est gardé et « Précédent » ramène au titre d'avant."""
     if not id_element:
         raise MusiqueIndisponible("commun.choix_inconnu")
-    await _sur_file(hass, lecteur, "play_index " + id_element, lambda pq, q: pq.play_index(q, id_element))
+    await _sur_file(hass, lecteur, "move_next " + id_element, lambda pq, q: pq.move_next(q, id_element))
 
 
 async def ensuite_element(hass: HomeAssistant, lecteur: str, id_element: str) -> None:
@@ -574,22 +727,62 @@ async def tenir_volume(hass: HomeAssistant, eid: str) -> bool:
         return False
 
 
+def _nom_dans_ma(hass: HomeAssistant, player_id: str) -> str:
+    """Le nom du lecteur dans Music Assistant (vide si inconnu)."""
+    mass = _client(hass)
+    players = getattr(mass, "players", None) if mass is not None else None
+    if players is None or not player_id or not hasattr(players, "get"):
+        return ""
+    try:
+        p = _vers_dict(players.get(player_id)) or {}
+    except Exception:  # noqa: BLE001 - lecteur inconnu de MA
+        return ""
+    return str(p.get("name") or p.get("display_name") or "")
+
+
+def nom_vision(hass: HomeAssistant, e) -> str:
+    """2.4.7 (télé d'essai : « squeezeplay: 5a:7a:… ») : le nom « <appareil> · Vision » de ce lecteur, vu par Home
+    Assistant ou, à défaut, par Music Assistant ; vide si ce n'est pas un lecteur de Vision.
+
+    MA enregistre un lecteur Squeezelite juste après sa connexion, sous un nom par défaut ; Vision lui renvoie ensuite
+    son nom, que MA prend, mais l'entité de Home Assistant garde le nom de sa création. HA renomme alors l'appareil
+    (sauf si quelqu'un l'a déjà nommé à la main), pour que les règles des lecteurs « · Vision » s'y appliquent."""
+    s = hass.states.get(e.entity_id)
+    nom = str((s.attributes.get("friendly_name") if s else None) or e.original_name or "")
+    if nom.endswith(SUFFIXE_VISION):
+        return nom
+    nom_ma = _nom_dans_ma(hass, e.unique_id or "")
+    if not nom_ma.endswith(SUFFIXE_VISION):
+        return ""
+    if e.device_id:
+        from homeassistant.helpers import device_registry as dr
+
+        dreg = dr.async_get(hass)
+        dev = dreg.async_get(e.device_id)
+        if dev is not None and not dev.name_by_user and dev.name != nom_ma:
+            dreg.async_update_device(e.device_id, name_by_user=nom_ma)
+            _LOGGER.info("Music Assistant : lecteur %s renommé « %s » (lecteur de Vision)", e.entity_id, nom_ma)
+    return nom_ma
+
+
 async def regler_lecteurs_vision(hass: HomeAssistant) -> list[str]:
     """2.2.13 (l'auteur : « un morceau démarre 5 s puis se coupe ») : Music Assistant envoie du FLAC par défaut à un lecteur
     Squeezelite ; le lecteur de Vision (Android) ne lit en flux que le MP3 : il jouait les 4-5 s reçues puis coupait.
     Chaque lecteur « · Vision » de Music Assistant est donc réglé en MP3 (une fois par lecteur et par démarrage).
 
     2.3.8 (l'auteur : « pas de son », « le volume est géré par la TV ») : un lecteur « · Vision » recréé arrivait à 10 % de
-    volume logiciel (son quasi nul). Son volume logiciel est tenu à 100 % ; c'est la télécommande qui règle le son."""
+    volume logiciel (son quasi nul). Son volume logiciel est tenu à 100 % ; c'est la télécommande qui règle le son.
+
+    2.4.6 : l'ajout automatique de Music Assistant y est coupé ([couper_ajout_auto])."""
     reg = er.async_get(hass)
     for e in list(reg.entities.values()):
         if e.platform != MA or e.domain != "media_player":
             continue
-        s = hass.states.get(e.entity_id)
-        nom = str((s.attributes.get("friendly_name") if s else None) or e.original_name or "")
-        if nom.endswith(SUFFIXE_VISION):
+        nom = nom_vision(hass, e)
+        if nom:
             _LECTEURS_VISION.add(e.entity_id)
             await tenir_volume(hass, e.entity_id)
+            await couper_ajout_auto(hass, e.entity_id)
     mass = _client(hass)
     if mass is None or not hasattr(mass, "send_command"):
         return []
@@ -597,9 +790,8 @@ async def regler_lecteurs_vision(hass: HomeAssistant) -> list[str]:
     for e in list(reg.entities.values()):
         if e.platform != MA or e.domain != "media_player" or not e.unique_id or e.unique_id in _CODEC_FAIT:
             continue
-        s = hass.states.get(e.entity_id)
-        nom = str((s.attributes.get("friendly_name") if s else None) or e.original_name or "")
-        if not nom.endswith(SUFFIXE_VISION):
+        nom = nom_vision(hass, e)
+        if not nom:
             continue
         # Client Sendspin natif : le MP3 ne vaut que pour l'ancien lecteur Squeezelite de Vision (identifiant = adresse
         # MAC) ; un lecteur Sendspin choisit lui-même son format (FLAC) et sa config n'est jamais touchée.
@@ -620,6 +812,33 @@ async def regler_lecteurs_vision(hass: HomeAssistant) -> list[str]:
         except Exception as err:  # noqa: BLE001 - on réessaiera au tour suivant
             _LOGGER.warning("Music Assistant : réglage MP3 de %s impossible : %s", nom, err)
     return faits
+
+
+# 2.4.6 (l'auteur : « la file a fini, Play a ajouté 28 titres que personne n'a choisis ») : l'« Autoplay » (« Don't stop the
+# music ») de Music Assistant est coupé sur tout lecteur « · Vision », dès qu'il apparaît, comme le volume à 100 %.
+# Seule exception : la Party en cours sur ce lecteur avec « Continuer avec des titres similaires ».
+_AUTOPLAY_COUPE: set[str] = set()
+
+
+def _similaires_ici(hass: HomeAssistant, eid: str) -> bool:
+    from .party import etat as etat_soiree
+    st = etat_soiree(hass)
+    return bool(st.get("actif") and st.get("lecteur") == eid and st.get("similaires"))
+
+
+async def couper_ajout_auto(hass: HomeAssistant, eid: str) -> bool:
+    """Coupe l'ajout automatique de Music Assistant sur ce lecteur « · Vision » s'il est actif (ou inconnu, une fois par
+    file). True si la commande est partie."""
+    qid = _file_id(hass, eid)
+    if not qid or _similaires_ici(hass, eid):
+        return False
+    actif = ajout_auto_actif(hass, eid)
+    if actif is False or (actif is None and qid in _AUTOPLAY_COUPE):
+        return False
+    await sans_ajout_auto(hass, eid, False)
+    _AUTOPLAY_COUPE.add(qid)
+    _LOGGER.info("Music Assistant : ajout automatique coupé sur %s", eid)
+    return True
 
 
 def similaires_voulus(hass: HomeAssistant) -> bool:
@@ -759,3 +978,8 @@ async def retirer(hass: HomeAssistant, lecteur: str, id_element: str) -> None:
             if not isinstance(q.get("items"), int) or q["items"] < avant:
                 break
             await asyncio.sleep(0.1)
+        else:
+            # Banc Musique (2026-10-12) : Music Assistant ne retire pas un titre déjà préchargé (« delete requested for item
+            # already loaded in buffer », sans erreur) ; Vision affichait pourtant « Titre retiré ». On le dit.
+            _LOGGER.info("Retrait de %s de la file %s ignoré par Music Assistant (titre déjà préchargé)", id_element, qid)
+            raise MusiqueIndisponible("mus.retrait_deja_charge")

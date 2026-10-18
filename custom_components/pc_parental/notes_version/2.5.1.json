@@ -1,0 +1,63 @@
+{
+  "version": "2.5.1",
+  "date": "2026-10-13",
+  "points": [
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "L'œil de Vision remplace les bandeaux gris : il réagit (✓, ✗, i) et le texte reste le temps de le lire.",
+        "en": "Vision's eye replaces the grey banners: it reacts (✓, ✗, i) and the text stays long enough to read.",
+        "de": "Das Vision-Auge ersetzt die grauen Banner: Es reagiert (✓, ✗, i), der Text bleibt lange genug zum Lesen.",
+        "es": "El ojo de Vision sustituye a los avisos grises: reacciona (✓, ✗, i) y el texto se queda el tiempo de leerlo.",
+        "it": "L'occhio di Vision sostituisce le barre grigie: reagisce (✓, ✗, i) e il testo resta il tempo di leggerlo.",
+        "nl": "Het oog van Vision vervangt de grijze balken: het reageert (✓, ✗, i) en de tekst blijft staan om te lezen."
+      }
+    },
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Haut de l'accueil au choix : heure et météo, remerciement, message personnalisé ou rien.",
+        "en": "Top of the start screen of your choice: time and weather, thank-you, custom message or nothing.",
+        "de": "Oberer Bereich des Startbildschirms nach Wahl: Uhrzeit und Wetter, Dank, eigene Nachricht oder nichts.",
+        "es": "Parte superior del inicio a elegir: hora y tiempo, agradecimiento, mensaje propio o nada.",
+        "it": "Parte alta della schermata iniziale a scelta: ora e meteo, ringraziamento, messaggio personale o niente.",
+        "nl": "Bovenkant van het startscherm naar keuze: tijd en weer, bedankje, eigen bericht of niets."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Réveil : un onglet « Réveils » dans le tableau de Vision, et la prochaine alarme dans les Paramètres.",
+        "en": "Alarm: an “Alarms” tab in the Vision dashboard, and the next alarm in Settings.",
+        "de": "Wecker: ein Tab „Wecker“ im Vision-Dashboard und der nächste Wecker in den Einstellungen.",
+        "es": "Despertador: una pestaña «Despertadores» en el panel de Vision y la próxima alarma en Ajustes.",
+        "it": "Sveglia: una scheda «Sveglie» nella dashboard di Vision e la prossima sveglia nelle Impostazioni.",
+        "nl": "Wekker: een tabblad “Wekkers” in het Vision-dashboard en de volgende wekker in Instellingen."
+      }
+    },
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Réveil : il sonne aussi après un redémarrage de l'appareil ou un arrêt forcé de l'appli.",
+        "en": "Alarm: it also rings after the device restarts or the app is force-stopped.",
+        "de": "Wecker: Er klingelt auch nach einem Neustart des Geräts oder einem erzwungenen Beenden der App.",
+        "es": "Despertador: suena también tras reiniciar el dispositivo o forzar la detención de la app.",
+        "it": "Sveglia: suona anche dopo il riavvio del dispositivo o l'arresto forzato dell'app.",
+        "nl": "Wekker: hij gaat ook af na een herstart van het apparaat of als de app geforceerd is gestopt."
+      }
+    }
+  ]
+}

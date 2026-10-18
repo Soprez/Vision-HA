@@ -17,4 +17,15 @@
     <string name="appairage_pin_phrase">Voer deze code in Music Assistant in om deze tv te koppelen.</string>
     <string name="appairage_geste_phrase">Music Assistant vraagt deze tv te koppelen. Toestaan?</string>
     <string name="appairage_autoriser">Toestaan</string>
+    <!-- 1.90.2 (l'auteur : « jamais le code à l'écran ») : appairage à la main seulement, depuis Décideurs. -->
+    <string name="appairage_connexion">Verbinden met de muziek…</string>
+    <string name="appairage_manuel_phrase">Start het koppelen van “%1$s” in Music Assistant: de code verschijnt hier.</string>
+    <string name="appairage_reussi">Deze tv is gekoppeld met Music Assistant.</string>
+    <string name="appairage_echec">Koppelen is niet gelukt. Start het opnieuw in Music Assistant.</string>
+    <string name="appairage_fermer">Sluiten</string>
+    <string name="reglagestv_appairage_musique">Muziekkoppeling</string>
+    <string name="reglagestv_appairage_ok">Gekoppeld</string>
+    <string name="reglagestv_appairage_echec">Niet gekoppeld</string>
+    <string name="reglagestv_appairage_echec_note">Automatisch koppelen is niet gelukt. Je kunt met de hand koppelen.</string>
+    <string name="reglagestv_appairer_main">Met de hand koppelen</string>
 </resources>

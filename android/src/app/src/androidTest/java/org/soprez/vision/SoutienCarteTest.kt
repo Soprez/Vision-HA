@@ -14,8 +14,8 @@ import android.widget.TextView
 import java.io.File
 
 /**
- * Carte « ☕ Payez-nous un café » (retour d'essai, photo de la télé) : sur la télé, en bas du menu des réglages,
- * dernier élément, atteinte à la télécommande, sans code ; sur le téléphone, dans « À propos ». Petit QR de la page
+ * Carte « ☕ Payez-moi un café » (retour d'essai, photo de la télé) : sur la télé, en bas du menu des réglages,
+ * dernier élément, atteinte à la télécommande, sans code ; sur le téléphone, en tête des Réglages de l'appli (15-10). Petit QR de la page
  * de don, badge seulement si le soutien est actif, texte jamais coupé. Captures dans files/captures/.
  *
  *   adb -s emulator-5592 shell am instrument -w -e class org.soprez.vision.SoutienCarteTest org.soprez.vision.test/android.test.InstrumentationTestRunner
@@ -40,8 +40,23 @@ class SoutienCarteTest : InstrumentationTestCase() {
         File(d, "$nom.png").outputStream().use { b.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
+    // Intégration du 15/10 : hors télé, la carte est dans l'espace Réglages, que l'appli ne montre qu'une fois reliée
+    // (sinon : l'écran de connexion). L'essai pose un appareil relié le temps de l'essai, puis remet l'état d'avant.
+    private var sauveId: String? = null
+    private var sauveSecret: String? = null
+
+    override fun setUp() {
+        super.setUp()
+        if (!tele) { val c = Config(ctx); sauveId = c.id; sauveSecret = c.secret; if (!c.inscrit) { c.id = "essai_soutien"; c.secret = "s".repeat(32) } }
+    }
+
+    override fun tearDown() {
+        if (!tele) { val c = Config(ctx); c.id = sauveId ?: ""; c.secret = sauveSecret ?: "" }
+        super.tearDown()
+    }
+
     private fun ouvrir(): Activity {
-        val a = instrumentation.startActivitySync(Intent(ctx, ReglagesTvActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        val a = instrumentation.startActivitySync(EcransReglages.reglages(ctx).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         instrumentation.waitForIdleSync(); SystemClock.sleep(1200)
         return a
     }
@@ -78,6 +93,18 @@ class SoutienCarteTest : InstrumentationTestCase() {
         try { bloc() } finally { fige.set(false); figeur.join(); Etat.soutien = avant }
     }
 
+
+    /** l'auteur (14/10) : « Payez-MOI un café », au singulier, dans les 6 langues (plus jamais « nous », « us », « uns »…). */
+    fun testTexteAuSingulier() {
+        val attendus = mapOf(
+            "fr" to "☕ Payez-moi un café", "en" to "☕ Buy me a coffee", "de" to "☕ Spendier mir einen Kaffee",
+            "es" to "☕ Invítame a un café", "it" to "☕ Offrimi un caffè", "nl" to "☕ Trakteer me op koffie")
+        for ((lg, texte) in attendus) {
+            val conf = android.content.res.Configuration(ctx.resources.configuration).apply { setLocale(java.util.Locale(lg)) }
+            assertEquals("texte de la carte ($lg)", texte, ctx.createConfigurationContext(conf).getString(R.string.soutien_carte))
+        }
+    }
+
     fun testCarteSansBadge() = avecSoutien(false) {
         val a = ouvrir()
         try {
@@ -108,8 +135,12 @@ class SoutienCarteTest : InstrumentationTestCase() {
                 touche(KeyEvent.KEYCODE_DPAD_UP)
                 assertTrue("▲ depuis la carte revient à la dernière section", sections.last().isFocused)
             } else {
-                instrumentation.runOnMainSync { c.requestFocus(); (champ(a, "racine") as android.widget.ScrollView).scrollTo(0, c.bottom) }
-                instrumentation.waitForIdleSync(); SystemClock.sleep(300)
+                // 15-10 (retour d'essai) : le café saute aux yeux dès l'entrée dans les Réglages : entier à l'écran, sans défiler.
+                instrumentation.runOnMainSync {
+                    val r = android.graphics.Rect()
+                    assertTrue("carte Soutien hors de l'écran à l'ouverture", c.getGlobalVisibleRect(r))
+                    assertEquals("carte Soutien coupée à l'ouverture (il faudrait défiler)", c.height, r.height())
+                }
                 capturer("soutien_carte_telephone")
             }
         } finally { a.finish(); instrumentation.waitForIdleSync() }
@@ -121,11 +152,7 @@ class SoutienCarteTest : InstrumentationTestCase() {
             val c = carte(a)
             verifierTexte(c, listOf(ctx.getString(R.string.soutien_carte), ctx.getString(R.string.soutien_badge)))
             if (tele) capturer("soutien_carte_tv_badge")
-            else {
-                instrumentation.runOnMainSync { (champ(a, "racine") as android.widget.ScrollView).scrollTo(0, 100_000) }
-                instrumentation.waitForIdleSync(); SystemClock.sleep(300)
-                capturer("soutien_carte_telephone_badge")
-            }
+            else capturer("soutien_carte_telephone_badge")  // en tête des Réglages : rien à faire défiler
         } finally { a.finish(); instrumentation.waitForIdleSync() }
     }
 }

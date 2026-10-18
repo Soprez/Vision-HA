@@ -16,12 +16,12 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 async def _installer(hass, hass_storage):
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "lieu": "Maison des essais",
-        "roles_personnes": {"person.robin": "parent"}, "pcs": {
+        "roles_personnes": {"person.nolan": "parent"}, "pcs": {
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", type="telephone"),
             "e2": _fiche("e2", "PC-NOA", ENFANT2["secret"], person="person.noa"),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
         }}}
-    for p in ("lou", "noa", "robin"):
+    for p in ("lou", "noa", "nolan"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -104,7 +104,7 @@ async def test_parcours_configurer(hass, hass_storage, tmp_path):
     entree = await _installer(hass, hass_storage)
     om = hass.config_entries.options
     r = await om.async_init(entree.entry_id)
-    r = await om.async_configure(r["flow_id"], {"next_step_id": "avance"})
+    r = await om.async_configure(r["flow_id"], {"next_step_id": "reparer"})
     r = await om.async_configure(r["flow_id"], {"next_step_id": "sauvegarde"})
     assert r["type"] == "menu" and "Aucune sauvegarde" in r["description_placeholders"]["liste"]
     r = await om.async_configure(r["flow_id"], {"next_step_id": "sauvegarde_creer"})
@@ -112,7 +112,7 @@ async def test_parcours_configurer(hass, hass_storage, tmp_path):
     assert r["type"] == "abort" and r["reason"] == "sauvegarde_faite"
 
     r = await om.async_init(entree.entry_id)
-    r = await om.async_configure(r["flow_id"], {"next_step_id": "avance"})
+    r = await om.async_configure(r["flow_id"], {"next_step_id": "reparer"})
     r = await om.async_configure(r["flow_id"], {"next_step_id": "sauvegarde"})
     r = await om.async_configure(r["flow_id"], {"next_step_id": "sauvegarde_restaurer"})
     assert r["type"] == "form"

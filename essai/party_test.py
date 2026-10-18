@@ -24,7 +24,7 @@ async def _monter(hass, hass_storage, fete="off"):
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": {
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", role="enfant", type="telephone"),
             "t1": _fiche("t1", "Téléviseur du salon", TELE["secret"], platform="android", role="enfant", type="tv"),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
         },
         "entites_personnes": {"person.lou": [SALON]},
         "entites_actions": {SALON: ["media_play_pause", "volume_set"]},
@@ -106,9 +106,9 @@ async def test_lancer_arreter_emet_les_evenements_sans_toucher_au_mode_fete(hass
     assert s == 200
     await hass.async_block_till_done()
     assert [v[0] for v in vus] == ["debut", "fin"]
-    assert vus[0][1] == {"ecran": "t1", "ecran_nom": "Téléviseur du salon", "lecteur": SALON, "appareil": "PIXEL-ROBIN",
-                         "appareil_id": "p1", "personne": "person.robin"}
-    assert vus[1][1]["appareil"] == "PIXEL-ROBIN" and vus[1][1]["ecran"] == "t1"
+    assert vus[0][1] == {"ecran": "t1", "ecran_nom": "Téléviseur du salon", "lecteur": SALON, "appareil": "PIXEL-NOLAN",
+                         "appareil_id": "p1", "personne": "person.nolan"}
+    assert vus[1][1]["appareil"] == "PIXEL-NOLAN" and vus[1][1]["ecran"] == "t1"
     assert hass.states.get("input_boolean.mode_fete").state == "off" and not [a for a in appels if a[0] == "input_boolean"]
     rr = await (await client.post("/api/pc_parental/poll", json={**TELE, "platform": "android", "type": "tv"})).json()
     assert rr["party"]["ecran"] is False

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.2 : les styles de l'horloge (HorlogesVeille), accueil et veille. -->
+<resources>
+    <string name="horloge_theme">Celle du thème</string>
+    <string name="horloge_anneau">Anneau</string>
+    <string name="horloge_fine">Numérique fine</string>
+    <string name="horloge_grasse">Numérique grasse</string>
+    <string name="horloge_analogique">Analogique minimaliste</string>
+    <string name="horloge_classique">Analogique classique</string>
+    <string name="horloge_mots">En toutes lettres</string>
+    <string name="horloge_flip">Palettes</string>
+    <string name="horloge_empilee">Empilée</string>
+    <string name="horloge_style">Style</string>
+    <string name="horloge_style_veille">Horloge de la veille</string>
+    <string name="horloge_comme_accueil">Comme l\'accueil</string>
+    <string name="horloge_comme_accueil_titre">Suivre l\'accueil</string>
+    <string name="horloge_styles_vision">Styles de Vision</string>
+    <string name="horloge_horloges_themes">Horloges des thèmes</string>
+    <string name="horloge_style_aide">Télécommande : gauche et droite montrent chaque style en grand, OK le garde. Toucher : un appui pour l\'aperçu, un second pour le garder.</string>
+    <string name="horloge_vision_defaut">Vision (défaut)</string>
+    <string name="horloge_du_theme">Horloge %1$s</string>
+</resources>

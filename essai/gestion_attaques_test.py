@@ -41,10 +41,10 @@ async def _monter(hass, hass_storage):
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", role="enfant",
                          rules=[{"id": 1, "name": "Soir", "start": 72000, "end": 25200, "weekdays": [True] * 7, "enabled": True}]),
             "e2": _fiche("e2", "TEL-NOA", ENFANT2["secret"], person="person.noa", platform="android", role="enfant"),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
             "p2": _fiche("p2", "PIXEL-MIA", "c" * 32, person="person.mia", platform="android", role="parent"),
         }}}
-    for p in ("lou", "noa", "robin", "mia"):
+    for p in ("lou", "noa", "nolan", "mia"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -86,7 +86,7 @@ async def test_un_role_parent_sans_gerer_ne_gere_rien(hass, hass_storage, hass_c
     coord = await _monter(hass, hass_storage)
     from custom_components.pc_parental import roles
 
-    # Robin passe à un rôle qui approuve sans gérer (Mia garde le rôle Parent : il en faut toujours un).
+    # Nolan passe à un rôle qui approuve sans gérer (Mia garde le rôle Parent : il en faut toujours un).
     ident = roles.creer(hass, coord.store, "Approbateur", "parent", "essai")
     roles.modifier(hass, coord.store, ident, "Approbateur", ["protege", "approuver"], 60, "essai")
     roles.attribuer_appareil(hass, coord.store, "p1", ident, "essai")

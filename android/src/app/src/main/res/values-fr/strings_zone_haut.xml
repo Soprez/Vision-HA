@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.5 (retour d'essai) : la zone du haut de l'accueil (ZoneHaut) : remerciement et œil joyeux. -->
+<resources>
+    <string name="zonehaut_merci">Merci d’avoir installé Vision.</string>
+    <string name="zonehaut_mode_heure_meteo">Heure et météo</string>
+    <string name="zonehaut_mode_remerciement">Message de remerciement</string>
+    <string name="zonehaut_mode_message">Message personnalisé</string>
+    <string name="zonehaut_mode_vide">Vide</string>
+    <string name="zonehaut_personnaliser">Personnaliser cette zone</string>
+    <string name="zonehaut_raison">Changer le haut de l’accueil</string>
+    <string name="zonehaut_titre">Zone du haut</string>
+    <string name="zonehaut_enregistrer">Enregistrer</string>
+    <string name="zonehaut_mode_horloge">Horloge</string>
+    <string name="zonehaut_mode_horloge_meteo">Horloge et météo</string>
+    <string name="zonehaut_widget_horloge">Horloge stylisée</string>
+    <string name="zonehaut_widget_meteo">Météo</string>
+    <string name="zonehaut_widget_classique">Heure et météo (classique)</string>
+    <string name="zonehaut_monter">Monter : %1$s</string>
+    <string name="zonehaut_descendre">Descendre : %1$s</string>
+    <string name="zonehaut_reglages">Réglages</string>
+    <string name="horloge_taille">Taille</string>
+    <string name="horloge_petite">Petite</string>
+    <string name="horloge_moyenne">Moyenne</string>
+    <string name="horloge_grande">Grande</string>
+    <string name="horloge_format">Format</string>
+    <string name="horloge_format_appareil">Comme l’appareil</string>
+    <string name="horloge_12h">12 h</string>
+    <string name="horloge_24h">24 h</string>
+    <string name="horloge_date">Afficher la date</string>
+    <string name="horloge_oui">Oui</string>
+    <string name="horloge_non">Non</string>
+    <string name="modeappareil_titre">Mode de cet appareil</string>
+    <string name="modeappareil_affichage">Affichage</string>
+</resources>

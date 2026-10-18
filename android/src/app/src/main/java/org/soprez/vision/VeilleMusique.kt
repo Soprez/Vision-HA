@@ -29,8 +29,11 @@ object VeilleMusique {
     fun enLecture(maintenant: Long = System.currentTimeMillis()): Boolean =
         (haJoue && maintenant - haA < FRAIS_MS) || LecteurMusique.etat == "lecture"
 
-    /** Vrai : pas de veille automatique sur cet appareil (télé seulement). */
-    fun bloque(ctx: Context): Boolean = try { ReglagesTvActivity.estTele(ctx) && enLecture() } catch (_: Exception) { false }
+    /**
+     * Vrai : pas de veille automatique sur cet appareil (télé seulement). 1.91.0 : la musique que la veille a lancée
+     * elle-même (VeilleAudio) ne compte pas ; elle s'arrête de toute façon à la sortie de veille.
+     */
+    fun bloque(ctx: Context): Boolean = try { ReglagesTvActivity.estTele(ctx) && enLecture() && !VeilleAudio.demandee } catch (_: Exception) { false }
 
     /** Écran allumé tant que ça joue (le rêve du système attend), relâché sinon. */
     @Suppress("DEPRECATION")

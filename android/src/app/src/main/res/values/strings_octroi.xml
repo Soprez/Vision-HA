@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Faille du 16-10 : un appareil Décideur choisit son code dès qu'il l'est devenu. -->
+<resources>
+    <string name="garde_code_decideur_titre">Choose your management code</string>
+    <string name="garde_code_decideur_texte">This device is now a %1$s device: choose a code now. It will be asked before every grant (or the fingerprint, once you turn it on in Settings).</string>
+    <string name="garde_code_pose_refaire">Code saved. Do the action again: it will ask for the code or the fingerprint.</string>
+    <string name="garde_code_suspendu">Too many wrong codes: try again in a quarter of an hour.</string>
+    <string name="garde_code_verrouille">Unlock code locked (too many wrong attempts): an administrator must set it again in Home Assistant (Configure › Security).</string>
+    <string name="garde_code_ha_injoignable">Home Assistant can\'t be reached: the code wasn\'t saved. Try again.</string>
+    <string name="garde_code_actuel">Current code</string>
+</resources>

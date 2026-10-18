@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 5 : architecture cible (espaces Aujourd'hui, Personnes, Appareils, Réglages ; Moi). -->
+<resources>
+    <string name="espace_aujourdhui">Oggi</string>
+    <string name="espace_personnes">Persone</string>
+    <string name="espace_appareils">Dispositivi</string>
+    <string name="espace_reglages">Impostazioni</string>
+    <string name="espace_moi">Io</string>
+    <string name="lot5_espace_affiche">%1$s, visualizzato</string>
+    <string name="lot5_navigation">Spazi</string>
+    <string name="lot5_actions_rapides">Azioni rapide</string>
+    <string name="lot5_cet_appareil">Questo dispositivo</string>
+    <string name="lot5_pour_tous">Per tutti</string>
+    <string name="lot5_reserve">Riservato ai %1$s 🔒</string>
+    <string name="lot5_avance">Avanzate</string>
+    <string name="lot5_avance_detail">Autorizzazioni, versione</string>
+    <string name="lot5_personnes_vide">Ancora nessuno da mostrare.</string>
+    <string name="lot5_voir_tous">Vedi tutti i dispositivi e le azioni</string>
+    <string name="lot5_autorisations_detail">Autorizzazioni di questo dispositivo</string>
+</resources>

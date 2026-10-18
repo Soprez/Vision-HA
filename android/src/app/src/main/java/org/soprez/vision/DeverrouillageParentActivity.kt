@@ -97,13 +97,14 @@ class DeverrouillageParentActivity : Activity() {
             // Durée : celle demandée, ou moins (jamais plus).
             val demandees = d.optInt("minutes")
             var minutes = demandees
-            val choixDuree = Ui.rangeeBoutons(this)
             val options = listOf(demandees, 30, 15, 5).filter { it in 1..demandees }.distinct().sortedDescending()
             val etiquette = Ui.texte(this, "", 14f, Ui.TEXTE_2)
             fun majEtiquette() { etiquette.text = getString(R.string.dpa_duree_accordee, minutes) }
-            options.forEachIndexed { k, m ->
-                choixDuree.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.tr_duree_min, m)) { minutes = m; majEtiquette() }, gauche = if (k == 0) 0f else 8f))
-            }
+            // 15-10 (règle UX de l'auteur) : la durée choisie se voit (étiquette pleine, ou liste au-delà de 3 durées).
+            val choixDuree = Ui.choix(this, getString(R.string.dpa_duree_accordee, minutes).substringBefore(":").trim().ifEmpty { getString(R.string.dpa_deverrouiller) },
+                options.map { m -> ChoixAdaptatif.Option(m.toString(), getString(R.string.tr_duree_min, m)) }, minutes.toString()) {
+                minutes = it.toIntOrNull() ?: minutes; majEtiquette()
+            }.apply { tag = "dpa_duree" }
             majEtiquette()
             if (!dejaVote) {
                 c.addView(Ui.marge(this, choixDuree, haut = 10f)); c.addView(Ui.marge(this, etiquette, haut = 4f))
@@ -120,7 +121,8 @@ class DeverrouillageParentActivity : Activity() {
     }
 
     private fun decider(d: JSONObject, decision: String, minutes: Int, remise: String) =
-        Garde.exiger(this, getString(R.string.dpa_raison)) { deciderVraiment(d, decision, minutes, remise) }
+        Garde.exigerPour(this, getString(R.string.dpa_raison), "/api/pc_parental/deverrouillage/decision",
+            org.json.JSONObject().put("decision", decision)) { deciderVraiment(d, decision, minutes, remise) }
 
     private fun deciderVraiment(d: JSONObject, decision: String, minutes: Int, remise: String) {
         val corps = JSONObject().put("id", cfg.id).put("secret", cfg.secret).put("demande", d.optString("demande"))
@@ -130,11 +132,11 @@ class DeverrouillageParentActivity : Activity() {
             runOnUiThread {
                 if (fini) return@runOnUiThread
                 r.onSuccess { rep -> resultat(d, rep) }.onFailure { e ->
-                    android.widget.Toast.makeText(this, when {
+                    Ui.toast(this, when {
                         e is Net.Echec && e.code == 404 -> getString(R.string.dpa_plus_en_attente)
                         e is Net.Echec && e.code == 409 -> getString(R.string.dpa_deja_valide)
                         else -> getString(R.string.dpa_refuse_ha)
-                    }, android.widget.Toast.LENGTH_LONG).show()
+                    }, genre = OeilModele.Genre.ERREUR)
                     charger()
                 }
             }

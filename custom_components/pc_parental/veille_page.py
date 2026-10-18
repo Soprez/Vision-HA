@@ -137,7 +137,29 @@ def _cartes_de(vue: dict[str, Any]) -> list[dict[str, Any]]:
     return sections
 
 
-async def page(hass: HomeAssistant, coord, pc: dict[str, Any] | None, ecran: str, essai: str = "") -> dict[str, Any]:
+async def _typees(hass: HomeAssistant, sections: list[dict[str, Any]], pc_id: str) -> dict[str, Any]:
+    """Veille-lot : les cases typées (docs/veille-contrat.md §4.2) des cartes de ce tableau, résolues pour CET
+    appareil, par clé de carte. Rangées à côté des cartes (jamais dedans) : la passerelle tire des cartes seules la
+    liste des entités permises, une case typée ne l'élargit donc pas."""
+    from . import veille_cases
+
+    sortie: dict[str, Any] = {}
+    for s in sections:
+        for c in s["cartes"]:
+            try:
+                cases = veille_cases.carte_typee(c["config"], None)
+                r = await veille_cases.resoudre(hass, cases[0], pc_id) if cases else None
+            except Exception:  # noqa: BLE001 - la carte reste dessinée par Home Assistant
+                _LOGGER.debug("Veille : case typée illisible", exc_info=True)
+                r = None
+            if r is not None:
+                sortie[c["cle"]] = r
+    return sortie
+
+
+async def page(hass: HomeAssistant, coord, pc: dict[str, Any] | None, ecran: str, essai: str = "",
+               typees: bool = True) -> dict[str, Any]:
+    """`typees` : joindre les cases typées de l'appareil (la passerelle) ; jamais pour un essai ni sans appareil."""
     from . import veille_tableaux as vt
 
     ecran = ecran if ecran in veille_dash.ECRANS else "tele"
@@ -172,19 +194,22 @@ async def page(hass: HomeAssistant, coord, pc: dict[str, Any] | None, ecran: str
             if not sections:
                 continue
             titre_vue = str(vue.get("title") or "")
-            tableaux.append({
+            tableau_page = {
                 "id": "dash_{}_{}".format(adresse, cv),
                 "titre": titre_vue if titre_vue and len(vues) > 1 else nom,
                 "duree": choix["duree"],
                 "colonnes": vue.get("max_columns") if isinstance(vue.get("max_columns"), int) else 4,
                 "sections": sections,
-            })
+            }
+            if typees and pc and pc.get("id") and not essai:
+                tableau_page["typees"] = await _typees(hass, sections, str(pc["id"]))
+            tableaux.append(tableau_page)
     horloge = next((t for t in vt.configuration(coord) if t["code"] == "horloge"), None)
-    meteo = next((e.entity_id for e in hass.states.async_all("weather")), "")
+    # 1.93.05 (l'auteur, retour 35) : plus de météo sous l'horloge de la veille ; la page ne nomme plus d'entité météo
+    # (l'appareil ne peut donc plus la lire par la passerelle).
     return {
         "ok": True,
         "horloge": {"actif": bool(horloge and horloge["actif"]), "duree": int((horloge or {}).get("duree") or 15)},
-        "meteo": meteo,
         "tableaux": tableaux,
     }
 
@@ -252,7 +277,7 @@ class PcParentalVeilleAccesView(HomeAssistantView):
         if refus := modules.refus(self, coord.store, "veille_tableaux"):
             return refus
         try:
-            tableaux = legere(self.hass, await page(self.hass, coord, pc, str(corps.get("ecran") or "tele")))
+            tableaux = legere(self.hass, await page(self.hass, coord, pc, str(corps.get("ecran") or "tele"), typees=False))
             # 1.77.0 : un ticket propre à l'appareil, qui n'ouvre que la passerelle (veille_passerelle.py).
             from . import veille_passerelle
 
@@ -289,7 +314,7 @@ class PcParentalVeillePageView(HomeAssistantView):
         if refus := modules.refus(self, coord.store, "veille_tableaux"):  # 1.82.0
             return refus
         pc = coord.store.get(str(request.query.get("id") or ""))
-        return self.json(await page(self.hass, coord, pc, str(request.query.get("ecran") or "tele"), str(request.query.get("essai") or "")[:80]))
+        return self.json(await page(self.hass, coord, pc, str(request.query.get("ecran") or "tele"), str(request.query.get("essai") or "")[:80], typees=False))
 
 
 def _module(hass: HomeAssistant) -> str:

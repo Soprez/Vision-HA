@@ -19,7 +19,7 @@ async def test_pochette_suit_la_file_de_music_assistant(hass, monkeypatch):
 
     image = {"url": "https://exemple.invalid/a.jpg"}
     monkeypatch.setattr(musique, "image_en_cours", lambda _h, _e: image["url"])
-    etat = State("media_player.tele_des_parents_vision", "playing", {"media_title": "It's That Time"})
+    etat = State("media_player.tele_du_bureau_vision", "playing", {"media_title": "It's That Time"})
     sans_hass = widgets.attributs_utiles(etat)
     assert sans_hass["pochette"] == ""  # sans hass : comme avant
     a = widgets.attributs_utiles(etat, hass)

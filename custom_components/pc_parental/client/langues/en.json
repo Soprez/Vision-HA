@@ -42,7 +42,7 @@
   "maison.bouton_toujours_dispo": "Always available",
   "maison.bouton_categorie": "Category",
   "maison.bouton_non": "No",
-  "maison.aide_choix": "Allow: open even when its category is blocked, during the allowed time slots of the schedule. Always available: never blocked, even when the device is blocked.",
+  "maison.aide_choix": "Exception: on all their devices, even if the category is blocked, but not during time slots. Always available: nothing closes it.",
   "maison.les_actifs": "Active now",
   "maison.aucun_inscrit": "No device enrolled yet.",
   "maison.aucun_appareil": "No device",
@@ -405,7 +405,16 @@
   "code.injoignable": "Home Assistant cannot be reached: try again in a moment.",
   "install.exemple_cle": "16 characters, for example 0123456789abcdef",
   "soutien.merci": "♥ Supporter — thank you!",
-  "soutien.soutenir": "Support the project",
+  "soutien.soutenir": "☕ Buy me a coffee",
   "code.faux": "That is not the right code ({n} attempt(s) left).",
-  "code.trop": "Too many attempts. Try again in {min} min."
+  "code.trop": "Too many attempts. Try again in {min} min.",
+  "maison.bouton_15": "15 min",
+  "maison.bouton_exception": "Exception",
+  "maison.bouton_refuser": "Decline",
+  "moi.bloque_par_logiciel": "What is blocking a program",
+  "moi.groupe_sites_one": "{n} site blocked with it:",
+  "moi.groupe_sites_other": "{n} sites blocked with it:",
+  "moi.demander_pour": "Ask for access for {nom}",
+  "moi.tentatives_one": "{n} attempt",
+  "moi.tentatives_other": "{n} attempts"
 }

@@ -43,8 +43,11 @@ object Veille {
 
     fun permise(ctx: Context): Boolean = Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(ctx)
 
+    /** Veille de repli (accueil du fabricant) : le premier appui la retire, sans autre effet (volume excepté). */
+    private var premierAppuiFerme = false
+
     /** Montre l'écran de veille sans interrompre l'appli ouverte quand c'est possible. */
-    fun ouvrir(ctx: Context, demande: Boolean = false) {
+    fun ouvrir(ctx: Context, demande: Boolean = false, premierAppui: Boolean = false) {
         if (couche != null) return
         // 1.86.14 (retour d'essai) : le lecteur Music Assistant de cette télé joue : pas de veille automatique (seule une demande explicite passe).
         if (!demande && VeilleMusique.bloque(ctx)) return
@@ -58,8 +61,18 @@ object Veille {
         val wm = app.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val gestes = GestesVeille(app, { vue }) { fermer(parUtilisateur = true) }
         val cadre = object : FrameLayout(app) {
-            override fun dispatchKeyEvent(e: KeyEvent): Boolean = MessagesRiches.touche(e) || gestes.touche(e)
-            override fun dispatchTouchEvent(e: MotionEvent): Boolean = MessagesRiches.toucher(e) || gestes.toucher(e)
+            override fun dispatchKeyEvent(e: KeyEvent): Boolean {
+                if (premierAppuiFerme && !MessagesRiches.touche(e)) {
+                    if (e.keyCode in intArrayOf(KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_MUTE)) return false
+                    if (e.action == KeyEvent.ACTION_DOWN) fermer()
+                    return true
+                }
+                return MessagesRiches.touche(e) || gestes.touche(e)
+            }
+            override fun dispatchTouchEvent(e: MotionEvent): Boolean {
+                if (premierAppuiFerme && !MessagesRiches.toucher(e)) { if (e.actionMasked == MotionEvent.ACTION_DOWN) fermer(); return true }
+                return MessagesRiches.toucher(e) || gestes.toucher(e)
+            }
             // Quelque chose est passé devant (le rêve du système, une autre appli) : la couche n'a plus lieu d'être.
             // Sinon elle resterait dessous, musique et caméras comprises, sans que personne puisse l'arrêter.
             // Un flux qui démarre dessous (cast, YouTube) peut nous prendre la main un instant : on regarde avant de fermer.
@@ -76,6 +89,8 @@ object Veille {
         cadre.addView(v, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         cadre.addView(cameras, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         VeilleWeb.attacher(cadre, v)
+        // 1.93.05 (retour 36) : par-dessus tout (page de HA comprise), le bandeau « Lecteur musique ».
+        cadre.addView(CoinsVeille(cadre.context, v).apply { tag = "coins_veille" }, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         val type = if (Build.VERSION.SDK_INT >= 26) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else @Suppress("DEPRECATION") WindowManager.LayoutParams.TYPE_PHONE
         val lp = WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT, type,
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or WindowManager.LayoutParams.FLAG_FULLSCREEN or WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
@@ -85,7 +100,8 @@ object Veille {
         lp.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
         try {
             wm.addView(cadre, lp)
-            couche = cadre; vue = v; params = lp; reposes = 0; ouvertA = SystemClock.uptimeMillis()
+            couche = cadre; vue = v; params = lp; reposes = 0; ouvertA = SystemClock.uptimeMillis(); premierAppuiFerme = premierAppui
+            ToucheMedia.maintenir(app)  // 1.93.05 (retour 37)
             MessagesRiches.poserHote(app, cadre)
             appFond = try { Local.appEnFond(app) } catch (_: Exception) { null }
             // Un flux démarre pendant la veille : s'il a le droit de rester en fond, la veille reste devant et il joue derrière ;
@@ -135,6 +151,7 @@ object Veille {
     fun fermer(parUtilisateur: Boolean = false) {
         val c = couche ?: return
         couche = null
+        ToucheMedia.maintenir(c.context)
         fermeeA = System.currentTimeMillis()
         val pk = appFond; appFond = null
         if (parUtilisateur && pk != null) main.postDelayed({ appCtx?.let { RetourActivity.proposer(it, pk) } }, 150)

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.x (retour d'essai) : l'arrière-plan de l'accueil (FondAccueil). -->
+<resources>
+    <string name="fondacc_titre">Fond de l’accueil</string>
+    <string name="fondacc_sorte_defaut">Actuel (animation discrète)</string>
+    <string name="fondacc_sorte_uni">Couleur unie</string>
+    <string name="fondacc_sorte_degrade">Dégradé</string>
+    <string name="fondacc_sorte_photo">Photo</string>
+    <string name="fondacc_sorte_anime">Fond animé</string>
+    <string name="fondacc_teinte_fond">Fond du thème</string>
+    <string name="fondacc_teinte_n">Teinte %1$d</string>
+    <string name="fondacc_voile">Voile de lisibilité</string>
+    <string name="fondacc_voile_auto">Automatique</string>
+    <string name="fondacc_voile_plus">Renforcé</string>
+    <string name="fondacc_voile_max">Très renforcé</string>
+    <string name="fondacc_demandeur">Fond modifiable par les %1$s</string>
+    <string name="fondacc_raison">Changer le fond de l’accueil</string>
+    <string name="fondacc_photo_echec">La photo n’a pas pu être lue.</string>
+    <string name="fondacc_note">Un voile garde l’heure et les cartes lisibles ; les cartes gardent leur propre fond.</string>
+    <string name="fondacc_style">Style</string>
+</resources>

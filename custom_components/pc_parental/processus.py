@@ -297,6 +297,12 @@ class ProcessusView(HomeAssistantView):
 
     async def get(self, request: web.Request) -> web.Response:
         hass = request.app["hass"]
+        # 1.93.06 (sécurité, ETUDE-optimisation-pc faille 4) : l'inventaire des logiciels de tous les PC n'est lisible
+        # que par un administrateur de Home Assistant, comme les services processus_* (service_admin). Avant, il
+        # suffisait d'être connecté : le compte d'un enfant voyait les logiciels de toute la maison.
+        utilisateur = request.get("hass_user")
+        if utilisateur is None or not utilisateur.is_admin:
+            return self.json({"ok": False, "error": "admin"}, status_code=403)
         gestion = _gestion(hass)
         if gestion is None:
             return self.json({"ok": False, "error": "loading"}, status_code=503)

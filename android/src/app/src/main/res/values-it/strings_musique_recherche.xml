@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 15-10 (retours d'essai) : recherche de musique instantanée, clavier, voix, filtre, réglages Musique. -->
+<resources>
+    <string name="musrech_section">Musica</string>
+    <string name="musrech_section_phrase">Il lettore, il suo sfondo animato e la ricerca.</string>
+    <string name="musrech_reglages_raccourci">Impostazioni musica ›</string>
+    <string name="musrech_reglages_raccourci_desc">Apri la sezione Musica delle impostazioni di Vision</string>
+    <string name="musrech_clavier">Tastiera della ricerca</string>
+    <string name="musrech_voix">Ricerca vocale</string>
+    <string name="musrech_voix_bouton">Cerca con la voce</string>
+    <string name="musrech_voix_invite">Di\' un titolo, un artista o un album</string>
+    <string name="musrech_voix_indisponible">La ricerca vocale non è disponibile su questo dispositivo.</string>
+    <string name="musrech_recents">Cancella le ricerche recenti</string>
+    <string name="musrech_recents_titre_confirmer">Cancellare le ricerche recenti?</string>
+    <string name="musrech_recents_texte_confirmer">Le ricerche recenti di questo dispositivo saranno cancellate.</string>
+    <string name="musrech_recents_effacer">Cancella</string>
+    <string name="musrech_recents_effaces">Ricerche recenti cancellate.</string>
+    <string name="musrech_espace">Spazio</string>
+    <string name="musrech_effacer_lettre">Cancella una lettera</string>
+    <string name="musrech_page_lettres">Lettere</string>
+    <string name="musrech_page_signes">Numeri e accenti</string>
+    <string name="musrech_effacer_tout">Cancella</string>
+    <string name="musrech_filtre">Filtro</string>
+    <string name="musrech_filtre_n">Filtro · %1$d</string>
+    <string name="musrech_filtre_n_desc">Filtro, %1$d scelto/i</string>
+    <string name="musrech_type">Tipo di risultato</string>
+    <string name="musrech_source">Fonte</string>
+    <string name="musrech_type_valeur">Tipo di risultato: %1$s</string>
+    <string name="musrech_source_valeur">Fonte: %1$s</string>
+    <string name="musrech_bibliotheque_valeur">Solo la mia libreria: %1$s</string>
+    <string name="musrech_reinitialiser">Reimposta</string>
+    <string name="musrech_recherche_en_cours">Ricerca…</string>
+    <string name="musrech_tout_voir">Vedi tutto ›</string>
+    <string name="musrech_tout_voir_desc">Vedi tutto: %1$s</string>
+    <string name="musrech_source_desc">Fonte: %1$s</string>
+    <string name="musrech_recents_aucune">Nessuna</string>
+    <plurals name="musrech_recents_n">
+        <item quantity="one">%d salvata su questo dispositivo</item>
+        <item quantity="other">%d salvate su questo dispositivo</item>
+    </plurals>
+    <plurals name="musrech_titres_n">
+        <item quantity="one">%d brano</item>
+        <item quantity="other">%d brani</item>
+    </plurals>
+    <string name="musrech_indice_court">Titolo, artista, album</string>
+    <string name="musrech_reglages_soiree">⚙ Impostazioni</string>
+    <string name="musrech_reglages_soiree_desc">Impostazioni della festa e della musica</string>
+    <string name="musrech_reglages_soiree_titre">Impostazioni</string>
+    <string name="musrech_soiree_similaires">Brani simili alla fine: %1$s</string>
+    <string name="musrech_soiree_invites">Ospiti: %1$s</string>
+    <string name="musrech_lecteur_decideurs">Lettore · riservato a %1$s</string>
+    <string name="musrech_retour_lecteur">Torna al lettore</string>
+    <string name="musrech_reglages_attente_desc">Impostazioni: %1$d proposta/e degli ospiti in attesa</string>
+    <string name="musrech_section_ecoute">Ascolto</string>
+    <string name="musrech_section_soiree">Festa</string>
+    <string name="musrech_bibliotheque_seule">Solo la mia libreria</string>
+    <!-- l'auteur (16/10) : lecteur vide → bibliothèque, playlists, recherche ; aucune enceinte disponible. -->
+    <string name="musrech_onglet_bibliotheque">Libreria</string>
+    <string name="musrech_aucun_album">Ancora nessun album nella libreria di Music Assistant.</string>
+    <string name="musrech_entree_rechercher">Cerca</string>
+    <string name="musrech_aucune_enceinte">Nessun altoparlante disponibile al momento.</string>
+    <!-- l'auteur (16/10) : sortie depuis le téléphone, lancement qui n'aboutit pas, modes des invités. -->
+    <string name="musrech_lancement_echec">La musica non è partita su %1$s. Controlla che sia acceso o scegli un\'altra uscita.</string>
+    <string name="musrech_sortie">🔊 Uscita: %1$s ›</string>
+    <string name="musrech_sortie_desc">Uscita: %1$s. Cambia altoparlante o TV</string>
+    <string name="musrech_invites_titre">Brani degli ospiti</string>
+    <string name="musrech_invites_valider">Approva prima</string>
+    <string name="musrech_invites_ensuite">Suona dopo il brano in corso</string>
+    <string name="musrech_invites_fin">Aggiungi in fondo alla coda</string>
+</resources>

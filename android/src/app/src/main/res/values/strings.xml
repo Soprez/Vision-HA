@@ -23,7 +23,7 @@
     <string name="lieu_defaut">Place</string>
     <string name="soutien_titre">Support the project</string>
     <string name="soutien_badge">♥ Supporter</string>
-    <string name="soutien_carte">☕ Buy us a coffee</string>
+    <string name="soutien_carte">☕ Buy me a coffee</string>
     <string name="soutien_merci">Thank you! This place supports Vision.</string>
     <string name="soutien_explication">The Supporter badge is purely decorative: nothing is unlocked, Vision does exactly the same for everyone.</string>
     <string name="soutien_comment">To turn it on: in Home Assistant, Settings → Devices &amp; services → Vision → Configure → Support the project.</string>

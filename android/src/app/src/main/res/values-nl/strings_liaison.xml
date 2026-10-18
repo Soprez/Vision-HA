@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.4 (decision de l'auteur) : liaison sans code ; Nouvel appareil chez un Decideur. -->
+<resources>
+    <string name="liaison_sans_code_attente">Wacht op goedkeuring…</string>
+    <string name="liaison_sans_code_explication">Een %1$s krijgt het verzoek op de telefoon en accepteert het met één tik.</string>
+    <string name="liaison_sans_code_aucun">Geen telefoon van een %1$s heeft het verzoek gekregen: gebruik “Andere methode”.</string>
+    <string name="liaison_sans_code_valable">Verzoek nog %1$d:%2$02d geldig</string>
+    <string name="liaison_sans_code_autre_methode">Andere methode</string>
+    <string name="liaison_sans_code_expiree">Het verzoek is verlopen.</string>
+    <string name="liaison_sans_code_remplacee">Een nieuw verzoek heeft dit vervangen.</string>
+    <string name="liaison_sans_code_redemander">Opnieuw vragen</string>
+    <string name="nouvel_appareil_titre">Nieuw apparaat</string>
+    <string name="nouvel_appareil_pas_de_droits">Alleen het apparaat van een %1$s kan een nieuw apparaat accepteren.</string>
+    <string name="nouvel_appareil_aucune">Geen openstaand verzoek.</string>
+    <string name="nouvel_appareil_demande">Verzoek ontvangen om %1$s</string>
+    <string name="nouvel_appareil_reprise">Neemt “%1$s” over.</string>
+    <string name="nouvel_appareil_a_qui">Van wie is dit apparaat?</string>
+    <string name="nouvel_appareil_partage">Gedeeld scherm — %1$s</string>
+    <string name="nouvel_appareil_accepter">Accepteren</string>
+    <string name="nouvel_appareil_refuser">Weigeren</string>
+    <string name="nouvel_appareil_choisir">Kies van wie dit apparaat is.</string>
+    <string name="nouvel_appareil_accepte">“%1$s” is verbonden.</string>
+    <string name="nouvel_appareil_refuse">Verzoek geweigerd.</string>
+    <string name="nouvel_appareil_deja">Dit verzoek is al afgehandeld of verlopen.</string>
+    <string name="nouvel_appareil_notif">“%1$s” vraagt om verbonden te worden. Tik om te accepteren of te weigeren.</string>
+    <string name="manifeste_nouvel_appareil">Nieuw apparaat</string>
+</resources>

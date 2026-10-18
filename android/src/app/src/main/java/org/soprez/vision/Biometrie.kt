@@ -28,6 +28,21 @@ import javax.crypto.SecretKey
  */
 object Biometrie {
     private const val ALIAS = "vision_parent_biometrie"
+
+    /** Lot 6 (APP-37) : ce qu'on fait quand l'invite se ferme sur une erreur. */
+    enum class Suite { RIEN, CODE, ANNULER }
+
+    /**
+     * Logique pure (essayée en JUnit) : « Code de gestion » (bouton négatif) est déjà traité par son bouton ; trop
+     * d'essais ou capteur indisponible → le code ; tout le reste (Retour, toucher à côté, délai, annulation) → annuler.
+     * Codes de BiometricPrompt : 1 matériel indisponible, 7 et 9 trop d'essais, 11 aucune empreinte, 12 pas de
+     * capteur, 13 bouton négatif ; 5 annulé, 10 annulé par l'utilisateur, 3 délai.
+     */
+    fun suiteErreur(erreur: Int): Suite = when (erreur) {
+        13 -> Suite.RIEN
+        1, 7, 9, 11, 12 -> Suite.CODE
+        else -> Suite.ANNULER
+    }
     private const val PREFS = "biometrie"
 
     /** Utilisable ici et maintenant : permise par HA, matériel « fort », Android 11 et plus, armée par le code. */
@@ -79,9 +94,10 @@ object Biometrie {
 
     /**
      * Demande l'empreinte ou le visage. `ok` n'est appelé que si la clé du Keystore a bien été
-     * débloquée (chiffrement réussi). `code` : l'utilisateur préfère le code parent.
+     * débloquée (chiffrement réussi). `code` : l'utilisateur préfère le code parent. `annule` (lot 6, APP-37) : l'invite
+     * a été fermée (Retour, toucher à côté, délai) : l'écran appelant se referme proprement, au lieu de rester transparent.
      */
-    fun demander(act: Activity, raison: String, ok: () -> Unit, code: () -> Unit) {
+    fun demander(act: Activity, raison: String, ok: () -> Unit, code: () -> Unit, annule: () -> Unit = {}) {
         if (Build.VERSION.SDK_INT < 30) { code(); return }
         val chiffre = try {
             val cle = (KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.getKey(ALIAS, null) as? SecretKey) ?: run { desarmer(act); code(); return }
@@ -103,6 +119,14 @@ object Biometrie {
             .build()
         invite.authenticate(BiometricPrompt.CryptoObject(chiffre), CancellationSignal(), act.mainExecutor,
             object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationError(erreur: Int, message: CharSequence?) {
+                    when (Biometrie.suiteErreur(erreur)) {
+                        Suite.RIEN -> {}
+                        Suite.CODE -> code()
+                        Suite.ANNULER -> annule()
+                    }
+                }
+
                 override fun onAuthenticationSucceeded(r: BiometricPrompt.AuthenticationResult) {
                     val c = r.cryptoObject?.cipher
                     val vrai = try { c != null && c.doFinal(ByteArray(16)).isNotEmpty() } catch (_: Exception) { false }

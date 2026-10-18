@@ -25,7 +25,34 @@ const OUTILS = `
   const statut = () => { const z = un(".vision-retour") || un(".fait") || un(".erreur"); return z ? z.textContent.trim() : ""; };
   const statutKo = () => { const z = un('.vision-retour[role="alert"]') || un(".erreur"); return z ? z.textContent.trim() : ""; };
   const dernier = () => window.__appels[window.__appels.length - 1];
+  // 15-10 : choisir une option d'un <vision-choix>, qu'il montre des étiquettes ou une liste déroulante.
+  const choisir = (c, cle) => { const s = c.shadowRoot; const b = [...s.querySelectorAll("[data-cible][data-cle]")].find((x) => x.dataset.cle === cle);
+    if (b) { b.click(); return; } const l = s.querySelector("select"); l.value = cle; l.dispatchEvent(new Event("change")); };
+  const libelles = (c) => [...c.shadowRoot.querySelectorAll("[data-cible][data-cle]")].map((x) => x.textContent.trim());
   const D = window.__donnees;
+  // 1.93.2 : la page défile (la carte est loin en bas d'une page à peine plus haute qu'elle, comme dans Home Assistant)
+  // et le geste ne doit ni la faire remonter ni perdre le bouton qui a le focus.
+  const hautPage = () => (document.scrollingElement || document.documentElement).scrollTop;
+  const preparerDefilement = async (sel) => {
+    const z = document.getElementById("zone"); z.style.marginTop = "3000px"; document.body.style.paddingBottom = "0";
+    await new Promise((r) => setTimeout(r, 150));
+    const b = un(sel); if (!b) throw new Error("introuvable : " + sel);
+    // Le plus bas possible tant que l'élément reste à l'écran : là, le moindre raccourcissement fait sauter la page.
+    const doc = document.scrollingElement || document.documentElement;
+    const haut = b.getBoundingClientRect().top + hautPage();
+    const max = doc.scrollHeight - window.innerHeight;
+    doc.scrollTop = (haut - max >= 0 && haut - max < window.innerHeight - 60) ? max : haut - 200;
+    await new Promise((r) => setTimeout(r, 50));
+    window.__y0 = hautPage(); window.__sel = sel; window.__yMin = window.__y0; window.__hMin = window.__carte.offsetHeight;
+    window.addEventListener("scroll", () => { window.__yMin = Math.min(window.__yMin, hautPage()); });
+    new ResizeObserver(() => { window.__hMin = Math.min(window.__hMin, window.__carte.offsetHeight); }).observe(window.__carte);
+    if (window.__y0 < 1000) throw new Error("la page ne défile pas assez pour l'essai : " + window.__y0);
+    b.focus(); b.click();
+  };
+  // Ni à la fin, ni en passant : la page ne doit pas avoir remonté, même un instant.
+  const placeGardee = () => Math.abs(hautPage() - window.__y0) <= 2 && window.__y0 - window.__yMin <= 2 && R().activeElement === un(window.__sel);
+  window.__mesure = () => ({ y0: window.__y0, y: hautPage(), yMin: window.__yMin, hMin: window.__hMin, h: window.__carte.offsetHeight,
+    focus: R().activeElement ? R().activeElement.outerHTML.slice(0, 80) : null });
 `;
 
 // Un message d'échec lisible : en français, pas un code ni un message technique anglais.
@@ -39,7 +66,7 @@ const SCENARIOS = [
            un('button[data-acces="' + window.__id + '"][data-dec="temporaire"]').click(); true`,
     enCours: `boutonEnCours() && tous("button[data-acces]").every((b) => b.disabled)`,
     repondre: `(() => { const n = JSON.parse(JSON.stringify(D["pc_parental/maison"])); n.demandes = n.demandes.filter((d) => d.id !== window.__id);
-               n.retour = "Robin a autorisé Roblox pour 60 min."; return n; })()`,
+               n.retour = "Nolan a autorisé Roblox pour 60 min."; return n; })()`,
     apres: `!un('button[data-acces="' + window.__id + '"]') && /autorisé/.test(statut()) && !boutonEnCours()`,
   },
   {
@@ -51,7 +78,7 @@ const SCENARIOS = [
     enCours: `boutonEnCours()`,
     verifierAppel: `dernier().corps.action === "acces" && dernier().corps.demande === window.__id && dernier().corps.decision === "temporaire"`,
     repondre: `(() => { const n = JSON.parse(JSON.stringify(D["pc_parental/maison"])); n.demandes = n.demandes.filter((d) => d.id !== window.__id);
-               n.retour = "Robin a ajouté 15 min sur TEL-LOU (jusqu'à 19h00)."; return n; })()`,
+               n.retour = "Nolan a ajouté 15 min sur TEL-LOU (jusqu'à 19h00)."; return n; })()`,
     apres: `!un('button[data-acces="' + window.__id + '"]') && /15 min/.test(statut())`,
   },
   {
@@ -109,6 +136,88 @@ const SCENARIOS = [
     repondre: `({})`,
     apres: `/retiré/.test(statut()) && !un("dialog.retrait") && !boutonEnCours()`,
   },
+  // 2.5.0 (refonte des autorisations) : les cinq réponses à une demande, et l'onglet Autorisations de la fiche.
+  {
+    nom: "Maison — demande : 15 min, 1 h, Exception, Toujours disponible, Refuser", carte: "vision-maison-card", donnees: "maison",
+    config: { mode: "maison", chemin: "/vision-maison" },
+    agir: `window.__id = D["pc_parental/maison"].demandes.find((d) => d.genre !== "temps").id;
+           const textes = tous('button[data-acces="' + window.__id + '"]').map((b) => b.textContent.trim());
+           if (textes.join("|") !== "15 min|1 h|Exception|Toujours disponible|Refuser") throw new Error("boutons : " + textes.join("|"));
+           un('button[data-acces="' + window.__id + '"][data-mode="toujours"]').click(); true`,
+    enCours: `boutonEnCours()`,
+    verifierAppel: `dernier().corps.action === "acces" && dernier().corps.decision === "accorder" && dernier().corps.mode === "toujours" && dernier().corps.demande === window.__id`,
+    repondre: `(() => { const n = JSON.parse(JSON.stringify(D["pc_parental/maison"])); n.demandes = n.demandes.filter((d) => d.id !== window.__id);
+               n.retour = "Nolan : Roblox est toujours disponible, sur toutes ses machines."; return n; })()`,
+    apres: `!un('button[data-acces="' + window.__id + '"]') && /toujours disponible/.test(statut())`,
+  },
+  {
+    // 2.5.1 : l'interrupteur d'un élément ouvre le choix du mode ; « Suivre la catégorie » part avec le bon mode.
+    nom: "Personne — par élément : Suivre la catégorie", carte: "vision-maison-card", donnees: "maison",
+    config: { mode: "personne", personne: "person.lou", chemin: "/vision-maison" },
+    agir: `const attendre = () => new Promise((r) => setTimeout(r, 120));
+           un('button.ouvrir[data-cat="Jeux"]').click(); await attendre();
+           const inter = un('button[data-el-mode="sites:twitch.tv"]'); if (!inter) throw new Error("pas d'interrupteur pour twitch.tv");
+           if (window.__appels.length) throw new Error("une lecture comptée comme un geste");
+           inter.click(); await attendre();
+           const choix = un('button[data-el-choix="sites:twitch.tv"][data-el-m="categorie"]'); if (!choix) throw new Error("pas de choix du mode");
+           if (choix.getAttribute("aria-pressed") !== "true") throw new Error("le mode par défaut n'est pas coché");
+           un('button[data-el-choix="sites:twitch.tv"][data-el-m="exception"]').click(); true`,
+    enCours: `boutonEnCours()`,
+    verifierAppel: `dernier().corps.action === "accorder" && dernier().corps.mode === "exception" && dernier().corps.nom === "twitch.tv" && dernier().corps.genre === "sites" && !!dernier().corps.pc`,
+    repondre: `(() => { const n = JSON.parse(JSON.stringify(D["pc_parental/maison"])); n.retour = "Nolan : twitch.tv est une exception, sur toutes ses machines."; return n; })()`,
+    apres: `/exception/.test(statut())`,
+  },
+  {
+    // 2.5.1 : une demande groupée ; un site décoché reste fermé (la réponse porte la liste des éléments cochés).
+    nom: "Maison — demande groupée : décocher un site", carte: "vision-maison-card", donnees: "maison", config: { mode: "maison", chemin: "/vision-maison" },
+    agir: `const c = window.__carte; const d = c._donnees.demandes.find((x) => x.genre === "apps"); window.__id = d.id;
+           d.sites = ["rbxcdn.com", "rbxinfra.com"]; c._rendre(); await new Promise((r) => setTimeout(r, 60));
+           const cases = tous('[data-el-case="' + d.id + '"]'); if (cases.length !== 3) throw new Error(cases.length + " cases au lieu de 3");
+           cases.find((x) => x.value === "rbxinfra.com").click();
+           un('button[data-acces="' + d.id + '"][data-mode="exception"]').click(); true`,
+    enCours: `boutonEnCours()`,
+    verifierAppel: `dernier().corps.action === "acces" && dernier().corps.mode === "exception" && JSON.stringify(dernier().corps.elements) === JSON.stringify(["app:com.roblox.client", "rbxcdn.com"])`,
+    repondre: `(() => { const n = JSON.parse(JSON.stringify(D["pc_parental/maison"])); n.demandes = n.demandes.filter((d) => d.id !== window.__id);
+               n.retour = "Nolan : Roblox est une exception. 1 site lié s'ouvre avec lui."; return n; })()`,
+    apres: `!un('button[data-acces="' + window.__id + '"]') && /exception/.test(statut())`,
+  },
+  {
+    nom: "Personne — Autorisations : accorder en exception", carte: "vision-maison-card", donnees: "maison",
+    config: { mode: "personne", personne: "person.lou", chemin: "/vision-maison" },
+    agir: `if (!tous("h3").some((h) => /Autorisations/.test(h.textContent))) throw new Error("pas de section Autorisations");
+           const f = un("[data-aut-ajout]"); f.querySelector("[data-aut-nom]").value = "roblox";
+           f.querySelector("[data-aut-choix]").value = "exception"; f.querySelector("button[type=submit]").click(); true`,
+    enCours: `boutonEnCours()`,
+    verifierAppel: `dernier().corps.action === "accorder" && dernier().corps.mode === "exception" && dernier().corps.nom === "roblox" && !!dernier().corps.pc`,
+    repondre: `(() => { const n = JSON.parse(JSON.stringify(D["pc_parental/maison"]));
+               const lou = n.personnes.find((p) => p.entite === "person.lou");
+               lou.autorisations = [...(lou.autorisations || []), { genre: "apps", nom: "roblox", mode: "exception", lies: ["roblox.com", "rbxcdn.com"], lies_valides: [], proposes: [] }];
+               n.retour = "Nolan a accordé roblox en exception, sur toutes ses machines."; return n; })()`,
+    apres: `!!un('[data-aut-retirer="roblox"][data-aut-mode="exception"]') && tous(".aut-groupe").some((g) => /Exceptions/.test(g.textContent))
+            && /rbxcdn\.com/.test(R().textContent) && /exception/.test(statut())`,
+  },
+  {
+    nom: "Personne — Autorisations : retirer un « toujours disponible »", carte: "vision-maison-card", donnees: "maison",
+    config: { mode: "personne", personne: "person.lou", chemin: "/vision-maison" },
+    agir: `if (!tous(".aut-groupe").some((g) => /Toujours disponible/.test(g.textContent))) throw new Error("groupe Toujours disponible absent");
+           un('[data-aut-retirer="minecraft"]').click(); true`,
+    enCours: `boutonEnCours()`,
+    verifierAppel: `dernier().corps.action === "retirer_autorisation" && dernier().corps.nom === "minecraft" && dernier().corps.mode === "toujours"`,
+    repondre: `(() => { const n = JSON.parse(JSON.stringify(D["pc_parental/maison"]));
+               const lou = n.personnes.find((p) => p.entite === "person.lou"); lou.autorisations = [];
+               n.retour = "Nolan a retiré l'autorisation de minecraft."; return n; })()`,
+    apres: `!un('[data-aut-retirer="minecraft"]') && /retiré/.test(statut())`,
+  },
+  {
+    nom: "Personne — reprise des autorisations : voir ce qui change", carte: "vision-maison-card", donnees: "maison",
+    config: { mode: "personne", personne: "person.lou", chemin: "/vision-maison" },
+    agir: `un('[data-reprise="simuler"]').click(); true`,
+    enCours: `boutonEnCours()`,
+    verifierAppel: `dernier().corps.action === "reprise_autorisations" && dernier().corps.etape === "simuler"`,
+    repondre: `(() => { const n = JSON.parse(JSON.stringify(D["pc_parental/maison"]));
+               n.retour = "Reprise des autorisations : ce qui change — Lou : minecraft restera ouvert aussi pendant les plages."; return n; })()`,
+    apres: `/Reprise des autorisations/.test(statut()) && !!un('[data-reprise="appliquer"]')`,
+  },
   // ---------------------------------------------------------------- carte Widgets HA
   {
     nom: "Widgets HA — retirer une entité", carte: "vision-widgets-card", donnees: "widgets",
@@ -134,8 +243,8 @@ const SCENARIOS = [
   },
   {
     nom: "Apparence — échec en clair", carte: "vision-apparence-card", donnees: "apparence",
-    agir: `tous("[data-mode]")[2].click(); true`,
-    enCours: `boutonEnCours()`,
+    agir: `choisir(un("vision-choix[data-mode]"), "sombre"); true`,
+    enCours: `window.__appels.length === 1`,
     echouer: `Object.assign(new Error("x"), { status_code: 500, body: {} })`,
     apres: `(${FRANCAIS})(statutKo())`,
   },
@@ -169,6 +278,43 @@ const SCENARIOS = [
     echouer: `Object.assign(new Error("Unauthorized"), { status_code: 401 })`,
     apres: `(${FRANCAIS})(statutKo()) && !/Unauthorized/.test(statutKo())`,
   },
+  // 1.93.2 (retour d'essai) : ouvrir une catégorie (vue par élément : lecture lente au serveur, puis second dessin) ne fait plus
+  // remonter la page, et le bouton garde le focus ; pareil pour la fermer.
+  {
+    nom: "Défilement — ouvrir puis fermer une catégorie (par élément)", carte: "vision-maison-card", donnees: "maison",
+    config: { mode: "personne", personne: "person.lou", chemin: "/vision-maison" }, defilement: true,
+    agir: `const h = window.__carte._hass; const lire = h.callApi;
+           h.callApi = async (...a) => { await new Promise((r) => setTimeout(r, 250)); return lire(...a); };
+           await preparerDefilement('button.ouvrir[data-cat="Jeux"]');
+           await new Promise((r) => setTimeout(r, 700));
+           if (!placeGardee()) throw new Error("à l'ouverture : " + JSON.stringify(window.__mesure()));
+           un('button.ouvrir[data-cat="Jeux"]').focus(); un('button.ouvrir[data-cat="Jeux"]').click(); true`,
+    apres: `placeGardee() && un('button.ouvrir[data-cat="Jeux"]').getAttribute("aria-expanded") === "false"`,
+  },
+  {
+    // Le cas de l'auteur : une catégorie ouverte, puis on coupe une catégorie (un geste) : l'ancienne carte vidait toutes
+    // les catégories ouvertes (« Chargement… »), la page raccourcissait et repartait en haut.
+    nom: "Défilement — couper une catégorie, une autre étant ouverte (par élément)", carte: "vision-maison-card", donnees: "maison",
+    config: { mode: "personne", personne: "person.lou", chemin: "/vision-maison" }, defilement: true,
+    agir: `const h = window.__carte._hass; const lire = h.callApi;
+           h.callApi = async (m, c, corps) => { if (corps && corps.action === "categorie") await new Promise((r) => setTimeout(r, 250)); return lire(m, c, corps); };
+           const cats = tous("button.ouvrir[data-cat]").map((b) => b.dataset.cat);
+           for (const n of cats) { un('button.ouvrir[data-cat="' + CSS.escape(n) + '"]').click(); await new Promise((r) => setTimeout(r, 350)); }
+           const inter = tous("input[data-etq]").filter((c) => !c.disabled).pop(); if (!inter) throw new Error("aucun interrupteur de catégorie");
+           window.__etq = inter.dataset.etq;
+           await preparerDefilement('input[data-etq="' + CSS.escape(window.__etq) + '"]'); true`,
+    repondre: `D["pc_parental/maison"]`,
+    apres: `placeGardee()`,
+  },
+  {
+    nom: "Défilement — cocher une catégorie (Autorisations)", carte: "vision-etiquettes-card", donnees: "catalogue", defilement: true,
+    agir: `un('button[data-vue="etiquettes"]').click(); await new Promise((r) => setTimeout(r, 150));
+           const cases = tous("input[data-categorie]"); if (!cases.length) throw new Error("aucune catégorie");
+           const c = cases[cases.length - 1]; window.__cat = c.dataset.categorie;
+           await preparerDefilement('input[data-categorie="' + CSS.escape(window.__cat) + '"]'); true`,
+    repondre: `D["pc_parental/catalogue"]`,
+    apres: `placeGardee()`,
+  },
   // ---------------------------------------------------------------- carte Étiquettes
   {
     nom: "Étiquettes — cocher une catégorie", carte: "vision-etiquettes-card", donnees: "catalogue",
@@ -186,13 +332,18 @@ const SCENARIOS = [
            const zone = document.getElementById("zone").getBoundingClientRect();
            const deborde = tous("*").filter((e) => { const r = e.getBoundingClientRect(); return r.width && (r.right > zone.right + 0.5 || r.left < zone.left - 0.5); });
            if (deborde.length) throw new Error("déborde : " + deborde.slice(0, 4).map((e) => e.className || e.tagName).join(", "));
-           const fermer = tous("button.dec.bloquer[data-decider]");
-           if (!fermer.length) throw new Error("aucune ligne à trancher");
-           for (const b of tous("button.dec[data-decider]")) if (b.getBoundingClientRect().height < 44) throw new Error("bouton de " + b.getBoundingClientRect().height + " px : " + b.textContent);
-           if (fermer[0].textContent.trim() !== "Fermer" || un("button.dec.autoriser[data-decider]").textContent.trim() !== "Autoriser"
-               || un("button.plus-tard[data-decider]").textContent.trim() !== "Plus tard") throw new Error("boutons sans texte");
-           window.__nom = fermer.find((b) => b.getAttribute("aria-pressed") !== "true").dataset.decider;
-           tous("button.dec.bloquer[data-decider]").find((b) => b.dataset.decider === window.__nom).click(); true`,
+           // 15-10 : la décision est un <vision-choix> (3 options : des étiquettes quand elles tiennent, sinon une liste).
+           const choix = tous("vision-choix[data-decider]");
+           if (!choix.length) throw new Error("aucune ligne à trancher");
+           for (const c of choix) {
+             if (c.getBoundingClientRect().right > zone.right + 0.5) throw new Error("décision qui déborde");
+             for (const b of c.shadowRoot.querySelectorAll("[data-cible]")) if (b.getBoundingClientRect().height < 44) throw new Error("cible de " + b.getBoundingClientRect().height + " px : " + b.textContent);
+           }
+           const montrees = choix.filter((c) => c.montreEtiquettes);
+           if (montrees.length && libelles(montrees[0]).join("|") !== "Fermer|Autoriser|Plus tard") throw new Error("décisions sans texte : " + libelles(montrees[0]).join("|"));
+           const c = choix.find((x) => x.valeur !== "bloquer");
+           window.__nom = c.dataset.decider;
+           choisir(c, "bloquer"); true`,
     enCours: `window.__appels.length === 1`,
     verifierAppel: `dernier().chemin === "pc_parental.decider_elements" && dernier().corps.decision === "bloquer" && dernier().corps.elements[0].nom === window.__nom.split("|").slice(1).join("|")`,
     repondre: `undefined`,
@@ -285,6 +436,21 @@ async function main() {
         for (let i = 0; i < 60 && !pret; i++) { await pause(100); pret = await evaluer(`!!(window.__pret && R() && R().querySelector("button"))`).catch(() => false); }
         if (!pret) throw new Error("carte non affichée");
         await pause(150);
+        if (s.defilement) {
+          // 1.93.2 : pas de « En cours… » à guetter ; un geste éventuel reçoit sa réponse, puis la place est vérifiée.
+          await evaluer(s.agir, true);
+          await pause(250);
+          if (s.repondre !== undefined) {
+            if (!(await evaluer(`window.__appels.length >= 1`))) throw new Error("aucun appel au serveur");
+            await evaluer(`(dernier().ok(${s.repondre}), true)`);
+          }
+          await pause(700);
+          if (!(await evaluer(s.apres))) throw new Error("défilement : " + JSON.stringify(await evaluer(`window.__mesure()`)));
+          if (exceptions.length) throw new Error("exception : " + exceptions[0]);
+          res.ok = true;
+          console.log(JSON.stringify(res));
+          continue;
+        }
         await evaluer(s.agir, true);
         await pause(80);
         if (!(await evaluer(s.enCours))) throw new Error("pas de retour immédiat au clic : " + (await evaluer(`R().textContent.replace(/\\s+/g, " ").slice(0, 200)`)));

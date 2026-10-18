@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.5 (retour d'essai) : la zone du haut de l'accueil (ZoneHaut) : remerciement et œil joyeux. -->
+<resources>
+    <string name="zonehaut_merci">Bedankt voor het installeren van Vision.</string>
+    <string name="zonehaut_mode_heure_meteo">Tijd en weer</string>
+    <string name="zonehaut_mode_remerciement">Bedankbericht</string>
+    <string name="zonehaut_mode_message">Eigen bericht</string>
+    <string name="zonehaut_mode_vide">Leeg</string>
+    <string name="zonehaut_personnaliser">Dit gebied aanpassen</string>
+    <string name="zonehaut_raison">Bovenkant van het startscherm wijzigen</string>
+    <string name="zonehaut_titre">Bovenste zone</string>
+    <string name="zonehaut_enregistrer">Opslaan</string>
+    <string name="zonehaut_mode_horloge">Klok</string>
+    <string name="zonehaut_mode_horloge_meteo">Klok en weer</string>
+    <string name="zonehaut_widget_horloge">Gestileerde klok</string>
+    <string name="zonehaut_widget_meteo">Weer</string>
+    <string name="zonehaut_widget_classique">Tijd en weer (klassiek)</string>
+    <string name="zonehaut_monter">Omhoog: %1$s</string>
+    <string name="zonehaut_descendre">Omlaag: %1$s</string>
+    <string name="zonehaut_reglages">Instellingen</string>
+    <string name="horloge_taille">Grootte</string>
+    <string name="horloge_petite">Klein</string>
+    <string name="horloge_moyenne">Middel</string>
+    <string name="horloge_grande">Groot</string>
+    <string name="horloge_format">Notatie</string>
+    <string name="horloge_format_appareil">Zoals het apparaat</string>
+    <string name="horloge_12h">12 uur</string>
+    <string name="horloge_24h">24 uur</string>
+    <string name="horloge_date">Datum tonen</string>
+    <string name="horloge_oui">Ja</string>
+    <string name="horloge_non">Nee</string>
+    <string name="modeappareil_titre">Modus van dit apparaat</string>
+    <string name="modeappareil_affichage">Weergave</string>
+</resources>

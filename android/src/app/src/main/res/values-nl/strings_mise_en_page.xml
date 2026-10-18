@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.3 : la mise en page des widgets (éditeur), réglée dans Home Assistant. -->
+<resources>
+    <string name="editeurwidget_mep">Opmaak</string>
+    <string name="editeurwidget_mep_aide">Dezelfde opmaak op alle apparaten, opgeslagen in Home Assistant.</string>
+    <string name="editeurwidget_mep_h">Horizontale uitlijning</string>
+    <string name="editeurwidget_mep_v">Verticale uitlijning</string>
+    <string name="editeurwidget_mep_taille">Grootte van de waarde</string>
+    <string name="editeurwidget_mep_gauche">Links</string>
+    <string name="editeurwidget_mep_centre">Midden</string>
+    <string name="editeurwidget_mep_droite">Rechts</string>
+    <string name="editeurwidget_mep_haut">Boven</string>
+    <string name="editeurwidget_mep_milieu">Midden</string>
+    <string name="editeurwidget_mep_bas">Onder</string>
+    <string name="editeurwidget_mep_remplir">Vullen</string>
+    <string name="editeurwidget_mep_s">S</string>
+    <string name="editeurwidget_mep_m">M</string>
+    <string name="editeurwidget_mep_l">L</string>
+    <string name="editeurwidget_mep_xl">XL</string>
+    <string name="editeurwidget_mep_titre">Titel</string>
+    <string name="editeurwidget_mep_icone">Pictogram</string>
+    <string name="editeurwidget_mep_reserve">Alleen een %1$s kan de opmaak wijzigen.</string>
+</resources>

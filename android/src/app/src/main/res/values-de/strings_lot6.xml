@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 6 : frictions restantes (écran de blocage, durées, accessibilité, focus TV, pluriels, erreurs). -->
+<resources>
+    <string name="lot6_ferme_par_appareil">Gesperrt durch</string>
+    <string name="lot6_ferme_par_appli">Gesperrt durch</string>
+    <string name="lot6_jusqua">Bis</string>
+    <string name="lot6_resume">%1$s: %2$s</string>
+    <string name="lot6_resume_jusqua">%1$s: %2$s, bis %3$s</string>
+    <string name="lot6_heure_aujourdhui">%1$s</string>
+    <string name="lot6_heure_demain">morgen %1$s</string>
+    <string name="lot6_heure_date">%1$s, %2$s</string>
+    <string name="lot6_source_plage">Der Zeitplan</string>
+    <string name="lot6_source_temps">Das Tageslimit</string>
+    <string name="lot6_source_moyenne">Der Notendurchschnitt</string>
+    <string name="lot6_source_regle">Ein %1$s</string>
+    <string name="lot6_source_age">Das empfohlene Alter (PEGI)</string>
+    <string name="lot6_source_categorie">Ihre Kategorie</string>
+    <string name="lot6_source_maison">„%1$s“, für alle Geräte</string>
+    <string name="lot6_source_securite">Die Gerätesicherheit</string>
+    <string name="lot6_source_concentration">Der Fokusmodus</string>
+    <string name="lot6_source_lieu">Dieser Ort</string>
+    <string name="lot6_deplie">%1$s, ausgeklappt</string>
+    <string name="lot6_replie">%1$s, eingeklappt</string>
+    <string name="lot6_contraste_titre">Farbe angepasst, damit alles lesbar bleibt</string>
+    <string name="lot6_contraste_texte_ajuste">Mit diesen Farben wäre der Text schwer lesbar: Er wurde gerade so weit abgedunkelt oder aufgehellt, dass er mindestens 4,5:1 zum Hintergrund und zu den Karten kontrastiert (jetzt %1$s:1).</string>
+    <string name="lot6_contraste_accent_ajuste">Die Akzentfarbe würde sich kaum vom Hintergrund abheben: Sie wurde auf einen Kontrast von mindestens 3:1 angepasst (jetzt %1$s:1).</string>
+    <string name="lot6_contraste_impossible">Hintergrund und Karten sind zu verschieden, als dass eine Textfarbe auf beiden gut lesbar wäre: Wähle sie ähnlicher.</string>
+    <string name="lot6_contraste_annuler">Abbrechen: zurück zu den vorherigen Farben.</string>
+    <string name="lot6_couleur_noir">Schwarz</string>
+    <string name="lot6_couleur_blanc">Weiß</string>
+    <string name="lot6_couleur_gris">Grau</string>
+    <string name="lot6_couleur_beige">Beige</string>
+    <string name="lot6_couleur_rouge">Rot</string>
+    <string name="lot6_couleur_orange">Orange</string>
+    <string name="lot6_couleur_marron">Braun</string>
+    <string name="lot6_couleur_jaune">Gelb</string>
+    <string name="lot6_couleur_vert">Grün</string>
+    <string name="lot6_couleur_turquoise">Türkis</string>
+    <string name="lot6_couleur_bleu">Blau</string>
+    <string name="lot6_couleur_violet">Violett</string>
+    <string name="lot6_couleur_rose">Rosa</string>
+    <string name="lot6_couleur_foncee">dunkles %1$s</string>
+    <string name="lot6_couleur_claire">helles %1$s</string>
+    <string name="lot6_err_demande_refusee">Home Assistant hat die Anfrage nicht angenommen. Versuche es gleich noch einmal; passiert das wieder, prüfe in den Einstellungen, ob dieses Gerät noch verbunden ist.</string>
+    <string name="lot6_err_code_refuse">Dieser Code wurde nicht angenommen. Prüfe die 6 Ziffern oder bitte um einen neuen Code.</string>
+    <string name="lot6_err_vision_ne_repond_pas">Home Assistant gefunden, aber die Vision-Integration antwortet nicht: Prüfe in Home Assistant, ob sie installiert und aktuell ist, und versuche es dann erneut.</string>
+    <string name="lot6_err_injoignable">Home Assistant gefunden, aber nicht erreichbar: Prüfe, ob dieses Gerät im selben Netzwerk ist, und versuche es dann erneut.</string>
+    <string name="lot6_err_widget">Home Assistant konnte diese Aktion nicht ausführen. Versuche es später erneut; passiert das wieder, prüfe das Gerät in Home Assistant.</string>
+    <string name="lot6_veille_injoignable">Home Assistant nicht erreichbar: Prüfe das Netzwerk. Nächster Versuch in einer Minute.</string>
+    <plurals name="lot6_nom_cartes">
+        <item quantity="one">"%1$s  · %2$d/%3$d Karte"</item>
+        <item quantity="other">"%1$s  · %2$d/%3$d Karten"</item>
+    </plurals>
+    <plurals name="lot6_n_sur_m_accordees">
+        <item quantity="one">%1$d von %2$d erteilt</item>
+        <item quantity="other">%1$d von %2$d erteilt</item>
+    </plurals>
+</resources>

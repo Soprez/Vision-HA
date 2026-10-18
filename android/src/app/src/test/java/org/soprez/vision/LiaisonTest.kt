@@ -41,21 +41,21 @@ class LiaisonTest {
 
     @Test fun le_serveur_trouve_et_son_nom() {
         assertNull(Liaison.serveur("Chez X", emptyList()))
-        val s = Liaison.serveur("", listOf("https://ha.exemple.org", "http://192.168.1.10:8123"))!!
+        val s = Liaison.serveur("", listOf("https://ha.exemple.org", "http://10.1.1.10:8123"))!!
         assertEquals("https://ha.exemple.org", s.externe)
-        assertEquals("http://192.168.1.10:8123", s.interne)
-        assertEquals("http://192.168.1.10:8123", s.adresse)
-        assertEquals("192.168.1.10:8123", s.affiche())
+        assertEquals("http://10.1.1.10:8123", s.interne)
+        assertEquals("http://10.1.1.10:8123", s.adresse)
+        assertEquals("10.1.1.10:8123", s.affiche())
         assertEquals("Bureau", Liaison.serveur(" Bureau ", listOf("http://10.0.0.2:8123"))!!.affiche())
     }
 
     @Test fun pas_celui_ci_ecarte_le_serveur() {
-        val s = Liaison.serveur("", listOf("http://192.168.1.10:8123"))!!
+        val s = Liaison.serveur("", listOf("http://10.1.1.10:8123"))!!
         assertFalse(Liaison.estEcarte(s))
         Liaison.ecarter(s)
         assertTrue(Liaison.estEcarte(s))
-        assertTrue(Liaison.estEcarte(Liaison.serveur("autre nom", listOf("http://192.168.1.10:8123"))!!))
-        assertFalse(Liaison.estEcarte(Liaison.serveur("", listOf("http://192.168.1.30:8123"))!!))
+        assertTrue(Liaison.estEcarte(Liaison.serveur("autre nom", listOf("http://10.1.1.10:8123"))!!))
+        assertFalse(Liaison.estEcarte(Liaison.serveur("", listOf("http://10.1.1.30:8123"))!!))
     }
 
     @Test fun chercher_ne_pose_rien_et_ne_contacte_personne() {

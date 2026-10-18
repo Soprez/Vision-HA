@@ -1,0 +1,48 @@
+{
+  "version": "2.4.7",
+  "date": "2026-10-12",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Liaison sans code : la télé attend, un Décideur accepte ou refuse « Nouvel appareil » sur son téléphone.",
+        "en": "Linking without a code: the TV waits, a Decider accepts or declines “New device” on their phone.",
+        "de": "Verbinden ohne Code: Der Fernseher wartet, ein Entscheider nimmt „Neues Gerät“ auf dem Handy an oder lehnt ab.",
+        "es": "Vincular sin código: la tele espera y un Responsable acepta o rechaza «Nuevo dispositivo» en su teléfono.",
+        "it": "Collegamento senza codice: la TV attende, un Decisore accetta o rifiuta «Nuovo dispositivo» sul telefono.",
+        "nl": "Koppelen zonder code: de tv wacht, een Beslisser accepteert of weigert “Nieuw apparaat” op de telefoon."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Le QR et le code ne servent plus qu'en secours, derrière « Autre méthode ».",
+        "en": "The QR code and the code are only a fallback now, behind “Other method”.",
+        "de": "QR-Code und Code sind nur noch ein Ausweg, hinter „Andere Methode“.",
+        "es": "El QR y el código solo quedan como alternativa, tras «Otro método».",
+        "it": "Il QR e il codice restano solo di riserva, dietro «Altro metodo».",
+        "nl": "De QR-code en de code zijn alleen nog een uitweg, achter “Andere methode”."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Demandes de liaison limitées en rafale ; une nouvelle demande du même appareil remplace l'ancienne.",
+        "en": "Link requests are rate-limited; a new request from the same device replaces the old one.",
+        "de": "Verbindungsanfragen sind begrenzt; eine neue Anfrage desselben Geräts ersetzt die alte.",
+        "es": "Las solicitudes de vinculación están limitadas; una nueva del mismo dispositivo sustituye a la anterior.",
+        "it": "Le richieste di collegamento sono limitate; una nuova dello stesso dispositivo sostituisce la vecchia.",
+        "nl": "Koppelverzoeken zijn beperkt; een nieuw verzoek van hetzelfde apparaat vervangt het oude."
+      }
+    }
+  ]
+}

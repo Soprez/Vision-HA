@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.5, prototype (retour d'essai) : l'œil sur le bouton Accueil (OeilAccueil). -->
+<resources>
+    <string name="oeilaccueil_titre">Ojo en el botón de inicio</string>
+    <string name="oeilaccueil_active">Activado</string>
+    <string name="oeilaccueil_desactive">Desactivado</string>
+    <string name="oeilaccueil_note">El ojo de Vision sobre el botón de inicio de la barra de 3 botones. No se muestra nada con navegación por gestos, en pantalla completa ni con el teclado. Necesita el servicio de accesibilidad de Vision.</string>
+</resources>

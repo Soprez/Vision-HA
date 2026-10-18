@@ -19,10 +19,10 @@ async def _monter(hass, hass_storage):
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": {
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android"),
             "e2": _fiche("e2", "TAB-LOU", ENFANT2["secret"], person="person.lou", platform="android"),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
             "p2": _fiche("p2", "PIXEL-MIA", MIA["secret"], person="person.mia", platform="android", role="parent"),
         }}}
-    for p in ("lou", "robin", "mia"):
+    for p in ("lou", "nolan", "mia"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)

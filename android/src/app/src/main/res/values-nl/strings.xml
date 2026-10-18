@@ -23,7 +23,7 @@
     <string name="lieu_defaut">Plek</string>
     <string name="soutien_titre">Het project steunen</string>
     <string name="soutien_badge">♥ Supporter</string>
-    <string name="soutien_carte">☕ Trakteer ons op koffie</string>
+    <string name="soutien_carte">☕ Trakteer me op koffie</string>
     <string name="soutien_merci">Bedankt! Deze plek steunt Vision.</string>
     <string name="soutien_explication">De supportersbadge is puur decoratief: er wordt niets ontgrendeld, Vision doet precies hetzelfde voor iedereen.</string>
     <string name="soutien_comment">Inschakelen: in Home Assistant, Instellingen → Apparaten &amp; diensten → Vision → Configureren → Het project steunen.</string>

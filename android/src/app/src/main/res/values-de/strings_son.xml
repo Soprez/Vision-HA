@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Niveau sonore (backlog n° 31) : mesure par le micro, des nombres seulement vers Home Assistant. -->
+<resources>
+    <string name="son_titre">Lautstärke</string>
+    <string name="son_alerte_titre">Zu laut</string>
+    <string name="son_alerte_sur">Warnung %1$d von %2$d: Bei der letzten wird das Gerät gesperrt.</string>
+    <string name="son_alerte">Im Raum ist es zu laut.</string>
+    <string name="son_canal">Messung der Lautstärke</string>
+    <string name="son_canal_desc">Wird angezeigt, während Vision die Lautstärke misst (nichts wird aufgenommen).</string>
+    <string name="son_canal_alerte">Lärmwarnungen</string>
+    <string name="son_canal_alerte_desc">Wenn der Raum über der Schwelle bleibt.</string>
+    <string name="son_notif_titre">Vision misst die Lautstärke</string>
+    <string name="son_notif_texte">Nur die Lautstärke wird gemessen, hier auf dem Gerät. Kein Ton wird aufgenommen oder gesendet.</string>
+    <string name="son_etat_sans_micro">Kein Mikrofon auf diesem Gerät</string>
+    <string name="son_etat_autoriser">Mikrofon erlauben</string>
+    <string name="son_etat_en_cours">Messung läuft</string>
+    <string name="son_etat_attente">Startet bei der nächsten Rückkehr zu Vision</string>
+    <string name="son_vie_privee">Vision misst mit dem Mikrofon dieses Geräts, wie laut es im Raum ist.\n\nWas gemessen wird: nur die Lautstärke, hier auf dem Gerät.\nWas nicht: Kein Ton wird aufgenommen, gespeichert oder gesendet.\nWas an Home Assistant geht: nur Zahlen (Pegel, höchster Pegel, Zeitpunkt einer Warnung).\n\nDie Anzeige „Mikrofon in Gebrauch“ des Systems bleibt sichtbar: Das ist so gewollt. Zu lange über der Schwelle erscheint eine Warnung; nach mehreren Warnungen kann das Gerät eine Weile gesperrt werden.</string>
+    <string name="son_vie_privee_sans_micro">Dieses Gerät hat kein Mikrofon: Die Lautstärke kann hier nicht gemessen werden.</string>
+    <string name="son_autoriser">Mikrofon erlauben</string>
+    <string name="son_plus_tard">Später</string>
+    <string name="son_ok">OK</string>
+</resources>

@@ -20,15 +20,25 @@ class VisionAccessibility : AccessibilityService() {
 
     override fun onServiceConnected() {
         actif = true
+        instance = java.lang.ref.WeakReference(this)
         AgentService.demarrer(this)
+        // 1.90.5, prototype : l'œil sur le bouton Accueil (désactivé par défaut).
+        OeilAccueil.connecter(this)
     }
 
     override fun onDestroy() {
         actif = false
+        OeilAccueil.retirer(this)
         super.onDestroy()
     }
 
     override fun onInterrupt() {}
+
+    /** 1.91.3 : à la rotation, l'œil du bouton Accueil se retire et se repose sur la nouvelle place du bouton. */
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        OeilAccueil.rotation(this)
+    }
 
     // ---- Vision à la place de l'accueil du système (Google TV impose le sien : on ne peut que passer devant) ----
 
@@ -67,8 +77,13 @@ class VisionAccessibility : AccessibilityService() {
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
         Flux.mainHumaine()
+        // 1.90.5, prototype : l'œil posé sur le bouton Accueil réagit à l'appui (la touche n'est jamais consommée ici).
+        if (event.keyCode == KeyEvent.KEYCODE_HOME && event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) OeilAccueil.appuiAccueil()
         // La touche Accueil met fin à l'accueil d'origine laissé au décideur : elle ramène Vision.
         if (event.keyCode == KeyEvent.KEYCODE_HOME && event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) AccueilDefaut.finOrigine()
+        // Veille-lot : toute touche de la télécommande est une personne devant l'écran, même quand elle ne fait que
+        // déplacer le focus (l'accueil d'une Google TV ne produit alors aucun « geste ») : le repli de la veille en tient compte.
+        if (event.action == KeyEvent.ACTION_DOWN) Usage.derniereInteraction = System.currentTimeMillis()
         if (event.keyCode != KeyEvent.KEYCODE_HOME || !prendAccueil()) return false
         // Appui long laissé au système (tableau de bord Google TV).
         if (event.action == KeyEvent.ACTION_DOWN) return event.repeatCount == 0
@@ -78,6 +93,7 @@ class VisionAccessibility : AccessibilityService() {
 
     override fun onAccessibilityEvent(e: AccessibilityEvent?) {
         e ?: return
+        OeilAccueil.evenement(this, e)
         val pkg = e.packageName?.toString() ?: return
         // Seul un geste compte comme de l'activité : un clic, un défilement, une
         // saisie, un changement d'écran. Le contenu qui bouge tout seul (vidéo,
@@ -106,7 +122,6 @@ class VisionAccessibility : AccessibilityService() {
         }
         Usage.derniereInteraction = System.currentTimeMillis()
         dernierEcran = e.className?.toString() ?: ""
-        Migration.ecranVu(this, pkg, e.className?.toString() ?: "")
         Assistant.ecranVu(this, pkg)
         // Les claviers et la barre système ne sont pas « l'appli utilisée ».
         if (pkg != "com.android.systemui" && !pkg.contains("inputmethod") && !pkg.contains("keyboard")) {
@@ -158,7 +173,7 @@ class VisionAccessibility : AccessibilityService() {
         refuseA = maintenant
         performGlobalAction(GLOBAL_ACTION_BACK)
         android.os.Handler(android.os.Looper.getMainLooper()).post {
-            android.widget.Toast.makeText(this, getString(R.string.accessibilite_reserve_decideurs, Vocabulaire.decideurs(this)), android.widget.Toast.LENGTH_LONG).show()
+            Ui.toast(this, getString(R.string.accessibilite_reserve_decideurs, Vocabulaire.decideurs(this)))
         }
     }
 
@@ -171,8 +186,6 @@ class VisionAccessibility : AccessibilityService() {
         if (AdminReceiver.demandeEnCours() && dernierEcran.contains("DeviceAdminAdd")) return false
         // Module « accueil » coupé : rendre l'accueil d'origine n'est jamais bloqué.
         if (!Modules.actif(this, Modules.ACCUEIL) && pkg.endsWith(".permissioncontroller") && dernierEcran.contains(".role.ui.")) return false
-        // Désinstallation de l'ancienne Vision, lancée depuis la nouvelle : elle passe, elle seule.
-        if (Migration.ecranAutorise(this, pkg, classe)) return false
         // L'assistant de premier lancement vient d'ouvrir cet écran pour une de ses étapes.
         if (Assistant.autorise(this, pkg)) return false
         if (Deverrouillage.reglagesOuverts(this)) return false
@@ -211,6 +224,8 @@ class VisionAccessibility : AccessibilityService() {
     }
 
     companion object {
+        /** Le service en marche (pour réappliquer un réglage, comme l'œil sur le bouton Accueil). */
+        @Volatile var instance: java.lang.ref.WeakReference<VisionAccessibility>? = null
         private val GESTES = setOf(
             AccessibilityEvent.TYPE_VIEW_CLICKED,
             AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,

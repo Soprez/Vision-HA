@@ -21,8 +21,8 @@ from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
 
 from . import demandes, labels, lieu, matrice, modules, pause_generale
-from . import roles, textes
-from .const import DOMAIN, MODE_LOCKED, MODE_OPEN
+from . import personne_fiche, roles, textes
+from .const import DOMAIN, MODE_LOCKED, MODE_OPEN, MODE_SUIVRE, MODES_AUTORISATION
 from .coordinator import PcParentalCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -233,6 +233,11 @@ def _exceptions(store, pc: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
         if nom_tj.lower() not in deja:
             deja.add(nom_tj.lower())
             sortie["toujours"].append({"nom": nom_tj, "libelle": applis.get(nom_tj.lower()) or nom_tj, "genre": "apps", "maison": False})
+    # Refonte des autorisations : les sites « toujours disponibles » du Demandeur.
+    for nom_tj in store.noms_durables(pc, "sites", "toujours"):
+        if nom_tj.lower() not in deja:
+            deja.add(nom_tj.lower())
+            sortie["toujours"].append({"nom": nom_tj, "libelle": nom_tj, "genre": "sites", "maison": False})
     sortie["toujours"].sort(key=lambda x: x["libelle"].lower())
     for champ in ("autorises", "bloques"):
         for valeur in pc.get(champ) or []:
@@ -471,7 +476,19 @@ def temps_personne(store, personne: str) -> dict[str, Any]:
     return {"actif": sum(a["actif"] for a in appareils), "appareils": appareils}
 
 
-def _personnes(hass: HomeAssistant, coord: PcParentalCoordinator, parents: list[str] | None = None) -> list[dict[str, Any]]:
+def _autorisations_personne(store, propres: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not propres:
+        return []
+    rendu = [f for f in store.autorisations_de(propres[0]) if f["mode"] != "temps"]
+    for a in propres:
+        for f in store.autorisations_de(a):
+            if f["mode"] == "temps":
+                rendu.append({**f, "pc": a["id"], "appareil": str(a.get("name") or a["id"])})
+    return rendu
+
+
+def _personnes(hass: HomeAssistant, coord: PcParentalCoordinator, parents: list[str] | None = None,
+               langue: str | None = None) -> list[dict[str, Any]]:
     """Les actifs de la maison : toute personne à qui un appareil appartient, seule ou en partage.
 
     « appareils » donne ses appareils (les siens d'abord, puis les partagés) ;
@@ -502,6 +519,11 @@ def _personnes(hass: HomeAssistant, coord: PcParentalCoordinator, parents: list[
                 else {"actif": 0, "appareils": []},
                 # Accordéons de l'appli (1.75.0) : le rôle de la personne (celui de son appareil principal).
                 "role": roles.nom(store, propres[0]) if propres else "",
+                # 2.5.0 : ses autorisations (exception et « toujours disponible » : toutes ses machines ; « pour un
+                # temps » : par appareil, avec l'heure de fin).
+                "autorisations": _autorisations_personne(store, propres),
+                # Refonte lot 3 : le résumé de sa fiche (réveils, récompenses, règles de lieu, widgets, rôle).
+                "fiche": personne_fiche.resume_appli(hass, store, personne, langue),
             })
     # Les enfants d'abord : c'est pour eux qu'on ouvre la page.
     sortie.sort(key=lambda p: (p["parent"], p["prenom"].lower()))
@@ -543,6 +565,7 @@ def etat_maison(hass: HomeAssistant, coord: PcParentalCoordinator, moi_id: str |
     appareils.sort(key=lambda a: (a["parent"], not a["en_ligne"], (a["prenom"] or a["nom"]).lower()))
     # 1.97.8 : une seule source pour toutes les demandes (accès, temps, déverrouillage).
     attente = demandes_attente(hass, coord, langue)
+    from . import a_decider
     return {
         "ok": True,
         "lieu": lieu.nom(coord.store),
@@ -553,8 +576,14 @@ def etat_maison(hass: HomeAssistant, coord: PcParentalCoordinator, moi_id: str |
         "pause_generale": pause_generale.public(coord.store),
         "appareils": appareils,
         "demandes": attente,
+        # Lot 2 (« À décider ») : ce qui se traite par lots (appareils à valider, à classer, logiciels).
+        "a_decider_lots": a_decider.lots(hass, coord, langue),
         "categories": categories,
-        "personnes": _personnes(hass, coord, parents),
+        "personnes": _personnes(hass, coord, parents, langue),
+        # 2.5.0 : nouveau moteur des autorisations actif (reprise validée), sinon les anciennes règles décident.
+        "autorisations_v2": bool(getattr(coord.store, "autorisations_v2", False)),
+        # 2.5.1 : l'écran d'une catégorie par élément, la recherche, les blocages récents et les demandes groupées.
+        "elements": 1,
         "desinstallation": bool(gestion is not None and gestion.desinstallation_permise),
         "maison": [
             {"entite": p, "prenom": str(e.name) if (e := hass.states.get(p)) is not None and e.name else p.split(".")[-1]}
@@ -599,6 +628,11 @@ async def agir(
         raise _Refus(403, "module", textes.t("commun.module_coupe", langue, module=modules.nom(coupe, langue)))
     # Les avis « Vision » (ouvert, fermé, temps ajouté…) sont des messages : pas sans le module « Messages ».
     avis = not modules.coupe(coord.store, "messages")
+    if action == "acces" and corps.get("demande"):
+        # Lot 2 : tranchée ici, la demande quitte aussi les téléphones des Décideurs (appli Compagnon).
+        from . import a_decider
+        for _g in ("acces", "temps", "deverrouillage"):
+            hass.async_create_task(a_decider.effacer(hass, coord, _g, str(corps["demande"])))
     try:
         minutes = max(0, min(720, int(corps.get("minutes") or 0)))
     except (TypeError, ValueError):
@@ -647,6 +681,8 @@ async def agir(
     elif action == "acces" and (t_dem := temps_en_attente(cible)) and t_dem["id"] == str(corps.get("demande") or ""):
         # 1.97.2 : réponse à une demande de temps depuis la liste des demandes (carte Maison, appli).
         cible.pop("demande", None)
+        # Lot 2 : la notification de HA ne reste plus après la réponse (elle ne partait qu'avec /reponse).
+        persistent_notification.async_dismiss(hass, f"{DOMAIN}_temps_{cible['id']}")
         nom_t = str(cible.get("name") or cible["id"])
         if str(corps.get("decision") or "non") == "non":
             dit("parent.temps_refuse_sur", qui=qui, minutes=t_dem["minutes"], nom=nom_t)
@@ -716,8 +752,38 @@ async def agir(
                     coord.store.basculer(cible, e, False)
                 dit("parent.autorise_categorie", qui=qui, nom=joli,
                     categories=lambda lg: ", ".join(textes.categorie(e, lg) for e in ets))
+        elif decision == "accorder":
+            # 2.5.0 : réponse avec l'un des trois modes (pour un temps, exception, toujours disponible).
+            # 2.5.1 : une demande groupée (un logiciel et ses sites bloqués) s'accepte en bloc, ou élément par élément
+            # (« elements » : « app:<nom> » et les sites retenus).
+            mode = str(corps.get("mode") or "")
+            app_oui, sites_oui = _elements_retenus(d, corps.get("elements"))
+            try:
+                if app_oui:
+                    coord.store.accorder(cible, str(d.get("genre") or "sites"), d["cle"], mode, int(minutes or 60), par=qui)
+                for site in sites_oui:
+                    if app_oui:
+                        # Le site suit désormais le logiciel : il s'ouvre et se ferme avec lui.
+                        coord.store.lier_domaine(d["cle"], site, True)
+                    else:
+                        coord.store.accorder(cible, "sites", site, mode, int(minutes or 60), par=qui)
+            except textes.Erreur as err:
+                cible.setdefault("demandes", []).append(d)  # la demande reste à régler
+                code = 400 if err.cle == "store.mode_inconnu" else 409
+                raise _Refus(code, "mode" if code == 400 else "bloque", err.texte(langue)) from None
+            nom_dit = joli if app_oui else ", ".join(sites_oui)
+            if mode == "temps":
+                dit("parent.ouvert_nom_pour", qui=qui, nom=nom_dit, minutes=int(minutes or 60))
+            else:
+                dit("parent.accorde_" + mode, qui=qui, nom=nom_dit)
+            if app_oui and sites_oui:
+                dit("parent.groupe_accorde", _n=len(sites_oui))
         elif decision == "temporaire":
             minutes = minutes or 60
+            if coord.store.autorisations_v2 and coord.store.bloque_explicite(
+                    cible, str(d.get("genre") or "sites"), d["cle"]) in ("lieu", "securite", "liste_noire"):
+                cible.setdefault("demandes", []).append(d)
+                raise _Refus(409, "bloque", textes.t("store.bloque_explicite", langue, nom=joli))
             if d.get("genre") == "apps":
                 coord.store.laisser_passer_app(cible, d["cle"], minutes)
             else:
@@ -729,11 +795,17 @@ async def agir(
             jusqua = coord.store.noter_refus(cible, str(d.get("genre") or "sites"), d["cle"])
             if jusqua:
                 dit("parent.redemande_a", heure=heure_de(jusqua))
-        if decision != "non" and decision in ("toujours", "exception", "categorie", "temporaire"):
+        if decision != "non" and decision in ("toujours", "exception", "categorie", "temporaire", "accorder"):
             coord.store.lever_refus(cible, str(d.get("genre") or "sites"), d["cle"])
         persistent_notification.async_dismiss(
             hass, "{}_acces_{}_{}".format(DOMAIN, cible["id"], d["id"])
         )
+        try:
+            from . import notifs_mobiles
+
+            notifs_mobiles.effacer(hass, coord.store, d["id"])
+        except Exception:  # noqa: BLE001
+            pass
         try:
             coord.store.add_message(cible["id"], dit.en(lc), titre=textes.t("commun.reponse", lc))
         except ValueError:
@@ -762,6 +834,8 @@ async def agir(
             dit("parent.autorise", qui=qui, nom=nom)
         elif decision == "bloquer":
             coord.store.basculer(cible, cle, True)
+            # Refonte des autorisations : bloquer retire aussi ce qui était accordé (le plus récent l'emporte).
+            coord.store.retirer_autorisation(cible, genre, cle)
             dit("parent.bloque", qui=qui, nom=nom)
         elif decision == "disponible":
             # Reste ouverte même quand le planning ferme l'appareil. Une appli seulement : un site n'a pas d'icône à proposer.
@@ -788,6 +862,9 @@ async def agir(
             # L'exception est retirée : ce nom suit de nouveau ses catégories, l'âge et le planning.
             retire = coord.store.oublier_regle(cible, cle)
             retire = coord.store.oublier_regle(cible, nom) or retire
+            # Refonte des autorisations : « Oublier » retire aussi « toujours disponible » (sinon le nouveau moteur
+            # laisserait ouvert ce qu'on vient d'oublier) ; un « pour un temps » en cours reste.
+            retire = coord.store.retirer_autorisation(cible, genre, nom, "exception") or retire
             if not retire:
                 raise _Refus(404, "inconnu", textes.t("parent.exception_disparue", langue))
             dit("parent.exception_retiree", qui=qui, nom=nom)
@@ -833,7 +910,11 @@ async def agir(
         fin = 0.0
         for a in cibles:
             fin = max(fin, coord.store.ajouter_temps(a, minutes))
-            a.pop("demande", None)  # 1.97.2 : du temps donné répond à la demande en attente
+            _d = a.pop("demande", None)  # 1.97.2 : du temps donné répond à la demande en attente
+            persistent_notification.async_dismiss(hass, f"{DOMAIN}_temps_{a['id']}")  # lot 2
+            if isinstance(_d, dict) and _d.get("id"):
+                from . import a_decider
+                hass.async_create_task(a_decider.effacer(hass, coord, "temps", str(_d["id"])))
         try:
             from . import bilan as _bilan
 
@@ -964,6 +1045,58 @@ async def agir(
         _LOGGER.warning("Vision : durée max de pause sur « %s » réglée à %d min (par %s).", cible.get("name"), valeur, qui)
         dit("parent.pause_max", minutes=valeur,
             nom=cible.get("name") or (lambda lg: textes.t("parent.cet_appareil", lg)))
+    elif action == "lier_domaine":
+        # 2.5.0 (lot 3) : un Décideur valide ou retire un site lié à une appli (pour tout le Lieu).
+        app = str(corps.get("nom") or "").strip()
+        domaine = str(corps.get("domaine") or "").strip()
+        try:
+            change = coord.store.lier_domaine(app, domaine, bool(corps.get("lier", True)))
+        except textes.Erreur as err:
+            raise _Refus(400, "domaine", err.texte(langue)) from None
+        dit("parent.domaine_lie" if corps.get("lier", True) else "parent.domaine_delie", nom=app, site=domaine)
+        _LOGGER.info("Vision : site lié %s ↔ %s (%s, changé : %s).", app, domaine, qui, change)
+    elif action in ("accorder", "retirer_autorisation"):
+        # Refonte des autorisations, lot 1 : trois modes (« temps », « exception », « toujours ») et leur retrait.
+        nom = str(corps.get("nom") or "").strip()
+        if nom.lower().startswith("app:"):
+            genre, nom = "apps", nom[4:].strip()
+        elif str(corps.get("genre") or "") in ("apps", "sites"):
+            genre = str(corps.get("genre"))
+        else:
+            genre = coord.store._genre_de(nom) if nom else "sites"
+        if not demandes.cle_de(genre, nom):
+            raise _Refus(400, "nom")
+        if action == "retirer_autorisation":
+            mode_r = str(corps.get("mode") or "") or None
+            if mode_r is not None and mode_r not in MODES_AUTORISATION:
+                raise _Refus(400, "mode", textes.t("store.mode_inconnu", langue))
+            if not coord.store.retirer_autorisation(cible, genre, nom, mode_r):
+                raise _Refus(404, "inconnu", textes.t("parent.exception_disparue", langue))
+            dit("parent.autorisation_retiree", qui=qui, nom=nom)
+        elif str(corps.get("mode") or "") == MODE_SUIVRE:
+            # 2.5.1 : « Suivre la catégorie » (le défaut) : l'élément perd son réglage propre.
+            if not coord.store.suivre_categorie(cible, genre, nom):
+                dit("parent.deja_categorie", nom=nom)
+            else:
+                dit("parent.suit_categorie", qui=qui, nom=nom)
+        elif str(corps.get("mode") or "") == "bloquer":
+            # 2.5.1 : « Bloquer » depuis le choix du mode (même geste que « Bloquer » d'une fiche).
+            cle_b = demandes.cle_de(genre, nom)
+            coord.store.basculer(cible, cle_b, True)
+            coord.store.retirer_autorisation(cible, genre, cle_b)
+            dit("parent.bloque", qui=qui, nom=nom)
+        else:
+            mode = str(corps.get("mode") or "")
+            try:
+                fiche = coord.store.accorder(cible, genre, nom, mode, int(minutes or 60), par=qui)
+            except textes.Erreur as err:
+                code = 400 if err.cle == "store.mode_inconnu" else 409
+                raise _Refus(code, "mode" if code == 400 else "bloque", err.texte(langue)) from None
+            coord.store.lever_refus(cible, genre, demandes.cle_de(genre, nom))
+            if mode == "temps":
+                dit("parent.ouvert_nom_pour", qui=qui, nom=nom, minutes=int(minutes or 60))
+            else:
+                dit("parent.accorde_" + fiche["mode"], qui=qui, nom=nom)
     elif action == "message":
         texte = str(corps.get("texte") or "").strip()[:200]
         if not texte:
@@ -1005,7 +1138,7 @@ async def agir(
 
 
 # Les gestes qui visent toute la maison, pas un appareil : pas de « pc » à fournir.
-GESTES_MAISON = frozenset({"pause_generale", "fin_pause_generale"})
+GESTES_MAISON = frozenset({"pause_generale", "fin_pause_generale", "reprise_autorisations"})
 
 
 def demandes_attente(hass: HomeAssistant, coord: PcParentalCoordinator, langue: str | None = None) -> list[dict[str, Any]]:
@@ -1084,6 +1217,25 @@ async def agir_maison(hass: HomeAssistant, coord: PcParentalCoordinator, corps: 
     if (coupe := modules.geste_coupe(coord.store, action, corps)) is not None:
         raise _Refus(403, "module", textes.t("commun.module_coupe", langue, module=modules.nom(coupe, langue)))
     minutes = 0
+    if action == "reprise_autorisations":
+        # 2.5.0 : la reprise des autorisations depuis le tableau (simuler, appliquer après relecture, annuler).
+        from . import reprise_autorisations as _reprise_a
+
+        etape = str(corps.get("etape") or "simuler")
+        try:
+            if etape == "simuler":
+                return _reprise_a.texte(_reprise_a.simuler(coord.store, hass), langue)
+            if etape == "appliquer":
+                _reprise_a.appliquer(coord.store, qui, hass)
+                _LOGGER.warning("Vision : reprise des autorisations appliquée (par %s).", qui)
+                return textes.t("reprise.appliquee", langue, par=qui)
+            if etape == "annuler":
+                _reprise_a.annuler(coord.store, qui)
+                _LOGGER.warning("Vision : reprise des autorisations annulée (par %s).", qui)
+                return textes.t("reprise.annulee", langue, par=qui)
+        except textes.Erreur as err:
+            raise _Refus(409, "reprise", err.texte(langue)) from None
+        raise _Refus(400, "etape")
     if action == "pause_generale":
         try:
             minutes = int(corps.get("minutes") or 0)
@@ -1100,6 +1252,44 @@ async def agir_maison(hass: HomeAssistant, coord: PcParentalCoordinator, corps: 
         retour = await pause_generale.async_reprendre(hass, coord, qui, langue)
     hass.bus.async_fire("{}_parent_action".format(DOMAIN), {"action": action, "pc": "", "minutes": minutes, "par": qui})
     return retour
+
+
+LECTURES = frozenset({"categorie", "recherche", "recents"})
+
+
+def _lecture(coord: PcParentalCoordinator, corps: dict[str, Any], langue: str) -> tuple[dict[str, Any], int]:
+    """2.5.1 : les lectures de l'écran des autorisations, pour l'appareil visé. Rien n'y change aucun état.
+
+    « categorie » : la catégorie détaillée (logiciels, services, sites, état de chacun) ; « recherche » : un site,
+    une appli, un logiciel ou une catégorie, où qu'il soit rangé, et pourquoi il est fermé ; « recents » : les
+    derniers blocages des appareils de la personne, et les mêmes regroupés par logiciel."""
+    cible = _cible(coord, corps)
+    if cible is None:
+        return {"ok": False, "error": "pc"}, 404
+    action = str(corps.get("action") or "")
+    if action == "recherche":
+        return {"ok": True, "resultats": coord.store.rechercher(cible, str(corps.get("texte") or ""), langue)}, 200
+    if action == "recents":
+        return {"ok": True, "recents": coord.store.blocages_recents(cible, langue),
+                "groupes": coord.store.groupes_a_demander(cible, langue)}, 200
+    etiquette = str(corps.get("etiquette") or "").strip()
+    if not etiquette:
+        return {"ok": False, "error": "etiquette"}, 400
+    try:
+        sites_max = max(1, min(400, int(corps.get("sites_max") or 8)))
+    except (TypeError, ValueError):
+        sites_max = 8
+    return {"ok": True, **coord.store.detail_categorie(cible, etiquette, sites_max, langue)}, 200
+
+
+def _elements_retenus(d: dict[str, Any], elements: Any) -> tuple[bool, list[str]]:
+    """Ce que le Décideur accepte d'une demande : tout (sans liste), ou les éléments cochés (« app:<nom> », sites)."""
+    sites = [str(x) for x in d.get("sites") or []]
+    if not isinstance(elements, list):
+        return True, sites
+    voulus = {str(e).strip().lower() for e in elements}
+    app_oui = d.get("genre") != "apps" or ("app:" + str(d.get("cle"))) in voulus or str(d.get("cle")) in voulus
+    return app_oui, [x for x in sites if x in voulus]
 
 
 def _cible(coord: PcParentalCoordinator, corps: dict[str, Any]) -> dict[str, Any] | None:
@@ -1151,6 +1341,18 @@ class PcParentalParentView(HomeAssistantView):
             return self.json({"ok": False, "error": "parent"}, status_code=403)
 
         retour = ""
+        if corps.get("action") == "code_deverrouillage":
+            # FAILLE (l'auteur, 16/10) : le code de déverrouillage du Décideur, le même pour l'appli et le tableau (octroi.py).
+            from . import octroi
+
+            return self.json(*await octroi.depuis_appli(self.hass, coord, moi, corps))
+        if corps.get("action") == "canaux":
+            # 2.5.6 (l'auteur, 15/10) : comment ce Décideur reçoit demandes, alertes et résumé (canaux.py).
+            from . import canaux
+
+            return self.json(*await canaux.depuis_appli(self.hass, coord, moi, corps))
+        if corps.get("action") in LECTURES:
+            return self.json(*_lecture(coord, corps, langue))
         if str(corps.get("action") or "") in GESTES_MAISON:
             # Pause générale : toute la maison, pas d'appareil visé ; « Gérer » suffit (vérifié plus haut).
             qui = _prenom(self.hass, moi) or str(moi.get("name") or textes.t("commun.un_gestionnaire", langue))
@@ -1230,6 +1432,13 @@ class PcParentalMaisonView(HomeAssistantView):
             return self.json({"ok": False, "error": "loading"}, status_code=503)
         langue = textes.ha(self.hass)
         qui = str(getattr(request.get("hass_user"), "name", "") or textes.t("commun.un_gestionnaire", langue))
+        if corps.get("action") in LECTURES:
+            return self.json(*_lecture(coord, corps, langue))
+        # FAILLE DE SÉCURITÉ (l'auteur, 16/10) : accorder depuis le tableau exige le code de déverrouillage, à chaque geste.
+        from . import octroi
+
+        if (refus_code := await octroi.exiger(self.hass, coord, request, corps, octroi.est_octroi(corps))) is not None:
+            return self.json(refus_code, status_code=403)
         cible = None
         if str(corps.get("action") or "") not in GESTES_MAISON:
             cible = _cible(coord, corps)

@@ -6,22 +6,21 @@ from datetime import timedelta
 
 DOMAIN = "pc_parental"
 
-VERSION = "2.4.3"
+VERSION = "2.5.10"
 
 # Version du client PowerShell hébergé par cette intégration. Les agents
 # installés sur les PC se mettent à jour tout seuls quand elle change.
-CLIENT_VERSION = "1.91.0"
+CLIENT_VERSION = "1.93.3"
 CLIENT_DIR = "client"
 
 # Nom du produit. Le domaine technique reste « pc_parental » : le changer
 # ferait perdre les PC, leurs plages et leurs entités.
 PRODUIT = "Vision"
 PRODUIT_AFFICHE = "Vision"
-# Les identifiants de l'appli Android. ANCIEN_PAQUET : identifiant des premières versions
-# (jusqu'à la 1.48), gardé seulement pour la migration vers la nouvelle appli.
+# L'identifiant de l'appli Android. Ne jamais le changer : une autre valeur serait une autre appli, et plus
+# aucun appareil ne recevrait les mises à jour.
 PAQUET = "org.soprez.vision"
-ANCIEN_PAQUET = "fr.familleroy.vision"
-PAQUETS_VISION = tuple(p for p in (PAQUET, ANCIEN_PAQUET) if p)
+PAQUETS_VISION = (PAQUET,)
 
 # Un agent supprimé garde ce délai pour repasser chercher son congé.
 RETRAIT_TTL = 90 * 24 * 3600
@@ -223,6 +222,28 @@ BRUIT_APPS = {
 # 2.0.3 (Roblox sans avatars ni textures sur un PC) : les sites sans lesquels une appli autorisée ne
 # marche pas. Autoriser l'appli sur un appareil les épargne aussi quand une catégorie (« Jeux » fermé)
 # les couperait : sans quoi le jeu se lance, mais sans images. Un site bloqué nommément reste bloqué.
+# Refonte des autorisations, lot 1 (CONCEPTION-autorisations.md) : les trois modes d'une autorisation.
+# « temps » : une machine, une durée ; « exception » : toutes les machines du Demandeur, passe la catégorie fermée
+# mais suit les plages et le temps ; « toujours » : toutes ses machines, rien ne le ferme sauf un blocage explicite.
+MODES_AUTORISATION = ("temps", "exception", "toujours")
+MODES_DURABLES = ("exception", "toujours")
+# Catégories de sécurité et d'âge : fermées, aucune autorisation ne les passe (CONCEPTION § 2).
+ETIQUETTES_SECURITE = frozenset({"adulte", "dangereux", "contournement", "pegi 12", "pegi 16", "pegi 18"})
+# La catégorie dédiée à l'école (son nom suit la langue : i18n/categories.json, clé « ecole »).
+ETIQUETTE_ECOLE = "École"
+# 2.5.1 (décision du projet du 14-10) : un site vu pendant qu'un logiciel tourne lui est lié tout seul, jamais s'il porte
+# l'une de ces catégories, ni s'il relève de l'infrastructure commune (BRUIT_SITES), ni par un navigateur (qui parle à
+# tous les sites). Un lien automatique ne débloque rien : un site fermé au moment du lien attend un geste du Décideur.
+ETIQUETTES_SANS_LIEN_AUTO = frozenset({"adulte", "dangereux", "contournement", "pub & traçage"})
+NAVIGATEURS = frozenset({
+    "chrome", "msedge", "firefox", "brave", "opera", "opera_gx", "vivaldi", "iexplore", "safari", "chromium", "arc",
+    "com.android.chrome", "org.mozilla.firefox", "com.microsoft.emmx", "com.brave.browser", "com.opera.browser",
+    "com.sec.android.app.sbrowser", "com.duckduckgo.mobile.android",
+})
+LIENS_AUTO_MAX = 40
+# Le choix du mode d'un élément : « categorie » (suivre la catégorie, le défaut) retire tout réglage propre.
+MODE_SUIVRE = "categorie"
+
 DEPENDANCES_APPS = {
     "roblox": ("roblox.com", "rbx.com", "rbxinfra.com", "rbxcdn.com", "robloxlabs.com"),
     "steam": ("steampowered.com", "steamcommunity.com", "steamstatic.com", "steamcontent.com", "steamserver.net"),

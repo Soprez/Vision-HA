@@ -40,7 +40,17 @@ const TEXTES = /*i18n-json*/{
     "web_injoignable": "Site injoignable pour l'instant : la veille continue sans lui.",
     "web_figeait": "Cette page figeait l'écran : la veille s'en passe aujourd'hui.",
     "fige": "Figé",
-    "reprise": "Reprise"
+    "reprise": "Reprise",
+    "vt_auj": "Aujourd'hui",
+    "vt_demain": "Demain",
+    "vt_journee": "Journée",
+    "vt_vide": "Rien de prévu",
+    "vt_passages": "Aucun passage récent",
+    "vt_instant": "à l'instant",
+    "vt_min": "il y a {n} min",
+    "vt_h": "il y a {n} h",
+    "vt_hier": "hier",
+    "vt_j": "il y a {n} j"
   },
   "en": {
     "ciel_sunny": "Sunny",
@@ -73,7 +83,17 @@ const TEXTES = /*i18n-json*/{
     "web_injoignable": "Site unreachable for now: the screensaver carries on without it.",
     "web_figeait": "This page was freezing the screen: the screensaver is skipping it today.",
     "fige": "Paused",
-    "reprise": "Resumed"
+    "reprise": "Resumed",
+    "vt_auj": "Today",
+    "vt_demain": "Tomorrow",
+    "vt_journee": "All day",
+    "vt_vide": "Nothing planned",
+    "vt_passages": "No recent activity",
+    "vt_instant": "just now",
+    "vt_min": "{n} min ago",
+    "vt_h": "{n} h ago",
+    "vt_hier": "yesterday",
+    "vt_j": "{n} days ago"
   },
   "de": {
     "ciel_sunny": "Sonnig",
@@ -106,7 +126,17 @@ const TEXTES = /*i18n-json*/{
     "web_injoignable": "Website gerade nicht erreichbar: der Bildschirmschoner läuft ohne sie weiter.",
     "web_figeait": "Diese Seite hat den Bildschirm eingefroren: der Bildschirmschoner lässt sie heute weg.",
     "fige": "Angehalten",
-    "reprise": "Weiter"
+    "reprise": "Weiter",
+    "vt_auj": "Heute",
+    "vt_demain": "Morgen",
+    "vt_journee": "Ganztägig",
+    "vt_vide": "Nichts geplant",
+    "vt_passages": "Keine neue Aktivität",
+    "vt_instant": "gerade eben",
+    "vt_min": "vor {n} Min.",
+    "vt_h": "vor {n} Std.",
+    "vt_hier": "gestern",
+    "vt_j": "vor {n} Tagen"
   },
   "es": {
     "ciel_sunny": "Soleado",
@@ -139,7 +169,17 @@ const TEXTES = /*i18n-json*/{
     "web_injoignable": "Sitio inaccesible por ahora: el salvapantallas sigue sin él.",
     "web_figeait": "Esta página bloqueaba la pantalla: el salvapantallas la omite hoy.",
     "fige": "En pausa",
-    "reprise": "Reanudado"
+    "reprise": "Reanudado",
+    "vt_auj": "Hoy",
+    "vt_demain": "Mañana",
+    "vt_journee": "Todo el día",
+    "vt_vide": "Nada previsto",
+    "vt_passages": "Sin actividad reciente",
+    "vt_instant": "ahora mismo",
+    "vt_min": "hace {n} min",
+    "vt_h": "hace {n} h",
+    "vt_hier": "ayer",
+    "vt_j": "hace {n} días"
   },
   "it": {
     "ciel_sunny": "Soleggiato",
@@ -172,7 +212,17 @@ const TEXTES = /*i18n-json*/{
     "web_injoignable": "Sito non raggiungibile per ora: il salvaschermo continua senza.",
     "web_figeait": "Questa pagina bloccava lo schermo: il salvaschermo oggi la salta.",
     "fige": "In pausa",
-    "reprise": "Ripreso"
+    "reprise": "Ripreso",
+    "vt_auj": "Oggi",
+    "vt_demain": "Domani",
+    "vt_journee": "Tutto il giorno",
+    "vt_vide": "Niente in programma",
+    "vt_passages": "Nessuna attività recente",
+    "vt_instant": "proprio ora",
+    "vt_min": "{n} min fa",
+    "vt_h": "{n} h fa",
+    "vt_hier": "ieri",
+    "vt_j": "{n} giorni fa"
   },
   "nl": {
     "ciel_sunny": "Zonnig",
@@ -205,11 +255,21 @@ const TEXTES = /*i18n-json*/{
     "web_injoignable": "Site op dit moment onbereikbaar: de schermbeveiliging gaat zonder verder.",
     "web_figeait": "Deze pagina liet het scherm vastlopen: de schermbeveiliging slaat haar vandaag over.",
     "fige": "Gepauzeerd",
-    "reprise": "Hervat"
+    "reprise": "Hervat",
+    "vt_auj": "Vandaag",
+    "vt_demain": "Morgen",
+    "vt_journee": "Hele dag",
+    "vt_vide": "Niets gepland",
+    "vt_passages": "Geen recente activiteit",
+    "vt_instant": "zojuist",
+    "vt_min": "{n} min geleden",
+    "vt_h": "{n} u geleden",
+    "vt_hier": "gisteren",
+    "vt_j": "{n} dagen geleden"
   }
 }/*i18n-json:fin*/;
 // Les catégories (étiquettes de la maison) : ce panneau n'en affiche pas.
-const CATEGORIES_I18N = /*i18n-categories*/{}/*i18n-categories:fin*/;
+const CATEGORIES_I18N = /*i18n-categories*/{"jeux": {"fr": "Jeux", "en": "Games", "de": "Spiele", "es": "Juegos", "it": "Giochi", "nl": "Games"}, "videos": {"fr": "Vidéos", "en": "Videos", "de": "Videos", "es": "Vídeos", "it": "Video", "nl": "Video's"}, "reseaux_sociaux": {"fr": "Réseaux sociaux", "en": "Social media", "de": "Soziale Medien", "es": "Redes sociales", "it": "Social network", "nl": "Sociale media"}, "tv": {"fr": "TV", "en": "TV", "de": "TV", "es": "TV", "it": "TV", "nl": "tv"}, "vod": {"fr": "VOD", "en": "Streaming", "de": "Streaming", "es": "Streaming", "it": "Streaming", "nl": "Streaming"}, "musique": {"fr": "Musique", "en": "Music", "de": "Musik", "es": "Música", "it": "Musica", "nl": "Muziek"}, "ia": {"fr": "IA", "en": "AI", "de": "KI", "es": "IA", "it": "IA", "nl": "AI"}, "internet": {"fr": "Internet", "en": "Internet", "de": "Internet", "es": "Internet", "it": "Internet", "nl": "Internet"}, "travail": {"fr": "Travail", "en": "Work", "de": "Arbeit", "es": "Trabajo", "it": "Lavoro", "nl": "Werk"}, "creation": {"fr": "Création", "en": "Creativity", "de": "Kreativität", "es": "Creatividad", "it": "Creatività", "nl": "Creativiteit"}, "actu_medias": {"fr": "Actu & médias", "en": "News & media", "de": "Nachrichten & Medien", "es": "Noticias y medios", "it": "Notizie e media", "nl": "Nieuws & media"}, "pub_tracage": {"fr": "Pub & traçage", "en": "Ads & tracking", "de": "Werbung & Tracking", "es": "Anuncios y rastreo", "it": "Pubblicità e tracciamento", "nl": "Advertenties & tracking"}, "contournement": {"fr": "Contournement", "en": "Bypass tools", "de": "Umgehung", "es": "Elusión", "it": "Aggiramento", "nl": "Omzeiling"}, "dangereux": {"fr": "Dangereux", "en": "Dangerous", "de": "Gefährlich", "es": "Peligroso", "it": "Pericoloso", "nl": "Gevaarlijk"}, "adulte": {"fr": "Adulte", "en": "Adult", "de": "Erwachsene", "es": "Adultos", "it": "Adulti", "nl": "Volwassenen"}, "pegi_12": {"fr": "PEGI 12", "en": "PEGI 12", "de": "PEGI 12", "es": "PEGI 12", "it": "PEGI 12", "nl": "PEGI 12"}, "pegi_16": {"fr": "PEGI 16", "en": "PEGI 16", "de": "PEGI 16", "es": "PEGI 16", "it": "PEGI 16", "nl": "PEGI 16"}, "pegi_18": {"fr": "PEGI 18", "en": "PEGI 18", "de": "PEGI 18", "es": "PEGI 18", "it": "PEGI 18", "nl": "PEGI 18"}, "systeme": {"fr": "Système", "en": "System", "de": "System", "es": "Sistema", "it": "Sistema", "nl": "Systeem"}, "google": {"fr": "Google", "en": "Google", "de": "Google", "es": "Google", "it": "Google", "nl": "Google"}, "discord": {"fr": "Discord", "en": "Discord", "de": "Discord", "es": "Discord", "it": "Discord", "nl": "Discord"}, "annuaires_discord": {"fr": "Annuaires Discord", "en": "Discord directories", "de": "Discord-Verzeichnisse", "es": "Directorios de Discord", "it": "Directory Discord", "nl": "Discord-gidsen"}, "toujours_autorise": {"fr": "Toujours autorisé", "en": "Always allowed", "de": "Immer erlaubt", "es": "Siempre permitido", "it": "Sempre consentito", "nl": "Altijd toegestaan"}, "ecole": {"fr": "École", "en": "School", "de": "Schule", "es": "Escuela", "it": "Scuola", "nl": "School"}}/*i18n-categories:fin*/;
 // ---- i18n:code — le même dans toutes les cartes de Vision (essai/i18n_cartes_test.py le vérifie) ----
 // Langue : celle de l'utilisateur Home Assistant (hass.locale.language, sinon hass.language), sur deux lettres ;
 // une langue que Vision ne parle pas → l'anglais. Un texte absent → l'anglais, puis le français, puis la clé.
@@ -555,6 +615,149 @@ const HORLOGES = {
   },
 };
 
+/*
+ * Les styles d'horloge choisis sur l'appareil (« hstyle » dans l'adresse) : les mêmes que la veille dessinée par
+ * l'appli Android (HorlogesVeille.kt) et par la veille du PC, sous les mêmes noms. Un style ne fixe que la forme :
+ * les couleurs restent celles du thème (--v-texte, --v-texte2, --v-accent, --v-carte, --v-ligne, --v-fond).
+ * Au plus une mise à jour par seconde ; le balayage de la trotteuse, l'anneau des secondes et la bascule des
+ * palettes sont des transitions CSS (le navigateur les anime seul, sans script à chaque image).
+ */
+const STYLES_HORLOGE = ["anneau", "fine", "grasse", "analogique", "classique", "mots", "flip", "empilee"];
+// Les anciens noms gardent le choix de chacun.
+const STYLES_ANCIENS = { chiffres: "fine", aiguilles: "analogique" };
+const styleHorloge = (v) => { const s = Object.prototype.hasOwnProperty.call(STYLES_ANCIENS, v) ? STYLES_ANCIENS[v] : v; return STYLES_HORLOGE.includes(s) ? s : ""; };
+
+// Le style « mots » écrit l'heure avec heureEnLettres (les TEXTES de la page, dans la langue de Home Assistant).
+
+// Un angle qui ne fait qu'avancer (secondes du jour × 6°) : la transition CSS ne repart jamais à l'envers ; au
+// passage de minuit, une seule mise à jour sans transition.
+const avancer = (el, sel, deg) => {
+  const x = el.querySelector(sel); if (!x) return;
+  const avant = x._deg;
+  x.style.transition = avant === undefined || deg < avant ? "none" : "";
+  x._deg = deg; x.style.transform = `rotate(${deg}deg)`;
+};
+const secondesDuJour = (d) => d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
+const aiguillesStyle = (el, d, trotteuse) => {
+  const s = d.getSeconds(), m = d.getMinutes() + s / 60, h = (d.getHours() % 12) + m / 60;
+  tourner(el, ".ah", h * 30); tourner(el, ".am", m * 6);
+  if (trotteuse) avancer(el, ".as", secondesDuJour(d) * 6);
+};
+// Une palette : la moitié haute de l'ancienne valeur se rabat, puis la moitié basse de la nouvelle descend.
+const palette = () => `<div class="pal" data-v=""><div class="moi h"><span></span></div><div class="moi b"><span></span></div><div class="volet h"><span></span></div><div class="volet b"><span></span></div></div>`;
+const basculer = (p, v) => {
+  if (!p || p.dataset.v === v) return;
+  const avant = p.dataset.v; p.dataset.v = v;
+  const [hh, bb, vh, vb] = [...p.children].map((x) => x.firstChild);
+  hh.textContent = v; vb.textContent = v;
+  if (!avant) { bb.textContent = v; vh.textContent = v; return; }
+  bb.textContent = avant; vh.textContent = avant;
+  p.classList.remove("bascule"); void p.offsetWidth; p.classList.add("bascule");
+  clearTimeout(p._fin); p._fin = setTimeout(() => { bb.textContent = v; p.classList.remove("bascule"); }, 700);
+};
+
+const HORLOGES_STYLES = {
+  // L'anneau des secondes autour de l'heure.
+  anneau: {
+    html: (c) => `<div class="rond">${svg(`<circle class="piste" r="90"/><circle class="prog" r="90" pathLength="60" transform="rotate(-90)"/><g class="point"><circle cy="-90" r="3.4"/></g>`)}<div class="dedans"><div class="heure"><span class="hh"></span><b>:</b><span class="mm"></span></div></div></div><div class="date">${c.jour}</div><div class="ciel">${c.ciel}</div>`,
+    tic: (el, d) => {
+      poser(el, ".hh", p2(d.getHours())); poser(el, ".mm", p2(d.getMinutes()));
+      const s = d.getSeconds(), p = el.querySelector(".prog");
+      // Fin de minute : l'anneau se vide d'un coup, puis se remplit seconde après seconde.
+      if (p) { p.style.transition = s === 0 ? "none" : ""; p.style.strokeDashoffset = String(60 - s); }
+      avancer(el, ".point", secondesDuJour(d) * 6);
+    },
+  },
+  // Numérique fine : grands chiffres fins, un trait d'accent qui se remplit avec les secondes.
+  fine: {
+    html: (c) => `<div class="heure"><span class="hh"></span><b>:</b><span class="mm"></span></div><div class="fil"><i></i></div><div class="date">${c.jour}</div><div class="ciel">${c.ciel}</div>`,
+    tic: (el, d) => { poser(el, ".hh", p2(d.getHours())); poser(el, ".mm", p2(d.getMinutes())); const i = el.querySelector(".fil i"); if (i) { i.style.transition = d.getSeconds() === 0 ? "none" : ""; i.style.width = `${(d.getSeconds() / 60) * 100}%`; } },
+  },
+  // Numérique grasse : des chiffres très épais.
+  grasse: {
+    html: (c) => `<div class="heure"><span class="hh"></span><b>:</b><span class="mm"></span></div><div class="date">${c.jour}</div><div class="ciel">${c.ciel}</div>`,
+    tic: (el, d) => { poser(el, ".hh", p2(d.getHours())); poser(el, ".mm", p2(d.getMinutes())); },
+  },
+  // Analogique minimaliste : un cadran nu, deux aiguilles fines.
+  analogique: {
+    html: (c) => svg(`<circle class="nu" r="92"/><circle class="midi" cx="0" cy="-83" r="1.6"/><line class="ah" x1="0" y1="0" x2="0" y2="-50"/><line class="am" x1="0" y1="0" x2="0" y2="-77"/><circle class="axe" r="2.4"/>`) + `<div class="date">${c.jour}</div><div class="ciel">${c.ciel}</div>`,
+    tic: (el, d) => aiguillesStyle(el, d, false),
+  },
+  // Analogique classique : graduations, chiffres, trotteuse qui balaie.
+  classique: {
+    html: (c) => svg(`<circle class="bord" r="96"/>${traits(60, 86, 91, "t1", 5)}${traits(12, 80, 91, "t2")}${autour(["12", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"], 68, "ch")}
+      <path class="ah" d="M -3 8 L -2.2 -46 L 2.2 -46 L 3 8 Z"/><path class="am" d="M -2.2 8 L -1.4 -74 L 1.4 -74 L 2.2 8 Z"/><line class="as" x1="0" y1="16" x2="0" y2="-80"/><circle class="axe" r="3.4"/>`) + `<div class="date">${c.jour}</div><div class="ciel">${c.ciel}</div>`,
+    tic: (el, d) => aiguillesStyle(el, d, true),
+  },
+  // L'heure en toutes lettres : l'heure à l'encre, les minutes à l'accent, le moment de la journée plus petit.
+  mots: {
+    html: (c) => `<div class="mots"><span class="m0"></span><span class="m1"></span><span class="m2"></span><span class="m3"></span></div><div class="date">${c.jour}</div><div class="ciel">${c.ciel}</div>`,
+    tic: (el, d) => { const [h, m] = heureEnLettres(d); poser(el, ".m0", ""); poser(el, ".m1", h); poser(el, ".m2", m); poser(el, ".m3", ""); },
+  },
+  // Les palettes qui basculent quand la minute change.
+  flip: {
+    html: (c) => `<div class="palettes">${palette()}<b class="deux"><i></i><i></i></b>${palette()}</div><div class="date">${c.jour}</div><div class="ciel">${c.ciel}</div>`,
+    tic: (el, d) => { const p = el.querySelectorAll(".pal"); basculer(p[0], p2(d.getHours())); basculer(p[1], p2(d.getMinutes())); },
+  },
+  // L'heure au-dessus des minutes, une barre de secondes sur le côté.
+  empilee: {
+    html: (c) => `<div class="pile"><div class="etages"><span class="hh"></span><span class="mm"></span></div><div class="barre"><i></i></div></div><div class="date">${c.jour}</div><div class="ciel">${c.ciel}</div>`,
+    tic: (el, d) => { poser(el, ".hh", p2(d.getHours())); poser(el, ".mm", p2(d.getMinutes())); const i = el.querySelector(".barre i"); if (i) { i.style.transition = d.getSeconds() === 0 ? "none" : ""; i.style.height = `${(d.getSeconds() / 60) * 100}%`; } },
+  },
+};
+for (const [nom, h] of Object.entries(HORLOGES_STYLES)) HORLOGES["s-" + nom] = h;
+
+const CSS_STYLES_HORLOGE = `
+  .h-s-anneau .rond { width: min(66vh, 80vw); height: min(66vh, 80vw); }
+  .h-s-anneau .piste { stroke: var(--v-accent); opacity: .25; stroke-width: 1.4; }
+  .h-s-anneau .prog { fill: none; stroke: var(--v-accent); stroke-width: 1.4; stroke-linecap: round; stroke-dasharray: 60 60; stroke-dashoffset: 60; transition: stroke-dashoffset 1s linear; }
+  .h-s-anneau .point, .h-s-classique .as { transition: transform 1s linear; }
+  .h-s-anneau .point circle { fill: var(--v-accent); }
+  .h-s-anneau .rond .heure { font-size: min(19vh, 23vw); font-weight: 200; }
+  .h-s-anneau .heure b, .h-s-fine .heure b { color: var(--v-accent); font-weight: inherit; animation: battre 1s ease-in-out infinite; }
+  @keyframes battre { 50% { opacity: .35; } }
+  .h-s-fine .heure { font-size: min(36vh, 32vw); font-weight: 200; letter-spacing: -.01em; }
+  .h-s-fine .fil { width: min(46vh, 52vw); height: 4px; border-radius: 2px; background: var(--v-ligne); overflow: hidden; margin-top: 1vh; }
+  .h-s-fine .fil i { display: block; height: 100%; width: 0; background: var(--v-accent); transition: width 1s linear; }
+  .h-s-grasse .heure { font-size: min(38vh, 30vw); font-weight: 900; letter-spacing: -.02em; font-family: "Segoe UI Black", "Arial Black", Roboto, sans-serif; }
+  .h-s-grasse .heure b { color: var(--v-accent); }
+  .h-s-analogique .nu { fill: none; stroke: var(--v-texte2); stroke-width: .8; opacity: .3; }
+  .h-s-analogique .midi { fill: var(--v-accent); }
+  .h-s-analogique .ah { stroke-width: 2.6; } .h-s-analogique .am { stroke-width: 1.6; }
+  .h-s-classique .bord { stroke: var(--v-accent); stroke-width: 1.2; opacity: .6; }
+  .h-s-classique .ch { font-size: 14px; font-weight: 600; }
+  .h-s-classique .t2 { stroke-width: 2.4; }
+  .h-s-mots { font-family: Georgia, "Times New Roman", serif; }
+  .h-s-mots .mots { display: flex; flex-direction: column; align-items: center; text-align: center; line-height: 1.08; max-width: 90vw; }
+  .h-s-mots .m0, .h-s-mots .m2 { font-size: min(11vh, 9vw); color: var(--v-accent); font-style: italic; }
+  .h-s-mots .m1 { font-size: min(13vh, 11vw); font-weight: 600; }
+  .h-s-mots .m3 { font-size: min(4.6vh, 5vw); color: var(--v-texte2); margin-top: 1.6vh; }
+  .h-s-mots .mots span:empty { display: none; }
+  .h-s-mots .mots + .date { margin-top: 4vh; }
+  .h-s-flip .palettes { display: flex; align-items: center; gap: min(2.4vh, 2vw); --ph: min(46vh, 34vw); }
+  .h-s-flip .pal { position: relative; width: calc(var(--ph) * .86); height: var(--ph); perspective: calc(var(--ph) * 4); font-size: calc(var(--ph) * .74); font-weight: 500; }
+  .h-s-flip .pal > div { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden; background: var(--v-carte); backface-visibility: hidden; }
+  .h-s-flip .pal span { display: block; height: var(--ph); line-height: var(--ph); text-align: center; font-variant-numeric: tabular-nums; }
+  .h-s-flip .pal .h { top: 0; border-radius: 1.4vh 1.4vh 0 0; } .h-s-flip .pal .b { bottom: 0; border-radius: 0 0 1.4vh 1.4vh; }
+  .h-s-flip .pal .b span { transform: translateY(-50%); }
+  .h-s-flip .pal .volet { visibility: hidden; z-index: 2; }
+  .h-s-flip .pal .volet.h { transform-origin: 50% 100%; } .h-s-flip .pal .volet.b { transform-origin: 50% 0; transform: rotateX(90deg); }
+  .h-s-flip .pal.bascule .volet { visibility: visible; }
+  .h-s-flip .pal.bascule .volet.h { animation: rabat-haut .3s ease-in forwards; }
+  .h-s-flip .pal.bascule .volet.b { animation: rabat-bas .3s .3s ease-out forwards; }
+  @keyframes rabat-haut { from { transform: rotateX(0); filter: brightness(1); } to { transform: rotateX(-90deg); filter: brightness(.7); } }
+  @keyframes rabat-bas { from { transform: rotateX(90deg); filter: brightness(.7); } to { transform: rotateX(0); filter: brightness(1); } }
+  .h-s-flip .pal::after { content: ""; position: absolute; left: 0; right: 0; top: calc(50% - 1px); height: 2px; background: var(--v-fond); z-index: 3; }
+  .h-s-flip .deux { display: flex; flex-direction: column; gap: calc(var(--ph) * .22); }
+  .h-s-flip .deux i { width: calc(var(--ph) * .06); height: calc(var(--ph) * .06); border-radius: 50%; background: var(--v-accent); }
+  .h-s-flip .palettes + .date { margin-top: 4vh; }
+  .h-s-empilee .pile { display: flex; align-items: center; gap: 3vh; }
+  .h-s-empilee .etages { display: flex; flex-direction: column; align-items: center; line-height: .92; font-size: min(26vh, 30vw); font-weight: 500; }
+  .h-s-empilee .mm { color: var(--v-accent); }
+  .h-s-empilee .barre { position: relative; width: 5px; height: min(42vh, 46vw); border-radius: 3px; background: var(--v-ligne); overflow: hidden; }
+  .h-s-empilee .barre i { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: var(--v-accent); transition: height 1s linear; }
+`;
+
 const CSS_HORLOGES = `
   .horloge .cadran { width: min(62vh, 78vw); height: min(62vh, 78vw); overflow: visible; }
   .horloge .cadran + .date { margin-top: 3.5vh; }
@@ -726,6 +929,144 @@ const CSS_HORLOGES = `
 `;
 
 
+/*
+ * Veille-lot — les cases typées du contrat (docs/veille-contrat.md §4.2) dans la page : météo et prévisions,
+ * agenda, image (picture-elements : fond, textes en %, calques), radar, caméra (image fixe : la télé pose le direct
+ * par-dessus), « Derniers passages », iframe. Elles arrivent à côté des cartes (« typees » de chaque tableau) ; sans
+ * elles (Home Assistant plus ancien), chaque carte reste dessinée par Home Assistant, comme avant.
+ *
+ * Les images ne viennent que de `/api/pc_parental/veille/media/<clé>`, en POST avec le ticket de CET appareil (celui
+ * de la passerelle), jamais avec un jeton Home Assistant, jamais d'une autre adresse.
+ */
+const GENRES_TYPES = ["meteo", "agenda", "image", "radar", "camera", "clips", "iframe"];
+const AVEC_IMAGES = ["image", "radar", "camera", "clips"];
+const RE_MEDIA = /^\/api\/pc_parental\/veille\/media\/[0-9a-f]{8,64}$/;
+// Le rythme de chaque image (ms) : une caméra se renouvelle, un fond de plan presque jamais.
+const AGE_MEDIA = { camera: 10000, calque: 60000, vignette: 60000, fond: 600000 };
+// Les mots des cases typées : dans le catalogue de la carte (TEXTES), six langues ; relus à chaque usage (la langue suit HA).
+const MOTS_VT = { get auj() { return tr("vt_auj"); }, get demain() { return tr("vt_demain"); }, get journee() { return tr("vt_journee"); },
+  get vide() { return tr("vt_vide"); }, get passages() { return tr("vt_passages"); }, get instant() { return tr("vt_instant"); },
+  min: (n) => tr("vt_min", { n }), h: (n) => tr("vt_h", { n }), get hier() { return tr("vt_hier"); }, j: (n) => tr("vt_j", { n }) };
+const cielDe = (etat) => (CIEL[etat] ? tr(CIEL[etat]) : "");
+const echapper = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const degres = (v) => (typeof v === "number" && isFinite(v) ? `${Math.round(v)}°` : "–");
+// « AAAA-MM-JJ » est une date du jour local (pas minuit UTC) ; le reste, de l'ISO 8601 avec fuseau.
+const lireDate = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || "")); if (m) return new Date(+m[1], +m[2] - 1, +m[3]); const d = new Date(s); return isNaN(d) ? null : d; };
+const memeJour = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+const jourCourt = (s) => { const d = lireDate(s); return d ? majuscule(d.toLocaleDateString(LANGUE, { weekday: "short" }).replace(/\.$/, "")) : ""; };
+const quandEvenement = (ev, maintenant) => {
+  const d = lireDate(ev.debut); if (!d) return "";
+  const demain = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() + 1);
+  const jour = memeJour(d, maintenant) ? MOTS_VT.auj : memeJour(d, demain) ? MOTS_VT.demain : majuscule(d.toLocaleDateString(LANGUE, { weekday: "long" }));
+  return `${jour}  ·  ${ev.journee ? MOTS_VT.journee : hm(d)}`;
+};
+// Un évènement fini ne s'affiche plus (la page peut rester ouverte longtemps avec le même relevé).
+const pasFini = (ev, maintenant) => {
+  const f = lireDate(ev.fin || ev.debut); if (!f) return true;
+  return ev.journee ? f > new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate()) : f > maintenant;
+};
+const ecartLisible = (s, maintenant) => {
+  const d = lireDate(s); if (!d) return "";
+  const min = Math.floor((maintenant - d) / 60000);
+  if (min < 1) return MOTS_VT.instant;
+  if (min < 60) return MOTS_VT.min(min);
+  if (min < 24 * 60) return MOTS_VT.h(Math.floor(min / 60));
+  return min < 48 * 60 ? MOTS_VT.hier : MOTS_VT.j(Math.floor(min / 1440));
+};
+// Les icônes du ciel, au trait, aux couleurs du thème (soleil et éclair en accent, nuages en texte secondaire).
+const ICONES_CIEL = (() => {
+  const soleil = (x = 0, y = 0, r = 7) => `<g class="i-soleil"><circle cx="${x}" cy="${y}" r="${r}"/>${[0, 45, 90, 135, 180, 225, 270, 315].map((a) => { const [x1, y1] = pt(r + 3, a), [x2, y2] = pt(r + 6, a); return `<line x1="${+x1 + x}" y1="${+y1 + y}" x2="${+x2 + x}" y2="${+y2 + y}"/>`; }).join("")}</g>`;
+  const nuage = (dx = 0, dy = 0) => `<path class="i-nuage" transform="translate(${dx} ${dy})" d="M -11 8 H 11 A 6 6 0 0 0 10 -4 A 9 9 0 0 0 -7 -3 A 6 6 0 0 0 -11 8 Z"/>`;
+  const gouttes = (n, neige) => Array.from({ length: n }, (_, i) => { const x = -7 + i * 7; return neige ? `<circle class="i-neige" cx="${x}" cy="15" r="1.6"/>` : `<line class="i-pluie" x1="${x}" y1="12" x2="${x - 2}" y2="18"/>`; }).join("");
+  const eclair = `<path class="i-eclair" d="M 1 9 L -3 16 H 1 L -1 21 L 5 13 H 1 Z"/>`;
+  return {
+    sunny: soleil(), "clear-night": `<path class="i-lune" d="M 4 -10 A 10 10 0 1 0 10 6 A 8 8 0 0 1 4 -10 Z"/>`,
+    partlycloudy: soleil(-5, -5, 5) + nuage(3, 3), cloudy: nuage(), fog: `<g class="i-brume"><line x1="-11" y1="-4" x2="11" y2="-4"/><line x1="-13" y1="2" x2="9" y2="2"/><line x1="-9" y1="8" x2="13" y2="8"/></g>`,
+    rainy: nuage(0, -4) + gouttes(3), pouring: nuage(0, -4) + gouttes(4), snowy: nuage(0, -4) + gouttes(3, true), "snowy-rainy": nuage(0, -4) + gouttes(2) + `<circle class="i-neige" cx="7" cy="15" r="1.6"/>`,
+    hail: nuage(0, -4) + gouttes(3, true), lightning: nuage(0, -4) + eclair, "lightning-rainy": nuage(0, -4) + eclair + `<line class="i-pluie" x1="-7" y1="12" x2="-9" y2="18"/>`,
+    windy: `<g class="i-brume"><path d="M -12 -4 H 6 A 4 4 0 1 0 2 -8"/><path d="M -12 3 H 10 A 4 4 0 1 1 6 7"/></g>`, "windy-variant": nuage(0, -3) + `<g class="i-brume"><path d="M -12 12 H 8"/></g>`, exceptional: `<g class="i-eclair"><circle r="9" fill="none"/><line x1="0" y1="-5" x2="0" y2="2"/><circle cy="5.5" r="1"/></g>`,
+  };
+})();
+const iconeCiel = (etat) => `<svg class="vt-icone" viewBox="-16 -16 32 40" aria-hidden="true">${ICONES_CIEL[etat] || ICONES_CIEL.cloudy}</svg>`;
+// Répartit `total` pixels entre `n` parts égales séparées par `ecart` : pixels entiers, écarts tous égaux, le pixel
+// de reste aux premières parts (même règle que GrilleVeille.repartir de l'appli).
+const repartir = (total, n, ecart) => {
+  const dispo = Math.max(0, total - ecart * (n - 1)), base = Math.floor(dispo / n), reste = dispo - base * n;
+  return Array.from({ length: n }, (_, i) => base + (i < reste ? 1 : 0));
+};
+// La mise en page compte en 1/64 de px : des valeurs déjà rondes à 1/64 ne sont plus arrondies, et les erreurs ne
+// s'additionnent pas d'une piste à l'autre. Pistes de `larg` px de l'écran séparées de `ecart`, à l'échelle k (px de
+// l'écran par px de la page) : chaque piste commence au plus près d'un pixel entier de l'écran.
+const q64 = (v) => Math.round(v * 64) / 64;
+const pistesAuPixel = (larg, ecart, k) => {
+  const g = q64(ecart / k), debuts = [];
+  let pos = 0;
+  for (const l of larg) { debuts.push(q64(pos / k)); pos += l + ecart; }
+  const fin = q64((pos - ecart) / k);
+  const largeurs = debuts.map((d, i) => (i + 1 < debuts.length ? debuts[i + 1] - g : fin) - d);
+  return { largeurs: largeurs.map((l) => `${l}px`).join(" "), ecart: g, total: fin };
+};
+// Le ticket de veille de CET appareil (« vv1.<id>.<fin>.<signature> »), rangé par la page d'entrée. Un vrai jeton
+// de Home Assistant (navigateur connecté) n'a pas cette forme : il n'est jamais envoyé.
+const ticketVeille = (hass) => {
+  let t = "";
+  try { t = (hass && hass.auth && hass.auth.data && hass.auth.data.access_token) || ""; } catch (e) { t = ""; }
+  if (!t) { try { t = (JSON.parse(localStorage.getItem("hassTokens") || "{}") || {}).access_token || ""; } catch (e) { t = ""; } }
+  return /^vv1\.[A-Za-z0-9_-]+\.\d+\.[0-9a-f]{40}$/.test(t) ? t : "";
+};
+const CSS_TYPEES = /* i18n-ignorer : feuille de style */ `
+  .vt { position: relative; box-sizing: border-box; overflow: hidden; padding: 16px 18px 18px; color: var(--v-texte); break-inside: avoid;
+        background: var(--ha-card-background, var(--card-background-color)); border-radius: var(--ha-card-border-radius, 18px);
+        border: var(--ha-card-border-width, 0px) solid var(--ha-card-border-color, transparent); }
+  .vt-nom { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--v-texte2); margin: 0 0 12px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vt-media { position: relative; overflow: hidden; border-radius: 10px; background: var(--v-doux); }
+  .vt-fond { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .5s ease; }
+  .vt-fond.vu { opacity: 1; }
+  .vt-camera .vt-fond, .vt-clips .vt-fond { object-fit: cover; }
+  .vt-cadre { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .vt-calque { position: absolute; transform: translate(-50%, -50%); opacity: 0; transition: opacity .5s ease; }
+  .vt-calque.vu { opacity: 1; }
+  .vt-etiquette { position: absolute; transform: translate(-50%, -50%); padding: 2px 8px; border-radius: 7px; white-space: nowrap; font-size: 14px;
+                  background: rgba(var(--rgb-card-background-color, 40, 40, 40), .88); color: var(--v-texte); }
+  .vt-attente { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; gap: 7px; }
+  .vt-attente i { width: 7px; height: 7px; border-radius: 50%; background: var(--v-accent); animation: vt-bat 1.2s ease-in-out infinite; }
+  .vt-attente i:nth-child(2) { animation-delay: .2s; } .vt-attente i:nth-child(3) { animation-delay: .4s; }
+  .vt-media.pret .vt-attente { display: none; }
+  @keyframes vt-bat { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+  .vt-point { position: absolute; right: 12px; top: 12px; width: 8px; height: 8px; border-radius: 50%; background: var(--v-accent); }
+  .vt-icone { width: 1em; height: 1.25em; overflow: visible; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .vt-icone .i-soleil circle, .vt-icone .i-soleil line { stroke: var(--v-accent); stroke-width: 2.2; }
+  .vt-icone .i-soleil circle { fill: var(--v-accent-doux); }
+  .vt-icone .i-lune { fill: var(--v-accent-doux); stroke: var(--v-accent); stroke-width: 2; }
+  .vt-icone .i-nuage { fill: var(--v-carte); stroke: var(--v-texte2); stroke-width: 2; }
+  .vt-icone .i-pluie, .vt-icone .i-brume line, .vt-icone .i-brume path { stroke: var(--v-texte2); stroke-width: 2; }
+  .vt-icone .i-neige { fill: var(--v-texte2); }
+  .vt-icone .i-eclair { fill: var(--v-accent); stroke: var(--v-accent); stroke-width: 1.2; }
+  .vt-maintenant { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .vt-maintenant .vt-icone { font-size: 58px; flex: none; }
+  .vt-temp { font-size: 52px; font-weight: 300; line-height: 1.05; font-variant-numeric: tabular-nums; flex: none; }
+  .vt-ciel { font-size: 19px; color: var(--v-texte2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .vt-prev { display: grid; gap: 8px; margin-top: 16px; text-align: center; }
+  .vt-prev .vt-jour { font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--v-texte2); }
+  .vt-prev .vt-icone { font-size: 30px; display: block; margin: 6px auto 4px; }
+  .vt-prev .vt-mm { font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .vt-prev .vt-mm span { color: var(--v-texte2); margin-left: 6px; }
+  .vt-ev { padding: 7px 0; } .vt-ev + .vt-ev { border-top: 1px solid var(--v-ligne); }
+  .vt-quand { display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: .04em; color: var(--v-accent); }
+  .vt-titre { font-size: 18px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vt-vide { font-size: 17px; color: var(--v-texte2); padding: 6px 0; }
+  .vt-vignettes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .vt-legende { font-size: 13px; color: var(--v-texte2); margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vt-legende b { color: var(--v-texte); font-weight: 600; }
+  /* La pastille (réglage de l'appareil) : un fond doux derrière les valeurs. */
+  :host([data-pastille="1"]) .vt-temp { background: var(--v-doux); border-radius: .2em; padding: 0 .16em; }
+  :host([data-pastille="1"]) .vt-quand { background: var(--v-doux); border-radius: 6px; padding: 1px 8px; }
+  :host([data-pastille="1"]) .vt-prev .vt-mm { background: var(--v-doux); border-radius: 6px; padding: 1px 6px; }
+  :host([data-style="neoretro"]) .vt-nom { color: var(--v-accent); letter-spacing: .2em; font-weight: 400; }
+  :host([data-style="neoretro"]) .vt-media, :host([data-style="neoretro"]) .vt-etiquette { border-radius: 2px; }
+`;
+
 class VisionVeillePanel extends HTMLElement {
   constructor() {
     super();
@@ -734,6 +1075,7 @@ class VisionVeillePanel extends HTMLElement {
     this._ecrans = [];
     this._indice = 0;
     this._pret = false;
+    this._medias = new Map();
   }
 
   set hass(hass) {
@@ -983,6 +1325,18 @@ class VisionVeillePanel extends HTMLElement {
       setTimeout(() => this._note(`chargement n° ${n} (${nav}) à ${new Date().toLocaleTimeString(LOCALE)}, page ouverte depuis ${(performance.now() / 1000).toFixed(1)} s`), 0);  // i18n-ignorer : diagnostic (?diag=…), lu par le mainteneur seulement, reste en français comme les journaux
     } catch (e) { /* sans importance */ }
     this._theme();
+    // Veille-lot : la pastille derrière les valeurs (réglage de la télé) ; le ticket de l'appareil pour les images des
+    // cases typées ; la dérive, seulement si la télé ne la fait pas déjà sur toute la page (elle envoie « pastille »).
+    this.setAttribute("data-pastille", this._q.get("pastille") === "1" ? "1" : "0");
+    // 1.93.05 (l'auteur, retour 39) : la télé dit où se pose l'œil (un coin, ou « cache ») ; quand un de ses coins de droite
+    // est pris (QR des invités, logo, bandeau), la demande d'en bas et la petite heure d'en haut se décalent d'autant.
+    const coin = this._q.get("logo") || "";
+    this.setAttribute("data-logo", ["haut_gauche", "haut_droite", "bas_droite", "cache"].includes(coin) ? coin : "bas_gauche");
+    const vw = (k) => { const v = parseFloat(this._q.get(k) || ""); return v > 0 && v < 60 ? `${v}vw` : ""; };
+    this.style.setProperty("--v-adroite", vw("adroite") || "3.5vw");
+    this.style.setProperty("--v-pdroite", vw("pdroite") || "3.5vw");
+    this._ticket = ticketVeille(this._hass);
+    this._deriveLocale = !(window.VisionAndroid && this._q.has("pastille"));
     this.shadowRoot.innerHTML = `
       <style>
         :host { position: fixed; inset: 0; z-index: 9999; background: var(--v-fond); color: var(--v-texte); overflow: hidden; cursor: none;
@@ -994,10 +1348,9 @@ class VisionVeillePanel extends HTMLElement {
         .heure { font-size: min(26vh, 30vw); font-weight: 300; line-height: 1; letter-spacing: -.02em; }
         .date { font-size: min(4.6vh, 6vw); color: var(--v-texte2); margin-top: 2vh; }
         .ciel { font-size: min(3.8vh, 5vw); color: var(--v-accent); margin-top: 3vh; }
-        /* Anti-marquage : tout dérive de quelques points au fil des minutes (écrans OLED, vieilles dalles). */
-        @keyframes derive { 0% { transform: translate(0, 0); } 25% { transform: translate(.5vw, .35vh); } 50% { transform: translate(0, .7vh); } 75% { transform: translate(-.5vw, .35vh); } 100% { transform: translate(0, 0); } }
-        .scene, .marque { animation: derive 420s linear infinite; }
-        .annonce { position: absolute; right: 3.5vw; bottom: 2.6vh; z-index: 6; max-width: 60vw; padding: .9vh 2.2vh; border-radius: 99px; background: var(--v-carte); color: var(--v-texte2);
+        /* Anti-marquage : la dérive se fait par pixels entiers, une fois par seconde au plus (_deriver), plus par une
+           animation continue (elle recomposait l'écran à chaque image, et le texte tombait entre deux pixels). */
+        .annonce { position: absolute; right: var(--v-adroite, 3.5vw); bottom: 2.6vh; z-index: 6; max-width: 60vw; padding: .9vh 2.2vh; border-radius: 99px; background: var(--v-carte); color: var(--v-texte2);
                    font-size: min(2.4vh, 3.6vw); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .5s ease; }
         .annonce::before { content: ""; display: inline-block; width: 1.1vh; height: 1.1vh; border-radius: 50%; background: var(--v-accent); margin-right: 1.2vh; }
         .annonce.vu { opacity: .96; }
@@ -1005,7 +1358,7 @@ class VisionVeillePanel extends HTMLElement {
         :host([data-style="neoretro"]) .annonce::before { border-radius: 0; }
         .fige { position: absolute; left: 0; right: 0; text-align: center; bottom: 3vh; z-index: 6; pointer-events: none; font-size: min(2.4vh, 4vw); letter-spacing: .14em; text-transform: uppercase; color: var(--v-texte2); opacity: 0; transition: opacity .4s ease; }
         .fige.vu { opacity: .95; }
-        .tete { display: flex; justify-content: space-between; align-items: baseline; padding: 3.2vh 3.5vw 1.6vh; }
+        .tete { display: flex; justify-content: space-between; align-items: baseline; padding: 3.2vh var(--v-pdroite, 3.5vw) 1.6vh 3.5vw; }
         .titre { font-size: min(3.6vh, 6.5vw); font-weight: 600; }
         .petite { font-size: min(3.2vh, 5.5vw); color: var(--v-texte2); }
         .cadre { position: absolute; left: 3.5vw; right: 3.5vw; top: 11vh; bottom: 9.5vh; overflow: hidden; }
@@ -1027,8 +1380,16 @@ class VisionVeillePanel extends HTMLElement {
         /* La marque, en bas à gauche : l'œil de Vision (le même que sur les télés) et son nom. */
         .marque { position: absolute; left: 3.5vw; bottom: 1.6vh; height: 7vh; display: flex; align-items: center; z-index: 5; pointer-events: none; }
         .marque span { margin-left: 1vh; font-size: 2.6vh; font-weight: 700; letter-spacing: .12em; color: var(--v-texte2); opacity: .9; }
+        /* 1.93.05 (retour 39) : l'œil dans le coin choisi sur la télé (en bas à gauche par défaut), ou masqué. */
+        :host([data-logo="haut_gauche"]) .marque { bottom: auto; top: 1.6vh; }
+        :host([data-logo="haut_droite"]) .marque, :host([data-logo="bas_droite"]) .marque { left: auto; right: 3.5vw; flex-direction: row-reverse; }
+        :host([data-logo="haut_droite"]) .marque { bottom: auto; top: 1.6vh; }
+        :host([data-logo="haut_droite"]) .marque span, :host([data-logo="bas_droite"]) .marque span { margin-left: 0; margin-right: 1vh; }
+        :host([data-logo="cache"]) .marque { display: none; }
         mushroom-chips-card { margin-bottom: 4px; }
         ${CSS_HORLOGES}
+        ${CSS_STYLES_HORLOGE}
+        ${CSS_TYPEES}
         .vide { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--v-texte2); font-size: 3vh; }
       </style>
       <div class="marque"><canvas></canvas><span>Vision</span></div><div class="fige"></div><div class="annonce"></div>
@@ -1072,6 +1433,8 @@ class VisionVeillePanel extends HTMLElement {
       for (const s of t.sections || []) {
         const cartes = (s.cartes || []).filter((c) => !cachees.has(`${t.id}|${c.cle}`) && !(c.cles && c.cles.length && c.cles.every((k) => cachees.has(`${t.id}|${k}`))));
         for (const c of cartes) c.fige = figees.has(`${t.id}|${c.cle}`) || !!(c.cles && c.cles.length && c.cles.every((k) => figees.has(`${t.id}|${k}`)));
+        // Veille-lot : la case typée de la carte, si Home Assistant l'a jointe (rangée à côté des cartes).
+        for (const c of cartes) c.typee = this._typeeUtile(t.typees && typeof t.typees === "object" ? t.typees[c.cle] : null);
         // Une section dont il ne reste que le titre (toutes ses cartes sont décochées) disparaît avec lui.
         if (cartes.some((c) => c.config && c.config.type !== "heading")) sections.push({ titre: s.titre, span: s.span || 1, cartes });
       }
@@ -1149,31 +1512,23 @@ class VisionVeillePanel extends HTMLElement {
     pas();
   }
 
-  // Chaque thème a son horloge (« horloge=<thème> » dans l'adresse) ; sans thème connu, celle de Vision.
+  // Chaque thème a son horloge (« horloge=<thème> » dans l'adresse) ; sans thème connu, celle de Vision. Un style
+  // choisi sur l'appareil (« hstyle=fine », mêmes noms que l'appli et le PC) passe avant ; sans lui, rien ne change.
   _horloge(ciel) {
-    const cle = HORLOGES[this._q.get("horloge") || ""] ? this._q.get("horloge") : "defaut";
+    const style = styleHorloge(this._q.get("hstyle") || "");
+    const cle = style ? "s-" + style : HORLOGES[this._q.get("horloge") || ""] ? this._q.get("horloge") : "defaut";
     const d = new Date(), maj = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     const jour = maj(trDate(d, { weekday: "long", day: "numeric", month: "long" }));
     const jourCourt = maj(trDate(d, { weekday: "short", day: "numeric", month: "short" }));
     return `<div class="horloge h-${cle}" data-cle="${cle}">${HORLOGES[cle].html({ jour, jourCourt, ciel: ciel || "" })}</div>`;
   }
 
-  // Le ciel sous l'horloge : la température et le temps qu'il fait (l'entité météo choisie pour la veille).
-  _ciel() {
-    const m = this._page && this._page.meteo && this._hass ? this._hass.states[this._page.meteo] : null;
-    const morceaux = [];
-    if (m && m.attributes && typeof m.attributes.temperature === "number") morceaux.push(`${Math.round(m.attributes.temperature)}°`);
-    if (m && CIEL[m.state]) morceaux.push(tr(CIEL[m.state]));
-    return morceaux.join("  ·  ");
-  }
-
   // La langue a changé : chaque horloge à l'écran est redessinée dans la nouvelle (date, ciel, inscriptions).
   _relangue() {
     this.shadowRoot.querySelectorAll(".horloge").forEach((h) => {
       try {
-        const ciel = h.querySelector(".ciel");
         const x = document.createElement("div");
-        x.innerHTML = this._horloge(ciel && ciel.textContent ? this._ciel() : "");
+        x.innerHTML = this._horloge("");
         const neuve = x.firstElementChild;
         neuve.style.visibility = h.style.visibility;
         h.replaceWith(neuve);
@@ -1187,9 +1542,12 @@ class VisionVeillePanel extends HTMLElement {
     const h = trHeure(d);
     this.shadowRoot.querySelectorAll(".petite").forEach((e) => { if (e.textContent !== h) e.textContent = h; });
     this.shadowRoot.querySelectorAll(".horloge").forEach((e) => { try { HORLOGES[e.dataset.cle].tic(e, d); } catch (err) { /* l'horloge garde son dernier dessin */ } });
+    if (!this._q) return;
+    try { this._majMeteo(); this._rafraichirMedias(); this._deriver(); } catch (err) { /* la seconde suivante réessaie */ }
   }
 
-  _carte(config) {
+  _carte(config, typee) {
+    if (typee) { try { const el = this._carteTypee(typee, config || {}); if (el) return el; } catch (e) { /* Home Assistant la dessine */ } }
     if (config && config.type === "iframe") return this._cadreWeb(config);
     let el;
     try { el = this._aides ? this._aides.createCardElement(config) : null; } catch (e) { el = null; }
@@ -1222,7 +1580,10 @@ class VisionVeillePanel extends HTMLElement {
   // est chargée que quand son tableau se montre, et elle est déchargée dès qu'il s'efface. Une page qui ne se
   // charge pas à temps, ou qui fige la veille, est remplacée par une mention : la rotation ne l'attend jamais.
 
-  _cadreWeb(config) {
+  // Veille-lot : l'iframe d'une case typée (« typee ») n'ouvre que l'adresse https de la case, hors de l'origine de
+  // Home Assistant, dans un bac à sable strict (scripts seulement : ni formulaires, ni fenêtres, ni navigation de la
+  // veille) ; une seule à la fois, les autres gardent leur nom.
+  _cadreWeb(config, typee) {
     const boite = document.createElement("div");
     boite.className = "web";
     let colonnes = 12;
@@ -1239,12 +1600,18 @@ class VisionVeillePanel extends HTMLElement {
       `break-inside:avoid;padding-top:${ratio}%;background:var(--ha-card-background,var(--card-background-color));`;
     boite.style.gridColumn = `span ${colonnes}`;
     boite._url = String(config.url || "");
+    if (typee) {
+      boite._strict = true; boite._nom = String(typee.nom || "");
+      let sure = false;
+      try { const u = new URL(boite._url); sure = u.protocol === "https:" && u.origin !== location.origin && !u.username && !u.password; } catch (e) { sure = false; }
+      if (!sure) boite._url = "";
+    }
     boite._mention = document.createElement("div");
     boite._mention.className = "web-mention";
     boite._mention.style.cssText = "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;" +
       "text-align:center;padding:1em;opacity:.55;font-size:.9em;";
     boite.appendChild(boite._mention);
-    this._mentionWeb(boite, "");
+    this._mentionWeb(boite, boite._strict && !boite._url ? boite._nom : "");
     return boite;
   }
 
@@ -1269,10 +1636,15 @@ class VisionVeillePanel extends HTMLElement {
 
   // Le tableau se montre : ses cartes web visibles se chargent, celles des parties cachées se déchargent.
   _allumerWeb(scene) {
+    let stricte = false;
     for (const boite of scene.querySelectorAll(".web")) {
       const section = boite.closest(".section");
       const visible = !section || section.style.visibility !== "hidden";
       if (!visible) { this._eteindreBoite(boite); continue; }
+      if (boite._strict && boite._url) {
+        if (stricte) { this._eteindreBoite(boite); this._mentionWeb(boite, boite._nom); continue; }
+        stricte = true;
+      }
       if (boite._cadre || !boite._url) continue;
       if (this._lourds()[boite._url]) {
         this._mentionWeb(boite, tr("web_lourde"));
@@ -1284,6 +1656,7 @@ class VisionVeillePanel extends HTMLElement {
       cadre.style.cssText = "position:absolute;top:0;left:0;width:200%;height:200%;border:0;zoom:0.5;";
       cadre.setAttribute("referrerpolicy", "no-referrer");
       cadre.setAttribute("tabindex", "-1");
+      if (boite._strict) { cadre.setAttribute("sandbox", "allow-scripts allow-same-origin"); cadre.setAttribute("allow", ""); }  // i18n-ignorer : technique (attribut, classe, sélecteur)
       boite._charge = false;
       // Le témoin : si la veille est relancée pendant que cette page est allumée (une page qui fige tout fait
       // relancer la veille par l'appli), on le retrouvera au redémarrage et la page sera mise de côté.
@@ -1527,7 +1900,8 @@ class VisionVeillePanel extends HTMLElement {
     const scene = document.createElement("div");
     scene.className = "scene";
     if (e.genre === "horloge") {
-      scene.innerHTML = this._horloge(this._ciel());
+      // 1.93.05 (l'auteur, retour 35) : l'horloge seule — ni température ni ciel, quel que soit le style.
+      scene.innerHTML = this._horloge("");
     } else {
       if (e.page === 0 || !e._colonnes) {
         e.page = 0;
@@ -1554,6 +1928,7 @@ class VisionVeillePanel extends HTMLElement {
         const n = Math.max(1, Math.min(voulu, blocs.reduce((a, x) => a + x._span, 0)));
         colonnes.style.gridTemplateColumns = `repeat(${n}, 460px)`;
         colonnes.style.width = `${n * 460 + (n - 1) * 44}px`;
+        colonnes._n = n; colonnes._nominale = n * 460 + (n - 1) * 44;
         for (const bloc of blocs) { bloc.style.gridColumn = `span ${Math.min(n, bloc._span)}`; colonnes.appendChild(bloc); }
         // Le tableau est posé tout de suite, encore invisible, et ses cartes y arrivent une à une en rendant la
         // main entre deux : fabriquées et dessinées d'un bloc, elles figeaient l'écran deux dixièmes de seconde,
@@ -1566,7 +1941,7 @@ class VisionVeillePanel extends HTMLElement {
           if (coupe) break;
           for (const c of bloc._cartes) {
             if (Date.now() > limite) { coupe = true; this._note("préparation trop longue : « " + e.titre + " » montré sans ses dernières cartes"); break; }  // i18n-ignorer : diagnostic (?diag=…), lu par le mainteneur seulement, reste en français comme les journaux
-            const el = this._carte(c.config); if (el) { el._fige = !!c.fige; bloc.appendChild(el); }
+            const el = this._carte(c.config, c.typee); if (el) { el._fige = !!c.fige; bloc.appendChild(el); }
             await Promise.race([new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0))), pause(80)]);
             if (passage !== this._passage) { scene.remove(); return; }
           }
@@ -1604,6 +1979,8 @@ class VisionVeillePanel extends HTMLElement {
         }
         await pause(120);
         this._uneLigne(c);
+        // Veille-lot : la grille au pixel, à l'échelle qui remplit la largeur (avant de compter les écrans).
+        this._aligner(c, Math.min(L / (c._nominale || c.offsetWidth || 1), 2.2) * 0.985);
         // Les rangées de sections, de haut en bas ; ce qui ne tient pas en hauteur passe sur l'écran suivant.
         const sections = [...c.querySelectorAll(".section")];
         const rangees = [];
@@ -1638,8 +2015,11 @@ class VisionVeillePanel extends HTMLElement {
         const hp = Math.max(1, pg.bas - pg.haut);
         const z = Math.min(e._L / e._larg, e._H / hp, 2.2) * 0.985;
         for (const s of c.querySelectorAll(".section")) s.style.visibility = pg.sections.includes(s) ? "visible" : "hidden";
+        if (Math.abs(z - (c._zAligne || 0)) > 1e-4) this._aligner(c, z);
         const dx = Math.max(0, (e._L - e._larg * z) / 2), dy = Math.max(0, Math.min((e._H - hp * z) / 2, e._H * 0.1));
-        c.style.transform = `translate(${dx}px, ${dy - pg.haut * z}px) scale(${z})`;
+        const [tx, ty] = this._auPixel(c, dx, dy - pg.haut * z);
+        c.style.transform = `translate(${tx}px, ${ty}px) scale(${z})`;
+        c._zVu = z;
       }
     }
     if (e.genre === "tableau") { this._percer(e._colonnes); for (const t of [700, 2000, 4500]) setTimeout(() => this._percer(e._colonnes), t); }
@@ -1674,6 +2054,215 @@ class VisionVeillePanel extends HTMLElement {
         }
       } catch (e) { /* la carte reste telle quelle */ }
     }
+  }
+
+  // ------------------------------------------------------------------ Les cases typées (veille-lot)
+
+  // Une case typée qu'on sait dessiner ; celles qui ont des images demandent le ticket de l'appareil (sinon la carte
+  // reste dessinée par Home Assistant, comme avant).
+  _typeeUtile(x) {
+    if (!x || typeof x !== "object" || !GENRES_TYPES.includes(x.genre)) return null;
+    if (AVEC_IMAGES.includes(x.genre) && !this._ticket) return null;
+    return x;
+  }
+
+  // Une image servie par l'intégration : la clé seule, jamais une autre adresse.
+  _img(url, role, classe = "vt-fond", style = "") {
+    const u = String(url || "");
+    if (!RE_MEDIA.test(u)) return "";
+    return `<img class="${classe}" alt="" decoding="async" data-media="${u}" data-age="${AGE_MEDIA[role] || AGE_MEDIA.fond}"${style ? ` style="${style}"` : ""}>`;
+  }
+
+  _carteTypee(t, config) {
+    if (t.genre === "iframe") return this._cadreWeb({ ...config, url: t.url }, t);
+    const el = document.createElement("div");
+    el.className = `vt vt-${t.genre}`;  // i18n-ignorer : technique (attribut, classe, sélecteur)
+    let colonnes = 12;
+    const o = (config && (config.grid_options || config.layout_options)) || {};
+    const v = o.columns ?? o.grid_columns;
+    if (typeof v === "number") colonnes = Math.max(3, Math.min(12, v));
+    el.style.gridColumn = `span ${colonnes}`;
+    const tete = t.nom ? `<div class="vt-nom">${echapper(t.nom)}</div>` : "";
+    const attente = `<div class="vt-attente"><i></i><i></i><i></i></div>`;
+    const maintenant = new Date();
+    if (t.genre === "meteo") {
+      const minuit = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate());
+      const prev = (Array.isArray(t.previsions) ? t.previsions : []).filter((p) => { const d = lireDate(p && p.quand); return !d || d >= minuit; }).slice(0, 5);
+      el.dataset.entite = String(t.entite || "");
+      el._etat = t.etat; el._temp = t.temperature;
+      el.innerHTML = tete + `<div class="vt-maintenant">${iconeCiel(t.etat)}<span class="vt-temp">${degres(t.temperature)}</span><span class="vt-ciel">${echapper(t.etat_texte || cielDe(t.etat))}</span></div>` +
+        (prev.length ? `<div class="vt-prev" style="grid-template-columns: repeat(${prev.length}, minmax(0, 1fr))">${prev.map((p) =>
+          `<div><div class="vt-jour">${echapper(jourCourt(p.quand))}</div>${iconeCiel(p.etat)}<div class="vt-mm">${degres(p.max)}<span>${degres(p.min)}</span></div></div>`).join("")}</div>` : "");
+    } else if (t.genre === "agenda") {
+      const evs = (Array.isArray(t.evenements) ? t.evenements : []).filter((ev) => ev && pasFini(ev, maintenant)).slice(0, 6);
+      el.innerHTML = tete + (evs.length
+        ? evs.map((ev) => `<div class="vt-ev"><span class="vt-quand">${echapper(quandEvenement(ev, maintenant))}</span><div class="vt-titre">${echapper(ev.titre)}</div></div>`).join("")
+        : `<div class="vt-vide">${MOTS_VT.vide}</div>`);
+    } else if (t.genre === "image" || t.genre === "radar") {
+      // Le fond entier (contenir) ; textes et calques posés à leurs pourcentages du fond, pas de la case.
+      let dedans = this._img(t.url, "fond");
+      if (t.genre === "radar") dedans += t.calque ? this._img(t.calque.url, "calque") : "";
+      else {
+        for (const k of (Array.isArray(t.calques) ? t.calques : []).slice(0, 4)) {
+          const x = Number(k.x), y = Number(k.y), l = Number(k.largeur) || 100;
+          if (isFinite(x) && isFinite(y)) dedans += this._img(k.url, "calque", "vt-calque", `left:${x}%;top:${y}%;width:${Math.max(1, Math.min(100, l))}%`);
+        }
+        for (const e of (Array.isArray(t.elements) ? t.elements : []).slice(0, 12)) {
+          const x = Number(e.x), y = Number(e.y);
+          if (isFinite(x) && isFinite(y) && e.texte) dedans += `<div class="vt-etiquette" style="left:${x}%;top:${y}%">${echapper(e.texte)}</div>`;
+        }
+      }
+      el.innerHTML = tete + `<div class="vt-media" style="padding-top:56.25%"><div class="vt-cadre">${dedans}</div>${attente}</div>`;
+    } else if (t.genre === "camera") {
+      el.innerHTML = tete + `<div class="vt-media" style="padding-top:56.25%">${this._img(t.url, "camera")}${attente}</div><div class="vt-point"></div>`;
+    } else if (t.genre === "clips") {
+      const liste = (Array.isArray(t.liste) ? t.liste : []).slice(0, 4);
+      el.innerHTML = tete + (liste.length ? `<div class="vt-vignettes">${liste.map((k) =>
+        `<div><div class="vt-media" style="padding-top:56.25%">${this._img(k.vignette, "vignette")}${attente}</div>` +
+        `<div class="vt-legende"><b>${echapper(k.camera)}</b>  ·  ${echapper(k.objet_nom || k.objet)}  ·  ${echapper(ecartLisible(k.quand, maintenant))}</div></div>`).join("")}</div>`
+        : `<div class="vt-vide">${MOTS_VT.passages}</div>`);
+    }
+    el._ne = Date.now();
+    for (const img of el.querySelectorAll("img[data-media]")) this._poserMedia(img);
+    return el;
+  }
+
+  // Une image déjà reçue se pose tout de suite (sans attendre) ; le fond d'une image règle aussi le cadre des
+  // éléments posés dessus, et la hauteur de la case tant qu'elle n'est pas encore mesurée.
+  _poserMedia(img) {
+    const m = this._medias && this._medias.get(img.dataset.media);
+    if (!m) return;
+    if (img.getAttribute("src") !== m.u) img.src = m.u;
+    img.classList.add("vu");
+    const boite = img.closest(".vt-media");
+    if (boite) boite.classList.add("pret");
+    const cadre = img.parentElement;
+    if (!cadre || !cadre.classList.contains("vt-cadre") || !img.classList.contains("vt-fond") || img !== cadre.firstElementChild || !m.l || !m.h) return;
+    const carte = img.closest(".vt");
+    const r = Math.max(25, Math.min(100, (m.h / m.l) * 100));
+    if (carte && Date.now() - (carte._ne || 0) < 1000 && boite) boite.style.paddingTop = `${r.toFixed(3)}%`;
+    const R = parseFloat(boite && boite.style.paddingTop) || 56.25;
+    if (r <= R) { const hh = (r / R) * 100; cadre.style.cssText = `left:0;width:100%;top:${((100 - hh) / 2).toFixed(3)}%;height:${hh.toFixed(3)}%`; }
+    else { const ll = (R / r) * 100; cadre.style.cssText = `top:0;height:100%;left:${((100 - ll) / 2).toFixed(3)}%;width:${ll.toFixed(3)}%`; }
+  }
+
+  // Une image demandée à l'intégration (POST, ticket de l'appareil), décodée avant d'être montrée.
+  async _chargerMedia(url) {
+    const m = this._medias.get(url) || {};
+    this._medias.set(url, m);
+    m.enCours = true; m.essai = Date.now();
+    this._mediasEnCours = (this._mediasEnCours || 0) + 1;
+    try {
+      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ticket: this._ticket }), credentials: "omit", cache: "no-store", referrerPolicy: "no-referrer" });
+      if (!r.ok) return;
+      const u = URL.createObjectURL(await r.blob());
+      const essai = new Image();
+      essai.src = u;
+      try { await essai.decode(); } catch (e) { URL.revokeObjectURL(u); return; }
+      const avant = m.u;
+      Object.assign(m, { u, l: essai.naturalWidth, h: essai.naturalHeight, recu: Date.now() });
+      // Les plus anciennes images vues partent (un petit cache, comme sur la télé).
+      this._medias.delete(url); this._medias.set(url, m);
+      while (this._medias.size > 24) { const [k, x] = this._medias.entries().next().value; this._medias.delete(k); if (x.u) setTimeout(() => URL.revokeObjectURL(x.u), 2000); }
+      for (const img of this.shadowRoot.querySelectorAll(`img[data-media="${url}"]`)) this._poserMedia(img);
+      if (avant) setTimeout(() => URL.revokeObjectURL(avant), 2000);
+    } catch (e) { /* l'image reviendra au prochain essai */ } finally {
+      m.enCours = false;
+      this._mediasEnCours -= 1;
+    }
+  }
+
+  // Chaque seconde au plus : les images à l'écran (et celles de l'écran qui se prépare) qui manquent ou ont passé
+  // leur âge sont redemandées, deux à la fois, et pas plus d'une fois toutes les 10 s si elles ne viennent pas.
+  _rafraichirMedias() {
+    if (!this._ticket || this._dort) return;
+    const maintenant = Date.now();
+    const vues = new Set();
+    for (const img of this.shadowRoot.querySelectorAll(".scene img[data-media]")) {  // i18n-ignorer : technique (attribut, classe, sélecteur)
+      const url = img.dataset.media;
+      if (vues.has(url)) continue;
+      vues.add(url);
+      const s = img.closest(".section");
+      if (s && s.style.visibility === "hidden") continue;
+      const m = this._medias.get(url);
+      if (m && (m.enCours || maintenant - (m.recu || 0) < Number(img.dataset.age) || maintenant - (m.essai || 0) < 10000)) continue;
+      if ((this._mediasEnCours || 0) >= 2) break;
+      this._chargerMedia(url);
+    }
+  }
+
+  // La météo du moment suit l'entité (reçue en direct) ; les prévisions restent celles du relevé.
+  _majMeteo() {
+    const vue = this.shadowRoot.querySelector(".scene.vue");
+    if (!vue || !this._hass) return;
+    for (const el of vue.querySelectorAll(".vt-meteo[data-entite]")) {
+      const st = this._hass.states && this._hass.states[el.dataset.entite];
+      if (!st || ["unavailable", "unknown"].includes(st.state)) continue;
+      const temp = st.attributes && typeof st.attributes.temperature === "number" ? st.attributes.temperature : el._temp;
+      if (st.state === el._etat && temp === el._temp) continue;
+      if (st.state !== el._etat) {
+        el._etat = st.state;
+        const i = el.querySelector(".vt-maintenant .vt-icone"); if (i) i.outerHTML = iconeCiel(st.state);
+        const c = el.querySelector(".vt-ciel"); if (c) c.textContent = cielDe(st.state) || majuscule(st.state.replace(/-/g, " "));
+      }
+      el._temp = temp;
+      poser(el, ".vt-temp", degres(temp));
+    }
+  }
+
+  // ------------------------------------------------------------------ Grille au pixel (veille-lot)
+  //
+  // Le tableau est mis en page à sa taille d'origine (colonnes de 460) puis réduit ou agrandi d'un bloc (« z »).
+  // Pour que colonnes et cartes tombent sur des pixels entiers de l'écran, à l'échelle z : colonnes de même largeur
+  // (pixels entiers), 12 pistes par section réparties au pixel (le reste aux premières), écarts tous égaux, et la
+  // hauteur de chaque carte arrondie au pixel supérieur. Rien ne bouge d'une image à l'autre : une fois par écran.
+  _aligner(c, z) {
+    const dpr = window.devicePixelRatio || 1, k = z * dpr;
+    if (!(k > 0) || !c._n) return;
+    const n = c._n;
+    const ecart = Math.max(1, Math.round(44 * k)), rangee = Math.max(1, Math.round(34 * k)), interne = Math.max(1, Math.round(18 * k));
+    const col = Math.max(1, Math.floor((Math.round(c._nominale * k) - ecart * (n - 1)) / n));
+    const cols = pistesAuPixel(Array(n).fill(col), ecart, k);
+    c.style.gridTemplateColumns = cols.largeurs; c.style.columnGap = `${cols.ecart}px`; c.style.rowGap = `${q64(rangee / k)}px`;
+    c.style.width = `${cols.total}px`;
+    const marge = q64(Math.round(2 * k) / k);
+    const cartes = [];
+    for (const s of c.querySelectorAll(".section")) {
+      const span = Math.max(1, Math.min(n, s._span || 1));
+      const pistes = pistesAuPixel(repartir(col * span + ecart * (span - 1), 12, interne), interne, k);
+      s.style.gridTemplateColumns = pistes.largeurs; s.style.gap = `${pistes.ecart}px`;
+      for (const x of s.children) {
+        // La hauteur minimale compte bordure et marges intérieures comprises (une page web garde sa proportion).
+        x.style.minHeight = ""; x.style.boxSizing = "border-box";
+        if (x.classList.contains("sec")) x.style.margin = `${marge}px ${marge}px 0`;
+        cartes.push(x);
+      }
+    }
+    // Une lecture pour toutes les cartes, puis une écriture pour toutes : une seule mise en page de plus.
+    const hauteurs = cartes.map((x) => x.getBoundingClientRect().height);
+    const zv = c._zVu || 1;
+    cartes.forEach((x, i) => { const dev = (hauteurs[i] / zv) * k; if (dev > 0) x.style.minHeight = `${Math.ceil((Math.ceil(dev - 0.02) / k) * 64) / 64}px`; });
+    c._zAligne = z;
+  }
+
+  // Le décalage final (en px de la page) arrondi pour que le coin du tableau tombe sur un pixel entier.
+  _auPixel(c, dx, dy) {
+    const dpr = window.devicePixelRatio || 1, r = c.parentElement.getBoundingClientRect();
+    return [Math.round((r.left + dx) * dpr) / dpr - r.left, Math.round((r.top + dy) * dpr) / dpr - r.top];
+  }
+
+  // ------------------------------------------------------------------ Dérive anti-marquage (veille-lot)
+  //
+  // Tout le contenu se déplace de quelques pixels entiers, très lentement (moins d'un pixel toutes les vingt secondes),
+  // comme le dessin de l'appli (DeriveVeille) : imperceptible, et le texte reste net. Une télé récente (qui envoie
+  // « pastille ») la fait déjà sur toute la page : la page ne la double pas.
+  _deriver() {
+    if (!this._deriveLocale) return;
+    const dpr = window.devicePixelRatio || 1, amp = Math.max(2, Math.min(8, Math.round(3 * dpr))), t = Date.now() / 1000;
+    const dx = Math.round(amp * Math.sin((2 * Math.PI * t) / 1427)), dy = Math.round(amp * Math.cos((2 * Math.PI * t) / 1913));
+    if (dx === this._dx && dy === this._dy) return;
+    this._dx = dx; this._dy = dy;
+    this.style.transform = `translate(${dx / dpr}px, ${dy / dpr}px)`;
   }
 
   _suivant(force) {

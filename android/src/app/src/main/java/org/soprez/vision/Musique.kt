@@ -21,6 +21,11 @@ class Musique(private val ctx: Context) {
     companion object {
         /** Vrai quand c'est nous qui jouons : la bulle et la veille s'en servent pour ne pas se marcher dessus. */
         @Volatile var enCours = false
+        /** 1.90.2 (l'auteur : « musique Sendspin muette par moments ») : TOUT le son de Vision — la radio de veille, le
+         *  lecteur de Music Assistant (Sendspin ou classique), le son d'un message. Avant, seule la radio comptait :
+         *  au retour sur l'accueil, la musique de Vision passait pour celle d'une autre appli, et Vision lui envoyait
+         *  Pause/Stop (faireTaire), coupant sa propre Party. */
+        val nous: Boolean get() = enCours || LecteurMusique.etat == "lecture" || SonTele.joue
     }
     private val main = Handler(Looper.getMainLooper())
     private var joueur: ExoPlayer? = null

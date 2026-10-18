@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 17-10 (l'auteur, point 12) : « Ajuster l'écran », la zone sûre de la télé (ZoneSure, AjusterEcranActivity). -->
+<resources>
+    <string name="zonesure_titre">Scherm aanpassen</string>
+    <string name="zonesure_aide_1">Lijn de pijlen uit met de zichtbare randen van de tv.</string>
+    <string name="zonesure_aide_2">▶ en ▲ maken het kader groter, ◀ en ▼ kleiner.</string>
+    <string name="zonesure_valeurs" formatted="true">Zijkanten %1$d %% · boven en onder %2$d %%</string>
+    <string name="zonesure_touches" formatted="false">OK: opslaan · Terug: annuleren · OK lang indrukken: terug naar 5 %</string>
+    <string name="zonesure_enregistre" formatted="true">Scherm aangepast: zijkanten %1$d %%, boven en onder %2$d %%.</string>
+    <string name="zonesure_court" formatted="true">Zijkanten %1$d %% · boven en onder %2$d %%</string>
+</resources>

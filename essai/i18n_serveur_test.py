@@ -151,6 +151,11 @@ EXCEPTIONS: dict[str, set[str]] = {
         ", accent {}", "# Choisir l'apparence depuis le tableau de bord : ce fichier est réécrit à chaque changement.",
     },
     "installation.py": set(),  # commandes PowerShell (reconnues comme du code ci-dessous)
+    # États d'ouverture LUS sur des capteurs texte, dans les six langues (MOTS_OUVERT / MOTS_FERME / MOTS_TYPE) :
+    # des données reconnues en entrée, jamais affichées (intégration du 15/10, veille-ha-25 95a3236).
+    "veille_tableaux.py": {"geöffnet", "déverrouillé", "fermé", "fermée", "verrouillé", "sí", "sì", "fenêtre",
+                           # docstring de resoudre_locaux, devenue simple chaîne derrière « return [] » (code mort, ddcf2f2)
+                           "Les tableaux composés sur l'appareil lui-même : on résout leurs cases, sans rien enregistrer."},
 }
 
 MOT = re.compile(r"[A-Za-zÀ-ÿ]{2,}")
@@ -213,11 +218,11 @@ async def _monter(hass, hass_storage, langue_ha: str = "fr"):
     pcs = {
         "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", bloques=["exemple.com"]),
         "e2": _fiche("e2", "TEL-NOA", ENFANT2["secret"], person="person.noa", platform="android", bloques=["exemple.com"]),
-        "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+        "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
     }
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": pcs}}
-    for p in ("lou", "noa", "robin"):
+    for p in ("lou", "noa", "nolan"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -245,12 +250,12 @@ async def test_raison_et_messages_dans_la_langue_de_l_appareil(hass, hass_storag
 
     # Un décideur ferme les deux appareils : chacun reçoit le mot dans sa langue, le décideur le sien.
     r = await client.post("/api/pc_parental/parent", json={**PARENT, "langue": "en-GB", "action": "fermer", "pc": "e1"})
-    assert (await r.json())["retour"] == "Robin blocked access."
+    assert (await r.json())["retour"] == "Nolan blocked access."
     await client.post("/api/pc_parental/parent", json={**PARENT, "action": "fermer", "pc": "e2"})
     await hass.async_block_till_done()
     coord = list(hass.data[DOMAIN].values())[0]  # l'entrée a pu se recharger (étiquette créée au premier relevé)
-    assert coord.store.pcs["e1"]["messages"][-1]["text"] == "Robin hat den Zugang gesperrt.", coord.store.pcs["e1"]
-    assert coord.store.pcs["e2"]["messages"][-1]["text"] == "Robin a fermé l'accès."
+    assert coord.store.pcs["e1"]["messages"][-1]["text"] == "Nolan hat den Zugang gesperrt.", coord.store.pcs["e1"]
+    assert coord.store.pcs["e2"]["messages"][-1]["text"] == "Nolan a fermé l'accès."
     de = await (await client.post("/api/pc_parental/poll", json={**ENFANT, "langue": "de-DE"})).json()
     fr = await (await client.post("/api/pc_parental/poll", json={**ENFANT2})).json()
     assert de["message"] == "Gesperrt" and fr["message"] == "Accès fermé"

@@ -2,6 +2,8 @@
 
 **English** · [Français](README.fr.md) · Deutsch · Español · Italiano · Nederlands
 
+**Website and documentation: https://soprez.org/vision**
+
 > Vision itself speaks six languages: English, French, German, Spanish, Italian and Dutch (Home Assistant
 > integration, dashboard cards, Windows agent; each device follows its own language). This README exists in
 > English and French; the German, Spanish, Italian and Dutch versions (`README.de.md`, `README.es.md`,
@@ -102,9 +104,15 @@ fingerprint of the certificate:
 A7:7C:D3:E3:A2:A9:1E:DA:5E:8E:D3:B4:58:D9:90:D0:47:37:CB:A7:A5:84:69:D3:96:8E:BC:3B:10:FE:C1:B7
 ```
 
+## ☕ Buy me a coffee
+
+Vision is free. If it helps you, you can buy me a coffee: https://buymeacoffee.com/soprez
+It is optional: nothing gets unlocked, a “♥ Supporter” badge simply shows on your devices.
+
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: [SECURITY.md](SECURITY.md), never a public issue.
+See [CONTRIBUTING.en.md](CONTRIBUTING.en.md) (in French: [CONTRIBUTING.md](CONTRIBUTING.md)). Security issues:
+[SECURITY.md](SECURITY.md), never a public issue.
 
 ## License
 

@@ -108,9 +108,11 @@ class MessageEnvoiActivity : Activity() {
     // reste plus large que la pastille, la police rapetisse : jamais un mot coupé en deux.
     private fun pastille(s: String, on: Boolean, action: () -> Unit) = t(Ui.coupable(s), 15f, if (on) theme.encre else theme.encre2, if (on) Polices.demiGras(this) else Polices.texte(this)).apply {
         background = GradientDrawable().apply { cornerRadius = px(999f).toFloat(); setColor(if (on) Palette.melanger(theme.carte, theme.or, 0.22f) else 0); setStroke(px(1.5f), if (on) theme.or else theme.carteBord) }
-        setPadding(px(14f), px(10f), px(14f), px(10f)); minHeight = px(44f); gravity = Gravity.CENTER_VERTICAL
+        setPadding(px(14f), px(10f), px(14f), px(10f)); minHeight = px(Ui.CIBLE_MIN); gravity = Gravity.CENTER_VERTICAL
         Ui.motsEntiers(this, 15f, 10f)
         isClickable = true; isFocusable = true; contentDescription = if (on) getString(R.string.msgenv_choisi, s) else s
+        // Lot 6 (APP-13) : l'anneau de focus commun, visible à la télécommande.
+        Ui.anneauFocus(this, theme, 999f, agrandir = false)
         setOnClickListener { action() }
     }
 
@@ -135,20 +137,21 @@ class MessageEnvoiActivity : Activity() {
             setContentView(sv); return
         }
         val dest = d.optJSONObject("destinataires") ?: JSONObject()
-        section(c, getString(R.string.msgenv_pour))
-        val p = Pastilles(this, px(8f)); c.addView(p)
+        // 15-10 (règle UX de l'auteur) : 3 options ou moins qui tiennent sur une ligne en étiquettes, sinon une liste (ChoixAdaptatif).
         fun objets(a: JSONArray?) = (0 until (a?.length() ?: 0)).mapNotNull { a?.optJSONObject(it) }
-        objets(dest.optJSONArray("personnes")).forEach { x -> val id = x.optString("id"); p.addView(pastille(getString(R.string.msgenv_tous_ses_appareils, x.optString("nom")), id in choix) { if (!choix.remove(id)) choix.add(id); construire() }) }
-        objets(dest.optJSONArray("appareils")).forEach { x -> val id = x.optString("id"); p.addView(pastille(x.optString("nom"), id in choix) { if (!choix.remove(id)) choix.add(id); construire() }) }
+        val pour = objets(dest.optJSONArray("personnes")).map { x -> ChoixAdaptatif.Option(x.optString("id"), getString(R.string.msgenv_tous_ses_appareils, x.optString("nom"))) } +
+            objets(dest.optJSONArray("appareils")).map { x -> ChoixAdaptatif.Option(x.optString("id"), x.optString("nom")) }
+        section(c, getString(R.string.msgenv_pour))
+        c.addView(Ui.choixMultiple(this, getString(R.string.msgenv_pour), pour, choix.toSet(), theme, 15f) { l -> choix.clear(); choix.addAll(l); construire() }.apply { tag = "msg_pour" })
         section(c, getString(R.string.msgenv_type))
         val types = objets(d.optJSONArray("types"))
-        val pt = Pastilles(this, px(8f)); c.addView(pt)
-        types.forEach { x -> val id = x.optString("id"); pt.addView(pastille(x.optString("nom"), id == type) { type = id; construire() }) }
+        c.addView(Ui.choix(this, getString(R.string.msgenv_type), types.map { x -> ChoixAdaptatif.Option(x.optString("id"), x.optString("nom")) }, type, theme, 15f) { type = it; construire() }.apply { tag = "msg_type" })
         val typeImportant = types.firstOrNull { it.optString("id") == type }?.optString("priorite") == "importante"
-        val champ = EditText(this).apply {
+        val champ = EditText(this).also { ClavierTele.brancher(it) }.apply {
             hint = getString(R.string.msgenv_ton_message); setText(texte); textSize = 16f; setTextColor(theme.encre); setHintTextColor(theme.encre3); minLines = 3
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-            background = GradientDrawable().apply { cornerRadius = px(14f).toFloat(); setColor(theme.carte); setStroke(px(1f), theme.carteBord) }
+            // Lot 6 (APP-13) : bord épais à l'encre au focus, comme tous les champs (Ui.fondChamp).
+            background = Ui.fondChamp(this@MessageEnvoiActivity, theme.carte, theme.encre, theme.carteBord)
             setPadding(px(14f), px(12f), px(14f), px(12f)); gravity = Gravity.TOP
             addTextChangedListener(object : android.text.TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
@@ -158,17 +161,13 @@ class MessageEnvoiActivity : Activity() {
         }
         c.addView(champ, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(14f) })
         section(c, getString(R.string.msgenv_reponses))
-        val pr = Pastilles(this, px(8f)); c.addView(pr)
         val proposees = (0 until (d.optJSONArray("reponses_proposees")?.length() ?: 0)).map { d.optJSONArray("reponses_proposees")!!.optString(it) }
-        (proposees + reponses.filter { it !in proposees }).forEach { r ->
-            pr.addView(pastille(r, r in reponses) {
-                if (!reponses.remove(r)) { if (reponses.size < 3) reponses.add(r) else { statut = getString(R.string.msgenv_trois_max); statutKo = true } }
-                construire()
-            })
-        }
-        val autre = EditText(this).apply { hint = getString(R.string.msgenv_autre_reponse); textSize = 15f; setTextColor(theme.encre); setHintTextColor(theme.encre3)
+        c.addView(ChoixAdaptatif(this, getString(R.string.msgenv_reponses), (proposees + reponses.filter { it !in proposees }).map { ChoixAdaptatif.Option(it, it) },
+            reponses.toSet(), multiple = true, theme = theme, tailleSp = 15f, maxChoix = 3,
+            trop = { statut = getString(R.string.msgenv_trois_max); statutKo = true; construire() }) { l -> reponses.clear(); reponses.addAll(l); construire() }.apply { tag = "msg_reponses" })
+        val autre = EditText(this).also { ClavierTele.brancher(it) }.apply { hint = getString(R.string.msgenv_autre_reponse); textSize = 15f; setTextColor(theme.encre); setHintTextColor(theme.encre3)
             // Le même cadre que le champ du message (plus de soulignement Android à l'accent de la plateforme).
-            background = GradientDrawable().apply { cornerRadius = px(14f).toFloat(); setColor(theme.carte); setStroke(px(1f), theme.carteBord) }
+            background = Ui.fondChamp(this@MessageEnvoiActivity, theme.carte, theme.encre, theme.carteBord)
             setPadding(px(14f), px(10f), px(14f), px(10f)); inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES; filters = arrayOf(android.text.InputFilter.LengthFilter(30)) }
         val ra = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         ra.addView(autre, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
@@ -184,6 +183,7 @@ class MessageEnvoiActivity : Activity() {
             gravity = Gravity.CENTER; minHeight = px(52f); setPadding(px(18f), px(12f), px(18f), px(12f))
             background = GradientDrawable().apply { cornerRadius = px(999f).toFloat(); setColor(theme.or) }
             alpha = if (pret) 1f else 0.5f; isClickable = true; isFocusable = true
+            Ui.anneauFocus(this, theme, 999f, agrandir = false)
             setOnClickListener {
                 if (choix.isEmpty()) { statut = getString(R.string.msgenv_choisis_dest); statutKo = true; construire() }
                 else if (texte.isBlank()) { statut = getString(R.string.msgenv_ecris); statutKo = true; construire() }

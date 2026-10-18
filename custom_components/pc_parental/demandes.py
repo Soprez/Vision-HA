@@ -20,9 +20,9 @@ from . import labels
 from . import modules
 from . import roles
 from . import textes
-from .const import DOMAIN
+from .const import AUTORISE, DOMAIN
 from .coordinator import PcParentalCoordinator
-from .store import _nom_app, _nom_site
+from .store import _nom_app, _nom_site, domaine_principal
 
 URL_DEMANDE = "/api/pc_parental/demande"
 MAX_EN_ATTENTE = 12
@@ -64,11 +64,17 @@ def retirer(pc: dict[str, Any], demande_id: str) -> dict[str, Any] | None:
 def deposer(
     hass: HomeAssistant, coord: PcParentalCoordinator, pc: dict[str, Any],
     genre: str, nom: str, libelle: str, lien: str = "", motif: str = "", duree: str = "",
+    sites: list[str] | None = None,
 ) -> dict[str, Any] | None:
-    """Enregistre la demande et prévient les parents. None si déjà en attente."""
+    """Enregistre la demande et prévient les parents. None si déjà en attente.
+
+    2.5.1 (ajout 5 de l'auteur) : une demande pour un logiciel peut emporter ses sites bloqués (`sites`) : une seule
+    demande, que le Décideur accepte en bloc ou élément par élément. Seuls restent les sites rangés sous ce
+    logiciel (ou bloqués pendant qu'il tournait), fermés, et qu'une autorisation peut ouvrir."""
     cle = cle_de(genre, nom)
     if not cle:
         return None
+    sites = sites_du_groupe(coord, pc, cle, sites) if genre == "apps" and sites else []
     # Refusée il y a peu : elle ne repart pas chez les parents avant la fin de l'attente.
     jusqua = coord.store.refus_jusqua(pc, genre, cle)
     if jusqua:
@@ -78,6 +84,7 @@ def deposer(
         if d.get("genre") == genre and d.get("cle") == cle:
             # Déjà demandé : on rafraîchit l'heure, sans re-sonner chez les parents.
             if time.time() - float(d.get("ts") or 0) < REPOS_S:
+                d["sites"] = list(dict.fromkeys(list(d.get("sites") or []) + sites))
                 return d
             liste.remove(d)
             break
@@ -114,6 +121,8 @@ def deposer(
         "lien": lien[:300], "motif": motif[:120], "raison": raison, "code": code,
         "duree": duree, "etiquettes": etiquettes[:6],
     }
+    if sites:
+        d["sites"] = sites
     liste.append(d)
 
     def raison_en(langue: str) -> str:
@@ -135,6 +144,8 @@ def deposer(
             if duree == "categorie" and etiquettes:
                 texte = "{} {}".format(texte, textes.t("dem.categorie", langue, liste=", ".join(
                     textes.categorie(e, langue) for e in etiquettes[:6])))
+        if sites:
+            texte = "{} {}".format(texte, textes.n("dem.sites_bloques", len(sites), langue))
         if motif:
             texte = "{} ({})".format(texte, motif[:120])
         if _r:
@@ -147,8 +158,20 @@ def deposer(
         notification_id="{}_acces_{}_{}".format(DOMAIN, pc["id"], d["id"]),
     )
     hass.bus.async_fire("{}_demande_acces".format(DOMAIN), dict(d))
+    # 2.5.0 : la même demande sur le téléphone des Décideurs (appli compagnon), avec les boutons de réponse.
+    try:
+        from . import notifs_mobiles
+
+        hass.async_create_task(notifs_mobiles.envoyer(hass, coord.store, pc, d, texte_en(langue_ha)))
+    except Exception:  # noqa: BLE001 - une notification ratée ne bloque jamais la demande
+        pass
+    # 2.5.6 (l'auteur, 15/10) : sur Discord si un Décideur l'a choisi ; dans l'appli Vision de ceux qui l'ont choisie.
+    from . import canaux
+
+    hass.async_create_task(canaux.discord(hass, coord.store, "demandes", textes.t("dem.titre_ha", langue_ha),
+                                          texte_en(langue_ha)))
     for pid in roles.avec(coord.store, "gerer"):
-        if pid == pc["id"]:
+        if pid == pc["id"] or not canaux.vision_pour(hass, coord.store, pid, "demandes"):
             continue
         langue_p = textes.pour(hass, coord.store.pcs.get(pid))
         try:
@@ -159,8 +182,28 @@ def deposer(
             "id": d["id"], "pc": pc["id"], "prenom": qui, "genre": genre,
             "nom": nom, "libelle": joli, "lien": lien[:300], "motif": motif[:120],
             "raison": raison_en(langue_p), "code": code, "duree": duree, "etiquettes": etiquettes[:6],
+            **({"sites": sites} if sites else {}),
         }
     return d
+
+
+def sites_du_groupe(coord: PcParentalCoordinator, pc: dict[str, Any], app: str, voulus: list[str]) -> list[str]:
+    """Les sites d'une demande groupée qu'on garde : rangés sous ce logiciel ou bloqués pendant qu'il tournait,
+    fermés sur cet appareil, et ni Lieu, ni sécurité ou âge, ni liste noire (aucune autorisation ne les passe)."""
+    store = coord.store
+    permis = {f["nom"] for f in store.sites_du_logiciel(app)}
+    permis |= {b["nom"] for b in store.blocages_recents(pc, pour_demandeur=True, maximum=60) if b.get("logiciel") == app}
+    gardes: list[str] = []
+    for brut in list(voulus or [])[:40]:
+        site = domaine_principal(str(brut))
+        if not site or site in gardes or site not in permis:
+            continue
+        if store.statut(pc, "sites", site) == AUTORISE:
+            continue
+        if store.bloque_explicite(pc, "sites", site) in ("lieu", "securite", "liste_noire"):
+            continue
+        gardes.append(site)
+    return gardes
 
 
 class PcParentalDemandeView(HomeAssistantView):
@@ -202,7 +245,8 @@ class PcParentalDemandeView(HomeAssistantView):
         duree = str(corps.get("duree") or "").strip()
         if not nom:
             return self.json({"ok": False, "error": "nom"}, status_code=400)
-        d = deposer(self.hass, coord, pc, genre, nom, libelle, lien, motif, duree)
+        sites = [str(x) for x in corps.get("sites") or [] if isinstance(x, str)] if isinstance(corps.get("sites"), list) else []
+        d = deposer(self.hass, coord, pc, genre, nom, libelle, lien, motif, duree, sites)
         if d is None:
             return self.json({"ok": False, "error": "nom"}, status_code=400)
         if d.get("refus"):

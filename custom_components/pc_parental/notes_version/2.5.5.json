@@ -1,0 +1,50 @@
+{
+  "version": "2.5.5",
+  "date": "2026-10-15",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Widgets : titre et valeur alignés au choix, à l'horizontale (gauche, centre, droite) et à la verticale.",
+        "en": "Widgets: title and value aligned as you like, horizontally (left, centre, right) and vertically.",
+        "de": "Widgets: Titel und Wert nach Wahl ausgerichtet, waagerecht (links, Mitte, rechts) und senkrecht.",
+        "es": "Widgets: título y valor alineados a elegir, en horizontal (izquierda, centro, derecha) y en vertical.",
+        "it": "Widget: titolo e valore allineati a scelta, in orizzontale (sinistra, centro, destra) e in verticale.",
+        "nl": "Widgets: titel en waarde uitgelijnd naar keuze, horizontaal (links, midden, rechts) en verticaal."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Widgets : taille de la valeur automatique (« remplir ») ou S, M, L, XL ; par défaut, grande et centrée.",
+        "en": "Widgets: value size automatic (“fill”) or S, M, L, XL; by default, large and centred.",
+        "de": "Widgets: Größe des Werts automatisch („füllen“) oder S, M, L, XL; standardmäßig groß und zentriert.",
+        "es": "Widgets: tamaño del valor automático («rellenar») o S, M, L, XL; por defecto, grande y centrado.",
+        "it": "Widget: dimensione del valore automatica («riempi») o S, M, L, XL; di base, grande e centrata.",
+        "nl": "Widgets: grootte van de waarde automatisch („vullen”) of S, M, L, XL; standaard groot en gecentreerd."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Titre et icône affichés ou non ; la mise en page se règle dans HA ou depuis le téléphone d'un Décideur.",
+        "en": "Title and icon shown or not; the layout is set in HA or from a Decider's phone.",
+        "de": "Titel und Symbol ein- oder ausblenden; das Layout wird in HA oder am Telefon eines Entscheiders eingestellt.",
+        "es": "Título e icono visibles o no; el diseño se ajusta en HA o desde el teléfono de un Responsable.",
+        "it": "Titolo e icona mostrati o no; l'impaginazione si regola in HA o dal telefono di un Decisore.",
+        "nl": "Titel en pictogram wel of niet tonen; de opmaak stel je in HA in of op de telefoon van een Beslisser."
+      }
+    }
+  ]
+}

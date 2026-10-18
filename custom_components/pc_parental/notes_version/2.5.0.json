@@ -1,0 +1,78 @@
+{
+  "version": "2.5.0",
+  "date": "2026-10-13",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Trois façons d'autoriser (pour un temps, exception, toujours disponible), dans l'onglet Autorisations.",
+        "en": "Three ways to allow (for a while, exception, always available), in the Permissions tab.",
+        "de": "Drei Arten zu erlauben (für eine Weile, Ausnahme, immer verfügbar), im Tab Berechtigungen.",
+        "es": "Tres formas de autorizar (por un tiempo, excepción, siempre disponible), en la pestaña Autorizaciones.",
+        "it": "Tre modi per autorizzare (per un po', eccezione, sempre disponibile), nella scheda Autorizzazioni.",
+        "nl": "Drie manieren om toe te staan (even, uitzondering, altijd beschikbaar), in het tabblad Toestemmingen."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Répondre à une demande en un geste, même du téléphone ; une appli autorisée ouvre aussi ses sites.",
+        "en": "Answer a request in one tap, even from the phone; an allowed app also opens its websites.",
+        "de": "Eine Anfrage mit einem Tippen beantworten, auch vom Handy; eine erlaubte App öffnet auch ihre Websites.",
+        "es": "Responder a una solicitud con un toque, incluso desde el teléfono; una app autorizada abre también sus sitios.",
+        "it": "Rispondere a una richiesta con un tocco, anche dal telefono; un'app autorizzata apre anche i suoi siti.",
+        "nl": "Een verzoek met één tik beantwoorden, ook vanaf de telefoon; een toegestane app opent ook haar sites."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Nouveau module Réveil : programmé sur l'appareil, il sonne même sans réseau, en grand à l'écran.",
+        "en": "New Alarm module: set on the device, it rings even offline, full screen.",
+        "de": "Neues Wecker-Modul: auf dem Gerät gestellt, klingelt auch ohne Netz, im Vollbild.",
+        "es": "Nuevo módulo Despertador: programado en el dispositivo, suena incluso sin red, a pantalla completa.",
+        "it": "Nuovo modulo Sveglia: impostata sul dispositivo, suona anche senza rete, a schermo intero.",
+        "nl": "Nieuwe module Wekker: ingesteld op het apparaat, gaat ook zonder netwerk af, op volledig scherm."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "« Réveils » dans l'appli : heure, jours, radio ou sonnerie ; aussi pilotable par automatisation.",
+        "en": "“Alarms” in the app: time, days, radio or ringtone; also controllable by automation.",
+        "de": "„Wecker“ in der App: Uhrzeit, Tage, Radio oder Klingelton; auch per Automatisierung steuerbar.",
+        "es": "«Despertadores» en la app: hora, días, radio o tono; también por automatización.",
+        "it": "«Sveglie» nell'app: ora, giorni, radio o suoneria; anche tramite automazione.",
+        "nl": "“Wekkers” in de app: tijd, dagen, radio of beltoon; ook te sturen via automatisering."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Party : avancer ou reculer dans le titre. Veille de la télé : une playlist de Music Assistant au choix.",
+        "en": "Party: move forward or back in the track. TV screensaver: a Music Assistant playlist of your choice.",
+        "de": "Party: im Titel vor- und zurückspringen. Bildschirmschoner: eine Playlist von Music Assistant nach Wahl.",
+        "es": "Fiesta: avanzar o retroceder en el tema. Salvapantallas de la tele: una lista de Music Assistant a elegir.",
+        "it": "Festa: avanti o indietro nel brano. Salvaschermo della TV: una playlist di Music Assistant a scelta.",
+        "nl": "Feest: vooruit of terug in het nummer. Schermbeveiliging: een afspeellijst van Music Assistant naar keuze."
+      }
+    }
+  ]
+}

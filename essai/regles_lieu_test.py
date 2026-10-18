@@ -69,13 +69,12 @@ async def test_zone_maison(hass, hass_storage):
     assert "com.roblox.client" in _fermees(coord, "e1")["apps"]
 
 
-async def test_parcours_configurer(hass, hass_storage):
-    coord = await _installer(hass, hass_storage)
-    om = hass.config_entries.options
-    r = await om.async_init(coord.config_entry.entry_id)
-    assert "regles_lieu" in r["menu_options"]
-    r = await om.async_configure(r["flow_id"], {"next_step_id": "regles_lieu"})
-    assert r["type"] == "form" and "Aucune règle" in r["description_placeholders"]["resume"]
-    r = await om.async_configure(r["flow_id"], {"personne": "person.lou", "zone": "zone.college", "etiquettes": ["Jeux"]})
-    assert r["type"] == "abort" and r["reason"] == "regles_lieu_ok"
-    assert "Lou à « Collège » : Jeux fermée" in r["description_placeholders"]["resume"]
+async def test_parcours_fiche(hass, hass_storage, hass_client):
+    """Lot 5 : la règle se pose sur la fiche de la personne (Configurer ne l'a plus)."""
+    await _installer(hass, hass_storage)
+    admin = await hass_client()
+    url = "/api/pc_parental/personne/admin"
+    r = await admin.post(url, json={"op": "regle_lieu", "personne": "person.lou", "zone": "zone.college", "etiquettes": ["Jeux"]})
+    assert r.status == 200, await r.text()
+    regle = (await r.json())["regles"][0]
+    assert regle["zone_nom"] == "Collège" and regle["etiquettes"] == ["Jeux"]

@@ -48,10 +48,15 @@ async def test_la_tele_pilote_la_file_et_l_enceinte(hass, hass_storage, hass_cli
     # 2.2.5 (retour d'essai) : la télé est dans la liste, sans texte faux sur Music Assistant.
     tv = [x for x in r["lecteurs"] if x["entity_id"] == "media_player.televiseur_du_salon_4"]
     assert tv and tv[0]["dispo"] and not tv[0]["raison"]
+    suivants = []
+    hass.services.async_register("media_player", "media_next_track", lambda call: suivants.append(call.data.get("entity_id")))
     for action in ("jouer_element", "ensuite_element", "retirer"):
         s, r = await _post(client, "commande", TELE, action=action, element="q1")
         assert s == 200, (action, r)
-    assert ("jouer", "qid-salon", "q1") in files.supprimes and ("ensuite", "qid-salon", "q1") in files.supprimes
+    # 2.5.8 (retour d'essai) : « Jouer maintenant » place le titre juste après celui en cours puis y passe — plus de saut
+    # (play_index) qui faisait passer pour joués tous les titres d'entre les deux.
+    assert ("jouer", "qid-salon", "q1") not in files.supprimes
+    assert files.supprimes.count(("ensuite", "qid-salon", "q1")) == 2 and len(suivants) == 1
     s, r = await _post(client, "commande", TELE, action="enceinte", lecteur="media_player.televiseur_du_salon_4")
     assert s == 200 and ("transfert", "qid-salon", "q-tv") in files.supprimes and "Music Assistant" not in r["retour"]
     s, r = await _post(client, "commande", TELE, action="enceinte", lecteur=MA_CHAMBRE)
@@ -134,11 +139,11 @@ async def test_toutes_les_enceintes_et_televiseurs(hass, hass_storage, hass_clie
     _c, _a, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
     er.async_get(hass).async_get_or_create("media_player", "music_assistant", "cle_mi", suggested_object_id="cle_tv_mi_2")
     hass.states.async_set("media_player.cle_tv_mi_2", "unavailable", {"friendly_name": "Clé TV Mi"})
-    hass.states.async_set("media_player.tele_des_parents", "off", {"friendly_name": "Télé des parents"})  # Cast seul
+    hass.states.async_set("media_player.tele_du_bureau", "off", {"friendly_name": "Télé du bureau"})  # Cast seul
     s, r = await _post(client, "etat", PARENT)
     par_id = {x["entity_id"]: x for x in r["lecteurs"]}
     assert par_id["media_player.cle_tv_mi_2"]["dispo"] is False and "Hors ligne" in par_id["media_player.cle_tv_mi_2"]["raison"]
-    assert "media_player.tele_des_parents" not in par_id  # 2.2.5 : seulement les lecteurs Music Assistant
+    assert "media_player.tele_du_bureau" not in par_id  # 2.2.5 : seulement les lecteurs Music Assistant
     assert par_id["media_player.cle_tv_mi_2"]["raison"] == "Hors ligne"
     assert par_id[MA_CHAMBRE]["dispo"] and par_id["media_player.televiseur_du_salon_4"]["dispo"]
     assert "Options → Musique" in r["aide_lecteurs"]
@@ -146,7 +151,7 @@ async def test_toutes_les_enceintes_et_televiseurs(hass, hass_storage, hass_clie
     assert dispos == sorted(dispos, reverse=True)  # d'abord ce qui marche
     s, r = await _post(client, "commande", PARENT, action="enceinte", lecteur="media_player.cle_tv_mi_2")
     assert s == 400 and "hors ligne" in r["retour"]
-    s, r = await _post(client, "commande", PARENT, action="enceinte", lecteur="media_player.tele_des_parents")
+    s, r = await _post(client, "commande", PARENT, action="enceinte", lecteur="media_player.tele_du_bureau")
     assert s == 400 and "pas reliée à Music Assistant" in r["retour"]
     # Les options (Vision → Musique) : seulement la télé du salon proposée, hors ligne masqués.
     coord = _c
@@ -202,6 +207,7 @@ async def test_options_musique_enceintes(hass, hass_storage, hass_client, monkey
     coord, _a, _f = await _monter(hass, hass_storage, monkeypatch)
     entree = hass.config_entries.async_entries("pc_parental")[0]
     r = await hass.config_entries.options.async_init(entree.entry_id)
+    r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "autres"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "musique"})
     assert r["step_id"] == "musique"
     defaut = r["data_schema"]({})
@@ -210,6 +216,7 @@ async def test_options_musique_enceintes(hass, hass_storage, hass_client, monkey
     assert r["type"] == "create_entry"
     assert coord.store.musique == {"enceintes": [MA_SALON], "masquer_hors_ligne": True, "arret_auto_min": 120}  # 2.4.0 : arrêt automatique, 2 h par défaut
     r = await hass.config_entries.options.async_init(entree.entry_id)
+    r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "autres"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "musique"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"enceintes": [MA_SALON, MA_CHAMBRE], "masquer_hors_ligne": False})
     assert coord.store.musique["enceintes"] is None
@@ -259,6 +266,76 @@ async def test_retirer_compte_juste_et_soiree_oubliee(hass, hass_storage, hass_c
     hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Salon", "active_queue": "qid-salon", "media_title": "X"})
     s, r = await _post(client, "commande", PARENT, action="retirer", element="q4")
     assert s == 200 and ("qid-salon", "q4") in files.supprimes
+
+
+async def test_reprise_apres_coupure_du_lecteur_vision(hass, hass_storage, hass_client, monkeypatch):
+    """Banc Musique (2026-10-12) : le lecteur « · Vision » de la Party coupé en pleine lecture (playing → unavailable)
+    puis revenu « off » est relancé (allumé puis lecture) ; jamais une pause, jamais au-delà de 2 min, jamais hors Party."""
+    from custom_components.pc_parental import party
+    _c, appels, _files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
+    v = "media_player.salon_vision"
+    hass.states.async_set(v, "playing", {"friendly_name": "Salon · Vision", "active_queue": "qv"})
+    party.etat(hass).update({"actif": True, "lecteur": v})
+    assert not party.reprise_apres_coupure(hass, v, "playing", "unavailable", 1000.0)
+    assert party.reprise_apres_coupure(hass, v, "unavailable", "off", 1030.0)
+    # Une pause avant la coupure : rien.
+    assert not party.reprise_apres_coupure(hass, v, "paused", "unavailable", 2000.0)
+    assert not party.reprise_apres_coupure(hass, v, "unavailable", "off", 2010.0)
+    # Trop tard (plus de 2 min) : rien.
+    party.reprise_apres_coupure(hass, v, "playing", "unavailable", 3000.0)
+    assert not party.reprise_apres_coupure(hass, v, "unavailable", "off", 3000.0 + party.REPRISE_MAX_S + 1)
+    # Un lecteur qui n'est pas « · Vision », ou hors Party : rien.
+    assert not party.reprise_apres_coupure(hass, "media_player.salon_ma", "playing", "unavailable", 4000.0)
+    party.etat(hass)["actif"] = False
+    party.reprise_apres_coupure(hass, v, "playing", "unavailable", 5000.0)
+    assert not party.reprise_apres_coupure(hass, v, "unavailable", "off", 5010.0)
+    # La relance : allumer puis lire (le lecteur est revenu « off »).
+    party.etat(hass)["actif"] = True
+    monkeypatch.setattr(party, "REPRISE_DELAI_S", 0)
+    hass.states.async_set(v, "off", {"friendly_name": "Salon · Vision", "active_queue": "qv"})
+    vus = []
+
+    async def service(_hass, domaine, nom, eid, donnees=None):
+        vus.append((nom, eid))
+    monkeypatch.setattr(party, "_service", service)
+    await party.reprendre_apres_coupure(hass, v)
+    assert vus == [("turn_on", v), ("media_play", v)]
+
+
+async def test_reprise_apres_coupure_par_l_ecouteur(hass, hass_storage, hass_client, monkeypatch):
+    """Le même chemin que en essai : les changements d'état passent par l'écouteur de l'intégration."""
+    from custom_components.pc_parental import party
+    _c, _appels, _files, _client = await _party(hass, hass_storage, hass_client, monkeypatch)
+    monkeypatch.setattr(party, "REPRISE_DELAI_S", 0)
+    vus = []
+
+    async def service(call):
+        vus.append((call.service, call.data.get("entity_id")))
+    for nom in ("turn_on", "media_play"):
+        hass.services.async_register("media_player", nom, service)
+    v = "media_player.salon_vision"
+    hass.states.async_set(v, "playing", {"friendly_name": "Salon · Vision", "active_queue": "qv"})
+    party.etat(hass).update({"actif": True, "lecteur": v})
+    hass.states.async_set(v, "unavailable", {"friendly_name": "Salon · Vision"})
+    hass.states.async_set(v, "off", {"friendly_name": "Salon · Vision", "active_queue": "qv"})
+    await hass.async_block_till_done()
+    assert ("turn_on", [v]) in vus or ("turn_on", v) in vus
+    assert any(n == "media_play" for n, _e in vus)
+
+
+async def test_retirer_un_titre_deja_precharge_le_dit(hass, hass_storage, hass_client, monkeypatch):
+    """Banc Musique (2026-10-12) : Music Assistant ignore le retrait d'un titre déjà préchargé (sans erreur) ; Vision ne
+    répond plus « Titre retiré » mais explique pourquoi (et le titre reste dans la file)."""
+    _c, _a, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
+    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"T{k}"}} for k in range(4)]
+
+    async def ignore(qid, item):  # comme MA : « delete requested for item already loaded in buffer »
+        files.supprimes.append((qid, item))
+    monkeypatch.setattr(files, "delete_item", ignore)
+    s, r = await _post(client, "commande", PARENT, action="retirer", element="q1")
+    assert s == 400 and "préparation" in r["retour"]
+    s, r = await _post(client, "etat", PARENT)
+    assert "q1" in [x["id"] for x in r["file"]]
 
 
 async def test_lecteur_vision_remplace_le_cast_de_la_tele(hass, hass_storage, hass_client, monkeypatch):
@@ -345,7 +422,7 @@ async def test_grosse_playlist_confirmee_et_journal(hass, hass_storage, hass_cli
     assert [v["resultat"] for v in vus[:3]] == ["confirmer", "ok", "ok"] and vus[1]["nb"] == 500
     # 2.2.13 + i18n : le résultat est un code (journal_musique.RESULTATS), dit dans la langue du lecteur du journal.
     assert journal_musique.phrase(vus[0]).endswith("— confirmation demandée")
-    assert vus[1]["mode"] == "ajouter" and vus[1]["uri"] == "builtin://playlist/random" and vus[1]["appareil"] == "PIXEL-ROBIN"
+    assert vus[1]["mode"] == "ajouter" and vus[1]["uri"] == "builtin://playlist/random" and vus[1]["appareil"] == "PIXEL-NOLAN"
     # La télé note la perte de l'écran (sans droit Musique particulier).
     s, r = await _post(client, "commande", TELE, action="premier_plan_perdu", paquet="com.google.android.apps.mediashell")
     assert s == 200
@@ -357,6 +434,7 @@ async def test_grosse_playlist_confirmee_et_journal(hass, hass_storage, hass_cli
     # L'écran « Journal Musique » des options.
     entree = hass.config_entries.async_entries("pc_parental")[0]
     f = await hass.config_entries.options.async_init(entree.entry_id)
+    f = await hass.config_entries.options.async_configure(f["flow_id"], {"next_step_id": "autres"})
     f = await hass.config_entries.options.async_configure(f["flow_id"], {"next_step_id": "journal_musique"})
     assert f["step_id"] == "journal_musique" and "500 titres" in f["description_placeholders"]["journal"]
     f = await hass.config_entries.options.async_configure(f["flow_id"], {"jours": "1"})
@@ -388,7 +466,7 @@ async def test_playlists_avec_nombre_et_etiquette(hass, hass_storage, hass_clien
 
 
 async def test_tele_garde_son_propre_lecteur_vision(hass, hass_storage, hass_client, monkeypatch):
-    """2.2.13 (l'auteur : « je clique sur Disney classique, il ne se passe rien », télé des parents) : une télé peut toujours
+    """2.2.13 (l'auteur : « je clique sur Disney classique, il ne se passe rien », télé du bureau) : une télé peut toujours
     jouer sur SON lecteur « · Vision » même s'il n'est pas coché dans les options ; les autres appareils ne le voient pas."""
     from homeassistant.helpers import entity_registry as er
 
@@ -421,12 +499,12 @@ async def test_lecteurs_vision_regles_en_mp3(hass, hass_storage, hass_client, mo
     coord, _a, files = await _monter(hass, hass_storage, monkeypatch)
     musique._CODEC_FAIT.clear()
     reg = er.async_get(hass)
-    reg.async_get_or_create("media_player", "music_assistant", "52:8c:f9:a5:04:b7", suggested_object_id="tele_des_parents_vision")
-    hass.states.async_set("media_player.tele_des_parents_vision", "idle", {"friendly_name": "Télé des parents · Vision"})
+    reg.async_get_or_create("media_player", "music_assistant", "02:00:00:00:00:01", suggested_object_id="tele_du_bureau_vision")
+    hass.states.async_set("media_player.tele_du_bureau_vision", "idle", {"friendly_name": "Télé du bureau · Vision"})
     faits = await musique.regler_lecteurs_vision(hass)
-    assert faits == ["media_player.tele_des_parents_vision"]
+    assert faits == ["media_player.tele_du_bureau_vision"]
     saves = [kw for c, kw in files.envoyes if c == "config/players/save"]
-    assert saves == [{"player_id": "52:8c:f9:a5:04:b7", "values": {"output_codec": "mp3"}}]  # pas « Salon »
+    assert saves == [{"player_id": "02:00:00:00:00:01", "values": {"output_codec": "mp3"}}]  # pas « Salon »
     assert await musique.regler_lecteurs_vision(hass) == []  # une seule fois
     assert len([c for c, _ in files.envoyes if c == "config/players/save"]) == 1
 
@@ -453,3 +531,55 @@ async def test_titre_en_cours_a_toujours_sa_pochette(hass, hass_storage, hass_cl
     files.items[0]["media_item"].pop("image")
     hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Salon", "active_queue": "qid-salon"})
     assert party.maintenant(hass, MA_SALON)["pochette"] == "" and await party.pochette(hass, MA_SALON) is None
+
+
+async def test_vider_la_file_depuis_la_tele(hass, hass_storage, hass_client, monkeypatch):
+    """17-10 (l'auteur, point 18b) : « Vider la file » depuis la télé de la soirée — tout ce qui suit est retiré, le titre en
+    cours continue (rien n'est joué ni passé) ; un appareil sans droit ne vide pas la file."""
+    _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
+    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"T{k}"}} for k in range(3)]
+    files.courant = 0
+    avant = len(_play(appels))
+    s, r = await _post(client, "commande", ENFANT, action="vider")
+    assert s == 403, r
+    s, r = await _post(client, "commande", TELE, action="vider")
+    assert s == 200 and r["ok"], r
+    assert [x["queue_item_id"] for x in files.items] == ["q0"]  # le titre en cours reste
+    assert len(_play(appels)) == avant  # rien n'est relancé
+    assert "2" in r["retour"]
+
+
+async def test_mode_soiree_ouvrir_fermer(hass, hass_storage, hass_client, monkeypatch):
+    """17-10 (l'auteur, point 8) : le mode soirée (invités) s'ouvre et se ferme depuis le lecteur, sur la télé et le téléphone.
+    Fermé : plus de QR code, et l'adresse des invités ne donne plus accès à rien (page « fini », 404, propositions
+    refusées). Rouvert : un NOUVEAU lien (l'ancien reste mort). Le choix vaut pour la Party suivante. Un appareil sans
+    droit n'y touche pas."""
+    from custom_components.pc_parental import party
+    _c, _a, _f, client = await _party(hass, hass_storage, hass_client, monkeypatch)
+    s, r = await _post(client, "etat", TELE)
+    assert r["qr"] and r["invites_ouverts"] is True
+    ancien = party.etat(hass)["jeton"]
+    assert (await client.get(f"/api/pc_parental/party/invite/{ancien}")).status == 200
+    s, r = await _post(client, "commande", ENFANT, action="invites_ouverts", actif=False)
+    assert s == 403, r
+    s, r = await _post(client, "commande", TELE, action="invites_ouverts", actif=False)
+    assert s == 200 and r["ok"], r
+    s, r = await _post(client, "etat", TELE)
+    assert r["qr"] == "" and r["invites_ouverts"] is False
+    assert (await client.get(f"/api/pc_parental/party/invite/{ancien}")).status == 404
+    p = await client.post(f"/api/pc_parental/party/invite/{ancien}/proposer", json={"ref": "x"})
+    assert p.status in (403, 404)
+    # Le téléphone d'un décideur rouvre : un nouveau lien, l'ancien reste mort.
+    s, r = await _post(client, "commande", PARENT, action="invites_ouverts", actif=True)
+    assert s == 200 and r["ok"], r
+    s, r = await _post(client, "etat", PARENT)
+    nouveau = party.etat(hass)["jeton"]
+    assert r["qr"] and nouveau and nouveau != ancien and r["invites_ouverts"] is True
+    assert (await client.get(f"/api/pc_parental/party/invite/{ancien}")).status == 404
+    # Fermé puis Party relancée : toujours fermé.
+    await _post(client, "commande", PARENT, action="invites_ouverts", actif=False)
+    await _post(client, "commande", PARENT, action="arreter")
+    s, r = await _post(client, "commande", PARENT, action="lancer", ecran="t1", lecteur=MA_SALON)
+    assert s == 200, r
+    s, r = await _post(client, "etat", TELE)
+    assert r["qr"] == "" and party.etat(hass)["jeton"] is None

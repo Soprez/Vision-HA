@@ -102,7 +102,7 @@ async def regler(hass: HomeAssistant, coord, corps: dict[str, Any], par: str) ->
     elif op == "tous":
         change = widgets.regler_tous(hass, store, liste("entites"), par)
     elif op == "reglage":
-        voulu = {k: corps[k] for k in ("role", "qui", "confirmer", "nom", "icone", "affichage", "attributs", "toucher", "chemin")
+        voulu = {k: corps[k] for k in ("role", "qui", "confirmer", "nom", "icone", "affichage", "attributs", "toucher", "chemin", "mise_en_page", "texte")
                  if k in corps}
         change = widgets.regler_entite(hass, store, str(corps.get("entite") or ""), voulu, par)
     else:

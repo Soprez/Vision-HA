@@ -11,6 +11,8 @@ le leur.
 """
 from __future__ import annotations
 
+import re
+
 import pathlib
 
 from homeassistant.helpers import entity_registry as er
@@ -32,7 +34,7 @@ async def _monter(hass, hass_storage):
         "pcs": {
             "e1": _fiche("e1", "PC-LOU", ENFANT["secret"], platform="windows", role="enfant"),
             "e2": _fiche("e2", "TELE", ENFANT2["secret"], platform="android", role="enfant", type="tv"),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], platform="android", role="parent"),
         }}}
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -80,7 +82,9 @@ async def test_plus_de_ticket_d_images_pour_un_pc(hass, hass_storage, hass_clien
 
 def test_agent_sans_veille_et_nettoyage():
     agent = AGENT.read_text(encoding="utf-8-sig")
-    assert "$script:Version           = '1.91.0'" in agent
+    # La veille est partie en 1.91.0 : toute version d'après la garde partie.
+    version = re.search(r"\$script:Version\s+= '(\d+)\.(\d+)\.(\d+)'", agent)
+    assert version and tuple(int(x) for x in version.groups()) >= (1, 91, 0), version
     for absent in ("VisionGarde", "VisionCamera", "VisionVeilleNatif", "Install-EcranDeVeille", "Sync-Veille", "SvOuvrir",
                    "SvGuet", "/api/pc_parental/veille", "reglages.veille"):
         assert absent not in agent, absent

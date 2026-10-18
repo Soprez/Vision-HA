@@ -6,10 +6,10 @@ import android.test.InstrumentationTestCase
 
 /**
  * Client Sendspin natif, lot 5 : l'interrupteur entre les deux moteurs et le moteur Sendspin relié au vrai Music
- * Assistant (hôte passé par `-e hote 192.168.1.x` ; sans hôte, seul l'interrupteur est essayé). Le lecteur porte le
+ * Assistant (hôte passé par `-e hote 10.1.1.x` ; sans hôte, seul l'interrupteur est essayé). Le lecteur porte le
  * nom d'essai « Essai Sendspin natif · Vision » ; la config de l'appareil est remise comme avant à la fin.
  *
- *   adb shell am instrument -w -e class org.soprez.vision.LecteurSendspinTest -e hote 192.168.1.11 \
+ *   adb shell am instrument -w -e class org.soprez.vision.LecteurSendspinTest -e hote 10.1.1.11 \
  *       org.soprez.vision.test/android.test.InstrumentationTestRunner
  */
 class LecteurSendspinTest : InstrumentationTestCase() {

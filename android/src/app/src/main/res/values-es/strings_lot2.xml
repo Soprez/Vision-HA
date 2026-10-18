@@ -367,7 +367,6 @@
     <string name="reglagestv_mode_nuit">Modo noche</string>
     <string name="reglagestv_jamais">Nunca</string>
     <string name="reglagestv_son_veille">Sonido durante el salvapantallas</string>
-    <string name="reglagestv_source_son">Fuente del sonido</string>
     <string name="reglagestv_silence">Silencio</string>
     <string name="reglagestv_flux_perso">Flujo personalizado</string>
     <string name="reglagestv_autre_appli_joue">Si otra app ya está sonando (Spotify, YouTube Music…), el salvapantallas la deja.</string>
@@ -436,7 +435,7 @@
     <string name="reglagestv_fond_titre">Durante el salvapantallas, estas apps siguen en segundo plano</string>
     <string name="reglagestv_applis_accueil">Aplicaciones en la pantalla de inicio</string>
     <string name="scan_titre">Escanear el QR de Home Assistant</string>
-    <string name="scan_explication">En Home Assistant: Vision → Configurar → Generar un QR de vinculación. Apunta al QR con este dispositivo.</string>
+    <string name="scan_explication">En Home Assistant: Vision → Configurar → Añadir un dispositivo, hasta el QR de vinculación. Apunta al QR con este dispositivo.</string>
     <string name="scan_pas_de_camera">Este dispositivo no tiene cámara. Elige «Mostrar un QR en este dispositivo» u otra forma de vincularlo.</string>
     <string name="scan_besoin_camera">Vision necesita la cámara para leer el QR (solo en esta pantalla).</string>
     <string name="scan_sans_camera">Sin la cámara, vincula el dispositivo de otra forma: mostrar un QR, pegar el bloque o escribir la dirección y la clave.</string>
@@ -544,13 +543,7 @@
     <string name="vuewidget_suivant">Siguiente</string>
     <string name="vuewidget_baisser_volume">Bajar el volumen</string>
     <string name="vuewidget_monter_volume">Subir el volumen</string>
-    <string name="accueildefaut_ancienne_titre">La antigua Vision sigue instalada</string>
-    <string name="accueildefaut_ancienne_texte">Android también la muestra como «Vision» al elegir la pantalla de inicio, y elegirla no funciona. Desinstálala primero: solo quedará una Vision para elegir.</string>
-    <string name="accueildefaut_desinstaller_ancienne">Desinstalar la antigua</string>
-    <string name="accueildefaut_a_la_main_titre">Hay que desinstalarla a mano</string>
-    <string name="accueildefaut_a_la_main_texte">No está firmada como Vision: quítala desde los ajustes de Android (Aplicaciones ▸ Vision ▸ Desinstalar).</string>
     <string name="commun_lot2_ok">Aceptar</string>
-    <string name="accueildefaut_continuer">Continuar de todos modos</string>
     <string name="commun_lot2_annuler">Cancelar</string>
     <string name="install_confirmer_titre">Vision: confirmar la actualización</string>
     <string name="install_confirmer_texte">Toca para permitir la instalación. Será la última vez: las próximas actualizaciones se harán solas.</string>
@@ -792,6 +785,6 @@
     <string name="manifeste_appairage">Vinculación</string>
     <string name="manifeste_couleurs">Colores</string>
     <string name="manifeste_fermes">Lo que está bloqueado</string>
-    <string name="manifeste_maison">Gestión</string>
+    <string name="manifeste_maison">Por decidir</string>
     <string name="manifeste_musique">Música</string>
 </resources>

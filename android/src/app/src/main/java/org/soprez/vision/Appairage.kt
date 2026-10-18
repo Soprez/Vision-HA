@@ -74,5 +74,7 @@ object Appairage {
         Identite.nom(ctx).takeIf { it.isNotEmpty() }?.let { put("nom", it) }
         put("uid", Identite.uid(ctx))
         put("platform", "android")
+        // 1.90.4 : une télé est d'abord un écran partagé (le {décideur} le voit proposé par défaut).
+        put("genre", if (ReglagesTvActivity.estTele(ctx)) "tele" else "telephone")
     }
 }

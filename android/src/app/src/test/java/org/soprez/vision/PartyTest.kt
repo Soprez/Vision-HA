@@ -67,8 +67,8 @@ class PartyTest {
     }
     /** 1.87.1 : une pochette Music Assistant passe par Home Assistant (référence), jamais en http direct. */
     @Test fun lesPochettesPassentParHomeAssistant() {
-        assertEquals("relais:3f9a0c", Party.imagePour("3f9a0c", "http://192.168.1.11:8095/imageproxy?path=x"))
-        assertEquals("", Party.imagePour("", "http://192.168.1.11:8095/imageproxy?path=x"))  // jamais http
+        assertEquals("relais:3f9a0c", Party.imagePour("3f9a0c", "http://10.1.1.11:8095/imageproxy?path=x"))
+        assertEquals("", Party.imagePour("", "http://10.1.1.11:8095/imageproxy?path=x"))  // jamais http
         assertEquals("https://i.scdn.co/image/ab", Party.imagePour("", "https://i.scdn.co/image/ab"))
         assertEquals("", Party.imagePour("../etc", ""))  // une référence se limite à [A-Za-z0-9_-]
         assertEquals("", Party.imagePour("a".repeat(65), ""))
@@ -76,7 +76,7 @@ class PartyTest {
 
     /** 1.87.2 (retour d'essai) : pas de volume pour une télé qui joue elle-même (« · Vision ») ; une autre enceinte le garde. */
     @Test fun leVolumeDUneTeleVisionEstCeluiDeLaTelecommande() {
-        assertFalse(Party.volumeReglable("Télé des parents · Vision"))
+        assertFalse(Party.volumeReglable("Télé du bureau · Vision"))
         assertFalse(Party.volumeReglable("Téléviseur du salon · Vision "))
         assertTrue(Party.volumeReglable("Salon"))
         assertTrue(Party.volumeReglable("Toute la maison (groupe)"))

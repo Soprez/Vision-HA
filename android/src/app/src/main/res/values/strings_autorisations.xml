@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte des autorisations (HA 2.5.0) : les trois modes dans la réponse du Décideur. -->
+<resources>
+    <string name="parents_exception">Exception</string>
+    <string name="parents_toujours_disponible">Always available</string>
+    <string name="parents_refuser">Decline</string>
+    <string name="parents_aide_trois_modes">Exception: on all their devices, even if the category is blocked, but not during time slots. Always available: nothing closes it.</string>
+</resources>

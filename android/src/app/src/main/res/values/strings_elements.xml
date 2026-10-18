@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Autorisations par élément (HA 2.5.1, réponses de l'auteur du 14-10) : écran d'une catégorie, recherche, blocages récents, demandes groupées. -->
+<resources>
+    <string name="el_rechercher_court">Search</string>
+    <string name="el_rechercher_indice">Search a site, app or program</string>
+    <string name="el_section_logiciels">Apps and programs</string>
+    <string name="el_section_sites_seuls">Sites without a program · %1$d</string>
+    <string name="el_services">Services</string>
+    <string name="el_sites">Sites</string>
+    <string name="el_services_suivent">Its services always follow the program.</string>
+    <string name="el_suit">Follows %1$s</string>
+    <string name="el_attente">Linked while blocked: waits for a decision</string>
+    <string name="el_auto">Linked automatically</string>
+    <string name="el_delier">Unlink</string>
+    <string name="el_suivre_logiciel">Follow %1$s</string>
+    <string name="el_badge_ouvert">Open</string>
+    <string name="el_badge_par_logiciel">Open with %1$s</string>
+    <string name="el_badge_exception">Exception</string>
+    <string name="el_badge_toujours">Always available</string>
+    <string name="el_badge_temps">For a while · until %1$s</string>
+    <string name="el_badge_nomme">Blocked (named)</string>
+    <string name="el_badge_categorie">Blocked by the category</string>
+    <string name="el_badge_plage">Blocked by a time slot</string>
+    <string name="el_badge_temps_epuise">Daily time used up</string>
+    <string name="el_badge_securite">Blocked for safety or age</string>
+    <string name="el_badge_lieu">Blocked for everyone</string>
+    <string name="el_badge_liste_noire">Reported dangerous</string>
+    <string name="el_mode_titre">%1$s: choose</string>
+    <string name="el_mode_categorie">Follow the category</string>
+    <string name="el_mode_temps">For a while</string>
+    <string name="el_mode_exception">Exception</string>
+    <string name="el_mode_toujours">Always available</string>
+    <string name="el_mode_bloquer">Block</string>
+    <string name="el_mode_actuel">%1$s ✓</string>
+    <string name="el_mode_aide">Follow the category: no setting of its own (default). Exception: on all their devices, even if the category is blocked, but not during time slots. Always available: nothing closes it.</string>
+    <string name="el_recherche_rien">Nothing found.</string>
+    <string name="el_logiciel_de">Program: %1$s</string>
+    <string name="el_service_de">Service of %1$s</string>
+    <string name="el_categories_de">Categories: %1$s</string>
+    <string name="el_categorie">Category</string>
+    <string name="el_recents_titre">Recently blocked</string>
+    <string name="el_recents_vide">Nothing blocked recently.</string>
+    <string name="el_recents_tout">See all</string>
+    <string name="el_demander">Ask</string>
+    <string name="el_demander_pour">Ask for access for %1$s</string>
+    <string name="el_demande_inclus">Included in the answer:</string>
+    <string name="el_tele_lecture">Read only: these settings are changed from the phone of a %1$s or from Home Assistant.</string>
+    <string name="el_chargement_echec">Could not load this category.</string>
+    <plurals name="el_voir_autres">
+        <item quantity="one">See %d more</item>
+        <item quantity="other">See %d more</item>
+    </plurals>
+    <plurals name="el_tentatives">
+        <item quantity="one">%d attempt</item>
+        <item quantity="other">%d attempts</item>
+    </plurals>
+    <plurals name="el_groupe_sites">
+        <item quantity="one">%d site blocked with it</item>
+        <item quantity="other">%d sites blocked with it</item>
+    </plurals>
+</resources>

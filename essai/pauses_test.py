@@ -33,7 +33,7 @@ if str(_banc / "custom_components") not in list(custom_components.__path__):
     custom_components.__path__.append(str(_banc / "custom_components"))
 
 DOMAIN = "pc_parental"
-ROBIN = {"id": "p1", "secret": "p" * 32}
+NOLAN = {"id": "p1", "secret": "p" * 32}
 LOU = {"id": "e1", "secret": "e" * 32}
 
 
@@ -63,7 +63,7 @@ def _fiche(pc_id, nom, secret, **plus):
 async def _monter(hass, hass_storage):
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": {
-            "p1": _fiche("p1", "PIXEL-ROBIN", ROBIN["secret"], platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", NOLAN["secret"], platform="android", role="parent"),
             "e1": _fiche("e1", "TEL-LOU", LOU["secret"], platform="android"),
         }}}
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
@@ -80,7 +80,7 @@ async def _releve(client, ident, **plus):
 async def test_duree_max_par_appareil(hass, hass_storage, hass_client):
     coord = await _monter(hass, hass_storage)
     client = await hass_client()
-    assert (await _releve(client, ROBIN))["pause_max"] == 60
+    assert (await _releve(client, NOLAN))["pause_max"] == 60
     nombre = er.async_get(hass).async_get_entity_id("number", DOMAIN, f"{DOMAIN}_pause_max_p1")
     enfant = await hass.auth.async_create_user("Lou", group_ids=["system-users"])
     with pytest.raises(Unauthorized):
@@ -89,18 +89,18 @@ async def test_duree_max_par_appareil(hass, hass_storage, hass_client):
     await hass.services.async_call("number", "set_value", {"entity_id": nombre, "value": 240}, blocking=True)
     coord = next(iter(hass.data[DOMAIN].values()))  # le premier relevé du banc a rechargé Vision
     assert coord.store.pcs["p1"]["pause_max"] == 240
-    assert (await _releve(client, ROBIN))["pause_max"] == 240
+    assert (await _releve(client, NOLAN))["pause_max"] == 240
 
 
 async def test_espace_parents(hass, hass_storage, hass_client):
     coord = await _monter(hass, hass_storage)
     client = await hass_client()
-    r = await client.post("/api/pc_parental/parent", json={**ROBIN, "action": "pause_max", "pc": "p1", "minutes": 30})
+    r = await client.post("/api/pc_parental/parent", json={**NOLAN, "action": "pause_max", "pc": "p1", "minutes": 30})
     coord = next(iter(hass.data[DOMAIN].values()))
     assert r.status == 200 and coord.store.pcs["p1"]["pause_max"] == 30
     r = await client.post("/api/pc_parental/parent", json={**LOU, "action": "pause_max", "pc": "e1", "minutes": 900})
     assert r.status == 403 and "pause_max" not in coord.store.pcs["e1"]
-    r = await client.post("/api/pc_parental/parent", json={**ROBIN, "action": "pause_max", "pc": "p1", "minutes": 2})
+    r = await client.post("/api/pc_parental/parent", json={**NOLAN, "action": "pause_max", "pc": "p1", "minutes": 2})
     assert r.status == 400
 
 
@@ -111,11 +111,11 @@ async def test_pauses_journalisees_une_fois(hass, hass_storage, hass_client, cap
     evenements = async_capture_events(hass, f"{DOMAIN}_pause")
     debut = time.time() - 60
     pauses = [{"debut": debut, "minutes": 30, "methode": "biometrie"}]
-    await _releve(client, ROBIN, pauses=pauses)
-    await _releve(client, ROBIN, pauses=pauses)  # rejouée (relevé perdu) : pas deux fois
-    await _releve(client, ROBIN, pauses=[{"debut": debut + 10, "minutes": 120, "methode": "code"}])
+    await _releve(client, NOLAN, pauses=pauses)
+    await _releve(client, NOLAN, pauses=pauses)  # rejouée (relevé perdu) : pas deux fois
+    await _releve(client, NOLAN, pauses=[{"debut": debut + 10, "minutes": 120, "methode": "code"}])
     await hass.async_block_till_done()
     assert [(e.data["minutes"], e.data["methode"], e.data["au_dela_du_max"]) for e in evenements] == [
         (30, "biometrie", False), (120, "code", True)]
-    assert "pause de 30 min sur « PIXEL-ROBIN » (empreinte ou visage)" in caplog.text
+    assert "pause de 30 min sur « PIXEL-NOLAN » (empreinte ou visage)" in caplog.text
     assert "au-delà de la durée max" in caplog.text

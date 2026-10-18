@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.3 : la mise en page des widgets (éditeur), réglée dans Home Assistant. -->
+<resources>
+    <string name="editeurwidget_mep">Mise en page</string>
+    <string name="editeurwidget_mep_aide">La même mise en page sur tous les appareils, enregistrée dans Home Assistant.</string>
+    <string name="editeurwidget_mep_h">Alignement horizontal</string>
+    <string name="editeurwidget_mep_v">Alignement vertical</string>
+    <string name="editeurwidget_mep_taille">Taille de la valeur</string>
+    <string name="editeurwidget_mep_gauche">À gauche</string>
+    <string name="editeurwidget_mep_centre">Au centre</string>
+    <string name="editeurwidget_mep_droite">À droite</string>
+    <string name="editeurwidget_mep_haut">En haut</string>
+    <string name="editeurwidget_mep_milieu">Au milieu</string>
+    <string name="editeurwidget_mep_bas">En bas</string>
+    <string name="editeurwidget_mep_remplir">Remplir</string>
+    <string name="editeurwidget_mep_s">S</string>
+    <string name="editeurwidget_mep_m">M</string>
+    <string name="editeurwidget_mep_l">L</string>
+    <string name="editeurwidget_mep_xl">XL</string>
+    <string name="editeurwidget_mep_titre">Titre</string>
+    <string name="editeurwidget_mep_icone">Icône</string>
+    <string name="editeurwidget_mep_reserve">Seul un %1$s peut changer la mise en page.</string>
+</resources>

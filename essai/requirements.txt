@@ -1,0 +1,5 @@
+# Banc d'essai de Vision (essai/) : Home Assistant de test et dépendances de l'intégration.
+# Versions du banc Windows au 17/10/2026 (HA 2026.10.1) ; pyqrcode suit le
+# "requirements" de manifest.json.
+pytest-homeassistant-custom-component==0.13.372
+pyqrcode==1.2.1

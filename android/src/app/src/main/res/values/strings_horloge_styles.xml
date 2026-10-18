@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.2 : les styles de l'horloge (HorlogesVeille), accueil et veille. -->
+<resources>
+    <string name="horloge_theme">The theme\'s clock</string>
+    <string name="horloge_anneau">Ring</string>
+    <string name="horloge_fine">Thin digital</string>
+    <string name="horloge_grasse">Bold digital</string>
+    <string name="horloge_analogique">Minimal analog</string>
+    <string name="horloge_classique">Classic analog</string>
+    <string name="horloge_mots">In words</string>
+    <string name="horloge_flip">Flip panels</string>
+    <string name="horloge_empilee">Stacked</string>
+    <string name="horloge_style">Style</string>
+    <string name="horloge_style_veille">Screensaver clock</string>
+    <string name="horloge_comme_accueil">Same as the home screen</string>
+    <string name="horloge_comme_accueil_titre">Follow the home screen</string>
+    <string name="horloge_styles_vision">Vision styles</string>
+    <string name="horloge_horloges_themes">Theme clocks</string>
+    <string name="horloge_style_aide">Remote: left and right show each style large, OK keeps it. Touch: tap once to preview, again to keep.</string>
+    <string name="horloge_vision_defaut">Vision (default)</string>
+    <string name="horloge_du_theme">%1$s clock</string>
+</resources>

@@ -367,7 +367,6 @@
     <string name="reglagestv_mode_nuit">Nachtmodus</string>
     <string name="reglagestv_jamais">Nie</string>
     <string name="reglagestv_son_veille">Ton während des Bildschirmschoners</string>
-    <string name="reglagestv_source_son">Tonquelle</string>
     <string name="reglagestv_silence">Stille</string>
     <string name="reglagestv_flux_perso">Eigener Stream</string>
     <string name="reglagestv_autre_appli_joue">Wenn schon eine andere App spielt (Spotify, YouTube Music…), lässt der Bildschirmschoner sie laufen.</string>
@@ -415,7 +414,7 @@
     <string name="reglagestv_deux_appuis">Zweimal Home drücken: Bildschirmschoner über der Musik.</string>
     <string name="reglagestv_son_phrase">Was der Fernseher hören lässt.</string>
     <string name="reglagestv_son_messages_n">Nachrichtenton: %1$s</string>
-    <string name="reglagestv_son_des_messages">Nachrichtenton</string>
+    <string name="reglagestv_son_des_messages">Ton für Nachrichten</string>
     <string name="reglagestv_ouvrir_fleche">"öffnen  ›"</string>
     <string name="reglagestv_reserve_decideurs">Nur für %1$s</string>
     <string name="reglagestv_code_ouvre">Der Verwaltungscode dieses Fernsehers öffnet den Bereich für 5 Minuten.</string>
@@ -436,7 +435,7 @@
     <string name="reglagestv_fond_titre">Während des Bildschirmschoners laufen diese Apps im Hintergrund weiter</string>
     <string name="reglagestv_applis_accueil">Apps auf dem Startbildschirm</string>
     <string name="scan_titre">QR-Code von Home Assistant scannen</string>
-    <string name="scan_explication">In Home Assistant: Vision → Konfigurieren → Kopplungs-QR-Code erzeugen. Richte dieses Gerät auf den QR-Code.</string>
+    <string name="scan_explication">In Home Assistant: Vision → Konfigurieren → Gerät hinzufügen, bis zum Kopplungs-QR-Code. Richte dieses Gerät auf den QR-Code.</string>
     <string name="scan_pas_de_camera">Dieses Gerät hat keine Kamera. Wähle „QR-Code auf diesem Gerät anzeigen“ oder eine andere Art, es zu verbinden.</string>
     <string name="scan_besoin_camera">Vision braucht die Kamera, um den QR-Code zu lesen (nur auf diesem Bildschirm).</string>
     <string name="scan_sans_camera">Ohne Kamera verbinde das Gerät anders: QR-Code anzeigen, den Block einfügen oder Adresse und Schlüssel eingeben.</string>
@@ -544,13 +543,7 @@
     <string name="vuewidget_suivant">Weiter</string>
     <string name="vuewidget_baisser_volume">Leiser</string>
     <string name="vuewidget_monter_volume">Lauter</string>
-    <string name="accueildefaut_ancienne_titre">Die alte Vision ist noch installiert</string>
-    <string name="accueildefaut_ancienne_texte">Android zeigt sie bei der Wahl des Startbildschirms ebenfalls als „Vision“ an, und sie auszuwählen funktioniert nicht. Deinstalliere sie zuerst: Dann bleibt nur eine Vision zur Auswahl.</string>
-    <string name="accueildefaut_desinstaller_ancienne">Die alte deinstallieren</string>
-    <string name="accueildefaut_a_la_main_titre">Bitte von Hand deinstallieren</string>
-    <string name="accueildefaut_a_la_main_texte">Sie ist nicht wie Vision signiert: Entferne sie in den Android-Einstellungen (Apps ▸ Vision ▸ Deinstallieren).</string>
     <string name="commun_lot2_ok">OK</string>
-    <string name="accueildefaut_continuer">Trotzdem fortfahren</string>
     <string name="commun_lot2_annuler">Abbrechen</string>
     <string name="install_confirmer_titre">Vision: Update bestätigen</string>
     <string name="install_confirmer_texte">Tippe, um die Installation zu erlauben. Das ist das letzte Mal: Die nächsten Updates laufen von selbst.</string>
@@ -792,6 +785,6 @@
     <string name="manifeste_appairage">Kopplung</string>
     <string name="manifeste_couleurs">Farben</string>
     <string name="manifeste_fermes">Was gesperrt ist</string>
-    <string name="manifeste_maison">Verwaltung</string>
+    <string name="manifeste_maison">Zu entscheiden</string>
     <string name="manifeste_musique">Musik</string>
 </resources>

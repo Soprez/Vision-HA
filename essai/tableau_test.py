@@ -51,9 +51,9 @@ async def test_aucune_carte_nulle(hass, hass_storage, prereglage):
                                                    "weekdays": [True] * 7, "enabled": True}]),
             "e2": _fiche("e2", "PC-NOA", ENFANT2["secret"], person="person.noa"),
             "t1": _fiche("t1", "Télé du salon", "t" * 32, platform="android", type="tv"),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
         }}}
-    for p in ("lou", "noa", "robin"):
+    for p in ("lou", "noa", "nolan"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -74,34 +74,107 @@ def test_nettoyer_retire_les_cartes_nulles():
     assert propre["views"][0]["sections"][0]["cards"] == [{"type": "heading"}, {"type": "vertical-stack", "cards": []}]
 
 
-async def test_refait_au_demarrage_si_la_structure_change(hass, hass_storage):
-    """1.86.1 : au démarrage, le tableau est refait si son empreinte a changé, et seulement alors."""
-    from unittest.mock import patch
+class _TableauLovelace:
+    """Le stockage d'un tableau de bord Lovelace, en mémoire (comme celui de Home Assistant : async_load(force), async_save)."""
 
-    from custom_components.pc_parental import dashboard
+    def __init__(self, config=None):
+        self.config = config
+        self.ecritures = 0
 
+    async def async_load(self, _force):
+        import copy
+
+        return copy.deepcopy(self.config)
+
+    async def async_save(self, config):
+        import copy
+
+        self.config = copy.deepcopy(config)
+        self.ecritures += 1
+
+
+async def test_retouche_de_l_utilisateur_survit_au_redemarrage_et_a_la_mise_a_jour(hass, hass_storage, tmp_path, monkeypatch):
+    """2.5.10 (l'auteur, retour 28) : l'onglet « Aujourd'hui » renommé « Utilisateur » dans HA était revenu à « Aujourd'hui »
+    après la mise à jour 2.5.9 : chaque nouvelle version réécrivait le tableau au démarrage. Désormais il est rempli
+    une seule fois (vide), puis appartient à l'utilisateur ; « Régénérer le tableau de bord » le refait
+    après avoir sauvegardé l'ancien."""
+    import json
+    import types
+
+    from custom_components.pc_parental import const, dashboard
+
+    monkeypatch.setattr(hass.config, "config_dir", str(tmp_path))
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "signature_tableau": "ancienne", "pcs": {
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", role="enfant"),
         }}}
     hass.states.async_set("person.lou", "home", {"friendly_name": "Lou"})
-    appels = []
+    tableau = _TableauLovelace({"views": [{"path": "accueil", "title": "Accueil fait main"}]})
+    hass.data["lovelace"] = types.SimpleNamespace(dashboards={dashboard.URL_PATH: tableau})
 
-    async def faux_build(h, c):
-        appels.append(1)
-        return True
+    def vue(chemin):
+        return next(v for v in tableau.config["views"] if v.get("path") == chemin)
 
-    with patch.object(dashboard, "async_build", faux_build):
-        entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
-        entree.add_to_hass(hass)
-        assert await hass.config_entries.async_setup(entree.entry_id)
-        await hass.async_block_till_done()
-        coord = next(iter(hass.data[DOMAIN].values()))
-        assert appels == [1] and coord.store.signature_tableau == dashboard.signature(coord)
-        # Rechargement sans changement : pas de nouvelle construction.
-        assert await hass.config_entries.async_reload(entree.entry_id)
-        await hass.async_block_till_done()
-        assert appels == [1]
+    # Installation : aucun onglet de Vision encore → le tableau est rempli (l'onglet fait main reste devant).
+    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entree.entry_id)
+    await hass.async_block_till_done()
+    assert tableau.ecritures == 1 and tableau.config["views"][0]["path"] == "accueil"
+    modele = vue("maison")["title"]
+    assert modele == dashboard._t(hass, "onglet_utilisateur")
+
+    # L'utilisateur renomme l'onglet dans Home Assistant.
+    config = tableau.config
+    next(v for v in config["views"] if v.get("path") == "maison")["title"] = "Mon accueil"
+    await tableau.async_save(config)
+    ecritures = tableau.ecritures
+
+    # Redémarrage (rechargement de l'intégration) : rien n'est réécrit.
+    assert await hass.config_entries.async_reload(entree.entry_id)
+    await hass.async_block_till_done()
+    assert vue("maison")["title"] == "Mon accueil" and tableau.ecritures == ecritures
+
+    # Mise à jour de l'intégration (nouvelle version, donc nouvelle empreinte) : rien n'est réécrit non plus.
+    monkeypatch.setattr(const, "VERSION", "9.9.9")
+    assert await hass.config_entries.async_reload(entree.entry_id)
+    await hass.async_block_till_done()
+    assert vue("maison")["title"] == "Mon accueil" and tableau.ecritures == ecritures
+
+    # « Régénérer le tableau de bord » : l'ancien est sauvegardé (avec la retouche), puis le modèle revient.
+    coord = next(iter(hass.data[DOMAIN].values()))
+    assert await coord.async_maj_tableau(force=True)
+    await hass.async_block_till_done()
+    copies = list((tmp_path / "vision_outils" / "sauvegardes").glob(f"tableau-{dashboard.URL_PATH}-*.json"))
+    assert len(copies) == 1
+    sauve = json.loads(copies[0].read_text(encoding="utf-8"))
+    assert next(v for v in sauve["views"] if v.get("path") == "maison")["title"] == "Mon accueil"
+    assert vue("maison")["title"] == modele and vue("accueil")["title"] == "Accueil fait main"
+
+
+async def test_recreer_sans_sauvegarde_possible_ne_touche_a_rien(hass, hass_storage, monkeypatch):
+    """2.5.10 : si l'ancien tableau ne peut pas être sauvegardé, il n'est pas recréé."""
+    import types
+
+    from custom_components.pc_parental import dashboard
+
+    hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
+        "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": {}}}
+    tableau = _TableauLovelace({"views": [{"path": "maison", "title": "Mon accueil"}]})
+    hass.data["lovelace"] = types.SimpleNamespace(dashboards={dashboard.URL_PATH: tableau})
+    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entree.entry_id)
+    await hass.async_block_till_done()
+    assert tableau.ecritures == 0  # déjà rempli : le démarrage n'y touche pas
+
+    async def echec(_hass, _store):
+        raise OSError("disque plein")
+
+    monkeypatch.setattr(dashboard, "async_sauvegarder", echec)
+    coord = next(iter(hass.data[DOMAIN].values()))
+    assert not await coord.async_maj_tableau(force=True)
+    assert tableau.ecritures == 0 and tableau.config["views"][0]["title"] == "Mon accueil"
 
 
 async def test_pages_des_personnes(hass, hass_storage):
@@ -109,12 +182,12 @@ async def test_pages_des_personnes(hass, hass_storage):
     from custom_components.pc_parental import dashboard
 
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
-        "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "roles_personnes": {"person.robin": "parent"},
+        "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "roles_personnes": {"person.nolan": "parent"},
         "pcs": {
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", role="enfant"),
             "t1": _fiche("t1", "Télé", "t" * 32, platform="android", type="tv", partage=["person.mia"]),
         }}}
-    for p in ("lou", "mia", "robin", "affichage"):
+    for p in ("lou", "mia", "nolan", "affichage"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -177,14 +250,26 @@ async def test_simplification(hass, hass_storage):
     vues = dashboard.build(hass, next(iter(hass.data[DOMAIN].values())))["views"]
     page = next(v for v in vues if v.get("path") == "personne-lou")
     assert "Ajouter une plage" not in json.dumps(page, ensure_ascii=False)
+    # Retours de l'auteur (15/10) : Autorisations et Protection sont dans le menu du haut ; plus d'onglets Personnes ni
+    # Appareils. La tuile de protection par appareil ouvre Protection ; l'installation devient une sous-page de
+    # Réglages (même chemin). Aucune sous-page n'impose son retour (la flèche ramène à la page précédente).
     protection = next(v for v in vues if v.get("path") == "protection")
+    assert not protection.get("subview")
     assert protection["sections"][0]["cards"][1] == {"type": "custom:vision-maison-card", "mode": "protections"}
+    appareils = next(v for v in vues if v.get("path") == "appareils")
+    assert appareils["subview"] is True
+    reglages = json.dumps(next(v for v in vues if v.get("path") == "reglages"), ensure_ascii=False)
+    assert '"navigation_path": "/vision-maison/appareils"' in reglages
+    assert not any("back_path" in v for v in vues)
+    assert [v["path"] for v in vues if not v.get("subview")] == [
+        "maison", "listes", "protection", "statistiques", "reglages"]
     tout = json.dumps(vues, ensure_ascii=False)
     assert '"heading": "Comment ça marche"' not in tout and "<summary>Comment ça marche</summary>" not in tout
 
 
 async def test_activite_en_barres_et_tuiles(hass, hass_storage):
-    """1.97.0 (point 16.3) : Activité commence par le temps d'écran en barres ; ses listes deviennent des tuiles."""
+    """1.97.0 (point 16.3) : Activité commence par le temps d'écran en barres. Retours de l'auteur (15/10) : le reste tient
+    en un tableau, une ligne par appareil (plus de carte de quatre lignes par appareil ni de graphique d'un mois)."""
     import json
 
     from custom_components.pc_parental import dashboard
@@ -204,7 +289,10 @@ async def test_activite_en_barres_et_tuiles(hass, hass_storage):
     assert graphe["type"] == "statistics-graph" and graphe["chart_type"] == "bar" and graphe["days_to_show"] == 7
     assert graphe["entities"] and all(e.startswith("sensor.") for e in graphe["entities"])
     texte = json.dumps(act, ensure_ascii=False)
-    assert '"type": "entities"' not in texte and '"type": "tile"' in texte
+    assert '"type": "entities"' not in texte and '"type": "history-graph"' not in texte
+    resume = act["sections"][1]["cards"]
+    assert resume[0]["type"] == "heading" and resume[1]["type"] == "markdown"
+    assert resume[1]["content"].count("**TEL-LOU**") == 1 and len(act["sections"]) == 2
 
 
 async def test_onglets_vision_jamais_empiles():
@@ -241,10 +329,10 @@ async def test_chaque_vue_sans_carte_en_erreur(hass, hass_storage):
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": {
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", role="enfant"),
-            "p1": _fiche("p1", "PC-PARENT", PARENT["secret"], person="person.robin", role="parent"),
+            "p1": _fiche("p1", "PC-PARENT", PARENT["secret"], person="person.nolan", role="parent"),
         }}}
     hass.states.async_set("person.lou", "home", {"friendly_name": "Lou"})
-    hass.states.async_set("person.robin", "home", {"friendly_name": "Robin"})
+    hass.states.async_set("person.nolan", "home", {"friendly_name": "Nolan"})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)

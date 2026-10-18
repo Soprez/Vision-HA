@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.2 (retour d'essai) : le défilement du contenu d'un widget, réglage par widget. -->
+<resources>
+    <string name="wha_voir_tout">Ver todo</string>
+    <string name="wha_voir_tout_desc">Ver todo: %1$d más</string>
+    <string name="editeurwidget_contenu">Contenido</string>
+    <string name="editeurwidget_defilement_oui">El contenido se desplaza</string>
+    <string name="editeurwidget_defilement_non">Lo que cabe, luego Ver todo</string>
+    <string name="editeurwidget_hauteur">Altura máxima</string>
+    <string name="editeurwidget_hauteur_compacte">Compacta (3 líneas)</string>
+    <string name="editeurwidget_hauteur_moyenne">Media (6 líneas)</string>
+    <string name="editeurwidget_hauteur_grande">Grande (10 líneas)</string>
+</resources>

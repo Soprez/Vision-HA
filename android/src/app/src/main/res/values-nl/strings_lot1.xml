@@ -309,7 +309,7 @@
     <string name="whc_titre">Home Assistant-widget</string>
     <string name="whc_sous_titre">Kies de entiteit die je wilt tonen en daarna de stijl. Alleen entiteiten die op dit apparaat zijn toegestaan worden getoond.</string>
     <string name="whc_pas_relie">Vision is op dit apparaat nog niet met Home Assistant verbonden: open Vision en verbind het eerst.</string>
-    <string name="whc_desactives">Home Assistant-widgets zijn uitgeschakeld in Vision (Configureren → Modules, in Home Assistant).</string>
+    <string name="whc_desactives">Home Assistant-widgets zijn uitgeschakeld in Vision (Vision → Instellingen → Functies, in Home Assistant).</string>
     <string name="whc_chargement">Entiteiten laden… Als er geen zijn, moet een beheerder er een paar toestaan in Home Assistant (Vision → HA-widgets).</string>
     <string name="whc_chercher">Entiteit zoeken</string>
     <string name="whc_pilotable">%1$s · kan worden bediend</string>
@@ -689,7 +689,6 @@
     <string name="setup_p_accueil">Vision instellen als startscherm</string>
     <string name="setup_p_accueil_detail">De Home-knop opent Vision</string>
     <string name="setup_p_accueil_sans">Zonder: de Home-knop gaat terug naar de launcher van de telefoon; Vision blijft een app tussen andere.</string>
-    <string name="setup_p_accueil_sans_ancienne">Zonder: de Home-knop gaat terug naar de launcher van de telefoon; Vision blijft een app tussen andere. De oude Vision is nog geïnstalleerd: die heeft dezelfde naam in de lijst van Android.</string>
     <string name="setup_p_maj">Updates</string>
     <string name="setup_p_maj_detail">Vision kan nieuwe versies installeren</string>
     <string name="setup_p_maj_sans">Zonder: elke nieuwe versie wacht op een bevestiging op het scherm.</string>
@@ -737,10 +736,6 @@
         <item quantity="other">En nog %1$d: ‘Nu oplossen’ loopt ze allemaal af, of ‘Alle toestemmingen’, onder aan het scherm.</item>
     </plurals>
     <string name="setup_acces_refuse_aide">‘Toegang geweigerd’ of een grijze schakelaar? App-info ▸ menu ⋮ ▸ ‘Beperkte instellingen toestaan’ (verschijnt na een eerste weigering).</string>
-    <string name="setup_ancienne_titre">De oude versie van Vision staat er nog</string>
-    <string name="setup_ancienne_texte">Deze app vervangt haar. Als de oude Vision dit apparaat nog beveiligt, schort dan eerst haar beveiliging op (met haar beheercode).</string>
-    <string name="setup_ancienne_supprimer">Oude versie verwijderen</string>
-    <string name="setup_desinstallation_impossible">Verwijderen kan niet worden geopend</string>
     <string name="setup_encore_accueil">Vision is nog steeds het startscherm</string>
     <string name="setup_encore_accueil_texte">Deze functie staat uit in Home Assistant. Kies het oorspronkelijke startscherm in het systeemscherm.</string>
     <string name="setup_rendre_accueil">Oorspronkelijk startscherm terugzetten</string>
@@ -780,20 +775,15 @@
     <string name="setup_voir_detail">%1$s, details bekijken</string>
     <string name="setup_tes_appareils">Op je eigen apparaten; gedeelde schermen tellen niet mee.</string>
     <string name="setup_reglages">Instellingen</string>
-    <string name="setup_apparence">Weergave</string>
-    <string name="setup_apparence_detail">Thema, kleuren, nachtmodus</string>
     <string name="setup_accueil_detail_tele">Zichtbare apps, bubbel</string>
     <string name="setup_accueil_detail_oui">Vision is het startscherm: ja · apps, indeling</string>
     <string name="setup_accueil_detail_non">Vision is het startscherm: nee · apps, indeling</string>
     <string name="setup_accueil_detail">Zichtbare apps, indeling</string>
     <string name="setup_accueil">Startscherm</string>
     <string name="setup_accueil_widgets">Startscherm en widgets</string>
-    <string name="setup_veille_detail_tableaux">Dashboards, geluid, wachttijd</string>
-    <string name="setup_veille_detail">Geluid, wachttijd</string>
     <string name="setup_statut_notif">Status in meldingen</string>
     <string name="setup_statut_notif_affiche">Zichtbaar: toegestaan of geblokkeerd, en de resterende tijd</string>
     <string name="setup_masque">Verborgen</string>
-    <string name="setup_son_messages">Berichtgeluid</string>
     <string name="setup_verrou">Vergrendelscherm aankleden</string>
     <string name="setup_verrou_fond_vision">Vision-achtergrond: voornaam en status (toegestaan, beveiliging opgeschort, tijd op, geblokkeerd)</string>
     <string name="setup_verrou_fond_origine">Oorspronkelijke achtergrond</string>
@@ -808,7 +798,7 @@
     <string name="setup_en_pause_reprise">Beveiliging opgeschort, gaat verder %1$s</string>
     <string name="setup_gestion_detail_max">Code, vingerafdruk, beveiliging opschorten (hoogstens %1$d min)</string>
     <string name="setup_gestion_detail">Code, vingerafdruk, beveiliging opschorten</string>
-    <string name="setup_espace_gestion">Beheeromgeving</string>
+    <string name="setup_espace_gestion">Ontgrendelen</string>
     <string name="setup_tout_en_ordre">✅ Alles in orde</string>
     <string name="setup_toutes_autorisations">Alle toestemmingen</string>
     <plurals name="setup_n_accordees">
@@ -836,7 +826,7 @@
     <string name="setup_connecter">Verbinden</string>
     <string name="setup_pas_trouve">Geen adres en sleutel gevonden in deze tekst</string>
     <string name="setup_par_qr">Of met een QR-code, zonder sleutel</string>
-    <string name="setup_qr_camera_texte">In Home Assistant opent een beheerder Vision → Configureren → Koppel-QR-code maken; scan die met dit apparaat.</string>
+    <string name="setup_qr_camera_texte">In Home Assistant opent een beheerder Vision → Configureren → Apparaat toevoegen, tot aan de koppel-QR-code; scan die met dit apparaat.</string>
     <string name="setup_scanner_qr_ha">QR-code van Home Assistant scannen</string>
     <string name="setup_qr_inverse">Of andersom: Vision toont een QR-code en een code, een %1$s scant die met de Home Assistant-app en bevestigt.</string>
     <string name="setup_qr_sans_camera">Vision toont een QR-code en een code; een %1$s scant die met de Home Assistant-app op zijn telefoon en bevestigt.</string>

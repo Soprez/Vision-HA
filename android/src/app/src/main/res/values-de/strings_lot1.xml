@@ -309,7 +309,7 @@
     <string name="whc_titre">Home-Assistant-Widget</string>
     <string name="whc_sous_titre">Wähle die Entität, die angezeigt werden soll, und dann ihren Stil. Es werden nur Entitäten angeboten, die auf diesem Gerät erlaubt sind.</string>
     <string name="whc_pas_relie">Vision ist auf diesem Gerät noch nicht mit Home Assistant verbunden: Öffne Vision und verbinde es zuerst.</string>
-    <string name="whc_desactives">Home-Assistant-Widgets sind in Vision ausgeschaltet (Konfigurieren → Module, in Home Assistant).</string>
+    <string name="whc_desactives">Home-Assistant-Widgets sind in Vision ausgeschaltet (Vision → Einstellungen → Funktionen, in Home Assistant).</string>
     <string name="whc_chargement">Entitäten werden geladen… Wenn keine erscheinen, muss ein Administrator welche in Home Assistant erlauben (Vision → HA-Widgets).</string>
     <string name="whc_chercher">Entität suchen</string>
     <string name="whc_pilotable">%1$s · steuerbar</string>
@@ -689,7 +689,6 @@
     <string name="setup_p_accueil">Vision als Startbildschirm festlegen</string>
     <string name="setup_p_accueil_detail">Die Home-Taste öffnet Vision</string>
     <string name="setup_p_accueil_sans">Ohne: Die Home-Taste führt zum Launcher des Handys; Vision bleibt eine App unter vielen.</string>
-    <string name="setup_p_accueil_sans_ancienne">Ohne: Die Home-Taste führt zum Launcher des Handys; Vision bleibt eine App unter vielen. Das alte Vision ist noch installiert: Es hat in der Android-Liste denselben Namen.</string>
     <string name="setup_p_maj">Updates</string>
     <string name="setup_p_maj_detail">Vision kann neue Versionen installieren</string>
     <string name="setup_p_maj_sans">Ohne: Jede neue Version wartet auf eine Bestätigung auf dem Bildschirm.</string>
@@ -737,10 +736,6 @@
         <item quantity="other">Und %1$d weitere: „Jetzt beheben“ geht alle nacheinander durch, oder „Alle Berechtigungen“ unten auf dem Bildschirm.</item>
     </plurals>
     <string name="setup_acces_refuse_aide">„Zugriff verweigert“ oder ausgegrauter Schalter? App-Info ▸ Menü ⋮ ▸ „Eingeschränkte Einstellungen zulassen“ (nach einer ersten Ablehnung angeboten).</string>
-    <string name="setup_ancienne_titre">Die alte Version von Vision ist noch da</string>
-    <string name="setup_ancienne_texte">Diese App ersetzt sie. Wenn das alte Vision dieses Gerät noch schützt, setze zuerst seinen Schutz aus (mit seinem Verwaltungscode).</string>
-    <string name="setup_ancienne_supprimer">Alte Version entfernen</string>
-    <string name="setup_desinstallation_impossible">Deinstallation kann nicht geöffnet werden</string>
     <string name="setup_encore_accueil">Vision ist noch der Startbildschirm</string>
     <string name="setup_encore_accueil_texte">Diese Funktion ist in Home Assistant ausgeschaltet. Wähle im Systembildschirm den ursprünglichen Startbildschirm.</string>
     <string name="setup_rendre_accueil">Ursprünglichen Startbildschirm zurückgeben</string>
@@ -780,20 +775,15 @@
     <string name="setup_voir_detail">%1$s, Details anzeigen</string>
     <string name="setup_tes_appareils">Auf deinen eigenen Geräten; gemeinsame Bildschirme zählen nicht.</string>
     <string name="setup_reglages">Einstellungen</string>
-    <string name="setup_apparence">Darstellung</string>
-    <string name="setup_apparence_detail">Design, Farben, Nachtmodus</string>
     <string name="setup_accueil_detail_tele">Sichtbare Apps, Blase</string>
     <string name="setup_accueil_detail_oui">Vision ist der Startbildschirm: ja · Apps, Anordnung</string>
     <string name="setup_accueil_detail_non">Vision ist der Startbildschirm: nein · Apps, Anordnung</string>
     <string name="setup_accueil_detail">Sichtbare Apps, Anordnung</string>
     <string name="setup_accueil">Startbildschirm</string>
     <string name="setup_accueil_widgets">Startbildschirm und Widgets</string>
-    <string name="setup_veille_detail_tableaux">Dashboards, Ton, Wartezeit</string>
-    <string name="setup_veille_detail">Ton, Wartezeit</string>
     <string name="setup_statut_notif">Status in den Benachrichtigungen</string>
     <string name="setup_statut_notif_affiche">Angezeigt: freigegeben oder gesperrt, und die verbleibende Zeit</string>
     <string name="setup_masque">Ausgeblendet</string>
-    <string name="setup_son_messages">Nachrichtenton</string>
     <string name="setup_verrou">Sperrbildschirm gestalten</string>
     <string name="setup_verrou_fond_vision">Vision-Hintergrund: Vorname und Status (freigegeben, Schutz ausgesetzt, Zeit abgelaufen, gesperrt)</string>
     <string name="setup_verrou_fond_origine">Ursprünglicher Hintergrund</string>
@@ -808,7 +798,7 @@
     <string name="setup_en_pause_reprise">Schutz ausgesetzt, geht weiter %1$s</string>
     <string name="setup_gestion_detail_max">Code, Fingerabdruck, Schutz aussetzen (höchstens %1$d Min.)</string>
     <string name="setup_gestion_detail">Code, Fingerabdruck, Schutz aussetzen</string>
-    <string name="setup_espace_gestion">Verwaltungsbereich</string>
+    <string name="setup_espace_gestion">Entsperren</string>
     <string name="setup_tout_en_ordre">✅ Alles in Ordnung</string>
     <string name="setup_toutes_autorisations">Alle Berechtigungen</string>
     <plurals name="setup_n_accordees">
@@ -836,7 +826,7 @@
     <string name="setup_connecter">Verbinden</string>
     <string name="setup_pas_trouve">In diesem Text wurden keine Adresse und kein Schlüssel gefunden</string>
     <string name="setup_par_qr">Oder per QR-Code, ohne Schlüssel</string>
-    <string name="setup_qr_camera_texte">In Home Assistant öffnet ein Administrator Vision → Konfigurieren → Kopplungs-QR-Code erzeugen; scanne ihn mit diesem Gerät.</string>
+    <string name="setup_qr_camera_texte">In Home Assistant öffnet ein Administrator Vision → Konfigurieren → Gerät hinzufügen, bis zum Kopplungs-QR-Code; scanne ihn mit diesem Gerät.</string>
     <string name="setup_scanner_qr_ha">QR-Code von Home Assistant scannen</string>
     <string name="setup_qr_inverse">Oder umgekehrt: Vision zeigt einen QR-Code und einen Code an, ein %1$s scannt ihn mit der Home-Assistant-App und bestätigt.</string>
     <string name="setup_qr_sans_camera">Vision zeigt einen QR-Code und einen Code an; ein %1$s scannt ihn mit der Home-Assistant-App auf seinem Handy und bestätigt.</string>

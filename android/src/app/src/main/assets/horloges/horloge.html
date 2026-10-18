@@ -1,0 +1,54 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  1.91.2 : une horloge de thème (HORLOGES de la page de veille, copiées dans horloges.js) dans l'appli, pour le widget
+  Horloge de l'accueil et l'aperçu du choix du style. Tout vient de l'adresse : cle (l'horloge), lang, les couleurs du
+  thème de l'appareil (fond, texte, texte2, accent, carte, ligne, sans « # »), date=0 pour la cacher.
+  Le fond de la page reste transparent : la vue de l'appli dessine celui de l'accueil.
+-->
+<script>
+  const Q = new URLSearchParams(location.search);
+  document.documentElement.lang = Q.get("lang") || "fr";
+</script>
+<script src="horloges.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+  body { color: var(--v-texte); font-family: "Segoe UI", Roboto, sans-serif; }
+  .horloge { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+  .heure { font-size: min(26vh, 30vw); font-weight: 300; line-height: 1; letter-spacing: -.02em; }
+  .date { font-size: min(4.6vh, 6vw); color: var(--v-texte2); margin-top: 2vh; }
+  .sans-date .date, .sans-date .ciel { display: none; }
+</style>
+</head><body><div id="z"></div>
+<script>
+  for (const k of ["fond", "texte", "texte2", "accent", "carte", "ligne"]) {
+    const v = Q.get(k);
+    if (v && /^[0-9a-fA-F]{6}$/.test(v)) document.documentElement.style.setProperty("--v-" + k, "#" + v);
+  }
+  const cle = Object.prototype.hasOwnProperty.call(HORLOGES, Q.get("cle")) ? Q.get("cle") : "defaut";
+  const maj = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  const z = document.getElementById("z");
+  let el = null, jourVu = "";
+  const poserHorloge = (d) => {
+    const jour = maj(trDate(d, { weekday: "long", day: "numeric", month: "long" }));
+    const jourCourt = maj(trDate(d, { weekday: "short", day: "numeric", month: "short" }));
+    z.innerHTML = `<style>${CSS_HORLOGES}</style><div class="horloge h-${cle}${Q.get("date") === "0" ? " sans-date" : ""}" data-cle="${cle}">${HORLOGES[cle].html({ jour, jourCourt, ciel: "" })}</div>`;
+    el = z.querySelector(".horloge"); jourVu = jour;
+    // Sans date : tout ce qui n'écrit que la date (classe « date », pastille, ruban… selon l'horloge) est caché.
+    if (Q.get("date") === "0") el.querySelectorAll("*").forEach((n) => {
+      const t = n.textContent.trim();
+      if (n.children.length === 0 && (t === jour || t === jourCourt)) {
+        const boite = n.parentElement && n.parentElement !== el && n.parentElement.textContent.trim() === t ? n.parentElement : n;
+        boite.style.display = "none";
+      }
+    });
+  };
+  // Une mise à jour par seconde, juste après le changement de seconde ; la date est réécrite quand le jour change.
+  const tic = () => {
+    const d = new Date();
+    if (!el || maj(trDate(d, { weekday: "long", day: "numeric", month: "long" })) !== jourVu) poserHorloge(d);
+    try { HORLOGES[cle].tic(el, d); } catch (e) {}
+    setTimeout(tic, 1005 - (Date.now() % 1000));
+  };
+  tic();
+</script></body></html>

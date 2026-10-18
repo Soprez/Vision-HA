@@ -2,21 +2,67 @@
   "config": {
     "step": {
       "user": {
-        "title": "Vision",
-        "description": "Home Assistant gaat op je apparaten letten: computers, telefoons en tv's. Zodra de integratie is toegevoegd, registreert elk apparaat zich vanzelf wanneer je de agent installeert via het Vision-dashboard.\n\nKies een startpunt; elke module kun je daarna aan- of uitzetten in Configureren → Modules.",
+        "title": "Welkom bij Vision (1/5): de plek",
+        "description": "Vision helpt je de schermen van één plek in de hand te houden: telefoons, tablets, tv's en pc's. Vijf korte stappen; alles kun je later wijzigen in Configureren.\n\nEerst de naam van de plek, die in de apps, het dashboard en de meldingen verschijnt. Daarna, als je wilt, de woorden voor de twee rollen.",
         "data": {
-          "prereglage": "Wat je nodig hebt"
+          "lieu": "Naam van de plek",
+          "mots": "De woorden voor de rollen (optioneel)"
+        },
+        "data_description": {
+          "lieu": "Voorbeelden: School, Kantoor, Club."
+        },
+        "sections": {
+          "mots": {
+            "name": "De woorden voor de rollen (optioneel)",
+            "description": "Standaard: {defauts}. Een leeg veld houdt het standaardwoord; hoogstens {longueur} tekens.",
+            "data": {
+              "decideur": "Wie beslist (één)",
+              "decideurs": "Wie beslist (meerdere)",
+              "demandeur": "Wie vraagt (één)",
+              "demandeurs": "Wie vraagt (meerdere)"
+            }
+          }
         }
+      },
+      "personnes": {
+        "title": "De personen (2/5)",
+        "description": "Wie keurt verzoeken goed of af? Deze personen worden {decideurs}. De anderen worden {demandeurs}: hun apparaten zijn beschermd, en ze kunnen om tijd of toegang vragen.\n\nDe lijst komt uit de personen van Home Assistant (Instellingen → Personen). Niemand in de lijst? Ga door: de rol kies je later, op de pagina van elke persoon.",
+        "data": {
+          "decideurs": "Wie beslist"
+        }
+      },
+      "objectifs": {
+        "title": "De doelen (3/5)",
+        "description": "{erreur}Vink aan wat je wilt doen. Elk doel zet de nuttige modules aan; de details, module per module, blijven in Vision → Instellingen → Functies.\n\nGoed om te weten: „Verzoeken en antwoorden op afstand” heeft de tijden of de inhoud nodig (er moet iets te vragen zijn).",
+        "data": {
+          "objectifs": "Doelen"
+        }
+      },
+      "appareil": {
+        "title": "Het eerste apparaat (4/5)",
+        "description": "Welk apparaat wil je eerst koppelen? Direct daarna helpt „Apparaat toevoegen” (in Configureren) je verder, met de installatielink en de QR-code.",
+        "data": {
+          "appareil": "Eerste apparaat"
+        }
+      },
+      "pret": {
+        "title": "Klaar (5/5)",
+        "description": "Dit wordt ingesteld:\n{resume}\n\nHet Vision-dashboard ({tableau}) wordt in de zijbalk aangemaakt.\n\n**Daarna**: {suite}"
       }
     },
     "abort": {
-      "already_configured": "Vision is al geïnstalleerd."
+      "already_configured": "Vision is al geïnstalleerd.",
+      "single_instance_allowed": "Vision is al geïnstalleerd."
+    },
+    "error": {
+      "vocabulaire_trop_long": "Een woord is te lang: hoogstens 30 tekens.",
+      "objectifs_dependances": "Er ontbreekt een doel: zie het bericht bovenaan."
     }
   },
   "options": {
     "step": {
       "cle": {
-        "title": "Registratiesleutel",
+        "title": "🗝️ Registratiesleutel",
         "description": "{changee}Alleen voor beheerders: de sleutel wordt nergens anders meer getoond.\n\n**Huidige sleutel**: `{cle}`\n\nRegistratie van nieuwe apparaten: **{inscriptions}**.\n\n**pc** — in PowerShell, op de pc die je wilt instellen:\n```\n{commande}\n```\n\n**Telefoon, tablet, tv** — blok om in de app te plakken:\n```\n{android}\n```\n\nLaat de opdracht of het blok niet achter op een gevolgd apparaat. Een nieuwe sleutel verandert niets voor apparaten die al geregistreerd zijn.",
         "data": {
           "action": "Wat wil je doen?",
@@ -26,27 +72,17 @@
       "init": {
         "title": "Vision",
         "menu_options": {
+          "assistant": "🧭 De assistent opnieuw starten",
           "ajouter": "➕ Apparaat toevoegen",
-          "appairage": "Goed te keuren apparaten ({attente})",
-          "roles": "Personen en rollen",
-          "appareils": "Bestaande apparaten",
-          "securite": "Beveiliging",
-          "modules": "Modules",
-          "entites": "Home Assistant-entiteiten",
-          "general": "Algemene instellingen",
-          "musique": "Muziek",
-          "journal_musique": "Muzieklogboek",
-          "accueil": "Welkomstberichten",
-          "vocabulaire": "Woordenschat",
-          "avance": "Geavanceerd",
-          "temps_gagne": "Verdiende tijd (taken)",
-          "regles_lieu": "Regels per plek",
-          "soutien": "♥ Steun het project"
+          "appairage": "✅ Goed te keuren apparaten ({attente})",
+          "reparer": "🛠️ Herstellen, back-up maken of terugzetten",
+          "autres": "🗂️ Andere instellingen",
+          "soutien": "☕ Trakteer me op koffie"
         },
         "description": "Wat wil je doen?"
       },
       "appairage": {
-        "title": "Goed te keuren apparaten",
+        "title": "✅ Goed te keuren apparaten",
         "description": "Het apparaat dat zich wil registreren toont een QR-code en een code. Controleer de code, kies de persoon als je weet wie het is en keur goed: het apparaat krijgt vanzelf toegang.\n\n{demandes}\n\nVerzoeken om toegang, tijd en ontgrendeling staan hier niet: die beslis je op het Vision-dashboard.",
         "data": {
           "code": "Code op het apparaat",
@@ -55,18 +91,18 @@
         }
       },
       "installer": {
-        "title": "Vision op een apparaat installeren",
+        "title": "📦 Vision op een apparaat installeren",
         "description": "{installation}"
       },
       "inscriptions": {
-        "title": "Registratie van nieuwe apparaten",
+        "title": "📝 Registratie van nieuwe apparaten",
         "description": "Registratie van nieuwe apparaten: **{etat}**.\n\n“{minutes} min toestaan” zet de registratie open en sluit die daarna vanzelf weer, ook als Home Assistant intussen opnieuw opstart. Voor een apparaat dat al geregistreerd is (app opnieuw geïnstalleerd) gebruik je liever “Opnieuw registreren toestaan” op de pagina van dat apparaat; koppelen met een QR-code, goedgekeurd door een beheerder, werkt ook als de registratie dicht is.",
         "data": {
           "inscriptions": "Wat wil je doen?"
         }
       },
       "qr": {
-        "title": "Koppel-QR-code maken",
+        "title": "🔳 Koppel-QR-code maken",
         "description": "Het apparaat scant deze QR-code in de Vision-app en koppelt zich vanzelf. De QR-code werkt maar één keer en verloopt na een paar minuten; de registratiesleutel staat er niet in.\n\nPersoon: kies nu of later. Apparaat: alleen om een apparaat dat al geregistreerd is **over te nemen** (app opnieuw geïnstalleerd); anders wordt een al geregistreerd apparaat geweigerd.",
         "data": {
           "personne": "Persoon (optioneel)",
@@ -74,11 +110,11 @@
         }
       },
       "qr_affiche": {
-        "title": "Koppel-QR-code",
+        "title": "🔳 Koppel-QR-code",
         "description": "![Koppel-QR-code]({image})\n\nIn de Vision-app op het apparaat: **QR-code van Home Assistant scannen**. {minutes} minuten geldig, maar één keer. Laat hem niet open staan waar iedereen hem kan zien: er kan een apparaat mee geregistreerd worden."
       },
       "deverrouillage": {
-        "title": "Ontgrendelverzoeken",
+        "title": "🔓 Ontgrendelverzoeken",
         "description": "{demandes} Kies er een en keur hem goed (met een kortere tijd als je wilt) of weiger hem.\n\n**Levering**: “direct”, het apparaat ontgrendelt vanzelf; “code”, je leest de persoon een code van 6 cijfers voor; “QR”, de persoon scant het scherm.",
         "data": {
           "demande": "Verzoek",
@@ -88,29 +124,29 @@
         }
       },
       "deverrouillage_resultat": {
-        "title": "Ontgrendelen",
+        "title": "🔓 Ontgrendelen",
         "description": "{resultat}"
       },
       "roles": {
-        "title": "Personen en rollen",
+        "title": "👥 Personen en rollen",
         "description": "Een rol is een set functies; elke persoon heeft er een, en zijn of haar apparaten volgen die rol.\n\n{resume}",
         "menu_options": {
-          "roles_modifier": "Rol openen: naam en functies",
-          "roles_personnes": "De rol van elke persoon kiezen",
-          "roles_creer": "Rol aanmaken",
-          "roles_appareils": "Uitzondering: een eigen rol voor één apparaat",
-          "roles_validation_appareil": "Uitzondering: goedkeuring door meerdere personen voor één apparaat"
+          "roles_modifier": "✏️ Rol openen: naam en functies",
+          "roles_personnes": "👤 De rol van elke persoon kiezen",
+          "roles_creer": "🆕 Rol aanmaken",
+          "roles_appareils": "📱 Uitzondering: een eigen rol voor één apparaat",
+          "roles_validation_appareil": "🤝 Uitzondering: goedkeuring door meerdere personen voor één apparaat"
         }
       },
       "roles_modifier": {
-        "title": "Rollen",
+        "title": "✏️ Rollen",
         "description": "Kies een rol om de functies te zien en aan te vinken.",
         "data": {
           "role": "Rol"
         }
       },
       "roles_edition": {
-        "title": "Rol",
+        "title": "✏️ Rol",
         "description": "{erreur}Personen: {personnes}.\nApparaten: {appareils}.\nOntgrendelen: {deverrouillage}.\n\n★ = functie alleen voor een beheerder. Elke wijziging wordt gelogd; er blijft altijd minstens één apparaat dat kan “Beheren” en “Goedkeuren”.",
         "data": {
           "nom": "Naam",
@@ -121,7 +157,7 @@
         }
       },
       "roles_creer": {
-        "title": "Rol aanmaken",
+        "title": "🆕 Rol aanmaken",
         "description": "{erreur}De nieuwe rol neemt de functies van het voorbeeld over; die pas je daarna aan.",
         "data": {
           "nom": "Naam (bv. Tiener, Leraar, Gast)",
@@ -129,14 +165,14 @@
         }
       },
       "roles_personnes": {
-        "title": "Rol van elke persoon",
+        "title": "👤 Rol van elke persoon",
         "description": "De rol van een persoon geldt op al zijn of haar apparaten. Kies een persoon om de rol te wijzigen.",
         "data": {
           "personne": "Persoon"
         }
       },
       "roles_appareils": {
-        "title": "Eigen rol voor één apparaat",
+        "title": "📱 Eigen rol voor één apparaat",
         "description": "{erreur}Meestal volgt een apparaat de rol van zijn persoon. Hier stel je een uitzondering in voor één apparaat.\n\n{resume}",
         "data": {
           "appareil": "Apparaat",
@@ -144,7 +180,7 @@
         }
       },
       "roles_validation_appareil": {
-        "title": "Eigen goedkeuring voor één apparaat",
+        "title": "🤝 Eigen goedkeuring voor één apparaat",
         "description": "Hoeveel verschillende personen de ontgrendelverzoeken van dit apparaat moeten goedkeuren. “Volgens de rol” haalt de afwijking weg. De beheercode die op het apparaat wordt ingetypt, werkt altijd op zichzelf.\n\n{resume}",
         "data": {
           "appareil": "Apparaat",
@@ -156,96 +192,78 @@
         }
       },
       "securite": {
-        "title": "Beveiliging",
+        "title": "🔒 Beveiliging",
         "menu_options": {
-          "deverrouillage": "Ontgrendelverzoeken",
-          "inscriptions": "Registratie van nieuwe apparaten (openen, sluiten, 5 min)",
-          "code_gestion": "Beheercode voor pc's (geeft een blokkerend bericht vrij)"
-        }
-      },
-      "avance": {
-        "title": "Geavanceerd",
-        "description": "Voor bijzondere gevallen. De assistent “Apparaat toevoegen” is meestal genoeg.",
-        "menu_options": {
-          "installer": "Installatielinks en QR-codes",
-          "qr": "Zelf een koppel-QR-code maken",
-          "cle": "Registratiesleutel",
-          "sauvegarde": "Back-up en herstel",
-          "appareils_essai": "Android-testapparaten"
-        }
-      },
-      "appareils": {
-        "title": "Bestaande apparaten",
-        "menu_options": {
-          "appareils_relier": "Apparaat opnieuw koppelen (app opnieuw geïnstalleerd, pc opnieuw ingesteld)",
-          "roles_appareils": "Rol van een apparaat wijzigen",
-          "roles_validation_appareil": "Goedkeuring door meerdere personen, voor één apparaat"
+          "deverrouillage": "🔓 Ontgrendelverzoeken",
+          "inscriptions": "📝 Registratie van nieuwe apparaten (openen, sluiten, 5 min)",
+          "code_gestion": "🔑 Beheercode voor pc's (geeft een blokkerend bericht vrij)",
+          "code_octroi": "🛡️ Ontgrendelcode van de beslissers"
         }
       },
       "appareils_relier": {
-        "title": "Apparaat opnieuw koppelen",
+        "title": "🔗 Apparaat opnieuw koppelen",
         "description": "Het houdt zijn gegevens, zijn regels en zijn persoon; het krijgt nieuwe toegang.",
         "data": {
           "appareil": "Apparaat"
         }
       },
       "ajouter": {
-        "title": "Apparaat toevoegen (1/4)",
+        "title": "➕ Apparaat toevoegen (1/4)",
         "description": "Welk apparaat wil je toevoegen?",
         "data": {
           "genre": "Apparaat"
         }
       },
       "ajouter_qui": {
-        "title": "Voor wie? (2/4)",
+        "title": "➕ Voor wie? (2/4)",
         "description": "Het apparaat krijgt de rol van de persoon die je kiest. Voor een tv in de woonkamer: “gedeeld scherm”.",
         "data": {
           "personne": "Persoon"
         }
       },
       "ajouter_reprise": {
-        "title": "Een nieuw apparaat? (2/4)",
+        "title": "➕ Een nieuw apparaat? (2/4)",
         "description": "{personne} heeft al zo'n apparaat in Vision. Is dit een nieuw apparaat, of hetzelfde, opnieuw geïnstalleerd? Als het hetzelfde is, houdt het zijn regels.",
         "data": {
           "reprise": "Antwoord"
         }
       },
       "ajouter_installer_telephone": {
-        "title": "Vision installeren (3/4)",
+        "title": "➕ Vision installeren (3/4)",
         "description": "{qui}\n\nScan op de telefoon of tablet deze QR-code met de camera en installeer daarna Vision (versie {version}). Als Android erom vraagt, sta installeren vanuit de browser toe.\n\n![Installatie-QR-code]({qr})\n\nOf open deze link op het apparaat: {lien}\n\nOpen daarna Vision en volg de stappen. Tik op **Volgende** als het geïnstalleerd is."
       },
       "ajouter_installer_tele": {
-        "title": "Vision installeren (3/4)",
+        "title": "➕ Vision installeren (3/4)",
         "description": "{qui}\n\nOpen op de tv de app **Downloader** (installeer die zo nodig uit de store van de tv) en typ dit adres:\n\n## {court}\n\nInstalleer Vision (versie {version}), open de app en volg de stappen tot het scherm **een code** toont. Tik op dat moment op **Volgende**."
       },
       "ajouter_installer_pc": {
-        "title": "Vision installeren (3/4)",
+        "title": "➕ Vision installeren (3/4)",
         "description": "{qui}\n\nOpen op de pc **PowerShell** (Windows-toets, typ “PowerShell”, Enter), plak de opdracht hieronder en druk op Enter. Accepteer de vraag om beheerdersrechten.\n\nDe opdracht installeert Vision **en** koppelt de pc: verder hoef je niets te typen. Hij werkt maar één keer en {minutes} minuten lang.\n\nTik op **Volgende** als PowerShell “geregistreerd” meldt.",
         "data": {
           "commande": "Opdracht om te kopiëren"
         }
       },
       "ajouter_relier_telephone": {
-        "title": "Koppelen (4/4)",
+        "title": "➕ Koppelen (4/4)",
         "description": "{qui}\n\nTik in Vision, op het apparaat, op **QR-code van Home Assistant scannen** en richt op deze QR-code:\n\n![Koppel-QR-code]({image})\n\n{minutes} minuten geldig, maar één keer. Tik op **Volgende** als het apparaat meldt dat het gekoppeld is."
       },
       "ajouter_relier_tele": {
-        "title": "Koppelen (4/4)",
+        "title": "➕ Koppelen (4/4)",
         "description": "{qui}\n\nTyp de code die op de tv staat.",
         "data": {
           "code": "Code op de tv"
         }
       },
       "ajouter_relier_pc": {
-        "title": "Koppelen (4/4)",
+        "title": "➕ Koppelen (4/4)",
         "description": "{qui}\n\nDe pc koppelt zich vanzelf aan het eind van de installatie. Tik op **Volgende** om het te controleren."
       },
       "ajouter_fini": {
-        "title": "Klaar",
+        "title": "➕ Klaar",
         "description": "## ✅ {nom} is gekoppeld aan {personne}\n\nRol: **{role}**.{reprise}\n\n{etat}"
       },
       "roles_edition_validation": {
-        "title": "Goedkeuring door meerdere personen",
+        "title": "🤝 Goedkeuring door meerdere personen",
         "description": "Voor de rol **{role}**: hoeveel personen een ontgrendeling moeten goedkeuren.",
         "data": {
           "validation_mode": "Hoeveel personen moeten goedkeuren",
@@ -256,25 +274,28 @@
         }
       },
       "roles_personne_role": {
-        "title": "Rol van {personne}",
+        "title": "👤 Rol van {personne}",
         "description": "{erreur}Apparaten: {appareils}.",
         "data": {
           "role": "Rol"
         }
       },
       "general": {
-        "title": "Algemene instellingen",
-        "description": "De naam van de plek verschijnt in de apps, op het dashboard en in meldingen. Voorbeelden: School, Kantoor, Club.",
+        "title": "⚙️ Algemene instellingen",
+        "description": "Gedeelde schermen en het Discord-kanaal van de plek. Elke beslisser kiest in Vision → Instellingen → Mijn meldingen (of in de Vision-app) hoe verzoeken, waarschuwingen en de samenvatting binnenkomen. De naam van de plek stel je in op het dashboard: Vision → Instellingen.",
         "data": {
-          "lieu": "Naam van de plek",
-          "personnes_affichage": "Personen voor “gedeeld scherm”"
+          "personnes_affichage": "Personen voor “gedeeld scherm”",
+          "discord_service": "Discord: meldingsdienst",
+          "discord_cible": "Discord: kanaal"
         },
         "data_description": {
-          "personnes_affichage": "De Home Assistant-personen die gemaakt zijn voor een tv of een gedeeld scherm, niet voor iemand in het bijzonder. Leeg: de persoon die “Affichage” heet."
+          "personnes_affichage": "De Home Assistant-personen die gemaakt zijn voor een tv of een gedeeld scherm, niet voor iemand in het bijzonder. Leeg: de persoon die “Affichage” heet.",
+          "discord_service": "De notify-dienst van de Discord-integratie van Home Assistant. Leeg: geen Discord.",
+          "discord_cible": "Het kanaal-ID (meerdere: gescheiden door komma's)."
         }
       },
       "accueil": {
-        "title": "Welkomstberichten",
+        "title": "👋 Welkomstberichten",
         "description": "{erreur}Het bericht bovenaan in de app, op elk apparaat, in de eigen taal. Schrijf één bericht per regel; de variabelen hieronder worden ingevuld bij het tonen. Niets geschreven: ‘Hallo!’ (‘Goedenavond!’ vanaf 18 uur).\n\nModus ‘Afhankelijk van het moment van de dag’: begin een regel met `ochtend:`, `middag:`, `avond:` of `nacht:` (of `morning:`, `afternoon:`, `evening:`, `night:`) om hem voor dat moment te bewaren (ochtend 5–12 uur, middag 12–18 uur, avond 18–22 uur, nacht 22–5 uur); een regel zonder voorvoegsel geldt altijd. Modus ‘Willekeurig’: voorvoegsels worden genegeerd.\n\nVoor experts (sectie Geavanceerd): een Jinja-sjabloon van Home Assistant vervangt de berichten, met dezelfde variabelen, bijvoorbeeld `{exemple}`. Bij een fout, een lege tekst of meer dan 200 tekens wordt het gewone bericht getoond.\n\n**Variabelen** (huidige waarde)\n{aide}\n\n**Voorbeeld** (wat is opgeslagen)\n{apercu}",
         "data": {
           "messages": "Berichten (één per regel)",
@@ -297,53 +318,45 @@
           }
         }
       },
-      "modules": {
-        "title": "Modules",
-        "description": "{erreur}Vink aan wat je nodig hebt: de rest verdwijnt overal (Home Assistant, apps, tv's, pc's). De instellingen ervan worden bewaard voor later; de entiteiten worden uitgeschakeld zonder dat de geschiedenis verloren gaat. De basis (apparaten, personen en rollen, beheer op afstand, updates) blijft altijd aan.",
-        "data": {
-          "prereglage": "Voorinstelling",
-          "modules": "Modules"
-        }
-      },
       "modules_protections": {
-        "title": "Beveiligingen uitzetten?",
+        "title": "⚙️ Beveiligingen uitzetten?",
         "description": "⚠️ Zonder de beveiligingen tegen omzeiling kan een gevolgde persoon Vision verwijderen, beheerder van zijn of haar pc worden of de beveiligde instellingen openen, en zo alle regels opheffen. {concernes}: {appareils}.\n\nZet ze alleen uit als je iedereen vertrouwt die deze apparaten gebruikt.",
         "data": {
           "je_comprends": "Ik begrijp het en zet de beveiligingen uit"
         }
       },
       "entites": {
-        "title": "Home Assistant-entiteiten",
+        "title": "🧩 Home Assistant-entiteiten",
         "description": "De Home Assistant-widgets in de Vision-app: elk apparaat ziet alleen de entiteiten die aan zijn persoon zijn gegeven (plus zijn uitzonderingen) en kan alleen de acties gebruiken die hier zijn aangevinkt. Standaard alleen-lezen; sloten en alarmen kun je nooit vanaf een apparaat bedienen.\n\n{resume}",
         "menu_options": {
-          "entites_personnes": "Entiteiten van elke persoon",
-          "entites_appareils": "Uitzonderingen per apparaat",
-          "entites_actions": "Toegestane acties"
+          "entites_personnes": "👤 Entiteiten van elke persoon",
+          "entites_appareils": "📱 Uitzonderingen per apparaat",
+          "entites_actions": "▶️ Toegestane acties"
         }
       },
       "entites_personnes": {
-        "title": "Entiteiten van elke persoon",
+        "title": "👤 Entiteiten van elke persoon",
         "description": "Kies een persoon om de lijst te wijzigen met entiteiten die hij of zij op de eigen apparaten ziet.",
         "data": {
           "personne": "Persoon"
         }
       },
       "entites_personne_liste": {
-        "title": "Entiteiten van {personne}",
+        "title": "👤 Entiteiten van {personne}",
         "description": "De entiteiten die {personne} in de app ziet (met de rolfunctie “Home Assistant-entiteiten uit de eigen lijst zien”). Zonder “Toegestane acties” is niets te bedienen.",
         "data": {
           "entites": "Entiteiten"
         }
       },
       "entites_appareils": {
-        "title": "Uitzonderingen per apparaat",
+        "title": "📱 Uitzonderingen per apparaat",
         "description": "Kies een apparaat om er entiteiten aan toe te voegen of van weg te halen, ten opzichte van de lijst van zijn persoon.",
         "data": {
           "appareil": "Apparaat"
         }
       },
       "entites_appareil_liste": {
-        "title": "Uitzonderingen voor “{appareil}”",
+        "title": "📱 Uitzonderingen voor “{appareil}”",
         "description": "Persoon: {personne}. Lijst van deze persoon: {liste}.\n\n“Extra” komt bij deze lijst; “Weggehaald” gaat eraf (en wint). Een apparaat zonder persoon ziet alleen “Extra”.",
         "data": {
           "plus": "Extra",
@@ -351,64 +364,31 @@
         }
       },
       "entites_actions": {
-        "title": "Toegestane acties",
+        "title": "▶️ Toegestane acties",
         "description": "{pilotables} Vink aan wat de apparaten mogen doen (de rolfunctie “Toegestane entiteiten bedienen” is ook nodig); niets aangevinkt = alleen-lezen. Sloten en alarmen worden nooit aangeboden."
       },
       "sauvegarde": {
-        "title": "Back-up en herstel",
+        "title": "💾 Back-up en herstel",
         "description": "De hele configuratie van Vision: rollen, personen, apparaten en hun regels, modules, plek, widgets, schermbeveiliging. De bestanden blijven in Home Assistant (map “vision_sauvegardes” in de configuratie) en zitten ook in de eigen back-ups van Home Assistant. Elke nacht wordt automatisch een back-up gemaakt.\n\nBeschikbare back-ups:\n{liste}",
         "menu_options": {
-          "sauvegarde_creer": "Nu een back-up maken",
-          "sauvegarde_restaurer": "Back-up terugzetten"
+          "sauvegarde_creer": "📥 Nu een back-up maken",
+          "sauvegarde_restaurer": "♻️ Back-up terugzetten"
         }
       },
       "sauvegarde_creer": {
-        "title": "Nu een back-up maken",
+        "title": "📥 Nu een back-up maken",
         "description": "Bewaart de huidige configuratie van Vision. De laatste 20 back-ups die hier gemaakt zijn, worden bewaard.\n\nAl aanwezig:\n{liste}"
       },
       "sauvegarde_restaurer": {
-        "title": "Back-up terugzetten",
+        "title": "♻️ Back-up terugzetten",
         "description": "Vervangt de hele huidige configuratie van Vision door die uit de gekozen back-up. Van de huidige stand wordt eerst een back-up gemaakt, zodat je terug kunt. Een apparaat dat na de datum van de back-up is gekoppeld, moet opnieuw gekoppeld worden.",
         "data": {
           "sauvegarde": "Back-up",
           "confirmer": "Ik vervang de huidige configuratie door deze back-up"
         }
       },
-      "temps_gagne": {
-        "title": "Verdiende tijd",
-        "description": "Een taak die in een takenlijst van Home Assistant wordt afgevinkt, geeft extra tijd op de apparaten van de persoon. Taken die al afgevinkt waren toen je dit instelde tellen niet mee, en een taak die je uitvinkt en weer afvinkt telt maar één keer. Laat de lijst leeg om de instelling van een persoon weg te halen.\n\nHuidige instellingen:\n{resume}",
-        "data": {
-          "personne": "Persoon",
-          "liste": "Takenlijst",
-          "minutes": "Minuten per afgevinkte taak",
-          "max": "Hoogstens, per dag"
-        }
-      },
-      "regles_lieu": {
-        "title": "Regels per plek",
-        "description": "Zolang de persoon in de gekozen zone is (volgens zijn of haar locatie in Home Assistant), zijn de aangevinkte categorieën geblokkeerd op zijn of haar apparaten. Gaat de persoon de zone uit, dan wordt alles weer zoals het was. Vink geen enkele categorie aan om de regel van deze persoon voor deze zone weg te halen.\n\nHuidige regels:\n{resume}",
-        "data": {
-          "personne": "Persoon",
-          "zone": "Zone",
-          "etiquettes": "Geblokkeerde categorieën in deze zone"
-        }
-      },
-      "vocabulaire": {
-        "title": "Woordenschat",
-        "description": "De woorden die Vision voor de rollen gebruikt (dashboard, meldingen, berichten naar de apparaten), in de taal van Home Assistant. Maak een veld leeg om het standaardwoord terug te nemen ({defauts}). Hoogstens {longueur} tekens.\n\nDe naam van de plaats (nu: {nom_lieu}) stel je in bij „Algemene instellingen”.\n\n**Voorbeeld** (wat is opgeslagen)\n{apercu}",
-        "data": {
-          "decideur": "Beslisser (één)",
-          "decideurs": "Beslissers (meerdere)",
-          "demandeur": "Aanvrager (één)",
-          "demandeurs": "Aanvragers (meerdere)"
-        },
-        "data_description": {
-          "decideur": "Wie aanvragen goedkeurt of weigert.",
-          "demandeur": "Wie aanvragen doet."
-        }
-      },
       "musique": {
-        "title": "Muziek",
+        "title": "🎵 Muziek",
         "description": "Music Assistant-spelers die als luidsprekers in Muziek worden aangeboden. Standaard zijn ze allemaal geselecteerd.",
         "data": {
           "enceintes": "Aangeboden luidsprekers",
@@ -422,14 +402,14 @@
         }
       },
       "journal_musique": {
-        "title": "Muzieklogboek",
+        "title": "📜 Muzieklogboek",
         "description": "Laatste Muziek-opdrachten (wie, wat, vanwaar):\n\n{journal}",
         "data": {
           "jours": "Logboek bewaren gedurende"
         }
       },
       "appareils_essai": {
-        "title": "Android-testapparaten",
+        "title": "🧪 Android-testapparaten",
         "description": "Testhulpmiddel: deze Android-apparaten krijgen de testversie van de app eerder dan de andere. Laat leeg als je de app niet test.",
         "data": {
           "appareils_essai": "Android-testapparaten"
@@ -445,30 +425,104 @@
           "confirmation": "Dezelfde code, nog een keer"
         },
         "description": "{etat}\n\nDeze code geeft op een pc een blokkerend bericht \"tot vrijgave\" vrij. Hij wordt alleen hier ingesteld (beheerders): het Vision-venster van de pc laat niet meer toe hem te kiezen. Home Assistant bewaart alleen de vingerafdruk en controleert hem zelf; de pc bewaart er niets van. Na {essais} foute codes op een pc worden de pogingen daar {minutes} minuten opgeschort; na {total} foute codes in 24 u op de hele plek wordt de code vergrendeld tot hij hier wordt gewijzigd.\n\n6 tot 32 tekens. De code die op een pc wordt getypt, loopt via de sessie van de Aanvrager: typ hem niet in diens bijzijn en wijzig hem als je twijfelt. Een blokkerend bericht kan ook zonder code vanuit Home Assistant worden vrijgegeven (actie \"Een bericht vrijgeven\").",
-        "title": "Beheercode voor pc's"
+        "title": "🔑 Beheercode voor pc's"
       },
       "soutien": {
-        "description": "Vision is gratis en open source. Wil je het project bedanken, dan kun je het een koffie trakteren: {lien}\n\nIn ruil verschijnt er een badge \"Supporter\" en knipoogt het Vision-oog af en toe, met een klein hartje, op de schermbeveiliging en bij \"Over\". Het is puur decoratief: er wordt geen functie afgeschermd.\n\nDe code die je per e-mail ontvangt, wordt hier offline gecontroleerd: er wordt nergens iets naartoe gestuurd.",
-        "menu_options": {
-          "soutien_cafe": "Ik heb een koffie getrakteerd (op mijn erewoord)",
-          "soutien_code": "Ik heb een code"
-        },
-        "title": "Steun het project"
+        "description": "Vision is gratis en open source. Wil je het project bedanken, dan kun je me op koffie trakteren: {lien}\n\nIn ruil verschijnt er een badge \"Supporter\" en knipoogt het Vision-oog af en toe, met een klein hartje, op de schermbeveiliging en bij \"Over\". Het is puur decoratief: er wordt geen functie afgeschermd.\n\nDe code die je per e-mail ontvangt, wordt hier offline gecontroleerd: er wordt nergens iets naartoe gestuurd.",
+        "title": "☕ Trakteer me op koffie",
+        "data": {
+          "code": "Steuncode"
+        }
       },
       "soutien_actif": {
         "description": "♥ Bedankt! De badge \"Supporter\" wordt getoond op de apparaten van deze plek.\n\nDonatiepagina: {lien}",
         "menu_options": {
-          "soutien_code": "Een andere code invoeren",
-          "soutien_retirer": "Badge verwijderen"
+          "soutien_code": "🎟️ Een andere code invoeren",
+          "soutien_retirer": "🗑️ Badge verwijderen"
         },
-        "title": "Steun het project"
+        "title": "☕ Trakteer me op koffie"
       },
       "soutien_code": {
         "data": {
           "code": "Steuncode"
         },
         "description": "Plak de code die je per e-mail hebt ontvangen (spaties, streepjes en regeleinden worden genegeerd). Hij wordt hier offline gecontroleerd.",
-        "title": "Ik heb een code"
+        "title": "🎟️ Ik heb een code"
+      },
+      "reparer": {
+        "title": "🛠️ Herstellen, back-up maken of terugzetten",
+        "menu_options": {
+          "appareils_relier": "🔗 Apparaat opnieuw koppelen (app opnieuw geïnstalleerd, pc opnieuw ingesteld)",
+          "sauvegarde": "💾 Back-up en herstel",
+          "installer": "📦 Installatielinks en QR-codes",
+          "qr": "🔳 Zelf een koppel-QR-code maken",
+          "cle": "🗝️ Registratiesleutel"
+        }
+      },
+      "autres": {
+        "title": "🗂️ Andere instellingen",
+        "description": "Alle instellingen van voorheen, tot ze hun nieuwe plek hebben.",
+        "menu_options": {
+          "roles": "👥 Personen en rollen",
+          "securite": "🔒 Beveiliging",
+          "entites": "🧩 Home Assistant-entiteiten",
+          "general": "⚙️ Algemene instellingen",
+          "accueil": "👋 Welkomstberichten",
+          "musique": "🎵 Muziek",
+          "journal_musique": "📜 Muzieklogboek",
+          "appareils_essai": "🧪 Android-testapparaten"
+        }
+      },
+      "assistant": {
+        "title": "🧭 Assistent opnieuw (1/4): de plek",
+        "description": "De huidige antwoorden zijn al ingevuld: wijzig alleen wat je wilt. Er wordt niets opgeslagen vóór de laatste stap.\n\nStandaard: {defauts}.",
+        "data": {
+          "lieu": "Naam van de plek",
+          "mots": "De woorden voor de rollen (optioneel)"
+        },
+        "data_description": {
+          "lieu": "Voorbeelden: School, Kantoor, Club."
+        },
+        "sections": {
+          "mots": {
+            "name": "De woorden voor de rollen (optioneel)",
+            "description": "Standaard: {defauts}. Een leeg veld houdt het standaardwoord; hoogstens {longueur} tekens.",
+            "data": {
+              "decideur": "Wie beslist (één)",
+              "decideurs": "Wie beslist (meerdere)",
+              "demandeur": "Wie vraagt (één)",
+              "demandeurs": "Wie vraagt (meerdere)"
+            }
+          }
+        }
+      },
+      "assistant_personnes": {
+        "title": "🧭 Assistent opnieuw (2/4): de personen",
+        "description": "Wie keurt verzoeken goed of af? De aangevinkte personen worden {decideurs}. Wie het was en niet meer aangevinkt is, krijgt de standaardrol terug; de anderen houden hun rol.",
+        "data": {
+          "decideurs": "Wie beslist"
+        }
+      },
+      "assistant_objectifs": {
+        "title": "🧭 Assistent opnieuw (3/4): de doelen",
+        "description": "{erreur}Een uitgevinkt doel zet zijn modules uit (hun instellingen blijven bewaard). Een aangevinkt doel zet zijn aanbevolen modules aan. Een ongewijzigd doel houdt zijn modules zoals ze zijn.",
+        "data": {
+          "objectifs": "Doelen"
+        }
+      },
+      "assistant_pret": {
+        "title": "🧭 Assistent opnieuw (4/4): klaar om op te slaan",
+        "description": "{erreur}{resume}\n\nOpslaan past alles in één keer toe; het wordt in het logboek genoteerd."
+      },
+      "code_octroi": {
+        "title": "🛡️ Ontgrendelcode van de beslissers",
+        "description": "{etat}\n\nDe ontgrendelcode van een beslisser is dezelfde in de Vision-app en op het dashboard: hij wordt gevraagd bij ELKE actie die iets toekent (een verzoek accepteren, ontgrendelen, tijd geven, openen, toestaan, een apparaat goedkeuren, een rol geven). Meestal kiest de beslisser hem in de app; hier kun je hem instellen, wijzigen of verwijderen (vergeten of vergrendelde code). Home Assistant bewaart alleen de hash; de vingerafdruk blijft mogelijk op zijn apparaten. Na {essais} foute codes wacht een account of apparaat {minutes} minuten; na {total} foute codes in 24 u is alles vergrendeld tot er opnieuw een code is ingesteld.\n\nMinstens 4 tekens.",
+        "data": {
+          "personne": "Beslisser",
+          "action": "Wat te doen?",
+          "code": "Nieuwe code",
+          "confirmation": "Dezelfde code nog eens"
+        }
       }
     },
     "error": {
@@ -485,17 +539,10 @@
       "deverrouillage_deja_vote": "Je hebt dit verzoek al goedgekeurd: er moet nog iemand anders goedkeuren.",
       "ajout_pas_encore": "Nog niet gekoppeld. Maak de stap op het apparaat af en tik dan opnieuw op Volgende.",
       "ajout_expire": "De tijd is om: hier is een nieuwe QR-code (of een nieuwe opdracht).",
-      "modules_dependances": "Er ontbreken modules die andere modules nodig hebben (details hierboven).",
       "modules_confirmer": "Vink het vakje aan om te bevestigen, of sluit dit venster om de beveiligingen te houden.",
       "confirmer_restauration": "Vink het vakje aan om te bevestigen: de huidige configuratie wordt vervangen.",
       "sauvegarde_introuvable": "Deze back-up bestaat niet meer. Kies een andere.",
       "sauvegarde_illisible": "Deze back-up is onleesbaar of komt van een nieuwere versie van Vision. Er is niets veranderd.",
-      "temps_gagne_personne": "Kies een persoon.",
-      "temps_gagne_liste": "Kies een takenlijst (een “todo”-entiteit).",
-      "temps_gagne_minutes": "De minuten per taak gaan van 1 tot 240, en het maximum per dag mag niet kleiner zijn dan één taak.",
-      "regles_lieu_personne": "Kies een persoon.",
-      "regles_lieu_zone": "Kies een zone van Home Assistant.",
-      "regles_lieu_trop": "Er zijn al 40 regels per plek: haal er een weg voordat je een nieuwe toevoegt.",
       "accueil_modele_invalide": "Het Jinja-sjabloon is ongeldig: controleer de syntaxis (details bovenaan het scherm).",
       "vocabulaire_trop_long": "Te lang: hoogstens 30 tekens.",
       "code_court": "6 tot 32 tekens.",
@@ -503,24 +550,23 @@
       "soutien_format": "Dit is geen volledige code: controleer of hij helemaal is gekopieerd.",
       "soutien_signature": "Deze code is ongeldig (handtekening geweigerd). Kopieer hem opnieuw uit de e-mail.",
       "soutien_version": "Deze code komt uit een nieuwere versie van Vision: werk Vision bij.",
-      "soutien_vide": "Plak de code die je per e-mail hebt ontvangen."
+      "soutien_vide": "Plak de code die je per e-mail hebt ontvangen.",
+      "objectifs_dependances": "Er ontbreekt een doel: zie het bericht bovenaan.",
+      "entites_rien_a_piloter": "Er is geen bedienbare entiteit aan een persoon of apparaat gegeven: kies eerst entiteiten (lampen, schakelaars, scripts, scènes, knoppen, rolluiken, thermostaten).",
+      "code_court_deverrouillage": "Minstens 4 tekens.",
+      "personne_inconnue": "Deze beslisser bestaat niet."
     },
     "abort": {
       "not_loaded": "Vision is niet geladen: probeer het zo opnieuw.",
       "ajout_impossible": "Nu even niet mogelijk: {raison}",
-      "entites_rien_a_piloter": "Er is geen bedienbare entiteit aan een persoon of apparaat gegeven: kies eerst entiteiten (lampen, schakelaars, scripts, scènes, knoppen, rolluiken, thermostaten).",
       "sauvegarde_faite": "Back-up gemaakt: {sauvegarde}. Hij staat in de map “{dossier}” van de configuratie van Home Assistant.",
       "sauvegarde_restauree": "Configuratie teruggezet uit de back-up van {sauvegarde}. De vorige stand is bewaard: {avant}.",
       "aucune_sauvegarde": "Nog geen back-ups. Begin met “Nu een back-up maken”.",
-      "temps_gagne_ok": "Verdiende tijd opgeslagen.\n\n{resume}",
-      "temps_gagne_coupe": "De module “Verdiende tijd” (of “Schermtijd”) staat uit: zet hem aan in Configureren → Modules.",
-      "regles_lieu_ok": "Regel opgeslagen.\n\n{resume}",
-      "regles_lieu_coupe": "De module “Regels per plek” (of “Apps blokkeren” en “Webfilter”) staat uit: zet hem aan in Configureren → Modules.",
       "accueil_ok": "Welkomstberichten opgeslagen.\n\n**Voorbeeld**\n{apercu}",
-      "vocabulaire_ok": "Woordenschat opgeslagen.\n\n**Voorbeeld**\n{apercu}",
       "essai_aucun_android": "Geen Android-apparaat in Vision: niets in te stellen.",
       "soutien_merci": "♥ Bedankt voor je steun! De badge verschijnt op de apparaten bij hun volgende controle.",
-      "soutien_retire": "Badge verwijderd."
+      "soutien_retire": "Badge verwijderd.",
+      "aucun_decideur": "Nog geen beslisser: geef deze rol eerst aan een persoon."
     }
   },
   "selector": {
@@ -578,21 +624,6 @@
         "telephone": "📱 Een telefoon of tablet",
         "tele": "📺 Een Android-tv",
         "pc": "💻 Een Windows-pc"
-      }
-    },
-    "prereglage": {
-      "options": {
-        "simple": "Eenvoudig: tijdvakken, schermtijd, verzoeken, berichten",
-        "famille": "Aanbevolen: Eenvoudig, plus apps blokkeren, webfilter, ontgrendelen, bescherming opschorten, schermbeveiliging, startscherm, beveiligingen, “Alles blokkeren”",
-        "tout": "Alles: alle modules"
-      }
-    },
-    "prereglage_options": {
-      "options": {
-        "simple": "Eenvoudig: tijdvakken, schermtijd, verzoeken, berichten",
-        "famille": "Aanbevolen: Eenvoudig, plus apps blokkeren, webfilter, ontgrendelen, bescherming opschorten, schermbeveiliging, startscherm, beveiligingen, “Alles blokkeren”",
-        "tout": "Alles: alle modules",
-        "garder": "Mijn keuze houden (vakjes hieronder)"
       }
     },
     "action_lot": {
@@ -739,6 +770,36 @@
         "240": "4 u",
         "perso": "Eigen"
       }
+    },
+    "reprise_action": {
+      "options": {
+        "simuler": "Simuleren",
+        "appliquer": "Toepassen",
+        "annuler": "Annuleren"
+      }
+    },
+    "objectifs": {
+      "options": {
+        "horaires": "⏰ Tijden en schermtijd: tijdvakken, tijd per dag, vooraankondiging",
+        "contenus": "🛡️ Inhoud: apps blokkeren, webfilter, beveiligingen",
+        "demandes": "💬 Verzoeken en antwoorden op afstand: verzoeken, ontgrendelen, berichten, „Alles sluiten”",
+        "ecrans": "📺 Gedeelde schermen: schermbeveiliging (tv's en Android), welkomstberichten"
+      }
+    },
+    "premier_appareil": {
+      "options": {
+        "telephone": "📱 Een telefoon of tablet",
+        "tele": "📺 Een Android-tv",
+        "pc": "💻 Een Windows-pc",
+        "plus_tard": "⏳ Later"
+      }
+    },
+    "code_octroi_action": {
+      "options": {
+        "garder": "Niets wijzigen",
+        "changer": "Een nieuwe code kiezen",
+        "retirer": "Code verwijderen (de beslisser kiest hem opnieuw in de app)"
+      }
     }
   },
   "services": {
@@ -838,7 +899,7 @@
         },
         "elements": {
           "name": "Items bij naam",
-          "description": "Sites of software die bij naam worden aangewezen, zonder categorie. Lijst van { genre: sites|apps, nom: … }."
+          "description": "Sites of software die bij naam worden aangewezen, zonder categorie. Lijst van (genre: sites|apps, nom: …)."
         },
         "couleur": {
           "name": "Kleur (planningskaart)",
@@ -906,7 +967,7 @@
         },
         "elements": {
           "name": "Items bij naam",
-          "description": "Lijst van { genre: sites|apps, nom: … }. Lege lijst om ze allemaal weg te halen."
+          "description": "Lijst van (genre: sites|apps, nom: …). Lege lijst om ze allemaal weg te halen."
         },
         "sauf": {
           "name": "Behalve op",
@@ -948,7 +1009,7 @@
     },
     "build_dashboard": {
       "name": "Dashboard opnieuw opbouwen",
-      "description": "Bouwt het Vision-dashboard opnieuw op met de huidige apparaten en tijdvakken."
+      "description": "Maakt het Vision-dashboard opnieuw vanuit het standaardmodel. Het huidige, met je wijzigingen, wordt eerst opgeslagen in /config/vision_outils/sauvegardes/."
     },
     "update_agent": {
       "name": "Agent bijwerken",
@@ -1028,7 +1089,7 @@
       "fields": {
         "elements": {
           "name": "Items",
-          "description": "Lijst van { genre: sites|apps, nom: … }."
+          "description": "Lijst van (genre: sites|apps, nom: …)."
         },
         "etiquettes": {
           "name": "Labels",
@@ -1112,7 +1173,7 @@
       "fields": {
         "elements": {
           "name": "Items",
-          "description": "Lijst van {genre: apps|sites, nom}."
+          "description": "Lijst van (genre: apps|sites, nom)."
         },
         "decision": {
           "name": "Beslissing",
@@ -1144,7 +1205,7 @@
       "fields": {
         "propositions": {
           "name": "Voorstellen",
-          "description": "Lijst van {cle, verdict (garder | hors_demarrage | nuisible), raison, confiance 0-100}."
+          "description": "Lijst van (cle, verdict (garder | hors_demarrage | nuisible), raison, confiance 0-100)."
         },
         "par": {
           "name": "Auteur",
@@ -1544,7 +1605,7 @@
           "name": "Naam"
         },
         "repetition": {
-          "description": "{minutes, max} — standaard 9 min, 3 keer.",
+          "description": "(minutes, max) — standaard 9 min, 3 keer.",
           "name": "Sluimeren"
         },
         "repli": {
@@ -1564,7 +1625,7 @@
           "name": "Adres of medium"
         },
         "volume": {
-          "description": "{debut: %, fin: %, montee_s: seconds} — standaard 10 → 60 % in 180 s.",
+          "description": "(debut: %, fin: %, montee_s: seconds) — standaard 10 → 60 % in 180 s.",
           "name": "Volume"
         }
       },
@@ -1662,7 +1723,7 @@
           "name": "Naam"
         },
         "repetition": {
-          "description": "{minutes, max} — standaard 9 min, 3 keer.",
+          "description": "(minutes, max) — standaard 9 min, 3 keer.",
           "name": "Sluimeren"
         },
         "repli": {
@@ -1686,7 +1747,7 @@
           "name": "Adres of medium"
         },
         "volume": {
-          "description": "{debut: %, fin: %, montee_s: seconds} — standaard 10 → 60 % in 180 s.",
+          "description": "(debut: %, fin: %, montee_s: seconds) — standaard 10 → 60 % in 180 s.",
           "name": "Volume"
         }
       },
@@ -1811,6 +1872,98 @@
         }
       },
       "name": "Wekker — verwijderen"
+    },
+    "reprise_autorisations": {
+      "name": "Overname van de toestemmingen",
+      "description": "Nieuwe toestemmingsregels (voor even, uitzondering, altijd beschikbaar): simuleren wat verandert, toepassen na controle, of terugdraaien.",
+      "fields": {
+        "action": {
+          "name": "Actie",
+          "description": "Simuleren: verslag zonder iets te wijzigen. Toepassen: de nieuwe beslislogica geldt (de vorige toestand wordt bewaard). Annuleren: terug naar de vorige logica."
+        }
+      }
+    },
+    "ecran_regler": {
+      "name": "Scherm – apparaatinstellingen",
+      "description": "Scherm van een apparaat (alleen beheerders en automatiseringen). Standaard verandert er niets.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat."
+        },
+        "veille_vision": {
+          "name": "Schermbeveiliging van Vision",
+          "description": "Staat de schermbeveiliging van Vision (klok, foto's, afspeellijst) toe op dit apparaat."
+        },
+        "garder_allume": {
+          "name": "Scherm aan houden",
+          "description": "Het startscherm van Vision voorkomt dat het Android-scherm uitgaat."
+        }
+      }
+    },
+    "veille_regler": {
+      "name": "Schermbeveiliging — apparaatopties",
+      "description": "Opties van de schermbeveiliging van één apparaat (alleen beheerders en automatiseringen). Het apparaat past de meest recente instelling toe, uit Home Assistant of van de tv zelf.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat."
+        },
+        "lecteur": {
+          "name": "Balk van de muziekspeler",
+          "description": "Toont hoes, titel, artiest en afspelen/pauze van de muziek van dit apparaat tijdens het afspelen (standaard uit)."
+        },
+        "qr": {
+          "name": "QR-code voor gasten",
+          "description": "Hoek van de QR-code voor gasten (feestmodus open): haut_gauche (linksboven), haut_droite (rechtsboven), bas_gauche (linksonder), bas_droite (rechtsonder) of cache (verborgen). Standaard rechtsonder."
+        },
+        "logo": {
+          "name": "Vision-logo",
+          "description": "Hoek van het Vision-oog: dezelfde waarden; standaard linksonder (zijn gewone plek). De QR-code en het logo delen nooit een hoek."
+        }
+      }
+    },
+    "son_regler": {
+      "name": "Geluidsniveau — apparaatinstellingen",
+      "description": "Instellingen van de geluidsmeting op één apparaat (alleen beheerders en automatiseringen). Alleen een getal verlaat het apparaat: er wordt geen geluid opgenomen of verzonden.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat."
+        },
+        "actif": {
+          "name": "Meten op dit apparaat",
+          "description": "Zet de meting met de microfoon op dit apparaat aan of uit."
+        },
+        "seuil_db": {
+          "name": "Drempel",
+          "description": "Relatief niveau (0 tot 100) waarboven de kamer te lawaaierig is."
+        },
+        "sensibilite_s": {
+          "name": "Gevoeligheid",
+          "description": "Seconden boven de drempel vóór een waarschuwing (kortere pieken tellen niet)."
+        },
+        "alertes_avant_coupure": {
+          "name": "Waarschuwingen vóór blokkering",
+          "description": "Bij deze waarschuwing wordt het apparaat geblokkeerd; 0 = alleen waarschuwingen."
+        },
+        "coupure_min": {
+          "name": "Duur van de blokkering",
+          "description": "Zo lang blijft het apparaat dicht."
+        },
+        "calme_min": {
+          "name": "Terugzetten bij rust",
+          "description": "Minuten zonder lawaai voordat de teller weer op nul gaat."
+        },
+        "calibration_db": {
+          "name": "Kalibratie",
+          "description": "Wordt bij de meting van het apparaat opgeteld (microfoons verschillen)."
+        },
+        "plages": {
+          "name": "Actieve tijden",
+          "description": "Lijst van (debut, fin) in HH:MM; leeg = de hele dag."
+        }
+      }
     }
   },
   "entity": {
@@ -2104,6 +2257,9 @@
       },
       "reveil_source": {
         "name": "Bron"
+      },
+      "niveau_sonore": {
+        "name": "Geluidsniveau"
       }
     },
     "switch": {
@@ -2383,16 +2539,5 @@
     "reveil_type": {
       "message": "Onbekend triggertype: {valeur}."
     }
-  },
-  "musique": {
-    "fin_1": "The End 🎬",
-    "fin_2": "The Show Must Go On… voeg een nummer toe 🎭",
-    "fin_3": "Silence Is Golden 🤫",
-    "fin_4": "Encore! 👏",
-    "fin_5": "Play It Again 🎹",
-    "fin_6": "Stop! In the Name of Love ✋",
-    "fin_7": "One More Time 🔁",
-    "fin_8": "Don't Stop Me Now 🎤",
-    "fin_action": "Voeg een nummer toe om het feest weer op gang te brengen"
   }
 }

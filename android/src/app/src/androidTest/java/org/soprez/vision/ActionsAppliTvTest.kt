@@ -36,6 +36,7 @@ class ActionsAppliTvTest : InstrumentationTestCase() {
 
     override fun setUp() {
         super.setUp()
+        CodeEssai.poser(instrumentation.targetContext)  // faille du 16-10 : un Décideur a toujours un code
         // Le service d'accessibilité de Vision doit continuer à tourner pendant le test.
         ui = instrumentation.getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES)
         // « am instrument » relance le processus de Vision : Android marque alors son service d'accessibilité comme
@@ -55,6 +56,7 @@ class ActionsAppliTvTest : InstrumentationTestCase() {
     override fun tearDown() {
         Garde.fermer()
         shell("input keyevent KEYCODE_HOME")
+        CodeEssai.rendre(instrumentation.targetContext)
         super.tearDown()
     }
 

@@ -479,16 +479,16 @@ async def _tableau(hass, hass_storage, langue: str):
 
     hass.config.language = langue
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
-        "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "roles_personnes": {"person.robin": "parent"},
+        "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "roles_personnes": {"person.nolan": "parent"},
         "modules": {m: True for m in modules.TOUS}, "pcs": {
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", role="enfant",
                          type="telephone", rules=[{"id": 1, "name": "Soir", "start": 72000, "end": 25200,
                                                    "weekdays": [True] * 7, "enabled": True}]),
             "e2": _fiche("e2", "PC-NOA", ENFANT2["secret"], person="person.noa"),
             "t1": _fiche("t1", "Télé du salon", "t" * 32, platform="android", type="tv", partage=["person.mia"]),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
         }}}
-    for p in ("lou", "noa", "robin", "mia"):
+    for p in ("lou", "noa", "nolan", "mia"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)

@@ -42,8 +42,14 @@ object LecteurSlim {
     // Android ne donne pas sa position (flux sans taille connue : currentPosition reste à 0). Repart à chaque titre.
     @Volatile private var horlogeDebut = 0L
     @Volatile private var horlogePause = 0L
+    /** 1.91.0 : où commence le flux en cours après un saut (le flux, lui, repart de zéro). */
+    private val recalage = Saut.Recalage()
     private var suivant: MediaPlayer? = null
     private var volume = 1f
+    /** Banc Musique : le volume logiciel appliqué au lecteur Android (règle du projet : toujours 1,0 sur un lecteur Vision). */
+    val volumeApplique: Float get() = if (allume) volume else 0f
+    /** Banc Musique : la position du titre en cours (ms), comme l'envoie le lecteur à Music Assistant. */
+    val positionCourante: Int get() = positionMs()
     private var allume = true
     private var depuisFlush = true
     private var decodeurPret = false
@@ -58,6 +64,10 @@ object LecteurSlim {
             val hote = try { URI(u).host } catch (_: Exception) { null }
             if (!hote.isNullOrEmpty() && Reseau.estPrivee("http://$hote")) return hote
         }
+        // 1.90.3 (télé d'essai, reliée par l'adresse externe : aucun lecteur créé) : l'adresse locale vérifiée, sinon on
+        // la cherche (annonce du réseau + certificat de Home Assistant) ; le lecteur réessaie toutes les 30 s.
+        c.hoteLocal.takeIf { it.isNotEmpty() && Reseau.estPrivee("http://$it") }?.let { return it }
+        HoteLocal.chercher(ctx)
         return null
     }
 
@@ -69,7 +79,15 @@ object LecteurSlim {
         if (!connecte || (etat != "lecture" && etat != "pause")) return null
         if (lecteurNom != nom(ctx) && !(ici && lecteurNom.endsWith(" · Vision"))) return null
         if (lecteur == null) return null
-        return positionMs() / 1000.0
+        // La position annoncée à Music Assistant reste celle du flux (il ajoute lui-même le saut) ; l'écran, lui, montre
+        // la position dans le titre.
+        return (positionMs() + recalage.decalageMs) / 1000.0
+    }
+
+    /** 1.91.0 : un saut vers [positionS] à [quand] (elapsedRealtime), si cet appareil est le lecteur (voir positionLocale). */
+    fun saut(ctx: Context, ici: Boolean, lecteurNom: String, positionS: Double, quand: Long) {
+        if (!connecte || (lecteurNom != nom(ctx) && !(ici && lecteurNom.endsWith(" · Vision")))) return
+        recalage.saut(Math.round(positionS * 1000), quand, SystemClock.elapsedRealtime())
     }
 
     /** Le nom affiché dans Music Assistant : celui de l'appareil, avec « · Vision ». */
@@ -110,6 +128,10 @@ object LecteurSlim {
         synchronized(verrou) { sortie = s.getOutputStream() }
         envoyer("HELO", helo(ctx))
         connecte = true
+        // 1.90.4 (télé d'essai : lecteur « squeezeplay: 5a:7a:… » sans nom dans Music Assistant) : MA enregistre le
+        // lecteur en tâche de fond juste après le HELO, et ignore le nom s'il arrive avant la fin (course selon la
+        // vitesse de l'appareil). Le nom est donc renvoyé, sans qu'on le demande, une fois le lecteur connu de MA.
+        for (delai in RENVOIS_NOM_MS) h?.postDelayed({ if (socket === s && connecte) envoyerNom(ctx) }, delai)
         Log.i(TAG, "relié à Music Assistant ($hote:$PORT)")
         val entree = DataInputStream(s.getInputStream().buffered())
         while (!Thread.currentThread().isInterrupted) {
@@ -122,6 +144,15 @@ object LecteurSlim {
     }
 
     // --------------------------------------------------------------- messages vers Music Assistant
+
+    /** Les renvois du nom après la connexion (ms). */
+    val RENVOIS_NOM_MS = longArrayOf(3_000, 15_000)
+
+    /** Le nom de ce lecteur, « <appareil> · Vision » (réponse SETD 0, ou renvoi spontané). */
+    private fun envoyerNom(ctx: Context) {
+        val n = nom(ctx).toByteArray(Charsets.UTF_8)
+        envoyer("SETD", byteArrayOf(0) + n + byteArrayOf(0))
+    }
 
     private fun envoyer(op: String, payload: ByteArray) {
         val b = ByteBuffer.allocate(8 + payload.size)
@@ -159,13 +190,31 @@ object LecteurSlim {
     private fun positionMs(): Int {
         val mp = lecteur ?: return 0
         val p = try { mp.currentPosition } catch (_: Exception) { 0 }
-        if (p > 0) return p
-        if (horlogeDebut == 0L) return 0
-        val fin = if (horlogePause > 0L) horlogePause else SystemClock.elapsedRealtime()
-        return (fin - horlogeDebut).coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
+        val horloge = if (horlogeDebut == 0L) null else
+            ((if (horlogePause > 0L) horlogePause else SystemClock.elapsedRealtime()) - horlogeDebut).coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
+        return choisirPosition(p, horloge)
     }
 
-    private fun debutTitre() { horlogeDebut = SystemClock.elapsedRealtime(); horlogePause = 0L }
+    /**
+     * La position à montrer : celle du lecteur d'Android, sauf si elle manque (flux sans taille : 0) ou s'écarte de plus
+     * de [ECART_HORLOGE_MS] de l'horloge du titre (pauses déduites). Banc Musique (2026-10-12) : après une pause, le
+     * lecteur d'Android sautait de +16 s (barre de la Party). Sans Android : testé en JVM.
+     */
+    fun choisirPosition(lecteurMs: Int, horlogeMs: Int?): Int = when {
+        horlogeMs == null -> maxOf(0, lecteurMs)
+        lecteurMs <= 0 -> horlogeMs
+        Math.abs(lecteurMs - horlogeMs) > ECART_HORLOGE_MS -> horlogeMs
+        else -> lecteurMs
+    }
+
+    const val ECART_HORLOGE_MS = 3_000
+
+    private fun debutTitre() { horlogeDebut = SystemClock.elapsedRealtime(); horlogePause = 0L; recalage.nouveauFlux(horlogeDebut); debutsTitre++; dernierDebutMs = horlogeDebut; relireDuree() }
+
+    /** Banc Musique : titres démarrés, heure (elapsedRealtime) du dernier début et de la dernière fin de son. */
+    @Volatile var debutsTitre = 0; private set
+    @Volatile var dernierDebutMs = 0L; private set
+    @Volatile var derniereFinMs = 0L; private set
 
     private fun stat(evenement: String, battement: Int = 0) {
         val pos = positionMs()
@@ -193,10 +242,7 @@ object LecteurSlim {
             // règle le son. Le gain envoyé par Music Assistant (10 % sur un lecteur recréé : son quasi nul) est ignoré.
             "audg" -> { volume = 1f; appliquerVolume() }
             "aude" -> if (d.isNotEmpty()) { allume = d[0].toInt() != 0; appliquerVolume() }
-            "setd" -> if (d.size == 1 && d[0].toInt() == 0) {
-                val n = nom(ctx).toByteArray(Charsets.UTF_8)
-                envoyer("SETD", byteArrayOf(0) + n + byteArrayOf(0))
-            }
+            "setd" -> if (d.size == 1 && d[0].toInt() == 0) envoyerNom(ctx)
             else -> {}  // vers, cont, codc, grfe… : rien à faire (le flux est lu par le lecteur d'Android)
         }
     }
@@ -213,6 +259,7 @@ object LecteurSlim {
         val battement = b.int
         val port = b.short.toInt() and 0xFFFF
         val ip = b.int
+        if (commande != 't') Log.d(TAG, "strm $commande (démarrage $autostart, position ${positionMs()} ms)")
         when (commande) {
             't' -> stat("STMt", battement)
             'p' -> {
@@ -222,14 +269,26 @@ object LecteurSlim {
             }
             'u' -> {
                 try { lecteur?.start() } catch (_: Exception) {}
-                if (horlogePause > 0L && horlogeDebut > 0L) { horlogeDebut += SystemClock.elapsedRealtime() - horlogePause; horlogePause = 0L }
-                etat = "lecture"; stat("STMr")
+                val reprise = horlogePause > 0L && horlogeDebut > 0L
+                val nouveau = reponseAuDemarrage(chargeSansDemarrage = horlogeDebut == 0L && lecteur != null, enPause = reprise) == "STMs"
+                if (reprise) { horlogeDebut += SystemClock.elapsedRealtime() - horlogePause; horlogePause = 0L }
+                // Banc Musique (2026-10-12) : un titre chargé sans démarrage (STMl) puis lancé par « u » n'avait jamais son
+                // début noté (position et premier son faux).
+                else if (nouveau) debutTitre()
+                etat = "lecture"
+                // 1.93.05 (l'auteur, retour 40, boucle « Bad Times ») : un titre chargé sans démarrage puis lancé par « u » est un
+                // titre qui COMMENCE — « STMs », comme squeezelite. Avant : « STMr » (reprise) ; Music Assistant ne voyait
+                // jamais le titre commencer, gardait l'index d'avant (position figée à 5 s) et redonnait le même titre.
+                stat(if (nouveau) "STMs" else "STMr")
             }
-            'q' -> { liberer(); depuisFlush = true; etat = "arrêt"; stat("STMf") }
-            'f' -> { liberer(); depuisFlush = true; stat("STMf") }
+            'q' -> { h?.removeCallbacks(finSansSuite); h?.removeCallbacks(sansRelance); fonduSortie(); liberer(); depuisFlush = true; etat = "arrêt"; stat("STMf") }
+            'f' -> { fonduSortie(); liberer(); depuisFlush = true; stat("STMf") }
             's' -> {
                 val requete = String(d, 24, d.size - 24, Charsets.ISO_8859_1)
                 val chemin = Regex("^GET (\\S+) HTTP").find(requete)?.groupValues?.get(1) ?: return
+                // 1.93.05 (retour 40, endurance) : l'identifiant du flux demandé (fin du chemin de Music Assistant, sans hôte),
+                // pour vérifier à chaque titre que le son décodé est celui que Music Assistant annonce.
+                Log.d(TAG, "flux ${chemin.substringBefore('?').split('/').filter { it.isNotEmpty() }.takeLast(2).joinToString("/")}")
                 val hoteHttp = if (ip != 0) "%d.%d.%d.%d".format(ip ushr 24 and 255, ip ushr 16 and 255, ip ushr 8 and 255, ip and 255) else hote
                 val https = (drapeaux and 0x20) != 0
                 val url = (if (https) "https://" else "http://") + hoteHttp + (if (port != 0 && port != 80 && port != 443) ":$port" else "") + chemin
@@ -259,6 +318,7 @@ object LecteurSlim {
 
     /** Un nouveau flux : remplace (après un « flush ») ou se met à la suite du titre en cours (enchaînement sans blanc). */
     private fun ouvrir(url: String, auto: Boolean) {
+        h?.removeCallbacks(finSansSuite); h?.removeCallbacks(sansRelance)  // la suite est arrivée : pas de « plus de son »
         stat("STMc")
         val enchainer = !depuisFlush && lecteur != null && etat == "lecture"
         depuisFlush = false
@@ -271,7 +331,7 @@ object LecteurSlim {
                 } else {
                     lecteur = p
                     decodeurPret = false
-                    if (auto) { p.start(); debutTitre(); etat = "lecture"; stat("STMs") } else stat("STMl")
+                    if (auto) { fonduEntree(p); p.start(); debutTitre(); etat = "lecture"; stat("STMs") } else stat("STMl")
                     surveillerFin()
                 }
             }
@@ -285,13 +345,102 @@ object LecteurSlim {
     }
 
     /** 10 s avant la fin du titre : « décodeur prêt » — Music Assistant envoie alors le suivant, préparé à l'avance. */
+    /**
+     * l'auteur (16/10, 1.93.0 : « un morceau s'est terminé et la lecture s'est arrêtée là ») : « décodeur prêt » (STMd) dit à
+     * Music Assistant de préparer le titre suivant. Il partait 10 s avant la fin d'après la durée du lecteur d'Android,
+     * inconnue pour un flux sans longueur (celui de Music Assistant : FluxUnique.getSize() = -1) : STMd ne partait qu'à
+     * la fin, collé à STMu ; Music Assistant (aioslimproto) recevait « plus de son » avant d'avoir préparé la suite et
+     * arrêtait la file. STMd part maintenant dès que le flux est entièrement reçu (le sens de STMd chez squeezelite),
+     * la durée restant un secours. Pur (testé en JVM).
+     */
+    fun decodeurPretMaintenant(deja: Boolean, dureeMs: Int, positionMs: Int, fluxRecu: Boolean, dureeHaMs: Long = 0L): Boolean = when {
+        deja -> false
+        // 1.93.06 (l'auteur, retour 40) : STMd dès le flux reçu (une minute après le début) faisait passer Music Assistant au titre
+        // suivant 64 s après le début (« Fine Day Anthem » 194 s → « BAM BAM » à 15:39:05) : titre, position et état
+        // dérivaient, et le bouton Pause redevenait « Lecture ». Avec la durée du titre connue de HA : 15 s avant la fin.
+        dureeHaMs > 0L -> dureeHaMs - positionMs <= AVANCE_STMD_MS
+        else -> fluxRecu || (dureeMs > 0 && (dureeMs - positionMs) in 0..10_000)
+    }
+
+    /**
+     * La réponse à « u » (démarrer / reprendre). Un titre chargé sans démarrage (STMl, « démarrage 2 » de Music Assistant
+     * après une relance) qui part : « STMs » (titre démarré, comme squeezelite) ; une pause qui reprend : « STMr ». Pur.
+     */
+    fun reponseAuDemarrage(chargeSansDemarrage: Boolean, enPause: Boolean): String =
+        if (chargeSansDemarrage && !enPause) "STMs" else "STMr"
+
+    /** Retour 40 : « décodeur prêt » part tant d'avance sur la fin réelle (Music Assistant prépare la suite en ~1,5 s). */
+    const val AVANCE_STMD_MS = 15_000L
+
+    /** La durée du titre en cours d'après Home Assistant (ms), 0 si inconnue ; relue au début de chaque titre. */
+    @Volatile private var dureeHaMs = 0L
+
+    /** La durée (s) du titre que joue le lecteur de CET appareil, d'après HA ; null si inconnue. Remplaçable (essais). */
+    @Volatile var lireDuree: (Context) -> Double? = { c ->
+        try {
+            val cfg = Config(c)
+            val e = Party.analyser(Net.post(c, cfg, "/api/pc_parental/party/etat", org.json.JSONObject().put("id", cfg.id).put("secret", cfg.secret), 8_000))
+            if (e.ici && LecteurMusique.positionLocale(c, e.ici, e.lecteurNom) != null) e.maintenant.duree else null
+        } catch (_: Exception) { null }
+    }
+
+    /** Au début d'un titre : sa durée selon HA, relue une fois que Music Assistant a pris le nouveau titre (2 s). */
+    private fun relireDuree() {
+        dureeHaMs = 0L
+        val c = ctxApp ?: return
+        val debut = debutsTitre
+        h?.postDelayed({
+            Thread {
+                val d = lireDuree(c)
+                if (debutsTitre == debut && d != null && d > 1.0) dureeHaMs = (d * 1000).toLong()
+            }.apply { isDaemon = true }.start()
+        }, 2_000)
+    }
+
+    /** À la fin d'un titre sans suite prête : le temps laissé à Music Assistant pour envoyer la suite avant STMu. */
+    const val ATTENTE_SUITE_MS = 4_000L
+
+    /** Après une demande de suite à HA : le temps laissé à Music Assistant pour envoyer le titre demandé. */
+    const val ATTENTE_RELANCE_MS = 8_000L
+
+    /**
+     * l'auteur (17/10, point 25 : « un morceau s'est terminé et le suivant ne s'est pas lancé », 1.93.03, toujours « en cours »
+     * bloqué à 4 s) : Music Assistant n'envoie le titre suivant qu'une fois, et seulement si le lecteur est alors « en
+     * lecture » (file, `_enqueue_next_item_on_player`) ; s'il y renonce, rien ne le relance, et une file qui a encore des
+     * titres reste à l'arrêt après STMu. Avant de dire « plus de son », on demande donc à HA le titre suivant (action
+     * `suite`, sur le lecteur de l'appareil) ; STMu ne part que si HA refuse (fin de file) ou si rien n'arrive.
+     * Remplaçable pour les essais.
+     */
+    @Volatile var demanderSuite: (Context) -> Boolean = { c ->
+        try {
+            val cfg = Config(c)
+            Net.post(c, cfg, "/api/pc_parental/veille/musique",
+                org.json.JSONObject().put("id", cfg.id).put("secret", cfg.secret).put("action", "suite"), 9_000).optBoolean("relance")
+        } catch (_: Exception) { false }
+    }
+
+    private val sansRelance = Runnable { if (lecteur == null && etat == "arrêt") stat("STMu") }
+
+    private val finSansSuite = Runnable {
+        if (lecteur != null || etat != "arrêt") return@Runnable
+        val c = ctxApp ?: run { stat("STMu"); return@Runnable }
+        Thread {
+            val relance = demanderSuite(c)
+            h?.post {
+                if (lecteur != null || etat != "arrêt") return@post
+                if (relance) { h?.removeCallbacks(sansRelance); h?.postDelayed(sansRelance, ATTENTE_RELANCE_MS) } else stat("STMu")
+            }
+        }.apply { isDaemon = true }.start()
+    }
+
     private fun surveillerFin() {
         val mp = lecteur ?: return
         h?.postDelayed(object : Runnable {
             override fun run() {
                 if (lecteur !== mp) return
-                val reste = try { mp.duration - mp.currentPosition } catch (_: Exception) { -1 }
-                if (!decodeurPret && mp.duration > 0 && reste in 0..10_000) { decodeurPret = true; stat("STMd") }
+                val duree = try { mp.duration } catch (_: Exception) { -1 }
+                val position = try { mp.currentPosition } catch (_: Exception) { 0 }
+                if (decodeurPretMaintenant(decodeurPret, duree, position, (sources[mp] as? FluxUnique)?.telecharge == true, dureeHaMs)) { decodeurPret = true; stat("STMd") }
                 if (etat == "lecture") stat("STMt")
                 h?.postDelayed(this, 1_000)
             }
@@ -300,6 +449,7 @@ object LecteurSlim {
 
     private fun fin(fini: MediaPlayer) {
         if (fini !== lecteur) return
+        derniereFinMs = SystemClock.elapsedRealtime()
         val n = suivant
         suivant = null
         relacher(fini)
@@ -308,8 +458,10 @@ object LecteurSlim {
             stat("STMs"); surveillerFin()
         } else {
             lecteur = null
+            etat = "arrêt"
+            // Pas encore de suite : STMd (si pas déjà dit), puis STMu seulement si rien n'arrive (voir decodeurPretMaintenant).
             if (!decodeurPret) stat("STMd")
-            etat = "arrêt"; stat("STMu")
+            h?.removeCallbacks(finSansSuite); h?.postDelayed(finSansSuite, ATTENTE_SUITE_MS)
         }
     }
 
@@ -317,6 +469,23 @@ object LecteurSlim {
         val v = if (allume) volume else 0f
         try { lecteur?.setVolume(v, v) } catch (_: Exception) {}
         try { suivant?.setVolume(v, v) } catch (_: Exception) {}
+    }
+
+    /**
+     * l'auteur (16/10, « un petit cliquetis » à chaque saut) : couper net un son qui joue fait un clic. Avant un arrêt (saut,
+     * titre changé à la main), le volume descend en 60 ms ; un nouveau flux qui part de lui-même monte en 150 ms.
+     */
+    private fun fonduSortie() {
+        val m = lecteur ?: return
+        if (etat != "lecture") return
+        val cible = if (allume) volume else 0f
+        for (k in 3 downTo 0) { try { m.setVolume(cible * k / 4f, cible * k / 4f) } catch (_: Exception) { return }; SystemClock.sleep(15) }
+    }
+
+    private fun fonduEntree(p: MediaPlayer) {
+        val cible = if (allume) volume else 0f
+        try { p.setVolume(0f, 0f) } catch (_: Exception) { return }
+        for (k in 1..5) h?.postDelayed({ if (lecteur === p) try { p.setVolume(cible * k / 5f, cible * k / 5f) } catch (_: Exception) {} }, k * 30L)
     }
 
     private fun liberer(except: MediaPlayer? = null) {

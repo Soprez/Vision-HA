@@ -111,6 +111,11 @@ object PageVeille {
                 // Un certificat que l'appareil ne reconnaît pas : on ne passe jamais outre, le dessin de l'appli prend le relais.
                 override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) { handler.cancel(); panne() }
                 override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean { panne(); return true }
+                // Relecture sécurité (reprise de 6104948, lot veille) : la page reste sur l'origine de Home Assistant écrite
+                // par l'administrateur ; une redirection ou un lien vers un autre site n'est pas suivi (le pont VisionAndroid
+                // ne doit jamais être offert à une autre page).
+                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
+                    request.isForMainFrame && !memeOrigine(request.url.toString(), chargee)
             }
             web = w
             prete = false
@@ -155,7 +160,7 @@ object PageVeille {
     fun reprendreLaPage() {
         val w = web ?: return
         try { (w.parent as? ViewGroup)?.removeView(w) } catch (_: Exception) {}
-        try { w.animate().cancel(); w.alpha = 1f } catch (_: Exception) {}
+        try { w.animate().cancel(); w.alpha = 1f; w.translationX = 0f; w.translationY = 0f } catch (_: Exception) {}
         if (prete) endormir()
     }
 
@@ -178,6 +183,20 @@ object PageVeille {
 
     /** Une couleur translucide posée sur le fond : la teinte réellement vue. */
     private fun surFond(c: Int, fond: Int): Int = Palette.melanger(fond, c, Color.alpha(c) / 255f)
+
+    /**
+     * 1.91.2 : l'horloge de la page pour cet appareil : celle choisie pour sa veille (ou celle de son accueil). Une
+     * horloge de thème est le paramètre « horloge » ; un style de Vision passe par « hstyle » (une page qui ne le connaît
+     * pas garde l'horloge du thème). Rien de choisi : l'horloge du thème, comme avant.
+     */
+    fun horloge(ctx: Context, t: Theme): String {
+        val style = Local.styleHorlogeVeilleChoisi(ctx)
+        return when {
+            style == null -> "horloge=${Themes.cle(t.nom)}"
+            StylesHorloge.estWeb(style) -> "horloge=${StylesHorloge.cleWeb(style)}"
+            else -> "horloge=${Themes.cle(t.nom)}&hstyle=$style"
+        }
+    }
 
     private fun adresse(ctx: Context): String {
         val cfg = Config(ctx)
@@ -205,8 +224,21 @@ object PageVeille {
         val q = "id=${e(cfg.id)}&ecran=$ecran&dec=0" +
             "&fond=${hex(t.fond)}&carte=${hex(carte)}&texte=${hex(t.encre)}&texte2=${hex(t.encre2)}&accent=${hex(accent)}&ligne=${hex(Palette.melanger(carte, t.encre, 0.18f))}" +
             "&masques=${e(masques.joinToString(","))}&cartes=${e(cartes.joinToString(","))}&durees=${e(durees.joinToString(","))}" +
-            "&horloge=${Themes.cle(t.nom)}&style=${Local.styleCartes(ctx)}&cfond=${if (Local.fondCartes(ctx)) 1 else 0}&ccontour=${if (Local.contourCartes(ctx)) 1 else 0}&anim=${if (Local.animerCartes(ctx)) 1 else 0}&figees=${e(figees.joinToString(","))}"
+            "&${horloge(ctx, t)}&pastille=${if (Local.pastilleVeille(ctx)) 1 else 0}&style=${Local.styleCartes(ctx)}&cfond=${if (Local.fondCartes(ctx)) 1 else 0}&ccontour=${if (Local.contourCartes(ctx)) 1 else 0}&anim=${if (Local.animerCartes(ctx)) 1 else 0}&figees=${e(figees.joinToString(","))}" +
+            coinsPage(ctx)
         return "$base/api/pc_parental/veille/entree#t=$jeton&q=${e(q).replace("+", "%20")}"
+    }
+
+    /**
+     * 1.93.05 (l'auteur, retour 39) : les coins de la veille pour la page de Home Assistant — où se pose son œil (« logo »,
+     * ou « cache ») et, quand le QR des invités, le logo ou le bandeau prennent un coin de droite, de combien la demande
+     * (en bas) et la petite heure (en haut) se décalent vers la gauche (« adroite », « pdroite », en % de la largeur).
+     */
+    internal fun coinsPage(ctx: Context, w: Float = 1000f, h: Float = 562.5f): String {
+        val qr = OptionsVeille.qr(ctx); val logo = OptionsVeille.logo(ctx); val lecteur = OptionsVeille.lecteur(ctx)
+        fun decalage(coin: String): String = CoinsVeille.Coins.occupant(coin, qr, logo, lecteur, w, h)
+            ?.let { String.format(java.util.Locale.ROOT, "%.1f", (w - it.left + w * 0.015f) / w * 100f) } ?: ""
+        return "&logo=$logo&adroite=${decalage(OptionsVeille.BD)}&pdroite=${decalage(OptionsVeille.HD)}"
     }
 }
 
@@ -254,6 +286,13 @@ class VeilleWeb(private val cadre: FrameLayout, private val native: VeilleView) 
         web = null
         montree = false
         native.couverte = false
+    }
+
+    /** Veille-lot : la dérive anti-marquage s'applique aussi à la page (pixels entiers, très lente). */
+    fun deriver(dx: Int, dy: Int) {
+        val w = web ?: return
+        if (w.translationX != dx.toFloat()) w.translationX = dx.toFloat()
+        if (w.translationY != dy.toFloat()) w.translationY = dy.toFloat()
     }
 
     fun naviguer(delta: Int) { PageVeille.js("window.__visionVeille&&window.__visionVeille.aller(${if (delta < 0) -1 else 1})") }
@@ -318,4 +357,12 @@ class VeilleWeb(private val cadre: FrameLayout, private val native: VeilleView) 
             vue.web = VeilleWeb(cadre, vue)
         }
     }
+}
+
+/** Même schéma, même hôte, même port (port par défaut du schéma compris) : la seule navigation permise à la page de veille. */
+internal fun memeOrigine(a: String, b: String): Boolean {
+    fun port(u: java.net.URI) = if (u.port != -1) u.port else when (u.scheme?.lowercase()) { "https" -> 443; "http" -> 80; else -> -1 }
+    val x = try { java.net.URI(a) } catch (_: Exception) { return false }
+    val y = try { java.net.URI(b) } catch (_: Exception) { return false }
+    return x.scheme != null && x.host != null && x.scheme.equals(y.scheme, true) && x.host.equals(y.host, true) && port(x) == port(y)
 }

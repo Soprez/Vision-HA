@@ -99,6 +99,15 @@ class CamerasCouche(ctx: Context) : FrameLayout(ctx) {
 
     fun actifs(): Boolean = lecteurs.isNotEmpty()
 
+    /** Veille-lot : une seule caméra en direct à la fois — les autres flux sont fermés (pas seulement cachés). */
+    fun garderSeulement(ids: Set<String>) {
+        lecteurs.keys.filter { it !in ids }.forEach { fermer(it) }
+        if (lecteurs.isEmpty()) { main.removeCallbacks(garde); visibility = GONE }
+    }
+
+    /** Veille-lot : le flux de cette caméra a échoué (la case retombe sur son image). */
+    fun echoue(id: String): Boolean = lecteurs[id]?.echec == true
+
     /** Entre deux tableaux caméras : tout reste ouvert et chaud, mais rien ne se voit. */
     fun masquer() {
         lecteurs.values.forEach { it.texture?.alpha = 0f }

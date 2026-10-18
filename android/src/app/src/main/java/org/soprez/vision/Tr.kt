@@ -71,6 +71,12 @@ object Tr {
     }
 
     /** « 1 h 30 », « 45 min », « 2 h » : les unités et l'ordre viennent des ressources. */
+    /**
+     * Lot 6 : une abréviation qui finit une phrase ne double pas son point (« noch 1 Std. 20 Min.. » en allemand) ;
+     * les points de suspension (« ... ») ne sont pas touchés.
+     */
+    fun finPhrase(texte: String): String = texte.replace(Regex("""(?<!\.)\.\.(?!\.)"""), ".")
+
     fun duree(min: Int): String = when {
         min < 60 -> s(R.string.tr_duree_min, min)
         min % 60 == 0 -> s(R.string.tr_duree_h, min / 60)

@@ -76,29 +76,112 @@ object LecteurSendspin {
         return c.positionMs()?.let { it / 1000.0 }
     }
 
+    /** Banc Musique (essais de bout en bout) : l'état vu du serveur et les mesures de la sortie, en lecture seule. */
+    val etatClient: SendspinClient.Etat? get() = client?.etat
+    val mesures: SendspinSortie.Mesures? get() = client?.sortie?.mesures
+    fun positionMs(): Long? = client?.positionMs()
+
     /** Une commande de lecture vers Music Assistant (rôle controller). Jamais de volume. */
     fun commande(c: String) { client?.commande(c) }
 
     /** L'appairage (lot 6) : autoriser un appairage exigeant à la télécommande, ou l'annuler. */
     fun autoriserAppairage() { client?.ouvrirFenetreAppairage() }
-    fun annulerAppairage() { client?.annulerAppairage() }
+    fun annulerAppairage() { client?.annulerAppairage(); manuelJusqua = 0L }
     private var pinMontre: String? = null
-    private var appairageMontre: String? = null
+    private var gesteMontre = false
 
-    // ------------------------------------------------------------------ MediaSession
+    // ------------------------------------------------------------------ appairage automatique (1.90.1)
+
+    // 1.90.1 / HA 2.4.5 (l'auteur : « on peut pas faire un truc automatique ? ») : pas encore appairé à Music Assistant, ce
+    // lecteur demande à Home Assistant (canal Vision authentifié) de lancer son appairage ; le PIN que MA fait tirer
+    // part vers Home Assistant (jamais ailleurs), qui le soumet à MA.
+    // 1.90.2 (exigence ferme de l'auteur) : l'appairage automatique est muet. Le code ne s'affiche JAMAIS, même en cas d'échec
+    // ou de lenteur ; un échec se lit dans Réglages › Décideurs 🔒 (sans code), d'où l'on peut « Appairer à la main ».
+    @Volatile private var dernierDemarrage = 0L
+    private var pinEnvoye: String? = null
+    /** La raison du dernier échec de l'appairage automatique (null : aucun). */
+    @Volatile var echecAuto: String? = null; private set
+    /** L'appairage à la main, demandé dans Réglages › Décideurs 🔒 : le code peut s'afficher jusqu'à cette heure. */
+    @Volatile private var manuelJusqua = 0L
+    const val MANUEL_MS = 5 * 60_000L
+
+    fun manuel(): Boolean = android.os.SystemClock.elapsedRealtime() < manuelJusqua
+
+    /** L'état de l'appairage, pour Réglages › Décideurs. */
+    fun statut(): SendspinAppairageAuto.Statut {
+        val e = client?.etat ?: SendspinClient.Etat()
+        return SendspinAppairageAuto.statut(e.connecte, e.confiance, echecAuto)
+    }
+
+    /** Réglages › Décideurs 🔒 « Appairer à la main » : l'écran d'appairage s'ouvre (« Connexion à la musique… »),
+     *  le code de Music Assistant s'y affichera quand on lancera l'appairage dans Music Assistant. */
+    fun appairerALaMain(ctx: Context) {
+        manuelJusqua = android.os.SystemClock.elapsedRealtime() + MANUEL_MS
+        pinMontre = null; gesteMontre = false
+        AppairageSendspinActivity.attendre(ctx)
+        dernierEtat?.let { majSession(it) }
+    }
+
+    private fun appairageAuto(ctx: Context, e: SendspinClient.Etat) {
+        if (e.connecte && e.confiance == "user") echecAuto = null
+        val maintenant = android.os.SystemClock.elapsedRealtime()
+        if (SendspinAppairageAuto.demarrer(e.connecte, e.confiance, e.appairage, e.pin, dernierDemarrage, maintenant)) {
+            dernierDemarrage = maintenant
+            demanderHa(ctx, org.json.JSONObject().put("etape", "demarrer").put("lecteur", SendspinIdentite.de(ctx).clientId)) { r ->
+                SendspinAppairageAuto.echec("demarrer", r)?.let { echecAuto = it }
+            }
+        }
+        SendspinAppairageAuto.pinAEnvoyer(e.pin, pinEnvoye)?.let { pin ->
+            pinEnvoye = pin
+            demanderHa(ctx, org.json.JSONObject().put("etape", "pin").put("pin", pin)) { r ->
+                echecAuto = SendspinAppairageAuto.echec("pin", r)
+            }
+        }
+        if (e.pin == null) pinEnvoye = null
+    }
+
+    private var dernierEtat: SendspinClient.Etat? = null
+
+    private fun demanderHa(ctx: Context, corps: org.json.JSONObject, fin: (String) -> Unit) {
+        val etape = corps.optString("etape")
+        Thread {
+            val resultat = try {
+                val cfg = Config(ctx)
+                if (cfg.id.isEmpty()) "" else
+                    Net.post(ctx, cfg, "/api/pc_parental/sendspin/appairage", corps.put("id", cfg.id).put("secret", cfg.secret), 30_000).optString("resultat")
+            } catch (ex: Exception) {
+                Log.i(TAG, "appairage par Home Assistant impossible ($etape) : ${ex.javaClass.simpleName}"); ""
+            }
+            Log.i(TAG, "appairage par Home Assistant : $etape → $resultat")
+            main.post { fin(resultat) }
+        }.start()
+    }
+
+    /** Pour les essais instrumentés : un état de Music Assistant comme s'il venait du client. */
+    internal fun essaiEtat(ctx: Context, e: SendspinClient.Etat) {
+        ctxApp = ctx.applicationContext; actif = true
+        majSession(e)
+    }
+
+    /** Pour les essais : tout remettre à zéro. */
+    internal fun essaiRaz() {
+        actif = false; dernierEtat = null; dernierDemarrage = 0L; pinEnvoye = null; echecAuto = null; manuelJusqua = 0L
+        pinMontre = null; gesteMontre = false
+    }
 
     private fun majSession(e: SendspinClient.Etat) {
         val ctx = ctxApp ?: return
         if (!actif) return
-        // L'appairage à l'écran : le PIN demandé par Music Assistant, ou l'autorisation à la télécommande.
-        if (e.pin != pinMontre) { pinMontre = e.pin; if (e.pin != null) AppairageSendspinActivity.montrerPin(ctx, e.pin) else AppairageSendspinActivity.fermer() }
-        if (e.appairage != appairageMontre) {
-            appairageMontre = e.appairage
-            when (e.appairage) {
-                "attente_geste" -> AppairageSendspinActivity.demanderGeste(ctx)
-                "fini", "abandon" -> AppairageSendspinActivity.fermer()
-            }
-        }
+        dernierEtat = e
+        appairageAuto(ctx, e)
+        // L'appairage à l'écran : seulement à la main (Réglages › Décideurs 🔒), jamais pendant l'automatique (1.90.2).
+        val manuel = manuel()
+        val pinVu = SendspinAppairageAuto.pinAMontrer(e.confiance, e.pin, manuel)
+        if (pinVu != pinMontre) { pinMontre = pinVu; if (pinVu != null) AppairageSendspinActivity.montrerPin(ctx, pinVu) }
+        val geste = SendspinAppairageAuto.gesteAMontrer(e.confiance, e.appairage, manuel)
+        if (geste != gesteMontre) { gesteMontre = geste; if (geste) AppairageSendspinActivity.demanderGeste(ctx) }
+        if (manuel && e.connecte && e.confiance == "user") { manuelJusqua = 0L; AppairageSendspinActivity.reussi() }
+        else if (manuel && e.appairage == "abandon") AppairageSendspinActivity.echec()
         if (session == null && (e.lit || e.titre != null)) {
             try {
                 val j = Joueur()

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.4 (decision de l'auteur) : liaison sans code ; Nouvel appareil chez un Decideur. -->
+<resources>
+    <string name="liaison_sans_code_attente">Warte auf Bestätigung…</string>
+    <string name="liaison_sans_code_explication">Ein %1$s erhält die Anfrage auf dem Handy und nimmt sie mit einem Tippen an.</string>
+    <string name="liaison_sans_code_aucun">Kein Handy eines %1$s hat die Anfrage erhalten: nutze „Andere Methode“.</string>
+    <string name="liaison_sans_code_valable">Anfrage noch %1$d:%2$02d gültig</string>
+    <string name="liaison_sans_code_autre_methode">Andere Methode</string>
+    <string name="liaison_sans_code_expiree">Die Anfrage ist abgelaufen.</string>
+    <string name="liaison_sans_code_remplacee">Eine neue Anfrage hat diese ersetzt.</string>
+    <string name="liaison_sans_code_redemander">Erneut anfragen</string>
+    <string name="nouvel_appareil_titre">Neues Gerät</string>
+    <string name="nouvel_appareil_pas_de_droits">Nur das Gerät eines %1$s kann ein neues Gerät annehmen.</string>
+    <string name="nouvel_appareil_aucune">Keine offene Anfrage.</string>
+    <string name="nouvel_appareil_demande">Anfrage erhalten um %1$s</string>
+    <string name="nouvel_appareil_reprise">Übernimmt „%1$s“.</string>
+    <string name="nouvel_appareil_a_qui">Wem gehört dieses Gerät?</string>
+    <string name="nouvel_appareil_partage">Gemeinsamer Bildschirm — %1$s</string>
+    <string name="nouvel_appareil_accepter">Annehmen</string>
+    <string name="nouvel_appareil_refuser">Ablehnen</string>
+    <string name="nouvel_appareil_choisir">Wähle, wem dieses Gerät gehört.</string>
+    <string name="nouvel_appareil_accepte">„%1$s“ ist verbunden.</string>
+    <string name="nouvel_appareil_refuse">Anfrage abgelehnt.</string>
+    <string name="nouvel_appareil_deja">Diese Anfrage wurde schon bearbeitet oder ist abgelaufen.</string>
+    <string name="nouvel_appareil_notif">„%1$s“ möchte verbunden werden. Tippe, um anzunehmen oder abzulehnen.</string>
+    <string name="manifeste_nouvel_appareil">Neues Gerät</string>
+</resources>

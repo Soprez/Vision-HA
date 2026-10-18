@@ -24,15 +24,30 @@ import javax.net.ssl.X509TrustManager
  * système, sans jamais désactiver la vérification.
  */
 object Net {
-    class Echec(val code: Int, message: String, val corps: JSONObject? = null) : IOException(message)
+    open class Echec(val code: Int, message: String, val corps: JSONObject? = null) : IOException(message)
 
     @Volatile private var fabrique: SSLSocketFactory? = null
 
-    fun post(ctx: Context, cfg: Config, chemin: String, corps: JSONObject, delaiMs: Int = 8000): JSONObject {
+    /**
+     * Retours de l'auteur (15-10, recherche instantanée) : une requête qu'on peut couper. [annuler] ferme la connexion en
+     * cours ; l'appel lève alors une IOException, et aucune autre adresse n'est essayée.
+     */
+    class Annulation {
+        @Volatile var annulee = false
+            private set
+        @Volatile internal var connexion: HttpURLConnection? = null
+        fun annuler() { annulee = true; try { connexion?.disconnect() } catch (_: Exception) {} }
+    }
+
+    fun post(ctx: Context, cfg: Config, chemin: String, corps: JSONObject, delaiMs: Int = 8000, annulation: Annulation? = null): JSONObject {
+        // FAILLE DE SÉCURITÉ (l'auteur, 16-10) : aucune requête qui accorde ou déverrouille ne part sans une preuve
+        // d'authentification fraîche et à usage unique (Garde.exigerOctroi) — un chemin oublié échoue fermé.
+        if (Octroi.estOctroi(chemin, corps) && !Octroi.consommer()) throw Octroi.SansPreuve()
         var derniere: Exception? = null
         for (base in cfg.adresses()) {
+            if (annulation?.annulee == true) throw IOException("cancelled")
             try {
-                val r = postUne(ctx, base + chemin, corps, delaiMs)
+                val r = envoyerUne(ctx, base + chemin, corps, delaiMs, annulation)
                 if (cfg.urlActive != base) cfg.urlActive = base
                 return r
             } catch (e: Echec) {
@@ -46,8 +61,16 @@ object Net {
         throw derniere ?: IOException(ctx.getString(R.string.net_aucune_adresse))
     }
 
-    fun postUne(ctx: Context, url: String, corps: JSONObject, delaiMs: Int = 8000): JSONObject {
+    fun postUne(ctx: Context, url: String, corps: JSONObject, delaiMs: Int = 8000, annulation: Annulation? = null): JSONObject {
+        // Même verrou que post() : une adresse donnée à la main ne contourne pas la preuve d'octroi.
+        if (Octroi.estOctroi(url, corps) && !Octroi.consommer()) throw Octroi.SansPreuve()
+        return envoyerUne(ctx, url, corps, delaiMs, annulation)
+    }
+
+    private fun envoyerUne(ctx: Context, url: String, corps: JSONObject, delaiMs: Int, annulation: Annulation?): JSONObject {
         val c = URL(url).openConnection() as HttpURLConnection
+        annulation?.connexion = c
+        if (annulation?.annulee == true) throw IOException("cancelled")
         if (c is HttpsURLConnection) c.sslSocketFactory = fabrique(ctx)
         c.connectTimeout = delaiMs
         c.readTimeout = delaiMs
@@ -70,6 +93,7 @@ object Net {
 
     /** Un POST qui renvoie des octets (une image de caméra). Null en cas d'échec, sans lever. */
     fun postBytes(ctx: Context, cfg: Config, chemin: String, corps: JSONObject, delaiMs: Int = 8000): ByteArray? {
+        if (Octroi.estOctroi(chemin, corps) && !Octroi.consommer()) return null
         val base = cfg.urlActive.ifEmpty { cfg.adresses().firstOrNull() ?: return null }
         val c = URL(base + chemin).openConnection() as HttpURLConnection
         if (c is HttpsURLConnection) c.sslSocketFactory = fabrique(ctx)

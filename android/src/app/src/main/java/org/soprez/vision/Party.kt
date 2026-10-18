@@ -44,7 +44,9 @@ object Party {
     /** Un choix de musique (Music Assistant) : playlist, radio, album, artiste ou titre. */
     data class Choix(val uri: String, val nom: String, val type: String, val artiste: String, val image: String, val source: String = "", val domaine: String = "",
                      /** 1.86.13 (retour d'essai) : le nombre de titres (playlist), et « playlist fabriquée par Music Assistant ». */
-                     val nb: Int = -1, val auto: Boolean = false)
+                     val nb: Int = -1, val auto: Boolean = false,
+                     /** l'auteur (15/10) : marqué d'un cœur dans Music Assistant (le cœur de Vision, CoeurFavori, le change). */
+                     val favori: Boolean = false)
     /** 1.86.10 (retour d'essai) : une plateforme de musique reliée à Music Assistant (« library » : la bibliothèque). */
     data class Plateforme(val domaine: String, val nom: String)
 
@@ -61,6 +63,13 @@ object Party {
     } catch (_: Exception) { emptyList() }
     fun garderPlateformes(ctx: Context, l: List<Plateforme>) =
         prefs(ctx).edit().putString("plateformes", org.json.JSONArray().apply { l.forEach { put(JSONObject().put("domaine", it.domaine).put("nom", it.nom)) } }.toString()).apply()
+    /**
+     * Ce qui, dans l'état reçu, change l'écran du lecteur : tout, sauf la position dans le titre (la barre avance seule,
+     * sans redessin), le délai de relecture et le dernier saut. 17-10 (l'auteur, point 15) : « saut » change à CHAQUE saut
+     * dans le titre ; il rebâtissait tout l'écran, et la file, recentrée sur le titre en cours, sautait vers le bas.
+     */
+    fun pourAffichage(x: Etat): Etat = x.copy(maintenant = x.maintenant.copy(position = null, positionTs = null), relire = 0, saut = null)
+
     data class Maintenant(
         val etat: String, val titre: String, val artiste: String, val album: String, val appli: String,
         val volume: Double?, val duree: Double?, val position: Double?, val positionTs: Double?, val pochette: String,
@@ -86,7 +95,35 @@ object Party {
         val enchainement: Enchainement? = null,
         // 1.86.2 (retour d'essai) : file vide et musique arrêtée → le numéro du clin d'œil tiré par Home Assistant (-1 : rien).
         val finClin: Int = -1,
+        // 1.91.0 : le dernier saut dans le titre (Home Assistant, 30 s), pour recaler le lecteur Classique de cet appareil.
+        val saut: Saut.Info? = null,
+        // l'auteur (16/10) : les derniers titres joués (du plus ancien au plus récent) ; la file les montre au-dessus du titre
+        // en cours, qu'elle garde en vue.
+        val filePasses: List<Titre> = emptyList(),
+        // 17-10 (l'auteur, point 8) : le mode soirée (invités par QR code) ouvert ; fermé, ni QR code ni lien qui marche.
+        val invitesOuverts: Boolean = true,
     )
+
+    /**
+     * l'auteur (16/10) : la page invités prend le thème de l'appareil qui affiche le code. Ses couleurs voyagent dans
+     * l'adresse du code (`th` : fond, encre, encre2, carte, bord, accent, texte sur l'accent, accent en texte), lues et
+     * vérifiées par Home Assistant (2.5.8), qui garde son thème si elles manquent. Pur (testé en JVM).
+     */
+    fun qrAvecTheme(adresse: String, th: Theme): String {
+        if (adresse.isEmpty() || "th=" in adresse) return adresse
+        // Une couleur transparente (le bord des cartes) est vue posée sur le fond : on envoie ce qu'on voit.
+        fun h(c: Int): String {
+            val a = c ushr 24
+            fun canal(x: Int, d: Int) = (x shr d) and 0xFF
+            val t = a / 255f
+            val vue = if (a == 0xFF) c else listOf(16, 8, 0).fold(0) { acc, d ->
+                acc or (Math.round(canal(th.fond, d) * (1 - t) + canal(c, d) * t) shl d)
+            }
+            return "%06x".format(vue and 0xFFFFFF)
+        }
+        val couleurs = listOf(th.fond, th.encre, th.encre2, th.carte, th.carteBord, th.or, th.fond, th.or).joinToString(",") { h(it) }
+        return adresse + (if ('?' in adresse) "&" else "?") + "th=" + couleurs
+    }
 
     private fun JSONObject.nombre(k: String): Double? = if (isNull(k) || !has(k)) null else optDouble(k).takeIf { !it.isNaN() }
     private fun objets(a: JSONArray?): List<JSONObject> = (0 until (a?.length() ?: 0)).mapNotNull { a?.optJSONObject(it) }
@@ -117,6 +154,7 @@ object Party {
                 m.nombre("position_ts"), m.optString("pochette"), m.optBoolean("groupe"),
                 objets(m.optJSONArray("membres")).map { Membre(it.optString("id"), it.optString("nom"), it.nombre("volume")) }.filter { it.id.startsWith("media_player.") }),
             file = objets(o.optJSONArray("file")).map { Titre(it.optString("titre"), it.optString("artiste"), it.optString("id"), it.optBoolean("invite"), image(it)) }.filter { it.titre.isNotEmpty() },
+            filePasses = objets(o.optJSONArray("file_passes")).map { Titre(it.optString("titre"), it.optString("artiste"), it.optString("id"), false, image(it)) }.filter { it.titre.isNotEmpty() },
             piloter = o.optBoolean("piloter"),
             ecrans = objets(o.optJSONArray("ecrans")).map { Ecran(it.optString("id"), it.optString("nom")) }.filter { it.id.isNotEmpty() },
             lecteurs = objets(o.optJSONArray("lecteurs")).map { Lecteur(it.optString("entity_id"), it.optString("nom"), it.optString("etat"), it.optBoolean("groupe"), it.optBoolean("ma"),
@@ -135,6 +173,8 @@ object Party {
                 Enchainement(x.optBoolean("flux"), x.optBoolean("fondu"), if (x.isNull("duree")) null else x.optInt("duree"), x.optBoolean("precharge"))
             },
             finClin = o.optInt("fin_clin", -1),
+            saut = Saut.analyser(o.optJSONObject("saut")),
+            invitesOuverts = o.optBoolean("invites_ouverts", true),
         )
     }
 
@@ -146,6 +186,12 @@ object Party {
      */
     fun image(x: JSONObject): String = imagePour(x.optString("image_ref"), x.optString("image"))
 
+    /** 1.90.2 : combien de titres suivants ont leur pochette préchargée. */
+    const val PRECHARGE = 6
+
+    /** 1.90.2 : la clé d'un titre (titre et artiste, sans casse) pour retrouver sa vignette quand il passe en cours. */
+    fun cleTitre(titre: String, artiste: String): String = titre.trim().lowercase() + "|" + artiste.trim().lowercase()
+
     fun imagePour(refBrute: String, image: String): String {
         val ref = refBrute.trim()
         if (ref.isNotEmpty() && ref.length <= 64 && ref.all { it in 'a'..'z' || it in 'A'..'Z' || it in '0'..'9' || it == '-' || it == '_' }) return Vignettes.RELAIS + ref
@@ -156,7 +202,7 @@ object Party {
     fun analyserChoix(o: JSONObject): List<Choix> {
         fun choix(x: JSONObject) = Choix(x.optString("uri"), x.optString("nom"), x.optString("type"), x.optString("artiste"),
             image(x), x.optString("source"), x.optString("domaine"),
-            if (x.has("nb") && !x.isNull("nb")) x.optInt("nb", -1) else -1, x.optBoolean("auto"))
+            if (x.has("nb") && !x.isNull("nb")) x.optInt("nb", -1) else -1, x.optBoolean("auto"), x.optBoolean("favori"))
         val sortie = ArrayList<Choix>()
         objets(o.optJSONArray("items")).forEach { sortie.add(choix(it)) }
         o.optJSONObject("resultats")?.let { r -> for (t in ORDRE_TYPES) objets(r.optJSONArray(t)).forEach { sortie.add(choix(it)) } }
@@ -191,6 +237,22 @@ object Party {
 
     /** La ligne d'un titre de la file, avec « proposé par un invité ». */
     fun ligneFile(t: Titre): String = listOf(t.artiste, if (t.invite) Tr.s(R.string.party_propose_invite) else "").filter { it.isNotEmpty() }.joinToString(" · ")
+
+    /**
+     * 1.93.06 (l'auteur, retour 40) : l'état que montre le bouton. Quand le lecteur de la soirée est le lecteur Classique de CET
+     * appareil et qu'il joue réellement, le bouton dit « Pause » même si Home Assistant le croit arrêté ou en pause (état
+     * de Music Assistant décalé, lecture déclarée « figée ») ; rien n'est changé pendant une demande pas encore confirmée.
+     * Pur (essais JVM).
+     */
+    fun etatAffiche(etatHa: String, lecteurLocal: Boolean, localJoue: Boolean, demandeEnCours: Boolean): String =
+        if (!demandeEnCours && lecteurLocal && localJoue && etatHa != "playing") "playing" else etatHa
+
+    /** Le même, appliqué à un état reçu (le lecteur local et son état lus ici). */
+    fun corrigerParLocal(ctx: Context, e: Etat, demandeEnCours: Boolean): Etat {
+        val local = LecteurMusique.positionLocale(ctx, e.ici, e.lecteurNom) != null
+        val etat = etatAffiche(e.maintenant.etat, local, LecteurMusique.etat == "lecture", demandeEnCours)
+        return if (etat == e.maintenant.etat) e else e.copy(maintenant = e.maintenant.copy(etat = etat))
+    }
 
     /** La position du morceau maintenant (il avance tout seul entre deux relectures), bornée à sa durée. */
     fun position(m: Maintenant, maintenantS: Double): Double? {
@@ -293,6 +355,7 @@ object Party {
         if (p == null || !ReglagesTvActivity.estTele(ctx)) return
         // 1.86.14 (retour d'essai) : le lecteur Music Assistant de cette télé joue-t-il ? (aucune veille tant que oui)
         VeilleMusique.releve(ctx, p.optBoolean("musique_joue"))
+        ToucheMedia.maintenir(ctx)  // 1.93.05 (retour 37) : la MediaSession suit la musique de cet appareil
         val depuis = p.optLong("depuis")
         if (p.optBoolean("ecran") && depuis != pr.getLong("ouverte", 0L)) {
             pr.edit().putLong("ouverte", depuis).apply()

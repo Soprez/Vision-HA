@@ -14,7 +14,7 @@ from party_musique_test import (  # noqa: F401  (fixtures du banc)
     ENFANT, PARENT, TELE, _integrations, _monter, _post, expected_lingering_tasks, expected_lingering_timers,
 )
 
-IMG = "http://192.168.1.11:8095/imageproxy?path=disney.jpg&provider=library&size=300"
+IMG = "http://10.1.1.11:8095/imageproxy?path=disney.jpg&provider=library&size=300"
 REF = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 

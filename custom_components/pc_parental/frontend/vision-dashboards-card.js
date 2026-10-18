@@ -9,7 +9,7 @@
 // ---- i18n:debut — les textes de cette carte, dans les six langues de Vision (fr source, en repli) ----
 const TEXTES = /*i18n-json*/{
   "fr": {
-    "ecran_tele": "Télé", "ecran_telephone": "Téléphone",
+    "ecran_tele": "Télé", "ecran_telephone": "Téléphone", "choix_ecrans": "Écrans", "choix_publics": "Publics",
     "public_affichage": "Affichage commun", "public_parent": "{Decideurs}", "public_enfant": "{Demandeurs}",
     "erreur_admin": "Réservé aux administrateurs de Home Assistant.",
     "erreur_loading": "Vision démarre : réessaie dans un instant.",
@@ -44,7 +44,7 @@ const TEXTES = /*i18n-json*/{
     "carte_description": "Choisir les tableaux de bord, vues et cartes repris par l'écran de veille."
   },
   "en": {
-    "ecran_tele": "TV", "ecran_telephone": "Phone",
+    "ecran_tele": "TV", "ecran_telephone": "Phone", "choix_ecrans": "Screens", "choix_publics": "Audiences",
     "public_affichage": "Shared screen", "public_parent": "{Decideurs}", "public_enfant": "{Demandeurs}",
     "erreur_admin": "Only Home Assistant administrators can do this.",
     "erreur_loading": "Vision is starting: try again in a moment.",
@@ -79,7 +79,7 @@ const TEXTES = /*i18n-json*/{
     "carte_description": "Choose the dashboards, views and cards shown on the screensaver."
   },
   "de": {
-    "ecran_tele": "Fernseher", "ecran_telephone": "Handy",
+    "ecran_tele": "Fernseher", "ecran_telephone": "Handy", "choix_ecrans": "Bildschirme", "choix_publics": "Zielgruppen",
     "public_affichage": "Gemeinsamer Bildschirm", "public_parent": "{Decideurs}", "public_enfant": "{Demandeurs}",
     "erreur_admin": "Nur für Home Assistant-Administratoren.",
     "erreur_loading": "Vision startet gerade: versuch es gleich noch einmal.",
@@ -114,7 +114,7 @@ const TEXTES = /*i18n-json*/{
     "carte_description": "Die Dashboards, Ansichten und Karten wählen, die der Bildschirmschoner übernimmt."
   },
   "es": {
-    "ecran_tele": "Tele", "ecran_telephone": "Teléfono",
+    "ecran_tele": "Tele", "ecran_telephone": "Teléfono", "choix_ecrans": "Pantallas", "choix_publics": "Públicos",
     "public_affichage": "Pantalla compartida", "public_parent": "{Decideurs}", "public_enfant": "{Demandeurs}",
     "erreur_admin": "Solo para administradores de Home Assistant.",
     "erreur_loading": "Vision se está iniciando: inténtalo de nuevo en un momento.",
@@ -149,7 +149,7 @@ const TEXTES = /*i18n-json*/{
     "carte_description": "Elegir los paneles, vistas y tarjetas que muestra el salvapantallas."
   },
   "it": {
-    "ecran_tele": "TV", "ecran_telephone": "Telefono",
+    "ecran_tele": "TV", "ecran_telephone": "Telefono", "choix_ecrans": "Schermi", "choix_publics": "Pubblici",
     "public_affichage": "Schermo condiviso", "public_parent": "{Decideurs}", "public_enfant": "{Demandeurs}",
     "erreur_admin": "Riservato agli amministratori di Home Assistant.",
     "erreur_loading": "Vision si sta avviando: riprova tra un momento.",
@@ -184,7 +184,7 @@ const TEXTES = /*i18n-json*/{
     "carte_description": "Scegliere le dashboard, le viste e le schede riprese dal salvaschermo."
   },
   "nl": {
-    "ecran_tele": "Tv", "ecran_telephone": "Telefoon",
+    "ecran_tele": "Tv", "ecran_telephone": "Telefoon", "choix_ecrans": "Schermen", "choix_publics": "Doelgroepen",
     "public_affichage": "Gedeeld scherm", "public_parent": "{Decideurs}", "public_enfant": "{Demandeurs}",
     "erreur_admin": "Alleen voor beheerders van Home Assistant.",
     "erreur_loading": "Vision start op: probeer het zo opnieuw.",
@@ -220,7 +220,7 @@ const TEXTES = /*i18n-json*/{
   }
 }/*i18n-json:fin*/;
 // Les catégories (étiquettes de la maison) : cette carte n'en affiche pas.
-const CATEGORIES_I18N = /*i18n-categories*/{}/*i18n-categories:fin*/;
+const CATEGORIES_I18N = /*i18n-categories*/{"jeux": {"fr": "Jeux", "en": "Games", "de": "Spiele", "es": "Juegos", "it": "Giochi", "nl": "Games"}, "videos": {"fr": "Vidéos", "en": "Videos", "de": "Videos", "es": "Vídeos", "it": "Video", "nl": "Video's"}, "reseaux_sociaux": {"fr": "Réseaux sociaux", "en": "Social media", "de": "Soziale Medien", "es": "Redes sociales", "it": "Social network", "nl": "Sociale media"}, "tv": {"fr": "TV", "en": "TV", "de": "TV", "es": "TV", "it": "TV", "nl": "tv"}, "vod": {"fr": "VOD", "en": "Streaming", "de": "Streaming", "es": "Streaming", "it": "Streaming", "nl": "Streaming"}, "musique": {"fr": "Musique", "en": "Music", "de": "Musik", "es": "Música", "it": "Musica", "nl": "Muziek"}, "ia": {"fr": "IA", "en": "AI", "de": "KI", "es": "IA", "it": "IA", "nl": "AI"}, "internet": {"fr": "Internet", "en": "Internet", "de": "Internet", "es": "Internet", "it": "Internet", "nl": "Internet"}, "travail": {"fr": "Travail", "en": "Work", "de": "Arbeit", "es": "Trabajo", "it": "Lavoro", "nl": "Werk"}, "creation": {"fr": "Création", "en": "Creativity", "de": "Kreativität", "es": "Creatividad", "it": "Creatività", "nl": "Creativiteit"}, "actu_medias": {"fr": "Actu & médias", "en": "News & media", "de": "Nachrichten & Medien", "es": "Noticias y medios", "it": "Notizie e media", "nl": "Nieuws & media"}, "pub_tracage": {"fr": "Pub & traçage", "en": "Ads & tracking", "de": "Werbung & Tracking", "es": "Anuncios y rastreo", "it": "Pubblicità e tracciamento", "nl": "Advertenties & tracking"}, "contournement": {"fr": "Contournement", "en": "Bypass tools", "de": "Umgehung", "es": "Elusión", "it": "Aggiramento", "nl": "Omzeiling"}, "dangereux": {"fr": "Dangereux", "en": "Dangerous", "de": "Gefährlich", "es": "Peligroso", "it": "Pericoloso", "nl": "Gevaarlijk"}, "adulte": {"fr": "Adulte", "en": "Adult", "de": "Erwachsene", "es": "Adultos", "it": "Adulti", "nl": "Volwassenen"}, "pegi_12": {"fr": "PEGI 12", "en": "PEGI 12", "de": "PEGI 12", "es": "PEGI 12", "it": "PEGI 12", "nl": "PEGI 12"}, "pegi_16": {"fr": "PEGI 16", "en": "PEGI 16", "de": "PEGI 16", "es": "PEGI 16", "it": "PEGI 16", "nl": "PEGI 16"}, "pegi_18": {"fr": "PEGI 18", "en": "PEGI 18", "de": "PEGI 18", "es": "PEGI 18", "it": "PEGI 18", "nl": "PEGI 18"}, "systeme": {"fr": "Système", "en": "System", "de": "System", "es": "Sistema", "it": "Sistema", "nl": "Systeem"}, "google": {"fr": "Google", "en": "Google", "de": "Google", "es": "Google", "it": "Google", "nl": "Google"}, "discord": {"fr": "Discord", "en": "Discord", "de": "Discord", "es": "Discord", "it": "Discord", "nl": "Discord"}, "annuaires_discord": {"fr": "Annuaires Discord", "en": "Discord directories", "de": "Discord-Verzeichnisse", "es": "Directorios de Discord", "it": "Directory Discord", "nl": "Discord-gidsen"}, "toujours_autorise": {"fr": "Toujours autorisé", "en": "Always allowed", "de": "Immer erlaubt", "es": "Siempre permitido", "it": "Sempre consentito", "nl": "Altijd toegestaan"}, "ecole": {"fr": "École", "en": "School", "de": "Schule", "es": "Escuela", "it": "Scuola", "nl": "School"}}/*i18n-categories:fin*/;
 // ---- i18n:code — le même dans toutes les cartes de Vision (essai/i18n_cartes_test.py le vérifie) ----
 // Langue : celle de l'utilisateur Home Assistant (hass.locale.language, sinon hass.language), sur deux lettres ;
 // une langue que Vision ne parle pas → l'anglais. Un texte absent → l'anglais, puis le français, puis la clé.
@@ -439,9 +439,10 @@ class VisionDashboardsCard extends HTMLElement {
     this._rendre();
   }
 
-  _coches(t, i, cle, noms) {
-    return Object.keys(noms).map((k) =>
-      `<label class="puce"><input type="checkbox" data-a="${cle}" data-i="${i}" data-k="${k}" ${t[cle].includes(k) ? "checked" : ""}>${echap(tr(noms[k]))}</label>`).join("");
+  // 15-10 (règle UX de l'auteur) : un groupe de choix multiple → <vision-choix> (étiquettes si 3 au plus tiennent, sinon liste).
+  _coches(t, i, cle, noms, titre) {
+    const options = Object.keys(noms).map((k) => ({ cle: k, libelle: tr(noms[k]) }));
+    return `<vision-choix class="choix" multiple data-groupe="${cle}" data-i="${i}" titre="${echap(titre)}" options="${echap(JSON.stringify(options))}" valeurs="${echap(JSON.stringify(t[cle]))}"></vision-choix>`;
   }
 
   _vue(t, i, v, j) {
@@ -474,8 +475,8 @@ class VisionDashboardsCard extends HTMLElement {
     const detail = !t.actif ? "" : `
       <div class="reglages">
         <label>${echap(tr("duree"))} <input type="number" min="5" max="120" value="${t.duree}" data-a="duree" data-i="${i}"> s</label>
-        <span class="groupe">${this._coches(t, i, "ecrans", NOMS_ECRANS)}</span>
-        <span class="groupe">${this._coches(t, i, "publics", NOMS_PUBLICS)}</span>
+        ${this._coches(t, i, "ecrans", NOMS_ECRANS, tr("choix_ecrans"))}
+        ${this._coches(t, i, "publics", NOMS_PUBLICS, tr("choix_publics"))}
       </div>
       <div class="vues">${t.vues.map((v, j) => this._vue(t, i, v, j)).join("")}</div>`;
     const vues = trn("vues", t.vues.length);
@@ -511,8 +512,7 @@ class VisionDashboardsCard extends HTMLElement {
         .compte { color: var(--secondary-text-color); font-size: .82rem; white-space: nowrap; }
         .reglages { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; padding: 6px 0 8px 28px; font-size: .9rem; }
         .reglages input[type=number] { width: 62px; padding: 4px 6px; border: 1px solid var(--divider-color); border-radius: 6px; background: var(--card-background-color); color: var(--primary-text-color); }
-        .groupe { display: flex; flex-wrap: wrap; gap: 4px 12px; }
-        .puce { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+        .choix { flex: 1 1 200px; min-width: 0; }
         .vues { padding-left: 28px; }
         .vue { border-top: 1px solid var(--divider-color); }
         button.titre, button.fleche { background: none; border: 0; color: var(--primary-text-color); font: inherit; cursor: pointer; padding: 6px 2px; text-align: left; }
@@ -559,12 +559,25 @@ class VisionDashboardsCard extends HTMLElement {
         if (!t) return;
         if (a === "actif") t.actif = el.checked;
         else if (a === "duree") t.duree = Math.max(5, Math.min(120, parseInt(el.value, 10) || 25));
-        else if (a === "ecrans" || a === "publics") {
-          const k = el.dataset.k;
-          t[a] = el.checked ? Array.from(new Set([...t[a], k])) : t[a].filter((x) => x !== k);
-          if (!t[a].length) t[a] = [k];
-        } else if (a === "vue") t.vues[+el.dataset.j].actif = el.checked;
+        else if (a === "vue") t.vues[+el.dataset.j].actif = el.checked;
         else if (a === "carte") t.vues[+el.dataset.j].cartes[+el.dataset.k].actif = el.checked;
+        this._modifie = true;
+        this._rendre();
+      });
+    });
+    // Écrans et publics : <vision-choix> rend la nouvelle liste ; on retrouve l'option touchée et on garde la même
+    // règle (jamais vide : la dernière décochée reste).
+    this.shadowRoot.querySelectorAll("vision-choix[data-groupe]").forEach((el) => {
+      el.addEventListener("vision-choix", (ev) => {
+        const t = this._tableaux[+el.dataset.i];
+        if (!t) return;
+        const a = el.dataset.groupe;
+        const apres = ev.detail.valeurs;
+        const cles = el.options.map((o) => String(o.cle));
+        const k = apres.find((x) => !t[a].includes(x)) ?? t[a].find((x) => cles.includes(x) && !apres.includes(x));
+        if (k === undefined) return;
+        t[a] = apres.includes(k) ? Array.from(new Set([...t[a], k])) : t[a].filter((x) => x !== k);
+        if (!t[a].length) t[a] = [k];
         this._modifie = true;
         this._rendre();
       });

@@ -48,7 +48,13 @@ class SendspinClient(
         val commandes: List<String> = emptyList(),
         val codec: String? = null,
         val appairage: String? = null, val pin: String? = null,
-        val confiance: String = "none",
+        /** « none », « user »… d'après la poignée de main ; [CONFIANCE_INCONNUE] avant (banc Musique, 2026-10-12 : à chaque
+         *  reconnexion, « none » par défaut faisait redemander l'appairage à HA par un lecteur déjà appairé : un « setup
+         *  flow » de MA ouvert pour rien, et l'écran du PIN pouvait revenir). */
+        val confiance: String = CONFIANCE_INCONNUE,
+        /** Correction de la position de MA après une pause (voir [etatServeur]) : position à la pause, heure locale (µs)
+         *  de la pause, et écart retiré pour le reste du titre. */
+        val posPause: Long? = null, val pauseA: Long = 0L, val decalageMs: Long = 0L,
     )
 
     interface Ecouteur { fun etat(e: Etat) }
@@ -154,7 +160,18 @@ class SendspinClient(
     private var recuA = 0L
     @Volatile private var dernierRecu = 0L
 
+    // Banc Musique (2026-10-12) : la reprise après une coupure (voir [SendspinReprise]).
+    private var lisaitALaPerte = false
+    private var perteMs = 0L
+    private var retourMs = 0L
+    private var repriseFaite = false
+    private var fluxAuRetour = false
+
     private fun perdu() {
+        if (etat.connecte) {
+            lisaitALaPerte = etat.lit || etat.etatGroupe == "playing"
+            perteMs = maintenantUs() / 1000; retourMs = 0L; repriseFaite = false; fluxAuRetour = false
+        }
         h.removeCallbacks(tic); h.removeCallbacks(etatPeriodique)
         transport?.ferme()
         sortie.arreter()
@@ -202,16 +219,39 @@ class SendspinClient(
             }
             "server/command" -> commandeServeur(p)
             "server/state" -> serverState(p)
-            "group/update" -> publier(etat.copy(groupe = p["group_name"] as? String ?: etat.groupe, etatGroupe = p["playback_state"] as? String ?: etat.etatGroupe,
-                lit = (p["playback_state"] as? String ?: etat.etatGroupe) == "playing"))
+            "group/update" -> {
+                Log.d(TAG, "groupe : ${p["playback_state"]}")
+                publier(etat.copy(groupe = p["group_name"] as? String ?: etat.groupe, etatGroupe = p["playback_state"] as? String ?: etat.etatGroupe,
+                    lit = (p["playback_state"] as? String ?: etat.etatGroupe) == "playing"))
+                repriseApresCoupure(p["playback_state"] as? String)
+            }
             else -> journal?.invoke("ignoré : $type")
         }
+    }
+
+    /** MA arrête la lecture au retour d'un lecteur qui jouait : on la relance une fois ([SendspinReprise]). */
+    private fun repriseApresCoupure(etatGroupe: String?) {
+        if (!lisaitALaPerte || retourMs == 0L || etatGroupe == null) return
+        val maintenant = maintenantUs() / 1000
+        if (SendspinReprise.reprendre(lisaitALaPerte, retourMs - perteMs, maintenant - retourMs, fluxAuRetour, etatGroupe, repriseFaite)) {
+            repriseFaite = true; lisaitALaPerte = false
+            val coupure = (retourMs - perteMs) / 1000
+            // Tout de suite, MA l'ignore (il finit de fermer l'ancienne liaison) : on attend un peu, et seulement si rien
+            // n'a changé entre-temps (personne n'a relancé ni choisi autre chose).
+            h.postDelayed({
+                if (etat.connecte && etat.etatGroupe == "stopped") {
+                    Log.i(TAG, "lecture relancée après une coupure de $coupure s (MA l'avait arrêtée au retour)")
+                    commande("play")
+                }
+            }, SendspinReprise.DELAI_RELANCE_MS)
+        } else if (maintenant - retourMs > SendspinReprise.FENETRE_MS) lisaitALaPerte = false
     }
 
     @Suppress("UNCHECKED_CAST")
     private fun activer(p: Map<String, Any?>) {
         val premiere = !active
         active = true
+        if (premiere && lisaitALaPerte && retourMs == 0L) retourMs = maintenantUs() / 1000
         if (premiere) {
             etatClient()
             h.removeCallbacks(tic); h.post(tic)
@@ -276,6 +316,7 @@ class SendspinClient(
     private fun streamStart(p: Map<String, Any?>) {
         val pl = p["player"] as? Map<*, *>
         if (pl != null) {
+            if (retourMs > 0L) fluxAuRetour = true
             val f = SendspinSortie.Format(pl["codec"] as? String ?: "pcm", (pl["sample_rate"] as? Number)?.toInt() ?: 48_000,
                 (pl["channels"] as? Number)?.toInt() ?: 2, (pl["bit_depth"] as? Number)?.toInt() ?: 16,
                 (pl["codec_header"] as? String)?.let { SendspinNoise.deB64(it) })
@@ -285,7 +326,13 @@ class SendspinClient(
         }
     }
 
-    private fun serverState(p: Map<String, Any?>) = publier(etatServeur(etat, p) { horloge.versLocal(it) })
+    private fun serverState(p: Map<String, Any?>) {
+        ((p["metadata"] as? Map<*, *>)?.get("progress") as? Map<*, *>)?.let { pr ->
+            val ts = n((p["metadata"] as Map<*, *>)["timestamp"])
+            Log.d(TAG, "progression : ${pr["track_progress"]} ms, vitesse ${pr["playback_speed"]}, horodatée ${(horloge.versLocal(ts) - maintenantUs()) / 1000} ms par rapport à maintenant")
+        }
+        publier(etatServeur(etat, p, { horloge.versLocal(it) }))
+    }
 
     private fun role(b: ByteArray) {
         val type = b[0].toInt() and 0xFF
@@ -305,7 +352,7 @@ class SendspinClient(
     private fun publier(e: Etat) { etat = e; try { ecouteur.etat(e) } catch (_: Exception) {} }
 
     /** La position (ms) maintenant, d'après la dernière donnée par MA et sa vitesse. */
-    fun positionMs(): Long? = position(etat, maintenantUs())
+    fun positionMs(): Long? = position(etat, maintenantUs() - sortie.mesures.decalageUs)
 
     companion object {
         const val TAG = "VisionSendspin"
@@ -314,14 +361,25 @@ class SendspinClient(
         const val AVANCE_MS = 500
         const val TAMPON_MS = 500
         const val SILENCE_MAX_MS = 15_000L
+        /** L'écart (ms) toléré entre « position de reprise − position de pause » et la durée de la pause. */
+        const val TOLERANCE_PAUSE_MS = 1_500L
+        /** La confiance avant la poignée de main : ni « none » ni « user ». */
+        const val CONFIANCE_INCONNUE = ""
         private val VOLUME_INTERDIT = setOf("volume", "mute")
         fun maintenantUs() = System.nanoTime() / 1000
 
         /**
          * `server/state` (lot 4) : les champs présents remplacent les anciens, les absents restent. La position de MA
          * était juste à son `timestamp` (µs serveur), traduit en heure locale par [versLocal].
+         *
+         * Banc Musique (2026-10-12, MA 2.10.6) : à la reprise après une pause, MA annonce la position de la pause PLUS la
+         * durée de la pause (12,9 s en pause 8 s → 20,7 s), alors que le son reprend bien à 12,9 s et que sa file (HA) dit
+         * 12 s. La barre de la Party finissait donc avant la musique, d'autant que les pauses avaient duré (l'auteur : « la
+         * barre finit, la musique continue quelques secondes »). Correction : sur le même titre, si la position de reprise
+         * dépasse celle de la pause de la durée de la pause (à [TOLERANCE_PAUSE_MS] près), cet écart est retiré jusqu'au
+         * titre suivant. Si MA annonce juste, l'écart est nul et rien ne change.
          */
-        fun etatServeur(e0: Etat, p: Map<String, Any?>, versLocal: (Long) -> Long): Etat {
+        fun etatServeur(e0: Etat, p: Map<String, Any?>, versLocal: (Long) -> Long, maintenant: Long = maintenantUs()): Etat {
             var e = e0
             (p["metadata"] as? Map<*, *>)?.let { m ->
                 if ("title" in m) e = e.copy(titre = m["title"] as? String)
@@ -329,9 +387,26 @@ class SendspinClient(
                 if ("album" in m) e = e.copy(album = m["album"] as? String)
                 if ("progress" in m) {
                     val pr = m["progress"] as? Map<*, *>
-                    e = if (pr == null) e.copy(positionMs = null, dureeMs = null)
-                    else e.copy(positionMs = n(pr["track_progress"]), dureeMs = n(pr["track_duration"]).takeIf { it > 0 },
-                        vitesse = n(pr["playback_speed"]).toInt(), positionA = versLocal(n(m["timestamp"])))
+                    e = if (pr == null) e.copy(positionMs = null, dureeMs = null, posPause = null, decalageMs = 0L)
+                    else {
+                        val brut = n(pr["track_progress"]); val vitesse = n(pr["playback_speed"]).toInt()
+                        val memeTitre = e.titre == e0.titre
+                        var decalage = if (memeTitre) e0.decalageMs else 0L
+                        var posPause = if (memeTitre) e0.posPause else null
+                        var pauseA = e0.pauseA
+                        if (vitesse == 0) { posPause = brut - decalage; pauseA = maintenant }
+                        else if (posPause != null) {
+                            val ecart = brut - decalage - posPause
+                            val pauseMs = (maintenant - pauseA) / 1000
+                            if (ecart > TOLERANCE_PAUSE_MS && Math.abs(ecart - pauseMs) <= TOLERANCE_PAUSE_MS) decalage += ecart
+                            posPause = null
+                        }
+                        val duree = n(pr["track_duration"]).takeIf { it > 0 }
+                        // Titre fini (MA annonce sa durée) : la fin est la fin, sans correction.
+                        val pos = if (duree != null && brut >= duree) brut else brut - decalage
+                        e.copy(positionMs = pos, dureeMs = duree, vitesse = vitesse,
+                            positionA = versLocal(n(m["timestamp"])), posPause = posPause, pauseA = pauseA, decalageMs = decalage)
+                    }
                 }
             }
             (p["controller"] as? Map<*, *>)?.let { c -> e = e.copy(commandes = (c["supported_commands"] as? List<*>).orEmpty().map { it.toString() }) }

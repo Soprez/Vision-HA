@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Niveau sonore (backlog n° 31) : mesure par le micro, des nombres seulement vers Home Assistant. -->
+<resources>
+    <string name="son_titre">Niveau sonore</string>
+    <string name="son_alerte_titre">Trop de bruit</string>
+    <string name="son_alerte_sur">Alerte %1$d sur %2$d : l\'appareil se ferme à la dernière.</string>
+    <string name="son_alerte">La pièce est trop bruyante.</string>
+    <string name="son_canal">Mesure du niveau sonore</string>
+    <string name="son_canal_desc">Affichée pendant que Vision mesure le niveau du bruit (rien n\'est enregistré).</string>
+    <string name="son_canal_alerte">Alertes de bruit</string>
+    <string name="son_canal_alerte_desc">Quand la pièce reste au-dessus du seuil.</string>
+    <string name="son_notif_titre">Vision mesure le niveau sonore</string>
+    <string name="son_notif_texte">Seul le niveau est mesuré, ici, sur l\'appareil. Aucun son n\'est enregistré ni envoyé.</string>
+    <string name="son_etat_sans_micro">Pas de micro sur cet appareil</string>
+    <string name="son_etat_autoriser">Micro à autoriser</string>
+    <string name="son_etat_en_cours">Mesure en cours</string>
+    <string name="son_etat_attente">Démarre au prochain retour sur Vision</string>
+    <string name="son_vie_privee">Vision mesure à quel point la pièce est bruyante, avec le micro de cet appareil.\n\nCe qui est mesuré : seulement le niveau du bruit, ici, sur l\'appareil.\nCe qui ne l\'est pas : aucun son n\'est enregistré, gardé ni envoyé.\nCe qui part vers Home Assistant : des nombres seulement (niveau, niveau le plus haut, heure d\'une alerte).\n\nL\'indicateur « micro utilisé » du système reste visible : c\'est voulu. Trop longtemps au-dessus du seuil, une alerte s\'affiche ; après plusieurs alertes, l\'appareil peut se fermer un moment.</string>
+    <string name="son_vie_privee_sans_micro">Cet appareil n\'a pas de micro : le niveau sonore ne peut pas y être mesuré.</string>
+    <string name="son_autoriser">Autoriser le micro</string>
+    <string name="son_plus_tard">Plus tard</string>
+    <string name="son_ok">OK</string>
+</resources>

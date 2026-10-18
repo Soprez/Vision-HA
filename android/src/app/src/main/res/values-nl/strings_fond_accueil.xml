@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.x (retour d'essai) : l'arrière-plan de l'accueil (FondAccueil). -->
+<resources>
+    <string name="fondacc_titre">Achtergrond van het startscherm</string>
+    <string name="fondacc_sorte_defaut">Huidig (subtiele animatie)</string>
+    <string name="fondacc_sorte_uni">Effen kleur</string>
+    <string name="fondacc_sorte_degrade">Verloop</string>
+    <string name="fondacc_sorte_photo">Foto</string>
+    <string name="fondacc_sorte_anime">Geanimeerde achtergrond</string>
+    <string name="fondacc_teinte_fond">Achtergrond van het thema</string>
+    <string name="fondacc_teinte_n">Tint %1$d</string>
+    <string name="fondacc_voile">Leesbaarheidssluier</string>
+    <string name="fondacc_voile_auto">Automatisch</string>
+    <string name="fondacc_voile_plus">Sterker</string>
+    <string name="fondacc_voile_max">Sterkst</string>
+    <string name="fondacc_demandeur">Achtergrond aanpasbaar door %1$s</string>
+    <string name="fondacc_raison">Achtergrond van het startscherm wijzigen</string>
+    <string name="fondacc_photo_echec">De foto kon niet worden gelezen.</string>
+    <string name="fondacc_note">Een sluier houdt de tijd en de kaarten leesbaar; de kaarten houden hun eigen achtergrond.</string>
+    <string name="fondacc_style">Stijl</string>
+</resources>

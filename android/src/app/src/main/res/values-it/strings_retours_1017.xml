@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 17-10 (l'auteur, point 18b) : « Vider la file » dans le menu d'un titre de la file (télé). -->
+<resources>
+    <string name="partyecran_vider_file">Svuota la coda</string>
+    <string name="partyecran_vider_titre">Svuotare la coda?</string>
+    <string name="partyecran_vider_texte">I %1$d brani successivi saranno tolti. Il brano in corso continua.</string>
+    <string name="partyecran_vider_bouton">Svuota</string>
+    <!-- 17-10 (l'auteur, point 8) : le mode soirée (invités par QR code), ouvert ou fermé depuis le lecteur. -->
+    <string name="musrech_soiree_mode">Modalità festa (ospiti): %1$s</string>
+    <string name="partyecran_soiree_fermer">Chiudi la modalità festa</string>
+    <string name="partyecran_soiree_ouvrir">Apri agli ospiti</string>
+    <string name="partyecran_soiree_fermee">Modalità festa disattivata: niente codice QR, il link degli ospiti non funziona più.</string>
+    <!-- 1.93.05 (l'auteur, retour 33) : la mise à jour depuis les réglages de la télé. -->
+    <string name="reglagestv_maj_rechercher">Cerca un aggiornamento</string>
+    <string name="reglagestv_maj_recherche_en_cours">Ricerca presso Home Assistant…</string>
+    <string name="reglagestv_maj_aucune">Ancora nessuna informazione sugli aggiornamenti.</string>
+    <string name="reglagestv_st_demandes">Richieste</string>
+    <string name="jauge_volume">Volume %1$d %%</string>
+    <string name="zonehaut_widget_lecteur">Lettore musicale</string>
+    <string name="veille_option_lecteur">Lettore musicale nel salvaschermo</string>
+    <string name="veille_qr_ajoute">Aggiungi la tua musica</string>
+    <string name="veille_option_qr">Codice QR degli ospiti</string>
+    <string name="veille_option_logo">Logo di Vision</string>
+    <string name="veille_coin_haut_gauche">In alto a sinistra</string>
+    <string name="veille_coin_haut_droite">In alto a destra</string>
+    <string name="veille_coin_bas_gauche">In basso a sinistra</string>
+    <string name="veille_coin_bas_droite">In basso a destra</string>
+    <string name="veille_coin_cache">Nascosto</string>
+    <string name="veille_coin_pris">Questo angolo è già occupato: %1$s</string>
+</resources>

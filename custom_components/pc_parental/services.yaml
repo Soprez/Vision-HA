@@ -454,6 +454,18 @@ ouvrir_categorie:
       example: moyenne
       selector:
         text: null
+reprise_autorisations:
+  fields:
+    action:
+      required: true
+      default: simuler
+      selector:
+        select:
+          options:
+          - simuler
+          - appliquer
+          - annuler
+          translation_key: reprise_action
 ajouter_temps:
   fields:
     personne:
@@ -945,3 +957,85 @@ reveil_regler:
           max: 96
           unit_of_measurement: h
 reveil_installer_modeles: {}
+ecran_regler:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    veille_vision:
+      selector:
+        boolean: null
+    garder_allume:
+      selector:
+        boolean: null
+veille_regler:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    lecteur:
+      selector:
+        boolean: null
+    qr:
+      selector:
+        select:
+          options: [haut_gauche, haut_droite, bas_gauche, bas_droite, cache]
+    logo:
+      selector:
+        select:
+          options: [haut_gauche, haut_droite, bas_gauche, bas_droite, cache]
+son_regler:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    actif:
+      selector:
+        boolean: null
+    seuil_db:
+      selector:
+        number:
+          min: 30
+          max: 100
+          unit_of_measurement: dB
+          mode: box
+    sensibilite_s:
+      selector:
+        number:
+          min: 1
+          max: 120
+          unit_of_measurement: s
+          mode: box
+    alertes_avant_coupure:
+      selector:
+        number:
+          min: 0
+          max: 10
+          mode: box
+    coupure_min:
+      selector:
+        number:
+          min: 1
+          max: 240
+          unit_of_measurement: min
+          mode: box
+    calme_min:
+      selector:
+        number:
+          min: 1
+          max: 240
+          unit_of_measurement: min
+          mode: box
+    calibration_db:
+      selector:
+        number:
+          min: -30
+          max: 30
+          unit_of_measurement: dB
+          mode: box
+    plages:
+      selector:
+        object: null

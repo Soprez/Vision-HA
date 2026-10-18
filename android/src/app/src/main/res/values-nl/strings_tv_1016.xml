@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 16-10 (l'auteur, télé du salon) : rangées de widgets, fond des applis, cadre des widgets, clavier de Vision. -->
+<resources>
+    <string name="lanceur_zone_haut">Widgetrij bovenaan</string>
+    <string name="lanceur_zone_bas">Widgetrij onderaan</string>
+    <string name="lanceur_fond_applis">Achtergrond van apps</string>
+    <string name="lanceur_cadre_widgets">Kader van widgets</string>
+    <string name="lanceur_avec">Met</string>
+    <string name="lanceur_sans">Zonder</string>
+    <string name="clavier_saisie">Typen met de afstandsbediening</string>
+    <string name="lanceur_widgets_tele">Widgets</string>
+    <string name="lanceur_un_widget_vision">Een Vision-widget</string>
+    <string name="lanceur_un_widget">Een widget</string>
+    <string name="lanceur_widgets_tous_poses">Alle beschikbare widgets staan al op het startscherm.</string>
+</resources>

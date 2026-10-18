@@ -3,10 +3,14 @@ name: Validation
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
   schedule:
     - cron: "0 4 * * 1"
+
+permissions:
+  contents: read
 
 jobs:
   hassfest:
@@ -23,5 +27,6 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
-          # Vision n'est pas (encore) dans home-assistant/brands : son icône vient de l'intégration.
+          # Vision n'est pas (encore) dans home-assistant/brands : son icône vient de l'intégration
+          # (custom_components/pc_parental/brand/). À retirer une fois Vision inscrit dans brands.
           ignore: brands

@@ -41,7 +41,7 @@ if str(_banc / "custom_components") not in list(custom_components.__path__):
     custom_components.__path__.append(str(_banc / "custom_components"))
 
 DOMAIN = "pc_parental"
-ROBIN = {"id": "p1", "secret": "p" * 32}
+NOLAN = {"id": "p1", "secret": "p" * 32}
 LOU = {"id": "e1", "secret": "e" * 32}
 
 
@@ -49,7 +49,7 @@ LOU = {"id": "e1", "secret": "e" * 32}
 async def _integrations(hass, enable_custom_integrations):
     for composant in ("http", "api", "websocket_api", "config"):
         assert await async_setup_component(hass, composant, {})
-    hass.states.async_set("person.robin", "home", {"friendly_name": "Robin"})
+    hass.states.async_set("person.nolan", "home", {"friendly_name": "Nolan"})
     hass.states.async_set("person.lou", "home", {"friendly_name": "Lou"})
     yield
 
@@ -89,7 +89,7 @@ async def _monter(hass, hass_storage, donnees, biometrie_globale=False, etiquett
 
 
 def _pcs():
-    return {"p1": _fiche("p1", "PIXEL-ROBIN", ROBIN["secret"], platform="android", person="person.robin"),
+    return {"p1": _fiche("p1", "PIXEL-NOLAN", NOLAN["secret"], platform="android", person="person.nolan"),
             "e1": _fiche("e1", "TEL-LOU", LOU["secret"], platform="android", person="person.lou")}
 
 
@@ -103,14 +103,14 @@ async def test_migration_depuis_1_68(hass, hass_storage, hass_client, caplog):
     s = coord.store
     assert set(s.roles) == {"parent", "enfant"} and "biometrie" in s.roles["parent"]["fonctions"]
     # 1.80.0 : la surcharge « parent » de p1 est devenue le rôle de sa personne (roles.neutraliser).
-    assert s.pcs["p1"]["role"] == "" and s.pcs["e1"]["role"] == "" and s.roles_personnes == {"person.robin": "parent"}
+    assert s.pcs["p1"]["role"] == "" and s.pcs["e1"]["role"] == "" and s.roles_personnes == {"person.nolan": "parent"}
     assert all("biometrie" not in p for p in s.pcs.values())
     assert hass_storage[f"{DOMAIN}.deverrouillage"]["data"]["biometrie"] is False
     assert er.async_get(hass).async_get_entity_id("switch", DOMAIN, f"{DOMAIN}_biometrie_parents") is None
     assert er.async_get(hass).async_get_entity_id("switch", DOMAIN, f"{DOMAIN}_biometrie_p1") is None
     client = await hass_client()
-    robin, lou = await _releve(client, ROBIN), await _releve(client, LOU)
-    assert robin["parent"] is True and robin["biometrie"] is True and robin["role"] == "Décideur"
+    nolan, lou = await _releve(client, NOLAN), await _releve(client, LOU)
+    assert nolan["parent"] is True and nolan["biometrie"] is True and nolan["role"] == "Décideur"
     assert lou["parent"] is False and lou["biometrie"] is False and "demander_deverrouillage" in lou["fonctions"]
     assert "rôles en modèles" in caplog.text
 
@@ -122,7 +122,7 @@ async def test_migration_depuis_1_70_et_une_seule_fois(hass, hass_storage, hass_
     entree, coord = await _monter(hass, hass_storage, {"pcs": pcs, "roles_migres": True})
     assert "biometrie" not in coord.store.roles["parent"]["fonctions"]
     assert coord.store.pcs["p1"]["role"] == "" and coord.store.pcs["e1"]["role"] == ""
-    assert coord.store.roles_personnes == {"person.robin": "parent"}
+    assert coord.store.roles_personnes == {"person.nolan": "parent"}
     roles = coord.store.roles
     assert await hass.config_entries.async_reload(entree.entry_id)
     await hass.async_block_till_done()
@@ -136,21 +136,21 @@ async def test_creer_attribuer_et_journal(hass, hass_storage, hass_client, caplo
 
     evenements = async_capture_events(hass, f"{DOMAIN}_role")
     s = coord.store
-    ado = roles.creer(hass, s, "Ado", "enfant", "Robin")
-    roles.modifier(hass, s, ado, "Ado", s.roles[ado]["fonctions"] + ["accueil"], 30, "Robin")
-    roles.attribuer_personne(hass, s, "person.lou", ado, "Robin")
+    ado = roles.creer(hass, s, "Ado", "enfant", "Nolan")
+    roles.modifier(hass, s, ado, "Ado", s.roles[ado]["fonctions"] + ["accueil"], 30, "Nolan")
+    roles.attribuer_personne(hass, s, "person.lou", ado, "Nolan")
     assert roles.nom(s, s.pcs["e1"]) == "Ado" and roles.a(s, s.pcs["e1"], "accueil")
     assert roles.pause_max(s, s.pcs["e1"]) == 30
     with pytest.raises(ValueError):
-        roles.supprimer(hass, s, ado, "Robin")  # encore attribué
+        roles.supprimer(hass, s, ado, "Nolan")  # encore attribué
     with pytest.raises(ValueError):
-        roles.supprimer(hass, s, "enfant", "Robin")
+        roles.supprimer(hass, s, "enfant", "Nolan")
     with pytest.raises(ValueError):
-        roles.creer(hass, s, "ado", "enfant", "Robin")  # même nom
+        roles.creer(hass, s, "ado", "enfant", "Nolan")  # même nom
     await hass.async_block_till_done()
     assert len(evenements) == 3
-    assert "rôle « Ado » créé d'après « Demandeur » (par Robin)" in caplog.text
-    assert "person.lou : rôle « Ado » (par Robin)" in caplog.text
+    assert "rôle « Ado » créé d'après « Demandeur » (par Nolan)" in caplog.text
+    assert "person.lou : rôle « Ado » (par Nolan)" in caplog.text
 
 
 async def test_dernier_role_d_administration(hass, hass_storage):
@@ -159,12 +159,12 @@ async def test_dernier_role_d_administration(hass, hass_storage):
 
     s = coord.store
     with pytest.raises(ValueError):
-        roles.modifier(hass, s, "parent", "Décideur", ["protege", "approuver"], 60, "Robin")  # retire « Gérer »
+        roles.modifier(hass, s, "parent", "Décideur", ["protege", "approuver"], 60, "Nolan")  # retire « Gérer »
     with pytest.raises(ValueError):
-        roles.attribuer_appareil(hass, s, "p1", "enfant", "Robin")
-    # Avec Robin (la personne) en Parent, l'appareil peut perdre sa surcharge.
-    roles.attribuer_personne(hass, s, "person.robin", "parent", "Robin")
-    roles.attribuer_appareil(hass, s, "p1", "", "Robin")
+        roles.attribuer_appareil(hass, s, "p1", "enfant", "Nolan")
+    # Avec Nolan (la personne) en Parent, l'appareil peut perdre sa surcharge.
+    roles.attribuer_personne(hass, s, "person.nolan", "parent", "Nolan")
+    roles.attribuer_appareil(hass, s, "p1", "", "Nolan")
     assert roles.nom(s, s.pcs["p1"]) == "Décideur"
 
 
@@ -179,6 +179,7 @@ async def test_reserve_aux_administrateurs_et_ecrans(hass, hass_storage, hass_cl
         await hass.services.async_call("select", "select_option", {"entity_id": role_lou, "option": "Inexistant"}, blocking=True)
     # Vision → Configurer → Rôles : créer « Ado » d'après Enfant, puis cocher « accueil ».
     r = await hass.config_entries.options.async_init(entree.entry_id)
+    r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "autres"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "roles"})
     assert r["type"] == FlowResultType.MENU and "| **Décideur** | 1 | 1 |" in r["description_placeholders"]["resume"]
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "roles_creer"})
@@ -199,6 +200,7 @@ async def test_reserve_aux_administrateurs_et_ecrans(hass, hass_storage, hass_cl
     # Surcharge par appareil, puis retour au rôle.
     for mode, attendu in (("toutes", "toutes"), ("role", None)):
         r = await hass.config_entries.options.async_init(entree.entry_id)
+        r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "autres"})
         r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "roles"})
         r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "roles_validation_appareil"})
         r = await hass.config_entries.options.async_configure(r["flow_id"], {

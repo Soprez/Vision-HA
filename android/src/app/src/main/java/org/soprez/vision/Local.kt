@@ -39,7 +39,7 @@ object Local {
     val PLAGES_NUIT = listOf("23:00-07:00", "22:00-07:00", "00:00-06:30", "")
 
     private fun p(ctx: Context) = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-    private fun toucher() { version++ }
+    fun toucher() { version++ }
 
     // ------------------------------------------------------------ ambiance
 
@@ -124,7 +124,7 @@ object Local {
         if (vus != null && vus.isNotEmpty()) return vus.firstOrNull { it in permis }
         // Sinon l'ancien indice : du son qui n'est pas le nôtre, et la dernière appli passée devant.
         val am = ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
-        if (!am.isMusicActive || Musique.enCours) return null
+        if (!am.isMusicActive || Musique.nous) return null
         val pk = Usage.dernierPaquet
         return if (pk.isNotEmpty() && pk != ctx.packageName && pk in permis) pk else null
     }
@@ -133,7 +133,7 @@ object Local {
     /** Vrai si une appli joue et n'a PAS le droit d'être recouverte (Netflix, un jeu…). */
     fun appAProteger(ctx: Context): Boolean {
         val am = ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
-        return am.isMusicActive && !Musique.enCours && appEnFond(ctx) == null
+        return am.isMusicActive && !Musique.nous && appEnFond(ctx) == null
     }
 
     /** Télé où le système impose son propre accueil (Google TV) : Vision prend la touche Accueil à sa place. */
@@ -169,6 +169,29 @@ object Local {
         toucher()
     }
 
+    // ------------------------------------------------------------ horloge de l'écran de veille (1.91.2)
+
+    /**
+     * Le style de l'horloge de la veille sur cet appareil : un style de [StylesHorloge], ou « comme l'accueil »
+     * ([StylesHorloge.SUIVRE_ACCUEIL], le défaut). Même clé que le lot veille (« veille_horloge ») ; son « theme »
+     * (l'horloge du thème) se lit « comme l'accueil ».
+     */
+    fun styleHorlogeVeille(ctx: Context): String = p(ctx).getString("veille_horloge", null)
+        ?.takeIf { it != StylesHorloge.SUIVRE_ACCUEIL && it != HorlogesVeille.THEME }?.let { StylesHorloge.normaliser(it) } ?: StylesHorloge.SUIVRE_ACCUEIL
+
+    fun poserStyleHorlogeVeille(ctx: Context, style: String) {
+        if (style == StylesHorloge.SUIVRE_ACCUEIL) p(ctx).edit().remove("veille_horloge").apply() else p(ctx).edit().putString("veille_horloge", style).apply()
+        toucher()
+    }
+
+    /**
+     * Le style que la veille dessine vraiment, ou null si personne n'a rien choisi (ni pour la veille ni pour
+     * l'accueil) : la page de veille garde alors l'horloge de son thème, et le dessin de l'appli l'anneau, comme avant.
+     */
+    fun styleHorlogeVeilleChoisi(ctx: Context): String? = styleHorlogeVeille(ctx).let { s ->
+        if (s != StylesHorloge.SUIVRE_ACCUEIL) s else ZoneHaut.styleChoisi(ctx)
+    }
+
     // ------------------------------------------------------------ cartes de l'écran de veille
 
     /** Les vraies cartes de Home Assistant (la même page que sur les PC), ou le dessin simplifié de l'appli. */
@@ -185,6 +208,13 @@ object Local {
     fun poserContourCartes(ctx: Context, on: Boolean) { p(ctx).edit().putBoolean("contour_cartes", on).apply(); toucher() }
     fun animerCartes(ctx: Context): Boolean = p(ctx).getBoolean("animer_cartes", true)
     fun poserAnimerCartes(ctx: Context, on: Boolean) { p(ctx).edit().putBoolean("animer_cartes", on).apply(); toucher() }
+
+    /** Veille-lot : un petit fond (pastille) derrière chaque valeur et chaque icône d'état ; non par défaut. */
+    fun pastilleVeille(ctx: Context): Boolean = p(ctx).getBoolean("veille_pastille", false)
+    fun poserPastilleVeille(ctx: Context, on: Boolean) { p(ctx).edit().putBoolean("veille_pastille", on).apply(); toucher() }
+    /** Veille-lot : caméras en direct (Auto : une seule, flux léger, images si l'appareil peine) ou images seulement. */
+    fun directCameras(ctx: Context): String = (p(ctx).getString("veille_direct", DirectVeille.AUTO) ?: DirectVeille.AUTO).let { if (it in DirectVeille.MODES) it else DirectVeille.AUTO }
+    fun poserDirectCameras(ctx: Context, m: String) { p(ctx).edit().putString("veille_direct", m).apply(); toucher() }
 
     /** Les tableaux et leurs cartes tels que la page de veille les montre : [{id, titre, cartes: [{cle, cles, nom, section}]}]. */
     fun listeWeb(ctx: Context): JSONArray = try { JSONArray(p(ctx).getString("liste_web", "[]") ?: "[]") } catch (_: Exception) { JSONArray() }

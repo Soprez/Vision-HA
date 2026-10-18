@@ -101,12 +101,10 @@ def verifier(store, brut: str) -> dict[str, Any] | None:
 
 
 def entites_de_la_page(hass: HomeAssistant, page: dict[str, Any]) -> set[str]:
-    """Les entités citées par les cartes rendues disponibles pour cet appareil (et la météo de l'horloge)."""
+    """Les entités citées par les cartes rendues disponibles pour cet appareil."""
     connues = {e.entity_id for e in hass.states.async_all()}
     brut = json.dumps([s["cartes"] for t in page.get("tableaux") or [] for s in t.get("sections") or []], ensure_ascii=False)
     trouvees = {m for m in RE_ENTITE.findall(brut) if m in connues}
-    if page.get("meteo") in connues:
-        trouvees.add(page["meteo"])
     return trouvees
 
 

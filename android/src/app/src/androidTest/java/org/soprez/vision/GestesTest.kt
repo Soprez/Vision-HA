@@ -71,6 +71,7 @@ class GestesTest : InstrumentationTestCase() {
 
     override fun setUp() {
         super.setUp()
+        CodeEssai.poser(instrumentation.targetContext)  // faille du 16-10 : un Décideur a toujours un code
         demarrerServeur()
         for (n in listOf("vision", "profil")) sauves[n] = HashMap(ctx.getSharedPreferences(n, 0).all)
         val cfg = Config(ctx)
@@ -79,6 +80,8 @@ class GestesTest : InstrumentationTestCase() {
         cfg.urlInterne = adresse; cfg.urlExterne = ""; cfg.urlActive = adresse
         // L'empreinte vient d'être donnée : les gestes partent sans boîte de dialogue.
         Garde::class.java.getDeclaredField("jusqua").apply { isAccessible = true }.setLong(Garde, SystemClock.elapsedRealtime() + 600_000L)
+        // 16-10 : accorder exige l'empreinte à chaque fois ; ici, l'empreinte réussie est simulée.
+        Garde::class.java.getDeclaredField("preuveEssai").apply { isAccessible = true }.setBoolean(Garde, true)
     }
 
     override fun tearDown() {
@@ -88,6 +91,8 @@ class GestesTest : InstrumentationTestCase() {
             v.forEach { (k, x) -> when (x) { is String -> putString(k, x); is Boolean -> putBoolean(k, x); is Int -> putInt(k, x); is Long -> putLong(k, x); is Float -> putFloat(k, x); is Set<*> -> @Suppress("UNCHECKED_CAST") putStringSet(k, x as Set<String>) } }
         }.commit()
         Garde.fermer()
+        Garde::class.java.getDeclaredField("preuveEssai").apply { isAccessible = true }.setBoolean(Garde, false)
+        CodeEssai.rendre(instrumentation.targetContext)
         super.tearDown()
     }
 
@@ -107,8 +112,11 @@ class GestesTest : InstrumentationTestCase() {
         return sortie
     }
 
+    /** Le texte tel qu'on le lit : sans les espaces nulles de la coupure des noms longs (Ui.coupable). */
+    private fun lisible(v: TextView) = v.text.toString().replace(Coupure.ESPACE_NULLE.toString(), "")
+
     private fun bouton(racine: View, texte: String): TextView =
-        textes(racine).firstOrNull { it.text.toString() == texte && it.isClickable } ?: throw AssertionError("bouton « $texte » absent : " + textes(racine).joinToString(" | ") { it.text })
+        textes(racine).firstOrNull { lisible(it) == texte && it.isClickable } ?: throw AssertionError("bouton « $texte » absent : " + textes(racine).joinToString(" | ") { it.text })
 
     private fun champ(o: Any, nom: String): Any? {
         var c: Class<*>? = o.javaClass
@@ -144,7 +152,7 @@ class GestesTest : InstrumentationTestCase() {
         val a = lancer(Intent(ctx, LanceurActivity::class.java))
         instrumentation.runOnMainSync { poser(a, "donnees", JSONObject().put("demandes", JSONArray().put(demande("d1")).put(demande("t1", "temps")))) }
         val w = widgetAccueil(a)
-        porte = CountDownLatch(1); reponse = 200 to """{"ok":true,"retour":"Robin a autorisé Roblox pour 1 h."}"""
+        porte = CountDownLatch(1); reponse = 200 to """{"ok":true,"retour":"Nolan a autorisé Roblox pour 1 h."}"""
         val accepter = bouton(w, "Accepter")
         instrumentation.runOnMainSync { accepter.performClick() }
         // Tout de suite : « En cours… », bouton désactivé ; le serveur a bien reçu la réponse.
@@ -157,7 +165,7 @@ class GestesTest : InstrumentationTestCase() {
         attendre("demande retirée") { (champ(a, "donnees") as JSONObject).optJSONArray("demandes")?.length() == 1 }
         val apres = widgetAccueil(a)
         val t = textes(apres).joinToString(" | ") { it.text }
-        assertTrue(t, t.contains("Robin a autorisé Roblox") && t.contains("15 min de plus") && !t.contains("Roblox |"))
+        assertTrue(t, t.contains("Nolan a autorisé Roblox") && t.contains("15 min de plus") && !t.contains("Roblox |"))
         assertTrue(bouton(apres, "Accepter").isEnabled)
     }
 
@@ -201,7 +209,7 @@ class GestesTest : InstrumentationTestCase() {
             poser(a, "demandes", JSONArray().put(demande("d1").put("cle", "com.roblox.client").put("nom", "com.roblox.client")))
             poser(a, "erreur", ""); appeler(a, "dessiner")
         }
-        porte = CountDownLatch(1); reponse = 200 to """{"ok":true,"retour":"Robin a autorisé Roblox pour 1 h."}"""
+        porte = CountDownLatch(1); reponse = 200 to """{"ok":true,"retour":"Nolan a autorisé Roblox pour 1 h."}"""
         var b: TextView? = null
         instrumentation.runOnMainSync { b = bouton(a.window.decorView, "1 h"); b!!.performClick() }
         attendre("« En cours… » au clic") { b!!.text.toString() == Geste.EN_COURS && !b!!.isEnabled }
@@ -217,10 +225,10 @@ class GestesTest : InstrumentationTestCase() {
         }
         porte = CountDownLatch(1); reponse = 403 to """{"ok":false,"error":"gerer"}"""
         var b: TextView? = null
-        instrumentation.runOnMainSync { b = bouton(a.window.decorView, "Non"); b!!.performClick() }
+        instrumentation.runOnMainSync { b = bouton(a.window.decorView, "Refuser"); b!!.performClick() }
         attendre("« En cours… » au clic") { b!!.text.toString() == Geste.EN_COURS }
         porte.countDown()
-        attendre("bouton rendu") { b!!.text.toString() == "Non" && b!!.isEnabled }
+        attendre("bouton rendu") { b!!.text.toString() == "Refuser" && b!!.isEnabled }
         assertEquals(1, (champ(a, "demandes") as JSONArray).length())
     }
 
@@ -242,10 +250,10 @@ class GestesTest : InstrumentationTestCase() {
         val a = lancer(MessageActivity.intention(ctx, "Demande d'accès", "Alex demande Roblox.", false, null, acces))
         porte = CountDownLatch(1); reponse = 502 to "{}"
         var b: TextView? = null
-        instrumentation.runOnMainSync { b = bouton(a.window.decorView, "Non"); b!!.performClick() }
+        instrumentation.runOnMainSync { b = bouton(a.window.decorView, "Refuser"); b!!.performClick() }
         attendre("« En cours… »") { b!!.text.toString() == Geste.EN_COURS }
         porte.countDown()
-        attendre("bouton rendu, écran ouvert") { b!!.text.toString() == "Non" && b!!.isEnabled && !a.isFinishing }
+        attendre("bouton rendu, écran ouvert") { b!!.text.toString() == "Refuser" && b!!.isEnabled && !a.isFinishing }
     }
 
     // ------------------------------------------------------------------ 1.77.0 : le domaine d'un site, partout
@@ -258,7 +266,7 @@ class GestesTest : InstrumentationTestCase() {
     /** Les textes de l'écran (lus sur le fil principal), vérifiés hors de lui : un échec se rapporte, sans planter. */
     private fun sansSiteVide(racine: View): String {
         var t: List<String> = emptyList()
-        instrumentation.runOnMainSync { t = textes(racine).map { it.text.toString().trim() } }
+        instrumentation.runOnMainSync { t = textes(racine).map { lisible(it).trim() } }
         assertFalse("« Site : » sans domaine : $t", t.any { siteVide.matches(it) })
         return t.joinToString(" | ")
     }
@@ -296,9 +304,9 @@ class GestesTest : InstrumentationTestCase() {
             .put("pc", "e1").put("id", "dv1").put("minutes", 20).put("ts", System.currentTimeMillis() / 1000)
         instrumentation.runOnMainSync { poser(a, "donnees", JSONObject().put("demandes", JSONArray().put(dev))) }
         val w = widgetAccueil(a)
-        val t = textes(w).joinToString(" | ") { it.text }
+        val t = textes(w).joinToString(" | ") { lisible(it) }
         assertTrue(t, t.contains("Alex demande l'appli com.roblox.client (20 min)"))
-        porte = CountDownLatch(1); reponse = 200 to """{"ok":true,"retour":"Robin a accordé l'appli com.roblox.client sur TEL-ALEX pour 20 min."}"""
+        porte = CountDownLatch(1); reponse = 200 to """{"ok":true,"retour":"Nolan a accordé l'appli com.roblox.client sur TEL-ALEX pour 20 min."}"""
         val accepter = bouton(w, "Accepter")
         instrumentation.runOnMainSync { accepter.performClick() }
         attendre("« En cours… »") { accepter.text.toString() == Geste.EN_COURS }
@@ -351,7 +359,7 @@ class GestesTest : InstrumentationTestCase() {
         instrumentation.waitForIdleSync()
         var b: TextView? = null
         attendre("widget « Demandes » sur une page suivante") { b = textes(a.window.decorView).firstOrNull { it.text.toString() == "Accepter" }; b != null }
-        porte = CountDownLatch(1); reponse = 200 to """{"ok":true,"retour":"Robin a autorisé Instagram pour 60 min."}"""
+        porte = CountDownLatch(1); reponse = 200 to """{"ok":true,"retour":"Nolan a autorisé Instagram pour 60 min."}"""
         instrumentation.runOnMainSync { b!!.performClick() }
         attendre("« En cours… »") { textes(a.window.decorView).any { it.text.toString() == Geste.EN_COURS } }
         attendre("geste reçu") { dernierCorps?.optString("action") == "acces" && dernierCorps?.optString("demande") == "ig1" && dernierCorps?.optString("decision") == "temporaire" }

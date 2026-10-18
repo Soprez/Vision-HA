@@ -56,7 +56,13 @@ const TEXTES = /*i18n-json*/{
     "cocher_jour": "Coche au moins un jour.",
     "choisir_etiquette": "Choisis une étiquette, ou un site à fermer.",
     "carte_nom": "Planning Vision (plages d'une personne)",
-    "carte_description": "Grille semaine des plages d'une personne : session ou étiquettes, création au glisser, déplacement, redimensionnement, couleurs."
+    "carte_description": "Grille semaine des plages d'une personne : session ou étiquettes, création au glisser, déplacement, redimensionnement, couleurs.",
+    "vue_liste": "Liste",
+    "vue_grille": "Grille",
+    "vue_choix": "Affichage du planning",
+    "aide_liste": "Les plages de chaque jour, dans l'ordre. Touche une plage pour la modifier ; « + Plage » en ajoute une.",
+    "aucune_plage_jour": "Aucune plage",
+    "plage_inactive": "désactivée"
   },
   "en": {
     "jour_lun": "Mon", "jour_mar": "Tue", "jour_mer": "Wed", "jour_jeu": "Thu", "jour_ven": "Fri", "jour_sam": "Sat", "jour_dim": "Sun",
@@ -105,7 +111,13 @@ const TEXTES = /*i18n-json*/{
     "cocher_jour": "Tick at least one day.",
     "choisir_etiquette": "Pick a category, or a site to block.",
     "carte_nom": "Vision schedule (a person's time slots)",
-    "carte_description": "Weekly grid of a person's time slots: session or categories, drag to create, move, resize, colours."
+    "carte_description": "Weekly grid of a person's time slots: session or categories, drag to create, move, resize, colours.",
+    "vue_liste": "List",
+    "vue_grille": "Grid",
+    "vue_choix": "Schedule view",
+    "aide_liste": "Each day's time slots, in order. Tap a slot to change it; \"+ Time slot\" adds one.",
+    "aucune_plage_jour": "No time slot",
+    "plage_inactive": "turned off"
   },
   "de": {
     "jour_lun": "Mo", "jour_mar": "Di", "jour_mer": "Mi", "jour_jeu": "Do", "jour_ven": "Fr", "jour_sam": "Sa", "jour_dim": "So",
@@ -154,7 +166,13 @@ const TEXTES = /*i18n-json*/{
     "cocher_jour": "Hak mindestens einen Tag an.",
     "choisir_etiquette": "Wähl eine Kategorie oder eine Website zum Sperren.",
     "carte_nom": "Vision-Zeitplan (Zeitfenster einer Person)",
-    "carte_description": "Wochenraster der Zeitfenster einer Person: Sitzung oder Kategorien, Anlegen durch Ziehen, Verschieben, Größe ändern, Farben."
+    "carte_description": "Wochenraster der Zeitfenster einer Person: Sitzung oder Kategorien, Anlegen durch Ziehen, Verschieben, Größe ändern, Farben.",
+    "vue_liste": "Liste",
+    "vue_grille": "Raster",
+    "vue_choix": "Ansicht des Zeitplans",
+    "aide_liste": "Die Zeitfenster jedes Tages, der Reihe nach. Tippe auf ein Zeitfenster, um es zu ändern; „+ Zeitfenster“ fügt eines hinzu.",
+    "aucune_plage_jour": "Kein Zeitfenster",
+    "plage_inactive": "ausgeschaltet"
   },
   "es": {
     "jour_lun": "Lun", "jour_mar": "Mar", "jour_mer": "Mié", "jour_jeu": "Jue", "jour_ven": "Vie", "jour_sam": "Sáb", "jour_dim": "Dom",
@@ -203,7 +221,13 @@ const TEXTES = /*i18n-json*/{
     "cocher_jour": "Marca al menos un día.",
     "choisir_etiquette": "Elige una categoría, o un sitio que bloquear.",
     "carte_nom": "Horario de Vision (franjas de una persona)",
-    "carte_description": "Cuadrícula semanal de las franjas de una persona: sesión o categorías, creación arrastrando, mover, cambiar tamaño, colores."
+    "carte_description": "Cuadrícula semanal de las franjas de una persona: sesión o categorías, creación arrastrando, mover, cambiar tamaño, colores.",
+    "vue_liste": "Lista",
+    "vue_grille": "Cuadrícula",
+    "vue_choix": "Vista del horario",
+    "aide_liste": "Las franjas de cada día, en orden. Toca una franja para cambiarla; «+ Franja» añade una.",
+    "aucune_plage_jour": "Ninguna franja",
+    "plage_inactive": "desactivada"
   },
   "it": {
     "jour_lun": "Lun", "jour_mar": "Mar", "jour_mer": "Mer", "jour_jeu": "Gio", "jour_ven": "Ven", "jour_sam": "Sab", "jour_dim": "Dom",
@@ -252,7 +276,13 @@ const TEXTES = /*i18n-json*/{
     "cocher_jour": "Spunta almeno un giorno.",
     "choisir_etiquette": "Scegli una categoria, o un sito da bloccare.",
     "carte_nom": "Programma di Vision (fasce di una persona)",
-    "carte_description": "Griglia settimanale delle fasce di una persona: sessione o categorie, creazione trascinando, spostamento, ridimensionamento, colori."
+    "carte_description": "Griglia settimanale delle fasce di una persona: sessione o categorie, creazione trascinando, spostamento, ridimensionamento, colori.",
+    "vue_liste": "Elenco",
+    "vue_grille": "Griglia",
+    "vue_choix": "Vista del planning",
+    "aide_liste": "Le fasce di ogni giorno, in ordine. Tocca una fascia per modificarla; «+ Fascia» ne aggiunge una.",
+    "aucune_plage_jour": "Nessuna fascia",
+    "plage_inactive": "disattivata"
   },
   "nl": {
     "jour_lun": "Ma", "jour_mar": "Di", "jour_mer": "Wo", "jour_jeu": "Do", "jour_ven": "Vr", "jour_sam": "Za", "jour_dim": "Zo",
@@ -301,11 +331,17 @@ const TEXTES = /*i18n-json*/{
     "cocher_jour": "Vink minstens één dag aan.",
     "choisir_etiquette": "Kies een categorie, of een site om te blokkeren.",
     "carte_nom": "Vision-planning (tijdvakken van een persoon)",
-    "carte_description": "Weekraster van de tijdvakken van een persoon: sessie of categorieën, maken door te slepen, verschuiven, formaat wijzigen, kleuren."
+    "carte_description": "Weekraster van de tijdvakken van een persoon: sessie of categorieën, maken door te slepen, verschuiven, formaat wijzigen, kleuren.",
+    "vue_liste": "Lijst",
+    "vue_grille": "Raster",
+    "vue_choix": "Weergave van het rooster",
+    "aide_liste": "De tijdvakken van elke dag, op volgorde. Tik op een tijdvak om het te wijzigen; „+ Tijdvak” voegt er een toe.",
+    "aucune_plage_jour": "Geen tijdvak",
+    "plage_inactive": "uitgeschakeld"
   }
 }/*i18n-json:fin*/;
 // Les catégories (étiquettes de la maison) : copie de pc_parental/i18n/categories.json, pour les pastilles et les blocs.
-const CATEGORIES_I18N = /*i18n-categories*/{"jeux": {"fr": "Jeux", "en": "Games", "de": "Spiele", "es": "Juegos", "it": "Giochi", "nl": "Games"}, "videos": {"fr": "Vidéos", "en": "Videos", "de": "Videos", "es": "Vídeos", "it": "Video", "nl": "Video's"}, "reseaux_sociaux": {"fr": "Réseaux sociaux", "en": "Social media", "de": "Soziale Medien", "es": "Redes sociales", "it": "Social network", "nl": "Sociale media"}, "tv": {"fr": "TV", "en": "TV", "de": "TV", "es": "TV", "it": "TV", "nl": "tv"}, "vod": {"fr": "VOD", "en": "Streaming", "de": "Streaming", "es": "Streaming", "it": "Streaming", "nl": "Streaming"}, "musique": {"fr": "Musique", "en": "Music", "de": "Musik", "es": "Música", "it": "Musica", "nl": "Muziek"}, "ia": {"fr": "IA", "en": "AI", "de": "KI", "es": "IA", "it": "IA", "nl": "AI"}, "internet": {"fr": "Internet", "en": "Internet", "de": "Internet", "es": "Internet", "it": "Internet", "nl": "Internet"}, "travail": {"fr": "Travail", "en": "Work", "de": "Arbeit", "es": "Trabajo", "it": "Lavoro", "nl": "Werk"}, "creation": {"fr": "Création", "en": "Creativity", "de": "Kreativität", "es": "Creatividad", "it": "Creatività", "nl": "Creativiteit"}, "actu_medias": {"fr": "Actu & médias", "en": "News & media", "de": "Nachrichten & Medien", "es": "Noticias y medios", "it": "Notizie e media", "nl": "Nieuws & media"}, "pub_tracage": {"fr": "Pub & traçage", "en": "Ads & tracking", "de": "Werbung & Tracking", "es": "Anuncios y rastreo", "it": "Pubblicità e tracciamento", "nl": "Advertenties & tracking"}, "contournement": {"fr": "Contournement", "en": "Bypass tools", "de": "Umgehung", "es": "Elusión", "it": "Aggiramento", "nl": "Omzeiling"}, "dangereux": {"fr": "Dangereux", "en": "Dangerous", "de": "Gefährlich", "es": "Peligroso", "it": "Pericoloso", "nl": "Gevaarlijk"}, "adulte": {"fr": "Adulte", "en": "Adult", "de": "Erwachsene", "es": "Adultos", "it": "Adulti", "nl": "Volwassenen"}, "pegi_12": {"fr": "PEGI 12", "en": "PEGI 12", "de": "PEGI 12", "es": "PEGI 12", "it": "PEGI 12", "nl": "PEGI 12"}, "pegi_16": {"fr": "PEGI 16", "en": "PEGI 16", "de": "PEGI 16", "es": "PEGI 16", "it": "PEGI 16", "nl": "PEGI 16"}, "pegi_18": {"fr": "PEGI 18", "en": "PEGI 18", "de": "PEGI 18", "es": "PEGI 18", "it": "PEGI 18", "nl": "PEGI 18"}, "systeme": {"fr": "Système", "en": "System", "de": "System", "es": "Sistema", "it": "Sistema", "nl": "Systeem"}, "google": {"fr": "Google", "en": "Google", "de": "Google", "es": "Google", "it": "Google", "nl": "Google"}, "discord": {"fr": "Discord", "en": "Discord", "de": "Discord", "es": "Discord", "it": "Discord", "nl": "Discord"}, "annuaires_discord": {"fr": "Annuaires Discord", "en": "Discord directories", "de": "Discord-Verzeichnisse", "es": "Directorios de Discord", "it": "Directory Discord", "nl": "Discord-gidsen"}, "toujours_autorise": {"fr": "Toujours autorisé", "en": "Always allowed", "de": "Immer erlaubt", "es": "Siempre permitido", "it": "Sempre consentito", "nl": "Altijd toegestaan"}}/*i18n-categories:fin*/;
+const CATEGORIES_I18N = /*i18n-categories*/{"jeux": {"fr": "Jeux", "en": "Games", "de": "Spiele", "es": "Juegos", "it": "Giochi", "nl": "Games"}, "videos": {"fr": "Vidéos", "en": "Videos", "de": "Videos", "es": "Vídeos", "it": "Video", "nl": "Video's"}, "reseaux_sociaux": {"fr": "Réseaux sociaux", "en": "Social media", "de": "Soziale Medien", "es": "Redes sociales", "it": "Social network", "nl": "Sociale media"}, "tv": {"fr": "TV", "en": "TV", "de": "TV", "es": "TV", "it": "TV", "nl": "tv"}, "vod": {"fr": "VOD", "en": "Streaming", "de": "Streaming", "es": "Streaming", "it": "Streaming", "nl": "Streaming"}, "musique": {"fr": "Musique", "en": "Music", "de": "Musik", "es": "Música", "it": "Musica", "nl": "Muziek"}, "ia": {"fr": "IA", "en": "AI", "de": "KI", "es": "IA", "it": "IA", "nl": "AI"}, "internet": {"fr": "Internet", "en": "Internet", "de": "Internet", "es": "Internet", "it": "Internet", "nl": "Internet"}, "travail": {"fr": "Travail", "en": "Work", "de": "Arbeit", "es": "Trabajo", "it": "Lavoro", "nl": "Werk"}, "creation": {"fr": "Création", "en": "Creativity", "de": "Kreativität", "es": "Creatividad", "it": "Creatività", "nl": "Creativiteit"}, "actu_medias": {"fr": "Actu & médias", "en": "News & media", "de": "Nachrichten & Medien", "es": "Noticias y medios", "it": "Notizie e media", "nl": "Nieuws & media"}, "pub_tracage": {"fr": "Pub & traçage", "en": "Ads & tracking", "de": "Werbung & Tracking", "es": "Anuncios y rastreo", "it": "Pubblicità e tracciamento", "nl": "Advertenties & tracking"}, "contournement": {"fr": "Contournement", "en": "Bypass tools", "de": "Umgehung", "es": "Elusión", "it": "Aggiramento", "nl": "Omzeiling"}, "dangereux": {"fr": "Dangereux", "en": "Dangerous", "de": "Gefährlich", "es": "Peligroso", "it": "Pericoloso", "nl": "Gevaarlijk"}, "adulte": {"fr": "Adulte", "en": "Adult", "de": "Erwachsene", "es": "Adultos", "it": "Adulti", "nl": "Volwassenen"}, "pegi_12": {"fr": "PEGI 12", "en": "PEGI 12", "de": "PEGI 12", "es": "PEGI 12", "it": "PEGI 12", "nl": "PEGI 12"}, "pegi_16": {"fr": "PEGI 16", "en": "PEGI 16", "de": "PEGI 16", "es": "PEGI 16", "it": "PEGI 16", "nl": "PEGI 16"}, "pegi_18": {"fr": "PEGI 18", "en": "PEGI 18", "de": "PEGI 18", "es": "PEGI 18", "it": "PEGI 18", "nl": "PEGI 18"}, "systeme": {"fr": "Système", "en": "System", "de": "System", "es": "Sistema", "it": "Sistema", "nl": "Systeem"}, "google": {"fr": "Google", "en": "Google", "de": "Google", "es": "Google", "it": "Google", "nl": "Google"}, "discord": {"fr": "Discord", "en": "Discord", "de": "Discord", "es": "Discord", "it": "Discord", "nl": "Discord"}, "annuaires_discord": {"fr": "Annuaires Discord", "en": "Discord directories", "de": "Discord-Verzeichnisse", "es": "Directorios de Discord", "it": "Directory Discord", "nl": "Discord-gidsen"}, "toujours_autorise": {"fr": "Toujours autorisé", "en": "Always allowed", "de": "Immer erlaubt", "es": "Siempre permitido", "it": "Sempre consentito", "nl": "Altijd toegestaan"}, "ecole": {"fr": "École", "en": "School", "de": "Schule", "es": "Escuela", "it": "Scuola", "nl": "School"}}/*i18n-categories:fin*/;
 // ---- i18n:code — le même dans toutes les cartes de Vision (essai/i18n_cartes_test.py le vérifie) ----
 // Langue : celle de l'utilisateur Home Assistant (hass.locale.language, sinon hass.language), sur deux lettres ;
 // une langue que Vision ne parle pas → l'anglais. Un texte absent → l'anglais, puis le français, puis la clé.
@@ -433,6 +469,16 @@ const trCat = (nom) => {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
 
+  // Un choix multiple (vision-choix) rendu à la liste d'origine : ce que la liste ne propose pas reste tel quel, ce qui
+  // reste choisi garde sa place et son écriture, ce qui vient d'être choisi s'ajoute au bout.
+  function fusionnerChoix(anciens, choisis, connus, cle) {
+    const proposes = new Set(connus.map(cle));
+    const gardes = new Set(choisis.map(cle));
+    const sortie = (anciens || []).filter((x) => !proposes.has(cle(x)) || gardes.has(cle(x)));
+    for (const c of choisis) if (!sortie.some((x) => cle(x) === cle(c))) sortie.push(c);
+    return sortie;
+  }
+
   function cibles(p) {
     const noms = (p.etiquettes || []).map(trCat).concat(
       (p.elements || []).map((e) => e.nom)
@@ -525,6 +571,29 @@ const retourGeste = (hote) => {
       this._rendered = false;
       this._cat = null;      // catalogue sites + logiciels
       this._filtreEl = "";   // filtre du selecteur d'elements
+      // Refonte lot 6 (HA-21) : en liste par jour sur un écran étroit (la grille y est illisible), au choix sinon.
+      this._vue = "auto";
+      this._largeur = 0;
+    }
+
+    connectedCallback() {
+      if (this._obs || typeof ResizeObserver === "undefined") return;
+      this._obs = new ResizeObserver((e) => {
+        const l = Math.round(e[0].contentRect.width);
+        const avant = this._vueEffective();
+        this._largeur = l;
+        if (this._rendered && this._vueEffective() !== avant && !this._drag && !this._sel) this._render();
+      });
+      this._obs.observe(this);
+    }
+
+    disconnectedCallback() {
+      if (this._obs) { this._obs.disconnect(); this._obs = null; }
+    }
+
+    _vueEffective() {
+      if (this._vue !== "auto") return this._vue;
+      return this._largeur && this._largeur < 520 ? "liste" : "grille";
     }
 
     async _catalogue() {
@@ -691,8 +760,24 @@ const retourGeste = (hote) => {
       <style>
         :host { display: block; }
         ha-card { overflow: hidden; position: relative; }
-        .entete { display: flex; align-items: center; gap: 8px; padding: 12px 16px 4px; }
-        .titre { font-size: 1.15em; font-weight: 500; flex: 1; }
+        .entete { display: flex; align-items: center; gap: 8px; padding: 12px 16px 4px; flex-wrap: wrap; }
+        .titre { font-size: 1.15em; font-weight: 500; flex: 1 1 14em; min-width: 0; overflow-wrap: anywhere; }
+        .vues { display: flex; border: 1px solid var(--divider-color); border-radius: 8px; overflow: hidden; }
+        .vue { border: none; background: none; color: var(--primary-text-color); font: inherit; font-size: 14px;
+          padding: 6px 10px; min-height: 32px; cursor: pointer; }
+        .vue[aria-pressed="true"] { background: var(--primary-color); color: var(--text-primary-color, #fff); font-weight: 500; }
+        .vue:focus-visible, .ligne:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+        .liste { padding: 4px 16px 16px; }
+        .jour h3 { font-size: 1em; margin: 12px 0 4px; text-transform: capitalize; }
+        .jour .vide { color: var(--secondary-text-color); font-size: .92em; padding: 4px 0; }
+        .ligne { display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: start; font: inherit;
+          color: var(--primary-text-color); background: none; border: 0; border-bottom: 1px solid var(--divider-color);
+          padding: 10px 0; min-height: 48px; cursor: pointer; }
+        .ligne .pastille { flex: none; width: 14px; height: 14px; border-radius: 50%; margin-top: 3px; }
+        .ligne .txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .ligne .nom { font-weight: 500; overflow-wrap: anywhere; }
+        .ligne .h { color: var(--secondary-text-color); font-size: .92em; overflow-wrap: anywhere; }
+        .ligne.inactive .nom { color: var(--secondary-text-color); }
         .btn-plus {
           border: none; border-radius: 8px; cursor: pointer;
           background: var(--primary-color); color: var(--text-primary-color, #fff);
@@ -829,6 +914,7 @@ const retourGeste = (hote) => {
       for (let h = 2; h < 24; h += 2) {
         heures += `<div style="top:${s2y(h * 3600)}px">${echap(trDate(new Date(2000, 0, 1, h), { hour: "2-digit" }))}</div>`;
       }
+      const liste = this._vueEffective() === "liste";
       let entetes = "";
       let cols = "";
       for (let d = 0; d < 7; d++) {
@@ -840,16 +926,20 @@ const retourGeste = (hote) => {
         <ha-card>
           <div class="entete">
             <div class="titre">${titre}</div>
+            <div class="vues" role="group" aria-label="${echap(tr("vue_choix"))}">
+              <button class="vue" data-vue="liste" aria-pressed="${liste}">${echap(tr("vue_liste"))}</button>
+              <button class="vue" data-vue="grille" aria-pressed="${!liste}">${echap(tr("vue_grille"))}</button>
+            </div>
             <button class="btn-plus" id="plus">${echap(tr("plus_plage"))}</button>
           </div>
-          <div class="aide">${echap(tr("aide"))}</div>
-          <div class="grille-conteneur">
+          <div class="aide">${echap(tr(liste ? "aide_liste" : "aide"))}</div>
+          ${liste ? this._liste() : `<div class="grille-conteneur">
             <div class="jours-entete">${entetes}</div>
             <div class="corps">
               <div class="heures">${heures}</div>
               <div class="cols" id="cols">${cols}</div>
             </div>
-          </div>
+          </div>${this._legende()}`}
           <div id="zone-editeur"></div>
           <div id="zone-toast"></div>
         </ha-card>`;
@@ -857,7 +947,18 @@ const retourGeste = (hote) => {
       this._renderSegs();
       this._ligneMaintenant();
       const cols_el = this.shadowRoot.getElementById("cols");
-      cols_el.addEventListener("pointerdown", (ev) => this._pointerDown(ev));
+      if (cols_el) cols_el.addEventListener("pointerdown", (ev) => this._pointerDown(ev));
+      this.shadowRoot.querySelectorAll("[data-vue]").forEach((b) => b.addEventListener("click", () => {
+        this._vue = b.dataset.vue;
+        this._render();
+        const n = this.shadowRoot.querySelector(`[data-vue="${b.dataset.vue}"]`);
+        if (n) n.focus();
+      }));
+      this.shadowRoot.querySelectorAll("[data-plage]").forEach((b) => b.addEventListener("click", () => {
+        const p = this._plages().find((x) => String(x.id) === b.dataset.plage);
+        if (p) this._ouvrirEditeur(Object.assign({}, p, { jours: p.jours.slice(), etiquettes: p.etiquettes.slice(),
+                                                         elements: p.elements.slice() }));
+      }));
       this.shadowRoot.getElementById("plus").addEventListener("click", () => {
         this._ouvrirEditeur({
           id: null,
@@ -873,6 +974,45 @@ const retourGeste = (hote) => {
           couleur: null,
         });
       });
+    }
+
+    /* Liste par jour (lot 6, HA-21) : une ligne par plage, touchée pour l'éditer ; lundi d'abord. */
+    _liste() {
+      const segs = this._segments();
+      let html = '<div class="liste">';
+      for (let d = 0; d < 7; d++) {
+        const jour = trDate(new Date(2024, 0, 1 + d), { weekday: "long" });  // le 1er janvier 2024 est un lundi
+        const lignes = segs.filter((x) => x.jour === d).sort((a, b) => a.de - b.de);
+        html += `<section class="jour"><h3>${echap(jour)}</h3>`;
+        if (!lignes.length) html += `<div class="vide">${echap(tr("aucune_plage_jour"))}</div>`;
+        for (const x of lignes) {
+          const sous = x.p.portee === "etiquettes" ? cibles(x.p) : "";
+          html += `<button class="ligne${x.p.active ? "" : " inactive"}" data-plage="${echap(String(x.p.id))}">
+            <span class="pastille" style="background:${echap(x.couleur)}"></span>
+            <span class="txt"><span class="nom">${echap(x.p.nom) || echap(tr("plage_defaut"))}${x.p.active ? "" : ` · ${echap(tr("plage_inactive"))}`}</span>
+              <span class="h">${hLisible(x.de)} → ${hLisible(x.a % JOUR_S)}</span>
+              ${sous ? `<span class="h">${echap(sous)}</span>` : ""}</span>
+          </button>`;
+        }
+        html += "</section>";
+      }
+      return html + "</div>";
+    }
+
+    /* Sous la grille : une ligne par plage (nom complet, horaires, jours), qui ouvre l'éditeur. */
+    _legende() {
+      const plages = this._plages();
+      if (!plages.length) return "";
+      const jours = (p) => p.jours.map((j, d) => (j ? tr(JOURS_COURTS[d]) : "")).filter(Boolean).join(" ");
+      return `<div class="liste legende">${plages.map((p) => {
+        const sous = p.portee === "etiquettes" ? cibles(p) : "";
+        return `<button class="ligne${p.active ? "" : " inactive"}" data-plage="${echap(String(p.id))}">
+          <span class="pastille" style="background:${echap(p.couleur || couleurDefaut(p.id))}"></span>
+          <span class="txt"><span class="nom">${echap(p.nom) || echap(tr("plage_defaut"))}${p.active ? "" : ` · ${echap(tr("plage_inactive"))}`}</span>
+            <span class="h">${hLisible(p.debut)} → ${hLisible(p.fin)} · ${echap(jours(p))}</span>
+            ${sous ? `<span class="h">${echap(sous)}</span>` : ""}</span>
+        </button>`;
+      }).join("")}</div>`;
     }
 
     _renderSegs(surcharge) {
@@ -902,15 +1042,12 @@ const retourGeste = (hote) => {
         el.dataset.id = s.p.id;
         el.dataset.bordHaut = s.bordHaut ? "1" : "0";
         el.dataset.bordBas = s.bordBas ? "1" : "0";
-        const haut = s.a - s.de >= 5400;
-        const sousTitre =
-          s.p.portee === "etiquettes"
-            ? `<div class="h">${echap(cibles(s.p))}</div>`
-            : "";
+        // Lot 6 : pas de texte rogné dans un bloc étroit — le nom complet est dans l'étiquette du bloc et dans la
+        // légende sous la grille (une ligne par plage, qui ouvre l'éditeur).
+        const etiquette = `${s.p.nom || tr("plage_defaut")}, ${hLisible(s.p.debut)} → ${hLisible(s.p.fin)}`;
+        el.title = etiquette;
+        el.setAttribute("aria-label", etiquette);
         el.innerHTML =
-          `<div class="nom">${echap(s.p.nom) || "&nbsp;"}</div>` +
-          (haut ? sousTitre : "") +
-          (haut ? `<div class="h">${hLisible(s.p.debut)}→${hLisible(s.p.fin)}</div>` : "") +
           (s.bordHaut ? '<div class="poignee haut"></div>' : "") +
           (s.bordBas ? '<div class="poignee bas"></div>' : "");
         col.appendChild(el);
@@ -1129,13 +1266,14 @@ const retourGeste = (hote) => {
               <div class="champ"><label>${echap(tr("fin"))}</label><input type="time" id="ed-fin" step="900" value="${hVersInput(p.fin)}"></div>
             </div>
             <div class="champ"><label>${echap(tr("jours"))}</label><div class="chips" id="ed-jours">${chips}</div></div>
-            <div class="champ"><label>${echap(tr("plage_ferme"))}</label><div class="chips" id="ed-portee">
-              <button class="chip ${p.portee !== "etiquettes" ? "on" : ""}" data-p="session">${echap(tr("portee_session"))}</button>
-              <button class="chip ${p.portee === "etiquettes" ? "on" : ""}" data-p="etiquettes">${echap(tr("portee_etiquettes"))}</button>
-            </div></div>
+            <div class="champ"><label>${echap(tr("plage_ferme"))}</label><vision-choix id="ed-portee" titre="${echap(tr("plage_ferme"))}"
+              valeur="${p.portee === "etiquettes" ? "etiquettes" : "session"}" options="${echap(JSON.stringify([
+                { cle: "session", libelle: tr("portee_session") },
+                { cle: "etiquettes", libelle: tr("portee_etiquettes") },
+              ]))}"></vision-choix></div>
             <div class="champ" id="ed-zone-etiq" ${p.portee === "etiquettes" ? "" : "hidden"}>
               <label>${echap(tr("etiquettes_a_fermer"))}</label>
-              <div class="chips" id="ed-etiq">${this._chipsEtiq()}</div>
+              ${this._choixEtiq()}
               ${vocab.length ? "" : `<div class="suggestion">${echap(tr("aucune_etiquette"))}</div>`}
               <label style="margin-top:10px">${echap(tr("viser_element"))}</label>
               <div class="chips" id="ed-els">${this._chipsEls()}</div>
@@ -1147,7 +1285,8 @@ const retourGeste = (hote) => {
               <div class="suggestion">${echap(tr("site_l_emporte"))}</div>
             </div>
             ${this._appareils().length > 1 ? `<div class="champ"><label>${echap(tr("sauf_sur"))}</label>
-              <div class="chips" id="ed-sauf">${this._appareils().map((a) => `<button class="chip ${(p.sauf || []).includes(a.id) ? "on" : ""}" data-a="${echap(a.id)}" type="button">${echap(a.nom)}</button>`).join("")}</div>
+              <vision-choix id="ed-sauf" multiple titre="${echap(tr("sauf_sur"))}" valeurs="${echap(JSON.stringify(p.sauf || []))}"
+                options="${echap(JSON.stringify(this._appareils().map((a) => ({ cle: a.id, libelle: a.nom }))))}"></vision-choix>
               <div class="suggestion">${echap(tr("sauf_aide"))}</div></div>` : ""}
             <div class="champ"><label>${echap(tr("couleur"))}</label><div class="nuancier" id="ed-couleurs">${nuancier}</div></div>
             <div class="champ"><label class="interrupteur">
@@ -1172,13 +1311,8 @@ const retourGeste = (hote) => {
         this._sel.jours[j] = !this._sel.jours[j];
         chip.classList.toggle("on", this._sel.jours[j]);
       });
-      $("ed-portee").addEventListener("click", (e) => {
-        const b = e.target.closest(".chip");
-        if (!b) return;
-        this._sel.portee = b.dataset.p;
-        zone
-          .querySelectorAll("#ed-portee .chip")
-          .forEach((c) => c.classList.toggle("on", c === b));
+      $("ed-portee").addEventListener("vision-choix", (e) => {
+        this._sel.portee = e.detail.valeur;
         zone.querySelector("#ed-zone-etiq").hidden =
           this._sel.portee !== "etiquettes";
       });
@@ -1196,29 +1330,17 @@ const retourGeste = (hote) => {
       });
       const zSauf = zone.querySelector("#ed-sauf");
       if (zSauf) {
-        zSauf.addEventListener("click", (e) => {
-          const b = e.target.closest(".chip");
-          if (!b) return;
-          const sauf = this._sel.sauf || (this._sel.sauf = []);
-          const i = sauf.indexOf(b.dataset.a);
-          if (i >= 0) sauf.splice(i, 1);
-          else sauf.push(b.dataset.a);
-          b.classList.toggle("on", i < 0);
+        const connus = this._appareils().map((a) => String(a.id));
+        zSauf.addEventListener("vision-choix", (e) => {
+          this._sel.sauf = fusionnerChoix(this._sel.sauf, e.detail.valeurs, connus, String);
         });
       }
       const zEtiq = zone.querySelector("#ed-etiq");
       if (zEtiq) {
-        zEtiq.addEventListener("click", (e) => {
-          const b = e.target.closest(".chip");
-          if (!b) return;
-          const nom = b.dataset.e;
-          const prises = this._sel.etiquettes || (this._sel.etiquettes = []);
-          const i = prises.findIndex(
-            (x) => x.toLowerCase() === nom.toLowerCase()
-          );
-          if (i >= 0) prises.splice(i, 1);
-          else prises.push(nom);
-          b.classList.toggle("on", i < 0);
+        const connues = this._vocabulaire();
+        const bas = (x) => String(x).toLowerCase();
+        zEtiq.addEventListener("vision-choix", (e) => {
+          this._sel.etiquettes = fusionnerChoix(this._sel.etiquettes, e.detail.valeurs, connues, bas);
         });
       }
       const zEls = zone.querySelector("#ed-els");
@@ -1268,16 +1390,14 @@ const retourGeste = (hote) => {
 
     /* --- choisir plutot que taper : pastilles et liste deroulante ------- */
 
-    _chipsEtiq() {
+    // Les étiquettes à fermer : un choix multiple (vision-choix) ; la casse ne compte pas.
+    _choixEtiq() {
+      const vocab = this._vocabulaire();
+      if (!vocab.length) return "";
       const prises = (this._sel.etiquettes || []).map((e) => e.toLowerCase());
-      return this._vocabulaire()
-        .map(
-          (nom) =>
-            `<button class="chip ${
-              prises.includes(nom.toLowerCase()) ? "on" : ""
-            }" data-e="${echap(nom)}" type="button">${echap(trCat(nom))}</button>`
-        )
-        .join("");
+      const valeurs = vocab.filter((nom) => prises.includes(nom.toLowerCase()));
+      return `<vision-choix id="ed-etiq" multiple titre="${echap(tr("etiquettes_a_fermer"))}" valeurs="${echap(JSON.stringify(valeurs))}"
+        options="${echap(JSON.stringify(vocab.map((nom) => ({ cle: nom, libelle: trCat(nom) }))))}"></vision-choix>`;
     }
 
     _chipsEls() {

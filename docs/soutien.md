@@ -1,6 +1,6 @@
 # Soutien du projet — badge et code de soutien
 
-Vision est gratuit et open source (MIT). Un foyer qui le souhaite peut offrir un café au projet
+Vision est gratuit et open source (MIT). Un foyer qui le souhaite peut me payer un café
 (https://buymeacoffee.com/soprez). En retour, et seulement pour le plaisir, Vision affiche un badge
 « Soutien » et une petite animation : l'œil Vision fait un clin d'œil et un cœur apparaît, de temps
 en temps, sur la veille et dans « À propos ». **Rien ne se débloque d'autre** : aucune fonction n'est
@@ -8,13 +8,13 @@ réservée aux soutiens.
 
 ## Deux façons de l'activer
 
-Dans Home Assistant : **Paramètres → Appareils et services → Vision → Configurer → Soutenir le projet**
+Dans Home Assistant : **Paramètres → Appareils et services → Vision → Configurer → ☕ Payez-moi un café**
 (réservé aux administrateurs, c'est-à-dire aux Décideurs du lieu).
 
-1. **« J'ai un code »** : le code reçu par e-mail après un don. Vision vérifie sa signature **hors
-   ligne**, avec la clé publique embarquée dans l'intégration (`soutien.CLE_PUBLIQUE_B64`). Rien
-   n'est envoyé nulle part.
-2. **« J'ai offert un café »** : sur l'honneur, sans vérification. C'est décoratif.
+La page demande directement **le code reçu par e-mail** après un café. Vision vérifie sa signature
+**hors ligne**, avec la clé publique embarquée dans l'intégration (`soutien.CLE_PUBLIQUE_B64`). Rien
+n'est envoyé nulle part. Depuis le 15/10/2026, il n'y a plus de « café sur l'honneur » : un code est
+envoyé à chaque café. Un badge déjà obtenu sur l'honneur reste affiché (mode `honneur`).
 
 L'état est gardé par l'intégration (`.storage/pc_parental`, clé `soutien`) et transmis aux appareils
 dans chaque relevé (`"soutien": {"actif": true, "mode": "code" | "honneur"}`), sans autre donnée.

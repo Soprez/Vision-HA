@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 17-10 (l'auteur, point 18b) : « Vider la file » dans le menu d'un titre de la file (télé). -->
+<resources>
+    <string name="partyecran_vider_file">Clear the queue</string>
+    <string name="partyecran_vider_titre">Clear the queue?</string>
+    <string name="partyecran_vider_texte">The %1$d songs coming up will be removed. The current song keeps playing.</string>
+    <string name="partyecran_vider_bouton">Clear</string>
+    <!-- 17-10 (l'auteur, point 8) : le mode soirée (invités par QR code), ouvert ou fermé depuis le lecteur. -->
+    <string name="musrech_soiree_mode">Party mode (guests): %1$s</string>
+    <string name="partyecran_soiree_fermer">Close party mode</string>
+    <string name="partyecran_soiree_ouvrir">Open to guests</string>
+    <string name="partyecran_soiree_fermee">Party mode is off: no QR code, the guests’ link no longer works.</string>
+    <!-- 1.93.05 (l'auteur, retour 33) : la mise à jour depuis les réglages de la télé. -->
+    <string name="reglagestv_maj_rechercher">Check for an update</string>
+    <string name="reglagestv_maj_recherche_en_cours">Checking with Home Assistant…</string>
+    <string name="reglagestv_maj_aucune">No update information yet.</string>
+    <string name="reglagestv_st_demandes">Requests</string>
+    <string name="jauge_volume">Volume %1$d %%</string>
+    <string name="zonehaut_widget_lecteur">Music player</string>
+    <string name="veille_option_lecteur">Music player in the screensaver</string>
+    <string name="veille_qr_ajoute">Add your music</string>
+    <string name="veille_option_qr">Guests\' QR code</string>
+    <string name="veille_option_logo">Vision logo</string>
+    <string name="veille_coin_haut_gauche">Top left</string>
+    <string name="veille_coin_haut_droite">Top right</string>
+    <string name="veille_coin_bas_gauche">Bottom left</string>
+    <string name="veille_coin_bas_droite">Bottom right</string>
+    <string name="veille_coin_cache">Hidden</string>
+    <string name="veille_coin_pris">This corner is already taken by: %1$s</string>
+</resources>

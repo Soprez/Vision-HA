@@ -208,6 +208,51 @@ def _vise(t: dict[str, Any], ecran: str, qui: dict[str, str]) -> bool:
 
 # --- Résolution des cases -------------------------------------------------------------
 
+# 2.2.12 : la veille ne montre que ce qui se lit. Une entité d'action ou de saisie (bouton, script, champ…) n'a rien
+# à y faire : la case est retirée, jamais affichée comme une valeur brute. input_boolean reste (il se lit comme un
+# interrupteur).
+DOMAINES_ACTION = frozenset({"button", "input_button", "script", "scene", "automation", "input_number", "input_text",
+                             "input_select", "input_datetime", "number", "select", "text", "notify", "tts", "conversation"})
+_DATE_ISO = re.compile(r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}")
+# Les unités de temps de Home Assistant (« d », « w »…) dites dans la langue de la maison ; sans table, inchangées.
+_UNITES = {
+    "fr": {"d": "j", "day": "j", "days": "j", "w": "sem.", "wk": "sem.", "mo": "mois", "y": "an", "yr": "an"},
+}
+_RE_UNITE_TEMPS = re.compile(r"(?<![A-Za-z])(days|day|wk|mo|yr|d|w|y)(?![A-Za-z])")
+
+
+def exclue(entite: str) -> bool:
+    """Une entité d'action ou de saisie : jamais sur une veille."""
+    return str(entite or "").split(".", 1)[0] in DOMAINES_ACTION
+
+
+def langue(hass: HomeAssistant) -> str:
+    return str(getattr(hass.config, "language", "") or "en").split("-")[0].lower()
+
+
+def unite_locale(unite: str, lang: str) -> str:
+    """« L/d » → « L/j », « d » → « j » en français ; ce qui n'est pas une unité de temps ne change pas."""
+    table = _UNITES.get(lang)
+    if not unite or not table:
+        return unite
+    return _RE_UNITE_TEMPS.sub(lambda m: table.get(m.group(1), m.group(1)), unite)
+
+
+def date_lisible(texte: Any, lang: str) -> str | None:
+    """« 2026-10-09T08:00:46+00:00 » → « 9 oct., 08:00 » (heure locale) ; None si ce n'est pas une date."""
+    if not isinstance(texte, str) or not _DATE_ISO.match(texte.strip()):
+        return None
+    d = dt_util.parse_datetime(texte.strip())
+    if d is None:
+        return None
+    if d.tzinfo is None:
+        d = d.replace(tzinfo=dt_util.get_default_time_zone())
+    d = dt_util.as_local(d)
+    annee = "" if d.year == dt_util.now().year else f" {d.year}"
+    # Le mois et l'ordre des mots dans la langue de l'appareil (catalogue « veille.date », « veille.mois.<n> »).
+    return textes.t("veille.date", lang, jour=d.day, mois=textes.t(f"veille.mois.{d.month}", lang), annee=annee, heure=f"{d:%H:%M}")
+
+
 def _nombre(v: Any) -> float | None:
     try:
         return float(str(v).replace(",", "."))
@@ -215,10 +260,58 @@ def _nombre(v: Any) -> float | None:
         return None
 
 
+# l'auteur (15/10, bloc « Ouvertures ») : des capteurs texte (classification d'image, modèles) disent « Ouvert » / « Fermé »
+# ou « Oui » / « Non » sans device_class ; ils passaient en simple texte, sans voyant, à côté de binary_sensor qui en
+# avaient un. Ces mots, dans les six langues (et en anglais de Home Assistant), donnent maintenant un état.
+MOTS_OUVERT = frozenset({"ouvert", "ouverte", "open", "opened", "offen", "geöffnet", "abierto", "abierta", "aperto", "aperta",
+                         "geopend", "déverrouillé", "deverrouille", "unlocked", "entsperrt", "desbloqueado", "sbloccato", "ontgrendeld"})
+MOTS_FERME = frozenset({"fermé", "fermée", "ferme", "fermee", "closed", "geschlossen", "zu", "cerrado", "cerrada", "chiuso",
+                        "chiusa", "gesloten", "dicht", "verrouillé", "verrouille", "locked", "gesperrt", "bloqueado", "bloccato",
+                        "vergrendeld"})
+MOTS_OUI = frozenset({"oui", "yes", "on", "true", "ja", "sí", "si", "sì", "actif", "active"})
+MOTS_NON = frozenset({"non", "no", "off", "false", "nein", "nee", "inactif", "inactive"})
+# Ce qui fait d'une case une « ouverture » (indicateur personnalisable sur l'appareil), et son type pour l'icône.
+CLASSES_OUVERTURE = {"door": "porte", "window": "fenetre", "garage_door": "garage", "garage": "garage", "gate": "portail",
+                     "opening": "", "lock": "cadenas", "shutter": "store", "blind": "store", "awning": "store", "curtain": "store",
+                     "shade": "store", "damper": "store", "water": "vanne", "gas": "vanne"}
+MOTS_TYPE = (("portillon", "portail"), ("portail", "portail"), ("gate", "portail"), ("store", "store"), ("volet", "store"),
+             ("blind", "store"), ("shutter", "store"), ("garage", "garage"), ("fenetre", "fenetre"), ("fenêtre", "fenetre"),
+             ("window", "fenetre"), ("velux", "fenetre"), ("serrure", "cadenas"), ("verrou", "cadenas"), ("lock", "cadenas"),
+             ("cadenas", "cadenas"), ("vanne", "vanne"), ("valve", "vanne"), ("porte", "porte"), ("door", "porte"))
+
+
+def _binaire_texte(s: str) -> bool | None:
+    """« Ouvert », « Fermé », « Oui », « Non »… → True / False ; None si ce n'est pas un état à deux valeurs."""
+    bas = str(s or "").strip().lower()
+    if bas in MOTS_OUVERT or bas in MOTS_OUI:
+        return True
+    if bas in MOTS_FERME or bas in MOTS_NON:
+        return False
+    return None
+
+
+def ouverture(etat) -> tuple[bool, str]:
+    """La case est-elle une ouverture (porte, fenêtre, portail, store, garage, serrure, vanne), et de quel type ?"""
+    domaine = etat.entity_id.split(".", 1)[0]
+    dc = str(etat.attributes.get("device_class") or "")
+    nom = (etat.entity_id + " " + str(etat.attributes.get("friendly_name") or "")).lower()
+    par_nom = next((t for mot, t in MOTS_TYPE if mot in nom), "")
+    if domaine in ("cover", "lock", "valve") or (domaine == "binary_sensor" and dc in CLASSES_OUVERTURE):
+        defaut = {"lock": "cadenas", "valve": "vanne"}.get(domaine, "store" if domaine == "cover" else "porte")
+        return True, CLASSES_OUVERTURE.get(dc) or par_nom or defaut
+    if domaine in ("sensor", "select", "input_select", "text", "event") and _binaire_texte(etat.state) is not None:
+        bas = str(etat.state).strip().lower()
+        if bas in MOTS_OUVERT or bas in MOTS_FERME or par_nom:
+            return True, par_nom or "porte"
+    return False, ""
+
+
 def _rendu_auto(etat) -> str:
     domaine = etat.entity_id.split(".", 1)[0]
     a = etat.attributes
-    if domaine in ("binary_sensor", "switch", "light", "lock", "cover", "input_boolean", "fan", "person", "device_tracker", "alarm_control_panel"):
+    if domaine in ("binary_sensor", "switch", "light", "lock", "cover", "valve", "input_boolean", "fan", "person", "device_tracker", "alarm_control_panel"):
+        return "etat"
+    if domaine in ("sensor", "select", "input_select", "text", "event") and _binaire_texte(etat.state) is not None:
         return "etat"
     if domaine == "climate":
         return "valeur"
@@ -236,8 +329,10 @@ def _rendu_auto(etat) -> str:
 def _on(etat) -> bool | None:
     domaine = etat.entity_id.split(".", 1)[0]
     s = str(etat.state).lower()
-    if domaine == "cover":
-        return s == "open"
+    if s in ("unknown", "unavailable", "none", ""):
+        return None  # ni ouvert ni fermé : l'appareil montre un voyant neutre (l'auteur, 15/10 : un capteur muet passait pour fermé)
+    if domaine in ("cover", "valve"):
+        return s in ("open", "opening")
     if domaine == "lock":
         return s == "unlocked"
     if domaine in ("person", "device_tracker"):
@@ -246,8 +341,10 @@ def _on(etat) -> bool | None:
         return s != "disarmed"
     if s in ("on", "open", "home", "true", "playing", "heat", "cool", "unlocked", "detected", "wet", "motion"):
         return True
-    if s in ("off", "closed", "not_home", "false", "idle", "paused", "standby", "locked", "clear", "dry", "unavailable", "unknown"):
+    if s in ("off", "closed", "not_home", "false", "idle", "paused", "standby", "locked", "clear", "dry"):
         return False
+    if (b := _binaire_texte(s)) is not None:
+        return b
     return None
 
 
@@ -368,15 +465,22 @@ async def _case(hass: HomeAssistant, c: dict[str, Any]) -> dict[str, Any]:
         rendu = _rendu_auto(etat)
     a = etat.attributes
     nom = _nom_lisible(etat, str(c.get("libelle") or ""))
+    lang = langue(hass)
+    texte = _libelle_etat(etat)
+    date = date_lisible(str(etat.state), lang)
+    if date is not None:
+        rendu, texte = "texte", date
     sortie: dict[str, Any] = {
         "entite": etat.entity_id,
         "nom": nom,
         "rendu": rendu,
-        "valeur": _nombre(etat.state),
-        "unite": str(a.get("unit_of_measurement") or ""),
-        "texte": _libelle_etat(etat),
+        "valeur": None if date is not None else _nombre(etat.state),
+        "unite": unite_locale(str(a.get("unit_of_measurement") or ""), lang),
+        "texte": texte,
         "on": _on(etat),
         "classe": str(a.get("device_class") or ""),
+        "ouverture": (ouv := ouverture(etat))[0],
+        "type_ouverture": ouv[1],
         "depuis": dt_util.as_local(etat.last_changed).isoformat(timespec="minutes"),
     }
     if rendu == "jauge":
@@ -386,6 +490,8 @@ async def _case(hass: HomeAssistant, c: dict[str, Any]) -> dict[str, Any]:
         sortie["serie"] = await _serie(hass, etat.entity_id)
     if not nom:
         sortie["masquer"] = True  # sans nom lisible, la case ne montrerait qu'un identifiant
+    if exclue(etat.entity_id):
+        sortie["masquer"] = True
     if etat.entity_id.startswith("weather."):
         temp = _nombre(a.get("temperature"))
         ciel = _libelle_etat(etat)
@@ -413,7 +519,8 @@ async def pour_appareil(hass: HomeAssistant, coord: PcParentalCoordinator, pc: d
             continue
         if modules.coupe(coord.store, "entites"):
             continue  # 1.82.0 : un tableau composé d'entités relève du module « Entités »
-        cases = [await _case(hass, c) for c in t["cases"]]
+        # 2.2.12 : comme pour les tableaux de bord, ce qui ne se lit pas (action, saisie, sans nom) n'est pas envoyé.
+        cases = [x for x in [await _case(hass, c) for c in t["cases"]] if not x.get("masquer") and not x.get("absent")]
         if not cases:
             continue
         liste.append({"code": "entites", "id": t["id"], "titre": t["titre"], "duree": t["duree"], "cases": cases})
@@ -422,7 +529,7 @@ async def pour_appareil(hass: HomeAssistant, coord: PcParentalCoordinator, pc: d
         from . import veille_dash
         if modules.coupe(coord.store, "veille_tableaux"):
             return {"profil": qui["public"], "ecran": ecran, "liste": liste}
-        liste.extend(await veille_dash.tableaux(hass, coord, ecran, qui))
+        liste.extend(await veille_dash.tableaux(hass, coord, ecran, qui, str((pc or {}).get("id") or "")))
     except Exception:  # noqa: BLE001
         import logging
         logging.getLogger(__name__).exception("Tableaux de bord sur l'écran de veille")
@@ -445,7 +552,7 @@ async def resoudre_locaux(hass: HomeAssistant, locaux: Any) -> list[dict[str, An
 
 
 DOMAINES_UTILES = ("sensor", "binary_sensor", "climate", "light", "switch", "cover", "lock", "person", "device_tracker", "weather",
-                   "media_player", "input_boolean", "input_number", "number", "fan", "vacuum", "alarm_control_panel", "water_heater", "humidifier", "camera")
+                   "media_player", "input_boolean", "fan", "vacuum", "alarm_control_panel", "water_heater", "humidifier", "camera")
 
 
 def catalogue_entites(hass: HomeAssistant) -> list[dict[str, Any]]:

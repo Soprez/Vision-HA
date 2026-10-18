@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.4 (decision de l'auteur) : liaison sans code ; Nouvel appareil chez un Decideur. -->
+<resources>
+    <string name="liaison_sans_code_attente">Waiting for approval…</string>
+    <string name="liaison_sans_code_explication">A %1$s gets the request on their phone and accepts it with one tap.</string>
+    <string name="liaison_sans_code_aucun">No %1$s phone got the request: use “Other method”.</string>
+    <string name="liaison_sans_code_valable">Request valid for %1$d:%2$02d</string>
+    <string name="liaison_sans_code_autre_methode">Other method</string>
+    <string name="liaison_sans_code_expiree">The request expired.</string>
+    <string name="liaison_sans_code_remplacee">A new request replaced this one.</string>
+    <string name="liaison_sans_code_redemander">Ask again</string>
+    <string name="nouvel_appareil_titre">New device</string>
+    <string name="nouvel_appareil_pas_de_droits">Only a %1$s\'s device can accept a new device.</string>
+    <string name="nouvel_appareil_aucune">No pending request.</string>
+    <string name="nouvel_appareil_demande">Request received at %1$s</string>
+    <string name="nouvel_appareil_reprise">Takes over “%1$s”.</string>
+    <string name="nouvel_appareil_a_qui">Whose device is this?</string>
+    <string name="nouvel_appareil_partage">Shared screen — %1$s</string>
+    <string name="nouvel_appareil_accepter">Accept</string>
+    <string name="nouvel_appareil_refuser">Decline</string>
+    <string name="nouvel_appareil_choisir">Choose whose device this is.</string>
+    <string name="nouvel_appareil_accepte">“%1$s” is linked.</string>
+    <string name="nouvel_appareil_refuse">Request declined.</string>
+    <string name="nouvel_appareil_deja">This request was already handled or has expired.</string>
+    <string name="nouvel_appareil_notif">“%1$s” asks to be linked. Tap to accept or decline.</string>
+    <string name="manifeste_nouvel_appareil">New device</string>
+</resources>

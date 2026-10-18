@@ -22,7 +22,7 @@ import java.security.spec.X509EncodedKeySpec
  * l'approbation. Un QR photographié, rejoué ou passé à un autre appareil échoue à la vérification.
  */
 object Deverrouillage {
-    /** « Mia et Robin » : les personnes dont la validation manque encore (validation à plusieurs, 1.72.0). */
+    /** « Mia et Nolan » : les personnes dont la validation manque encore (validation à plusieurs, 1.72.0). */
     fun enAttenteDe(r: org.json.JSONObject): String {
         val a = r.optJSONArray("en_attente_de") ?: return ""
         val noms = (0 until a.length()).map { a.optString(it) }.filter { it.isNotEmpty() }
@@ -88,7 +88,7 @@ object Deverrouillage {
         if (motif.isNotBlank()) corps.put("motif", motif.replace('\n', ' ').take(140))
         enCours = null
         val r = try { Net.post(ctx, cfg, "/api/pc_parental/deverrouillage/demande", corps) } catch (e: Net.Echec) {
-            throw Echec(when (e.code) { 429 -> ctx.getString(R.string.dev_trop_de_demandes); else -> ctx.getString(R.string.dev_demande_refusee, e.code) })
+            throw Echec(when (e.code) { 429 -> ctx.getString(R.string.dev_trop_de_demandes); else -> ctx.getString(R.string.lot6_err_demande_refusee) })
         } catch (_: Exception) { throw Echec(ctx.getString(R.string.dev_injoignable)) }
         r.optJSONObject("cle")?.let { poserCle(ctx, it) }
         val d = Demande(r.optString("demande"), action, minutes, defi, r.optLong("expire") * 1000L)
@@ -122,7 +122,7 @@ object Deverrouillage {
                 423 -> { enCours = null; ctx.getString(R.string.dev_trop_d_essais) }
                 404 -> ctx.getString(R.string.dev_code_perime)
                 429 -> ctx.getString(R.string.dev_trop_de_codes)
-                else -> ctx.getString(R.string.dev_refuse_code, e.code)
+                else -> ctx.getString(R.string.lot6_err_code_refuse)
             })
         } catch (e: Echec) { throw e } catch (_: Exception) {
             throw Echec(ctx.getString(R.string.dev_hors_ligne))

@@ -24,7 +24,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$script:Version           = '1.91.0'
+$script:Version           = '1.93.3'
 $script:Racine            = Split-Path -Parent $ConfigPath
 $script:JournalPath       = Join-Path $script:Racine 'agent.log'
 $script:EtatPath          = Join-Path $script:Racine 'etat.json'
@@ -49,6 +49,12 @@ $script:HostsPath         = "$env:SystemRoot\System32\drivers\etc\hosts"
 # Garde-fou : un domaine bloque tres frequente ne doit pas faire enfler le
 # fichier hosts sans limite.
 $script:MaxSousDomaines   = 60
+# 1.93.2 : reconstruction de sécurité du fichier hosts, même si Home Assistant n'a rien changé (Sync-HostsSiNecessaire).
+$script:HostsSecuriteSecondes = 600
+$script:HostsEtat         = $null
+$script:HostsDureeMs      = 0
+$script:FlushDnsDemande   = $false
+$script:ChargePrecedente  = $null
 $script:DernierVu         = @()
 $script:Recents           = @()   # derniers refus (apps et sites), pour « Bloqué récemment »
 # Quand chaque domaine a ete remonte pour la derniere fois. Sert a faire
@@ -713,7 +719,7 @@ function Set-DnsFiltrant {
         Ne marche que parce que le DNS chiffre des navigateurs est desactive
         par ailleurs : sans cela Chrome resoudrait lui-meme.
     #>
-    param([string[]]$Serveurs)
+    param([string[]]$Serveurs, [bool]$Flush = $true)
 
     $voulu = (@($Serveurs) -join ',')
     if ($voulu -eq $script:DnsPose) { return }
@@ -730,7 +736,8 @@ function Set-DnsFiltrant {
                     -ResetServerAddresses -ErrorAction Stop
             }
         }
-        ipconfig /flushdns | Out-Null
+        # 1.93.2 : -Flush $false laisse le vidage à Invoke-FlushDnsGroupe (un seul par tour avec le fichier hosts).
+        if ($Flush) { ipconfig /flushdns | Out-Null } else { $script:FlushDnsDemande = $true }
         $script:DnsPose = $voulu
         if ($Serveurs.Count -gt 0) {
             Write-Journal "Filtre DNS pose : $voulu"
@@ -852,6 +859,7 @@ function Get-Decision {
         diag_admin   = $(if (Module-Actif 'protections') { Get-DiagAdmin } else { $null })
         origines     = (Get-Origines)
         signatures   = (Get-Signatures -Noms @($releve.ouverts + @($releve.premier)))
+        agent_charge = (Get-ChargeAgent)
     }
     if ($script:DemandeTemps -gt 0) {
         # Module Demandes coupé entre le clic et le relevé : la demande ne part pas.
@@ -1814,18 +1822,23 @@ function PageMaison() {
             }
             if ($det.Count) { $sp.Children.Add((Txt ($det -join '   ') 12 'Texte2' $false '0,4,0,0')) | Out-Null }
             $r = Rangee; $r.Margin = [System.Windows.Thickness]::new(0, 12, 0, 0)
-            $choix = @(@((T 'maison.bouton_1h'), 'temporaire', 60, $(if ($duree -eq '1h') { 'Primaire' } else { 'Secondaire' })), @((T 'maison.bouton_autoriser'), 'toujours', 0, $(if ($duree -eq 'toujours' -or -not $duree) { 'Primaire' } else { 'Secondaire' })))
-            if ([string](Prop $d 'genre') -eq 'apps') { $choix += ,@((T 'maison.bouton_toujours_dispo'), 'exception', 0, 'Secondaire') }
-            if ($cats.Count) { $choix += ,@((T 'maison.bouton_categorie'), 'categorie', 0, $(if ($duree -eq 'categorie') { 'Primaire' } else { 'Secondaire' })) }
-            $choix += ,@((T 'maison.bouton_non'), 'non', 0, 'Danger')
+            # 1.92.0 (refonte des autorisations, HA 2.5.0) : 15 min, 1 h, Exception, Toujours disponible, (Catégorie), Refuser.
+            # (texte, décision, minutes, style, mode)
+            $choix = @(
+                @((T 'maison.bouton_15'), 'temporaire', 15, 'Secondaire', ''),
+                @((T 'maison.bouton_1h'), 'temporaire', 60, $(if ($duree -eq '1h' -or -not $duree) { 'Primaire' } else { 'Secondaire' }), ''),
+                @((T 'maison.bouton_exception'), 'accorder', 0, $(if ($duree -eq 'toujours') { 'Primaire' } else { 'Secondaire' }), 'exception'),
+                @((T 'maison.bouton_toujours_dispo'), 'accorder', 0, 'Secondaire', 'toujours'))
+            if ($cats.Count) { $choix += ,@((T 'maison.bouton_categorie'), 'categorie', 0, $(if ($duree -eq 'categorie') { 'Primaire' } else { 'Secondaire' }), '') }
+            $choix += ,@((T 'maison.bouton_refuser'), 'non', 0, 'Danger', '')
             foreach ($def in $choix) {
                 $r.Children.Add((Bouton $def[0] $def[3] {
                     param($s, $e); $t = $s.Tag
-                    Agir @{ action = 'acces'; pc = [string]$t.pc; demande = [string]$t.id; decision = [string]$t.decision; minutes = [int]$t.minutes }
+                    Agir @{ action = 'acces'; pc = [string]$t.pc; demande = [string]$t.id; decision = [string]$t.decision; minutes = [int]$t.minutes; mode = [string]$t.mode }
                     $s.Parent.IsEnabled = $false
                     # Répondu : la demande quitte l'écran tout de suite, sans attendre le prochain relevé.
                     try { $s.Parent.Parent.Parent.Visibility = 'Collapsed' } catch { }
-                } @{ pc = (Prop $d 'pc'); id = (Prop $d 'id'); decision = $def[1]; minutes = $def[2] })) | Out-Null
+                } @{ pc = (Prop $d 'pc'); id = (Prop $d 'id'); decision = $def[1]; minutes = $def[2]; mode = $def[4] })) | Out-Null
             }
             $sp.Children.Add($r) | Out-Null
             $sp.Children.Add((Txt (T 'maison.aide_choix') 11 'Texte3' $false '0,8,0,0')) | Out-Null
@@ -3028,8 +3041,42 @@ function PageMoi($etat, [bool]$ferme) {
 
     $data = Lire 'fermes.json'
 
-    # Ce qui vient d'être bloqué : les derniers refus, pour demander tout de suite.
+    # HA 2.5.1 (ajout 5 de l'auteur) : « Roblox ne marche pas : 6 sites bloqués » : une seule demande pour le logiciel et ses
+    # sites, que le {decideur} accepte en bloc ou élément par élément.
+    $groupes = @(Prop $data 'groupes' @() | Where-Object { @(Prop $_ 'sites' @()).Count -gt 0 })
+    if ($groupes.Count -gt 0 -and $fermeAppsSites -and $peutDemander) {
+        $Contenu.Children.Add((Section (T 'moi.bloque_par_logiciel'))) | Out-Null
+        foreach ($gr in ($groupes | Select-Object -First 4)) {
+            $app = [string](Prop $gr 'logiciel'); $lib = [string](Prop $gr 'libelle' $app); if (-not $lib) { $lib = $app }
+            $sitesG = @(Prop $gr 'sites' @() | ForEach-Object { [string]$_ })
+            $cg = Carte 'Haute'; $spg = $cg.Child
+            $spg.Children.Add((Txt $lib 14 'Or' $true)) | Out-Null
+            $spg.Children.Add((Txt ((Tn 'moi.groupe_sites' $sitesG.Count) + ' ' + ($sitesG -join ', ')) 11 'Texte2' $false '0,2,0,8')) | Out-Null
+            $dejaG = $script:Demandees.ContainsKey('apps:' + $app)
+            $bg = Bouton $(if ($dejaG) { (T 'moi.demande_ok') } else { (T 'moi.demander_pour' @{ nom = $lib }) }) 'Primaire' {
+                param($s, $e); $t = $s.Tag
+                Deposer @{ genre = 'apps'; nom = [string]$t.app; libelle = [string]$t.lib; sites = @($t.sites); duree = '' }
+                $script:Demandees['apps:' + [string]$t.app] = $true
+                $s.Content = (T 'moi.demande_ok'); $s.IsEnabled = $false
+            } @{ app = $app; lib = $lib; sites = $sitesG }
+            if ($dejaG) { $bg.IsEnabled = $false }
+            $bg.HorizontalAlignment = 'Left'
+            $spg.Children.Add($bg) | Out-Null
+            $Contenu.Children.Add($cg) | Out-Null
+        }
+    }
+
+    # Ce qui vient d'être bloqué : les derniers refus, pour demander tout de suite. HA 2.5.1 : aussi ceux de ses autres
+    # appareils (heure, appareil, logiciel, tentatives), que Home Assistant a vus.
     $recents = @(Prop $data 'recents' @())
+    $dejaVus = @{}; foreach ($x in $recents) { $dejaVus[[string](Prop $x 'nom')] = $true }
+    foreach ($x in @(Prop $data 'ha_recents' @())) {
+        $n = [string](Prop $x 'nom'); if (-not $n -or $dejaVus.ContainsKey($n)) { continue }
+        $detail = @((Format-Heure ([DateTimeOffset]::FromUnixTimeSeconds([long][double](Prop $x 'quand' 0)).LocalDateTime) -Locale),
+            [string](Prop $x 'appareil_nom'), [string](Prop $x 'logiciel'), (Tn 'moi.tentatives' ([int](Prop $x 'fois' 1)))) | Where-Object { $_ }
+        $recents += [pscustomobject]@{ genre = 'sites'; nom = $n; raison = [string](Prop $x 'raison'); quand = ($detail -join ' · ') }
+        $dejaVus[$n] = $true
+    }
     if ($recents.Count -gt 0 -and $fermeAppsSites) {
         $Contenu.Children.Add((Section (T 'moi.bloque_recemment'))) | Out-Null
         $cr = Carte 'Haute'; $spr = $cr.Child
@@ -4475,9 +4522,61 @@ function Write-Fermes {
             if ($vus.ContainsKey($s)) { Add-Recent -Genre 'sites' -Nom $s -Raison $r }
             $sites += @{ nom = $s; raison = $r; recent = [bool]$vus.ContainsKey($s) }
         }
-        @{ apps = $apps; sites = $sites; recents = @(Get-Recents); refus = @(Get-PropOrDefault $Decision 'refus' @()); quand = (Format-Heure (Get-Date) -Locale) } |
+        # HA 2.5.1 : les blocages récents de la personne (tous ses appareils) et les mêmes regroupés par logiciel.
+        @{ apps = $apps; sites = $sites; recents = @(Get-Recents); refus = @(Get-PropOrDefault $Decision 'refus' @()); quand = (Format-Heure (Get-Date) -Locale)
+           ha_recents = @(Get-PropOrDefault $Decision 'bloques_recents' @()); groupes = @(Get-PropOrDefault $Decision 'groupes' @()) } |
             ConvertTo-Json -Compress -Depth 4 | Set-Content -Path $script:FermesPath -Encoding UTF8
     } catch { }
+}
+
+# 1.93.06 (sécurité) : maison.json contient l'état de toute la maison, dont la liste des logiciels de chaque PC. Le
+# dossier de la sonde est ouvert au groupe Utilisateurs (la fenêtre de Vision y dépose ses demandes) : un fichier qui y
+# hérite ses droits était lisible par tout compte Windows du PC, un enfant compris. Il n'est plus lisible que par
+# SYSTEM, les administrateurs et le compte de la session SI celui-ci administre le PC (un administrateur lit déjà tout
+# sur ce PC, la configuration de l'agent comprise : rien de nouveau ne lui est ouvert). Un compte ordinaire n'a pas de
+# maison.json : la fenêtre reste en mode ordinaire.
+$script:AdminsSids    = @()
+$script:AdminsSidsVu  = [datetime]::MinValue
+$script:LecteurMaison = ''
+
+function Get-SidsAdministrateurs {
+    <# Les SID des membres du groupe Administrateurs (S-1-5-32-544), relus au plus toutes les 10 min. Illisible : aucun. #>
+    if (((Get-Date) - $script:AdminsSidsVu).TotalMinutes -lt 10) { return $script:AdminsSids }
+    $sids = @()
+    try { $sids = @(Get-LocalGroupMember -SID 'S-1-5-32-544' -ErrorAction Stop | ForEach-Object { [string]$_.SID }) } catch { $sids = @() }
+    $script:AdminsSids = $sids; $script:AdminsSidsVu = Get-Date
+    return $sids
+}
+
+function Get-LecteurMaison {
+    <# Le SID du compte de la session ouverte s'il administre ce PC ; sinon '' (pas de maison.json). #>
+    param($Session = (Get-SessionConsole))
+    if ($null -eq $Session -or -not [string]$Session.User) { return '' }
+    try { $sid = (New-Object Security.Principal.NTAccount([string]$Session.User)).Translate([Security.Principal.SecurityIdentifier]).Value }
+    catch { return '' }
+    if (@(Get-SidsAdministrateurs) -contains $sid) { return $sid }
+    return ''
+}
+
+function Write-FichierLecteur {
+    <#
+        Écrit $Texte (UTF-8) dans $Chemin, lisible seulement par SYSTEM, les administrateurs et le SID $Lecteur ; ni
+        héritage du dossier, ni droits d'un fichier posé avant par un utilisateur du PC : l'ancien est retiré, le nouveau
+        créé avec ses droits (CreateNew : si quelqu'un en recrée un entre-temps, rien n'est écrit).
+    #>
+    param([Parameter(Mandatory)][string]$Chemin, [Parameter(Mandatory)][string]$Texte, [Parameter(Mandatory)][string]$Lecteur)
+    if ([System.IO.File]::Exists($Chemin)) { [System.IO.File]::Delete($Chemin) }
+    $sec = New-Object System.Security.AccessControl.FileSecurity
+    $sec.SetAccessRuleProtection($true, $false)
+    foreach ($sid in @('S-1-5-18', 'S-1-5-32-544')) {
+        $sec.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule((New-Object System.Security.Principal.SecurityIdentifier($sid)), 'FullControl', 'Allow')))
+    }
+    $sec.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule((New-Object System.Security.Principal.SecurityIdentifier($Lecteur)), 'Read', 'Allow')))
+    $fs = New-Object System.IO.FileStream($Chemin, [System.IO.FileMode]::CreateNew, [System.Security.AccessControl.FileSystemRights]::Write, [System.IO.FileShare]::None, 4096, [System.IO.FileOptions]::None, $sec)
+    try {
+        $o = [System.Text.Encoding]::UTF8.GetPreamble() + [System.Text.Encoding]::UTF8.GetBytes($Texte)
+        $fs.Write($o, 0, $o.Length)
+    } finally { $fs.Dispose() }
 }
 
 function Sync-Maison {
@@ -4486,17 +4585,30 @@ function Sync-Maison {
         chercher l'état des appareils de la maison et le dépose pour la
         fenêtre. Le secret ne quitte jamais le dossier de configuration : la
         fenêtre, qui tourne chez l'utilisateur, ne lit que le résultat.
+        1.93.06 : seulement pour un compte qui administre ce PC, dans un fichier qu'il est seul (avec SYSTEM et les
+        administrateurs) à pouvoir lire ; sans module qui s'en sert, sans la liste des logiciels.
     #>
     param($Config, [bool]$Force = $false)
-    if (-not $script:EstParent) {
-        if (Test-Path $script:MaisonPath) { Remove-Item $script:MaisonPath -Force -ErrorAction SilentlyContinue }
+    $lecteur = if ($script:EstParent) { Get-LecteurMaison } else { '' }
+    if (-not $lecteur) {
+        try { if ([System.IO.File]::Exists($script:MaisonPath)) { [System.IO.File]::Delete($script:MaisonPath) } }
+        catch { Write-Journal "maison.json non retiré : $_" 'WARN' }
+        $script:LecteurMaison = ''
         return
     }
+    # Un autre compte a ouvert sa session : le fichier est refait pour lui tout de suite (ou retiré, plus haut).
+    if ($lecteur -ne $script:LecteurMaison) { $Force = $true }
     if (-not $Force -and ((Get-Date) - $script:DerniereMaison).TotalSeconds -lt 60) { return }
     try {
         $r = Invoke-Ha -Chemin '/api/pc_parental/parent' -Corps @{ id = $Config.id; secret = $Config.secret } -Config $Config
         if ($null -ne $r -and (Get-PropOrDefault $r 'ok' $false)) {
-            $r | ConvertTo-Json -Depth 12 -Compress | Set-Content -Path $script:MaisonPath -Encoding UTF8
+            if (-not (Module-Actif 'blocage') -and -not (Module-Actif 'optimisations')) {
+                foreach ($a in @(Get-PropOrDefault $r 'appareils' @())) {
+                    if ($null -ne $a -and $a.PSObject.Properties['logiciels']) { $a.PSObject.Properties.Remove('logiciels') }
+                }
+            }
+            Write-FichierLecteur -Chemin $script:MaisonPath -Texte ($r | ConvertTo-Json -Depth 12 -Compress) -Lecteur $lecteur
+            $script:LecteurMaison = $lecteur
             $script:DerniereMaison = Get-Date
         }
     } catch {
@@ -4783,6 +4895,8 @@ function Send-Demandes {
                 lien    = [string](Get-PropOrDefault $contenu 'lien' '')
                 motif   = [string](Get-PropOrDefault $contenu 'motif' '')
                 duree   = [string](Get-PropOrDefault $contenu 'duree' '')
+                # HA 2.5.1 : une demande pour un logiciel emporte ses sites bloqués (une seule demande).
+                sites   = @(Get-PropOrDefault $contenu 'sites' @() | ForEach-Object { [string]$_ })
             } -Config $Config
             Remove-Item $f.FullName -Force -ErrorAction SilentlyContinue
             if ([string](Get-PropOrDefault $r 'error' '') -eq 'refus') {
@@ -4895,49 +5009,85 @@ function Sync-Hosts {
 
         Les adresses épargnées traversent tout cela sans être touchées :
         c'est exactement ce qu'on leur demande.
+
+        1.93.2 (perte d'images par seconde chez un Demandeur) : même entrée, même bloc, mais plus de comparaison de
+        chaque site à chaque nom (717 × 7 000 « -like », ~15 s par tour) ni d'ajouts dans un tableau. Les noms
+        candidats sont rangés une fois sous chacun de leurs domaines parents : un site retrouve les siens en une
+        recherche. L'ordre et le plafond par site restent ceux d'avant (essai/banc_sync_hosts.ps1, hosts_*_essai.ps1).
+        -Flush $false : le vidage du cache DNS est laissé à l'appelant, qui le regroupe (Invoke-FlushDnsGroupe).
     #>
     param([string[]]$Sites, [string[]]$Exceptions = @(), [string[]]$Vus = @(),
-          [string[]]$Dangereux = @(), [bool]$SafeSearch = $false)
+          [string[]]$Dangereux = @(), [bool]$SafeSearch = $false, [bool]$Flush = $true)
 
-    $epargnees = @{}
-    foreach ($e in ($Exceptions | Where-Object { $_ })) {
-        $epargnees[$e.Trim().ToLowerInvariant()] = $true
+    $epargnees = New-Object 'System.Collections.Generic.HashSet[string]'
+    foreach ($e in $Exceptions) {
+        if ($e) { [void]$epargnees.Add($e.Trim().ToLowerInvariant()) }
     }
 
-    $actuel = @()
+    # Lecture directe (UTF-8, marque d'ordre retirée comme le faisait Get-Content -Encoding UTF8) : ~15 000 lignes.
+    $actuel = [string[]]@()
     if (Test-Path $script:HostsPath) {
-        $actuel = @(Get-Content -Path $script:HostsPath -Encoding UTF8)
+        $actuel = [IO.File]::ReadAllLines($script:HostsPath, [Text.Encoding]::UTF8)
     }
 
     $debut = [array]::IndexOf($actuel, $script:MarqueDebut)
     $fin   = [array]::IndexOf($actuel, $script:MarqueFin)
 
-    # Ce que nous bloquions déjà : notre mémoire des sous-domaines.
-    $connus = @()
+    # Les candidats : les noms vus ce tour-ci et ce que nous bloquions déjà (notre mémoire des sous-domaines),
+    # sans doublon (à la casse près) et dans l'ordre alphabétique de Sort-Object, qui décide lesquels entrent
+    # quand un site atteint son plafond.
+    $uniques = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    $liste = New-Object 'System.Collections.Generic.List[string]'
+    foreach ($v in $Vus) { if ($v -and $uniques.Add($v)) { $liste.Add($v) } }
     if ($debut -ge 0 -and $fin -gt ($debut + 1)) {
-        foreach ($ligne in $actuel[($debut + 1)..($fin - 1)]) {
-            $bouts = @($ligne -split '\s+' | Where-Object { $_ })
-            if ($bouts.Count -ge 2) { $connus += $bouts[1].ToLowerInvariant() }
+        for ($i = $debut + 1; $i -lt $fin; $i++) {
+            $bouts = $actuel[$i].Split([char[]]@(' ', "`t"), [StringSplitOptions]::RemoveEmptyEntries)
+            if ($bouts.Count -ge 2) {
+                $n = $bouts[1].ToLowerInvariant()
+                if ($uniques.Add($n)) { $liste.Add($n) }
+            }
         }
     }
-    $candidats = @(@($Vus) + @($connus) | Where-Object { $_ } | Sort-Object -Unique)
+    $candidats = $liste.ToArray()
+    [array]::Sort($candidats, [StringComparer]::CurrentCultureIgnoreCase)
 
-    $lignes = @()
-    foreach ($site in ($Sites | Where-Object { $_ })) {
+    # Chaque candidat sous chacun de ses domaines parents : « a.b.site.com » sous « b.site.com », « site.com »
+    # et « com ». C'est exactement ce que « -like "*.$domaine" » reconnaissait, sans tout comparer à tout.
+    $parents = New-Object 'System.Collections.Generic.Dictionary[string,System.Collections.Generic.List[string]]' ([StringComparer]::OrdinalIgnoreCase)
+    foreach ($c in $candidats) {
+        $p = $c.IndexOf('.')
+        while ($p -ge 0 -and $p -lt $c.Length - 1) {
+            $parent = $c.Substring($p + 1)
+            $sous = $null
+            if (-not $parents.TryGetValue($parent, [ref]$sous)) {
+                $sous = New-Object 'System.Collections.Generic.List[string]'
+                $parents[$parent] = $sous
+            }
+            $sous.Add($c)
+            $p = $c.IndexOf('.', $p + 1)
+        }
+    }
+
+    $lignes = New-Object 'System.Collections.Generic.List[string]'
+    foreach ($site in $Sites) {
+        if (-not $site) { continue }
         $domaine = $site.Trim().ToLowerInvariant() -replace '^https?://', '' -replace '/.*$', ''
         if (-not $domaine) { continue }
         $noms = New-Object System.Collections.Generic.List[string]
         foreach ($n in @($domaine, "www.$domaine")) {
             if (-not $noms.Contains($n)) { $noms.Add($n) }
         }
-        foreach ($c in $candidats) {
-            if ($noms.Count -ge $script:MaxSousDomaines) { break }
-            if ($c -like "*.$domaine" -and -not $noms.Contains($c)) { $noms.Add($c) }
+        $sous = $null
+        if ($parents.TryGetValue($domaine, [ref]$sous)) {
+            foreach ($c in $sous) {
+                if ($noms.Count -ge $script:MaxSousDomaines) { break }
+                if (-not $noms.Contains($c)) { $noms.Add($c) }
+            }
         }
         foreach ($n in $noms) {
-            if ($epargnees.ContainsKey($n)) { continue }
-            $lignes += "0.0.0.0 $n"
-            $lignes += ":: $n"
+            if ($epargnees.Contains($n)) { continue }
+            $lignes.Add("0.0.0.0 $n")
+            $lignes.Add(":: $n")
         }
     }
 
@@ -4946,12 +5096,13 @@ function Sync-Hosts {
     # cent cinquante mille domaines signales par des tiers, c'est cent
     # cinquante mille occasions de se tromper, et il faut pouvoir dire
     # « celui-la, je le connais ».
-    foreach ($d in ($Dangereux | Where-Object { $_ })) {
+    foreach ($d in $Dangereux) {
+        if (-not $d) { continue }
         $nom = $d.Trim().ToLowerInvariant()
         if (-not $nom) { continue }
-        if ($epargnees.ContainsKey($nom)) { continue }
-        $lignes += "0.0.0.0 $nom"
-        $lignes += ":: $nom"
+        if ($epargnees.Contains($nom)) { continue }
+        $lignes.Add("0.0.0.0 $nom")
+        $lignes.Add(":: $nom")
     }
 
     # SafeSearch et YouTube restreint (1.79.0), comme l'appli Android : les moteurs de recherche
@@ -4959,35 +5110,150 @@ function Sync-Hosts {
     # coupée) ; le DNS chiffré des navigateurs étant coupé, le fichier hosts fait foi.
     if ($SafeSearch) {
         foreach ($paire in (Get-CiblesSafeSearch)) {
-            if ($epargnees.ContainsKey($paire.Nom)) { continue }
-            $lignes += ('{0} {1}' -f $paire.Ip, $paire.Nom)
+            if ($epargnees.Contains($paire.Nom)) { continue }
+            $lignes.Add(('{0} {1}' -f $paire.Ip, $paire.Nom))
         }
     }
 
-    $bloc = @()
-    if ($lignes.Count -gt 0) {
-        $bloc = @($script:MarqueDebut) + $lignes + @($script:MarqueFin)
-    }
-
-    $conserve = @()
+    $voulu = New-Object 'System.Collections.Generic.List[string]'
     if ($debut -ge 0 -and $fin -gt $debut) {
-        if ($debut -gt 0) { $conserve += $actuel[0..($debut - 1)] }
-        if ($fin -lt $actuel.Count - 1) { $conserve += $actuel[($fin + 1)..($actuel.Count - 1)] }
+        for ($i = 0; $i -lt $debut; $i++) { $voulu.Add($actuel[$i]) }
+        for ($i = $fin + 1; $i -lt $actuel.Count; $i++) { $voulu.Add($actuel[$i]) }
     } else {
-        $conserve = $actuel
+        foreach ($l in $actuel) { $voulu.Add($l) }
+    }
+    if ($lignes.Count -gt 0) {
+        $voulu.Add($script:MarqueDebut)
+        $voulu.AddRange($lignes)
+        $voulu.Add($script:MarqueFin)
     }
 
-    $voulu = @($conserve + $bloc)
     $avant = ($actuel -join "`n")
-    $apres = ($voulu  -join "`n")
+    $apres = ($voulu.ToArray() -join "`n")
     if ($avant -eq $apres) { return }
 
     try {
-        Set-Content -Path $script:HostsPath -Value $voulu -Encoding UTF8 -Force
-        ipconfig /flushdns | Out-Null
+        Set-Content -Path $script:HostsPath -Value $voulu.ToArray() -Encoding UTF8 -Force
+        if ($Flush) { ipconfig /flushdns | Out-Null } else { $script:FlushDnsDemande = $true }
         Write-Journal "Fichier hosts mis à jour ($($lignes.Count) entrées)."
     } catch {
         Write-Journal "Écriture du fichier hosts impossible : $_" 'WARN'
+    }
+}
+
+function Get-EmpreinteHosts {
+    <# Ce qui dit, sans le relire, si le fichier hosts a bougé depuis notre dernier passage : date et taille. #>
+    try {
+        $f = Get-Item -LiteralPath $script:HostsPath -ErrorAction Stop
+        return ('{0}|{1}' -f $f.LastWriteTimeUtc.Ticks, $f.Length)
+    } catch {
+        return ''
+    }
+}
+
+function Test-SousDomaineNouveau {
+    <#
+        Un nom vu pour la première fois depuis la dernière reconstruction est-il un sous-domaine d'un site bloqué ?
+        Seuls les noms nouveaux sont examinés : en régime établi, une poignée de recherches par tour.
+    #>
+    param([string[]]$Vus)
+    $etat = $script:HostsEtat
+    $trouve = $false
+    foreach ($v in $Vus) {
+        if (-not $v -or -not $etat.Vus.Add($v)) { continue }
+        $n = $v.ToLowerInvariant()
+        if ($etat.Epargnees.Contains($n)) { continue }
+        $p = $n.IndexOf('.')
+        while ($p -ge 0 -and $p -lt $n.Length - 1) {
+            if ($etat.Sites.Contains($n.Substring($p + 1))) { $trouve = $true; break }
+            $p = $n.IndexOf('.', $p + 1)
+        }
+    }
+    return $trouve
+}
+
+function Sync-HostsSiNecessaire {
+    <#
+        1.93.2 (décision du projet) : c'est Home Assistant qui dit quand le fichier hosts doit changer. Chaque réponse au
+        relevé porte « hosts_version », l'empreinte de ce que l'agent met dans le bloc (sites, exceptions, version de
+        la liste noire, SafeSearch). Tant qu'elle ne bouge pas, l'agent ne reconstruit rien, sauf :
+          - un sous-domaine nouveau d'un site bloqué apparaît dans le cache DNS (il doit rejoindre le blocage) ;
+          - le fichier hosts a été modifié par quelqu'un d'autre (date ou taille) : on remet notre bloc ;
+          - par sécurité, toutes les 10 minutes.
+        Sans version (Home Assistant plus ancien, décision gardée hors ligne), l'empreinte est calculée ici sur les
+        mêmes entrées : le comportement reste sûr.
+    #>
+    param([string]$Version = '', [string[]]$Sites, [string[]]$Exceptions = @(), [string[]]$Vus = @(),
+          [string[]]$Dangereux = @(), [bool]$SafeSearch = $false, [bool]$Flush = $true)
+
+    $Sites = @($Sites | Where-Object { $_ })
+    $Exceptions = @($Exceptions | Where-Object { $_ })
+    $Dangereux = @($Dangereux)
+    if (-not $Version) {
+        $texte = (($Sites -join ',') + '|' + ($Exceptions -join ',') + '|' + ($Dangereux -join ','))
+        $sha = [Security.Cryptography.SHA256]::Create()
+        try { $Version = 'local-' + [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($texte))).Replace('-', '') }
+        finally { $sha.Dispose() }
+    }
+    # Les tailles en plus de la version : une décision incohérente avec sa version se reconstruit quand même.
+    $cle = '{0}|{1}|{2}|{3}|{4}' -f $Version, $Sites.Count, $Exceptions.Count, $Dangereux.Count, $SafeSearch
+    $etat = $script:HostsEtat
+    if ($etat -and $etat.Cle -eq $cle -and ((Get-Date) - $etat.Depuis).TotalSeconds -lt $script:HostsSecuriteSecondes -and
+            $etat.Fichier -eq (Get-EmpreinteHosts)) {
+        if (-not (Test-SousDomaineNouveau -Vus $Vus)) { return $false }
+    }
+
+    $chrono = [Diagnostics.Stopwatch]::StartNew()
+    Sync-Hosts -Sites $Sites -Exceptions $Exceptions -Vus $Vus -Dangereux $Dangereux -SafeSearch $SafeSearch -Flush $Flush
+    $chrono.Stop()
+    $script:HostsDureeMs = [int]$chrono.Elapsed.TotalMilliseconds
+
+    $sitesConnus = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    foreach ($s in $Sites) {
+        $d = $s.Trim().ToLowerInvariant() -replace '^https?://', '' -replace '/.*$', ''
+        if ($d) { [void]$sitesConnus.Add($d) }
+    }
+    $epargnees = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    foreach ($e in $Exceptions) { [void]$epargnees.Add($e.Trim().ToLowerInvariant()) }
+    $vusConnus = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    foreach ($v in $Vus) { if ($v) { [void]$vusConnus.Add($v) } }
+    $script:HostsEtat = @{
+        Cle = $cle; Depuis = (Get-Date); Fichier = (Get-EmpreinteHosts)
+        Sites = $sitesConnus; Epargnees = $epargnees; Vus = $vusConnus
+    }
+    return $true
+}
+
+function Get-ChargeAgent {
+    <#
+        1.93.2 : ce que l'agent coûte à la machine, pour Home Assistant. Processeur en % d'**une** machine entière
+        (tous cœurs confondus) depuis le relevé précédent, mémoire de travail en Mo, durée de la dernière
+        reconstruction du fichier hosts en ms.
+    #>
+    try {
+        $proc = [Diagnostics.Process]::GetCurrentProcess()
+        $proc.Refresh()
+        $maintenant = Get-Date
+        $cpu = $proc.TotalProcessorTime
+        $pct = $null
+        if ($script:ChargePrecedente) {
+            $mur = ($maintenant - $script:ChargePrecedente.Quand).TotalMilliseconds
+            if ($mur -gt 0) {
+                $pct = [math]::Round(100.0 * ($cpu - $script:ChargePrecedente.Cpu).TotalMilliseconds / $mur / [Environment]::ProcessorCount, 1)
+            }
+        }
+        $script:ChargePrecedente = @{ Quand = $maintenant; Cpu = $cpu }
+        return @{ cpu_pct = $pct; mem_mo = [math]::Round($proc.WorkingSet64 / 1MB, 1); hosts_ms = $script:HostsDureeMs }
+    } catch {
+        return $null
+    }
+}
+
+function Invoke-FlushDnsGroupe {
+    <# Un seul vidage du cache DNS par tour, même si le filtre DNS et le fichier hosts ont changé tous les deux. #>
+    if ($script:FlushDnsDemande) {
+        $script:FlushDnsDemande = $false
+        ipconfig /flushdns | Out-Null
     }
 }
 
@@ -6143,6 +6409,9 @@ function Invoke-TourProcessus {
 
 function Start-Agent {
     Write-Journal "Agent $($script:Version) démarré."
+    # 1.93.2 (perte d'images par seconde chez un Demandeur) : l'agent passe après les jeux et les applis.
+    try { [Diagnostics.Process]::GetCurrentProcess().PriorityClass = [Diagnostics.ProcessPriorityClass]::BelowNormal }
+    catch { Write-Journal "Priorité basse impossible : $_" 'WARN' }
     $config = Read-Config
 
     if (-not (Get-PropOrDefault $config 'id' '')) {
@@ -6256,6 +6525,7 @@ function Start-Agent {
                         "réinscrire, ou uninstall.ps1 pour retirer l'agent.") 'WARN'
                     $renie = $true
                     $script:AppsInterdites = @()
+                    $script:HostsEtat = $null
                     Sync-Hosts -Sites @()
                 }
                 Start-Sleep -Seconds 300
@@ -6305,25 +6575,29 @@ function Start-Agent {
                 if ($serveurs.Count -eq 0 -and -not $script:DnsPose -and $script:DnsAncien) { $script:DnsPose = $script:DnsAncien }
                 $script:DnsAncien = ''
             }
-            Set-DnsFiltrant -Serveurs $serveurs
+            Set-DnsFiltrant -Serveurs $serveurs -Flush $false
             Sync-DnsChiffre -Actif $filtrer
 
             if ($filtrer) {
-                # On appelle à chaque tour : Sync-Hosts ne réécrit que si le
-                # contenu change, et un sous-domaine tout juste apparu doit
-                # rejoindre le blocage sans attendre qu'une règle bouge.
+                # 1.93.2 (retour d'essai) : Home Assistant envoie la version de ce qui doit être bloqué (hosts_version). Le
+                # fichier hosts n'est reconstruit que si elle change, si un sous-domaine d'un site bloqué vient
+                # d'apparaître, si quelqu'un a touché au fichier, ou toutes les 10 minutes : sinon rien à faire.
                 $script:DerniersBlocages = @($decision.sites)
-                Sync-Hosts -Sites @($decision.sites) `
+                [void](Sync-HostsSiNecessaire -Version ([string](Get-PropOrDefault $decision 'hosts_version' '')) `
+                           -Sites @($decision.sites) `
                            -Exceptions @(Get-PropOrDefault $decision 'exceptions' @()) `
                            -Vus $script:DernierVu `
                            -Dangereux $script:NoireHosts `
-                           -SafeSearch ([bool](Get-PropOrDefault $decision 'safesearch' $false))
+                           -SafeSearch ([bool](Get-PropOrDefault $decision 'safesearch' $false)) `
+                           -Flush $false)
             } else {
                 # Module « Filtrage web » coupé : le bloc entre les marqueurs quitte le fichier hosts (sites,
                 # liste noire, SafeSearch). La liste noire gardée sur le disque reste pour la réactivation.
                 $script:DerniersBlocages = @()
-                Sync-Hosts -Sites @()
+                $script:HostsEtat = $null
+                Sync-Hosts -Sites @() -Flush $false
             }
+            Invoke-FlushDnsGroupe
 
             # Aucune notification de blocage sur le PC : un site coupe reste
             # simplement injoignable. La tentative remonte a Home Assistant,

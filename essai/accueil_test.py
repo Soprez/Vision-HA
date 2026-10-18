@@ -29,13 +29,13 @@ async def _monter(hass, hass_storage, langue: str = "fr", accueil: dict | None =
     donnees = {"enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": {
         "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", role="enfant", type="telephone"),
         "t1": _fiche("t1", "Téléviseur du salon", TELE["secret"], platform="android", role="enfant", type="tv"),
-        "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+        "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
     }}
     if accueil is not None:
         donnees["accueil"] = accueil
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": donnees}
     hass.states.async_set("person.lou", "home", {"friendly_name": "Lou"})
-    hass.states.async_set("person.robin", "home", {"friendly_name": "Robin"})
+    hass.states.async_set("person.nolan", "home", {"friendly_name": "Nolan"})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
@@ -226,7 +226,8 @@ async def test_flux_options_de_bout_en_bout(hass, hass_storage, hass_client_no_a
     coord, entree = await _monter(hass, hass_storage)
     store = coord.store
     flux = await hass.config_entries.options.async_init(entree.entry_id)
-    assert flux["type"] == FlowResultType.MENU and "accueil" in flux["menu_options"]
+    assert flux["type"] == FlowResultType.MENU and "autres" in flux["menu_options"]
+    flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "autres"})
     flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "accueil"})
     assert flux["type"] == FlowResultType.FORM and flux["step_id"] == "accueil"
     place = flux["description_placeholders"]
@@ -258,6 +259,7 @@ async def test_flux_options_de_bout_en_bout(hass, hass_storage, hass_client_no_a
 
     # Rouvert : les champs reprennent ce qui est enregistré.
     flux = await hass.config_entries.options.async_init(entree.entry_id)
+    flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "autres"})
     flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "accueil"})
     schema = {str(k): k for k in flux["data_schema"].schema}
     assert schema["messages"].description["suggested_value"] == attendu["messages"]

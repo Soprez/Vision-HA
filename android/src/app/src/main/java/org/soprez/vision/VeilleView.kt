@@ -70,13 +70,20 @@ class VeilleView(ctx: Context) : View(ctx) {
                        /** Tableaux de bord Home Assistant : largeur de la carte (sur 12) et hauteur (en rangées). */
                        val largeur: Int = 6, val hauteur: Int = 1,
                        /** La carte du tableau de bord d'où vient la case (pour la masquer sur cet appareil). */
-                       val carte: String = "")
+                       val carte: String = "",
+                       /** Veille-lot : une case typée (météo, agenda, image, radar, caméra, iframe, derniers passages). */
+                       val typee: CasesVeille.Typee? = null,
+                       /** l'auteur (15/10) : une ouverture (porte, fenêtre, portail, store, garage, serrure, vanne) et son type. */
+                       val ouverture: Boolean = false, val typeOuverture: String = "")
     private class Section(val titre: String, val cases: List<Case>)
     private class Def(val code: String, val dureeMs: Long, val id: String, val titre: String, val cases: List<Case>,
                       val sections: List<Section> = emptyList(), val colonnes: Int = 3)
     /** Un écran d'un tableau de bord : des colonnes de blocs (un titre, des rangées de cases). */
     private class BlocDash(val titre: String, val rangees: List<List<Case>>, val unites: Float)
-    private class PageDash(val def: Def, val colonnes: List<List<BlocDash>>, val unitesMax: Int, val numero: Int, val total: Int)
+    private class PageDash(val def: Def, val colonnes: List<List<BlocDash>>, val unitesMax: Int, val numero: Int, val total: Int) {
+        /** Veille-lot : les cases typées de cet écran, dans l'ordre (médias à charger, caméra à montrer en direct). */
+        val typees: List<CasesVeille.Typee> = colonnes.flatMap { col -> col.flatMap { b -> b.rangees.flatMap { r -> r.mapNotNull { it.typee } } } }
+    }
     private class Demande(val prenom: String, val libelle: String, val genre: String, val ts: Long)
 
     private class Donnees(j: JSONObject) {
@@ -101,7 +108,7 @@ class VeilleView(ctx: Context) : View(ctx) {
         val tuiles: List<Tuile> = j.optJSONArray("tuiles").let { a ->
             (0 until (a?.length() ?: 0)).map { i ->
                 val t = a!!.getJSONObject(i)
-                Tuile(t.optString("titre"), t.optString("valeur"), t.optString("unite"), t.optString("detail"), t.optBoolean("alerte"), t.optString("theme", ""))
+                Tuile(t.optString("titre"), t.optString("valeur"), CasesVeille.unite(t.optString("unite")), t.optString("detail"), t.optBoolean("alerte"), t.optString("theme", ""))
             }
         }
         val courbeHeures = (j.optJSONObject("courbe") ?: JSONObject()).optInt("heures", 24)
@@ -189,13 +196,17 @@ class VeilleView(ctx: Context) : View(ctx) {
             // Les tableaux de Home Assistant (déjà filtrés pour cet écran et ce public), puis ceux composés ici.
             val tous = ArrayList<JSONObject>()
             for (i in 0 until a.length()) tous.add(a.getJSONObject(i))
-            fun casesDe(cs: org.json.JSONArray?): List<Case> = (0 until (cs?.length() ?: 0)).map { q ->
+            // Veille-lot : boutons, scripts, scènes et champs de saisie ne sont jamais montrés (un Home Assistant ancien les
+            // envoie encore) ; les unités d'un Home Assistant ancien (« d ») passent dans la langue de l'appareil.
+            fun casesDe(cs: org.json.JSONArray?): List<Case> = (0 until (cs?.length() ?: 0)).mapNotNull { q ->
                 val c = cs!!.getJSONObject(q)
+                if (CasesVeille.exclue(c.optString("entite"))) return@mapNotNull null
                 val sr = c.optJSONArray("serie")
-                Case(c.optString("entite"), c.optString("nom"), c.optString("rendu", "texte"), c.optDoubleOrNull("valeur"), c.optString("unite"), c.optString("texte"),
+                Case(c.optString("entite"), c.optString("nom"), c.optString("rendu", "texte"), c.optDoubleOrNull("valeur"), CasesVeille.unite(c.optString("unite")), c.optString("texte"),
                     if (c.isNull("on")) null else c.optBoolean("on"), c.optString("classe"), c.optDouble("min", 0.0), c.optDouble("max", 100.0),
                     (0 until (sr?.length() ?: 0)).map { k -> val pt = sr!!.getJSONArray(k); pt.getLong(0) to pt.getDouble(1).toFloat() }, c.optDoubleOrNull("consigne"),
-                    c.optInt("largeur", 6).coerceIn(1, 12), c.optInt("hauteur", 1).coerceIn(1, 3), c.optString("carte"))
+                    c.optInt("largeur", 6).coerceIn(1, 12), c.optInt("hauteur", 1).coerceIn(1, 3), c.optString("carte"), CasesVeille.lire(c),
+                    c.optBoolean("ouverture"), c.optString("type_ouverture"))
             }
             tous.map { o ->
                 val ss = o.optJSONArray("sections")
@@ -276,35 +287,53 @@ class VeilleView(ctx: Context) : View(ctx) {
 
     private val main = Handler(Looper.getMainLooper())
     private var dernierControleNuit = 0L
+    /**
+     * Veille-lot : la cadence suit l'affichage (Choreographer) : 60 images/s pendant les transitions et les entrées en
+     * scène, 30 au repos, 30 toujours si l'appareil peine ; une par seconde sous la page de Home Assistant.
+     */
+    private var intervalle = CadenceVeille.REPOS_MS
+    private val peine = SuiviPeine()
+    private var derniereImage = 0L
+    /** La dérive anti-marquage du moment (pixels entiers), appliquée au dessin comme à la page de Home Assistant. */
+    private val deriveXY = IntArray(2)
+    private val deriveAmplitude = DeriveVeille.amplitude(resources.displayMetrics.density)
     private val tic = object : Runnable {
         override fun run() {
             if (!actif) return
             val now = SystemClock.uptimeMillis()
             if (now - dernierControleNuit > 60_000 || Local.version != versionReglages) { dernierControleNuit = now; rafraichirTheme() }
+            DeriveVeille.decalage(now, deriveAmplitude, deriveXY)
+            web?.deriver(deriveXY[0], deriveXY[1])
             if (!couverte) invalidate()
-            main.postDelayed(this, if (couverte) 1000 else 33)
+            when {
+                couverte -> postDelayed(this, 1000)
+                intervalle <= CadenceVeille.FLUIDE_MS -> postOnAnimation(this)
+                else -> postOnAnimationDelayed(this, intervalle - CadenceVeille.FLUIDE_MS)
+            }
         }
     }
+    /** L'appareil a-t-il du mal à suivre ? (caméras : retour aux images en mode Auto) */
+    fun peine(): Boolean = peine.peine(SystemClock.uptimeMillis())
 
     // ------------------------------------------------------------ pinceaux
 
-    private val fin = Typeface.create("sans-serif-light", Typeface.NORMAL)
-    private val normal = Typeface.create("sans-serif", Typeface.NORMAL)
-    private val gras = Typeface.create("sans-serif-medium", Typeface.BOLD)
+    internal val fin = Typeface.create("sans-serif-light", Typeface.NORMAL)
+    internal val normal = Typeface.create("sans-serif", Typeface.NORMAL)
+    internal val gras = Typeface.create("sans-serif-medium", Typeface.BOLD)
     private val pTexte = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val pForme = Paint(Paint.ANTI_ALIAS_FLAG)
+    internal val pForme = Paint(Paint.ANTI_ALIAS_FLAG)
     private val pFond = Paint()
     private val chemin = Path()
 
     // Charte : beige chaud par défaut, pourpre et or de Vision en accents ; d'autres thèmes au choix.
-    private var fond = 0xFFF4ECDE.toInt()
-    private var encre = 0xFF2B1B1E.toInt()
-    private var encre2 = 0xFF6E5A5E.toInt()
-    private var encre3 = 0xFF9E8C8E.toInt()
-    private var carte = 0xB3FFFFFF.toInt()
-    private var carteBord = 0x33B3282D
-    private var pourpre = 0xFFB3282D.toInt()
-    private var or = 0xFFC48A1E.toInt()
+    internal var fond = 0xFFF4ECDE.toInt()
+    internal var encre = 0xFF2B1B1E.toInt()
+    internal var encre2 = 0xFF6E5A5E.toInt()
+    internal var encre3 = 0xFF9E8C8E.toInt()
+    internal var carte = 0xB3FFFFFF.toInt()
+    internal var carteBord = 0x33B3282D
+    internal var pourpre = 0xFFB3282D.toInt()
+    internal var or = 0xFFC48A1E.toInt()
     private var halos = intArrayOf(0xF2C56A, 0xE39A9A, 0x9DBBE3)
     private var sombre = false
     private var themeNom = ""
@@ -346,6 +375,7 @@ class VeilleView(ctx: Context) : View(ctx) {
         if (actif) return
         actif = true
         changeA = SystemClock.uptimeMillis()
+        demarreeA = changeA
         // Les couleurs du thème dès la première image : pas d'éclair d'une autre teinte avant la page.
         try { rafraichirTheme() } catch (_: Exception) {}
         fil = Thread {
@@ -358,6 +388,7 @@ class VeilleView(ctx: Context) : View(ctx) {
                     donnees = Donnees(r)
                     erreur = ""
                     derniereReussite = SystemClock.uptimeMillis()
+                    if (premiereReussiteA == 0L) premiereReussiteA = derniereReussite
                     derniereLectureMs = System.currentTimeMillis()
                 } catch (e: Exception) {
                     erreur = (e.message ?: e.javaClass.simpleName).take(90)
@@ -366,8 +397,8 @@ class VeilleView(ctx: Context) : View(ctx) {
                 try { Thread.sleep(60_000) } catch (_: InterruptedException) { break }
             }
         }.also { it.isDaemon = true; it.start() }
-        main.removeCallbacks(tic)
-        main.post(tic)
+        removeCallbacks(tic)
+        post(tic)
         web?.demarrer()
         soutien.demarrer()
     }
@@ -404,13 +435,16 @@ class VeilleView(ctx: Context) : View(ctx) {
         web?.arreter()
         couverte = false
         musique.arreter()
+        // 1.91.0 (retour d'essai) : la musique lancée par la veille s'arrête TOUJOURS en sortie de veille.
+        VeilleAudio.fin(context)
         cameras?.cacher()
         actif = false
-        main.removeCallbacks(tic)
+        removeCallbacks(tic)
         fil?.interrupt()
         fil = null
         filCameras?.interrupt()
         filCameras = null
+        typees.arreter()
         images.values.forEach { it.bitmap.recycle() }
         images.clear()
     }
@@ -448,7 +482,7 @@ class VeilleView(ctx: Context) : View(ctx) {
     override fun onWindowVisibilityChanged(visibility: Int) {
         super.onWindowVisibilityChanged(visibility)
         // Cachée puis remontrée (veille profonde, changement de source) : on relance la cadence.
-        if (visibility == VISIBLE && actif) { main.removeCallbacks(tic); main.post(tic) }
+        if (visibility == VISIBLE && actif) { removeCallbacks(tic); post(tic); derniereImage = 0L }
     }
 
     /** Vrai si l'heure courante est dans la plage « HH:MM-HH:MM » (qui peut passer minuit). */
@@ -468,9 +502,15 @@ class VeilleView(ctx: Context) : View(ctx) {
         val nuit = Local.estNuit(context)
         nuitActive = nuit
         appliquerTheme(Local.themeEffectif(context, Palette.APPLI))
+        pastille = Local.pastilleVeille(context)
+        indicateur = IndicateurOuverture.reglages(context)
         // Une autre appli joue déjà (Spotify, YouTube Music…) : l'écran de veille la laisse, il ne joue pas par-dessus.
-        val autre = try { Flux.paquets(context)?.isNotEmpty() == true || ((context.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager).isMusicActive && !Musique.enCours) } catch (_: Exception) { false }
-        musique.jouer(if (nuit || donnees == null || autre) "" else Local.musique(context))
+        val autre = try { Flux.paquets(context)?.isNotEmpty() == true || ((context.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager).isMusicActive && !Musique.nous) } catch (_: Exception) { false }
+        // 1.91.0 (retour d'essai) : une playlist favorite choisie pour la veille remplace la radio (lecteur « · Vision », via HA).
+        if (VeilleAudio.choisie(context) != null) {
+            musique.jouer("")
+            if (nuit) VeilleAudio.fin(context) else VeilleAudio.debut(context, nuit, autre)
+        } else musique.jouer(if (nuit || donnees == null || autre) "" else Local.musique(context))
         versionReglages = Local.version
     }
 
@@ -548,7 +588,7 @@ class VeilleView(ctx: Context) : View(ctx) {
     private fun lisser(x: Float): Float { val c = x.coerceIn(0f, 1f); return c * c * (3 - 2 * c) }
 
     /** Progression 0..1 d'une étape qui commence à `debut` ms et dure `duree` ms. */
-    private fun etape(ecoule: Long, debut: Long, duree: Long): Float = lisser((ecoule - debut) / duree.toFloat())
+    internal fun etape(ecoule: Long, debut: Long, duree: Long): Float = lisser((ecoule - debut) / duree.toFloat())
 
     /** Un rebond doux à l'arrivée : dépasse un peu puis se pose. */
     private fun rebond(x: Float): Float {
@@ -558,8 +598,10 @@ class VeilleView(ctx: Context) : View(ctx) {
     }
 
     /** Un nombre qui compte depuis zéro : « 17,3 » apparaît en montant. */
+    private val nombre = Regex("-?\\d+(?:[.,]\\d+)?")
     private fun compter(texte: String, p: Float): String {
-        val m = Regex("-?\\d+(?:[.,]\\d+)?").find(texte) ?: return texte
+        if (p >= 1f) return texte
+        val m = nombre.find(texte) ?: return texte
         val brut = m.value.replace(',', '.').toFloatOrNull() ?: return texte
         val decimales = if (m.value.contains(',')) m.value.substringAfter(',').length else if (m.value.contains('.')) m.value.substringAfter('.').length else 0
         val v = brut * lisser(p)
@@ -580,6 +622,11 @@ class VeilleView(ctx: Context) : View(ctx) {
         // d'un coup quand la page se montre ; deux horloges l'une sur l'autre ne doivent jamais se voir.
         if (web?.enAttente == true) { c.drawColor(fond or 0xFF000000.toInt()); dessinerHorloge(c, w, h, 1f, maintenant - changeA); return }
         dessinerFond(c, w, h, t)
+        // 17-10 (l'auteur, point 12) : « Ajuster l'écran » — le contenu (pas le fond) se resserre au centre quand la télé rogne
+        // plus que les 5 % prévus par le dessin de la veille (ZoneSure), ou s'étend un peu quand elle rogne moins.
+        val echelleZone = ZoneSure.echelle(context)
+        val niveauZone = c.save()
+        if (echelleZone != 1f) c.scale(echelleZone, echelleZone, w / 2, h / 2)
 
         var ecoule = maintenant - changeA
         val courant = tableaux.getOrNull(indice)
@@ -593,6 +640,13 @@ class VeilleView(ctx: Context) : View(ctx) {
 
         val entree = min(1f, ecoule / fonduMs.toFloat())
         val reste = dureeActuelle - ecoule
+        if (derniereImage > 0) {
+            peine.mesurer(maintenant - derniereImage, intervalle, maintenant)
+            imagesDessinees++
+            if (maintenant - derniereImage > intervalle * 2 + 8) imagesLentes++
+        }
+        derniereImage = maintenant
+        intervalle = CadenceVeille.intervalle(ecoule, if (pause || tableaux.size <= 1) -1 else reste, fonduMs, 1500, peine.peine(maintenant))
         // Un seul tableau (l'horloge seule) : il reste affiché, sans fondu de sortie vers un écran vide.
         val sortie = if (!pause && tableaux.size > 1 && reste < fonduMs) (reste / fonduMs.toFloat()).coerceIn(0f, 1f) else 1f
         // Les caméras se rafraîchissent pendant leur tableau, et juste avant qu'il n'arrive.
@@ -605,15 +659,26 @@ class VeilleView(ctx: Context) : View(ctx) {
         }
         if (camerasVoulues.isNotEmpty() && (filCameras?.isAlive != true)) demarrerCameras()
         val alpha = lisser(min(entree, sortie))
-        val glisse = (1f - lisser(entree)) * h * 0.03f
+        // Veille-lot (pages de cartes) : les écrans d'un même tableau de bord défilent de droite à gauche, comme sur le
+        // PC ; un autre tableau arrive en fondu, en montant un peu.
+        val precedent = tableaux.getOrNull(((indice - 1) % tableaux.size + tableaux.size) % tableaux.size)
+        val pageSuivie = actuel?.genre == Genre.DASH && precedent !== actuel && precedent?.page?.def === actuel.page?.def
+        val versSuivante = actuel?.genre == Genre.DASH && suivant !== actuel && suivant?.page?.def === actuel.page?.def
+        val glisseX = when {
+            pageSuivie && entree < 1f -> (1f - lisser(entree)) * w * 0.05f
+            versSuivante && sortie < 1f -> -(1f - lisser(sortie)) * w * 0.05f
+            else -> 0f
+        }
+        val glisse = if (pageSuivie || glisseX != 0f) 0f else (1f - lisser(entree)) * h * 0.03f
 
-        // Anti-marquage : tout dérive de quelques pixels au fil des minutes.
-        val dx = sin(t / 97f) * w * 0.01f
-        val dy = cos(t / 131f) * h * 0.012f
+        // Anti-marquage (veille-lot) : tout dérive de quelques pixels entiers, si lentement que l'œil ne le voit pas.
+        DeriveVeille.decalage(maintenant, deriveAmplitude, deriveXY)
+        val dx = deriveXY[0].toFloat()
+        val dy = deriveXY[1].toFloat()
 
         c.save()
-        c.translate(dx, dy + glisse)
-        derive[0] = dx; derive[1] = dy + glisse
+        c.translate(dx + glisseX, dy + glisse)
+        derive[0] = dx + glisseX; derive[1] = dy + glisse
         val tableau = tableaux.getOrNull(indice) ?: Tableau(Genre.HORLOGE)
         // Les flux vidéo s'ouvrent vingt secondes avant le tableau des caméras (Home Assistant met
         // une dizaine de secondes à servir un flux) ; le reste du temps, la couche est vide.
@@ -623,6 +688,8 @@ class VeilleView(ctx: Context) : View(ctx) {
             it.masquer()
         }
         if (tableau.genre != Genre.CAMERAS && casesCameras.isNotEmpty()) casesCameras.clear()
+        // Veille-lot : les médias de cette page, et ceux de la suivante dès qu'elle approche (préchargement).
+        typees.debutImage(tableau.page?.let { casesTypees(it) }, if (reste < 6000) suivant?.page?.let { casesTypees(it) } else null)
         when (tableau.genre) {
             Genre.HORLOGE -> dessinerHorloge(c, w, h, alpha, ecoule)
             Genre.METEO -> dessinerMeteo(c, w, h, alpha, ecoule, t)
@@ -642,9 +709,11 @@ class VeilleView(ctx: Context) : View(ctx) {
             Genre.DASH -> tableau.page?.let { dessinerDash(c, w, h, alpha, ecoule, t, it) }
             Genre.PHOTOS -> dessinerPhotos(c, w, h, alpha, ecoule, t, tableau.photos)
         }
-        if (tableau.genre == Genre.HORLOGE || tableau.genre == Genre.METEO) dessinerPluie(c, w, h, alpha, ecoule, t, tableau.genre == Genre.HORLOGE)
+        // 1.93.05 (retour 35) : plus de pluie sur la page horloge ; seulement sur la page météo.
+        if (tableau.genre == Genre.METEO) dessinerPluie(c, w, h, alpha, ecoule, t, false)
         dessinerDemandes(c, w, h, t)
         c.restore()
+        typees.finImage()
         // L'heure et l'œil ne glissent pas avec les tableaux : ils ne suivent que la lente dérive anti-marquage.
         c.save()
         c.translate(dx, dy)
@@ -652,6 +721,7 @@ class VeilleView(ctx: Context) : View(ctx) {
         dessinerPied(c, w, h, t)
         dessinerIndicateur(c, w, h, maintenant)
         c.restore()
+        c.restoreToCount(niveauZone)
     }
 
     /** Les points des tableaux et l'état figé, quelques secondes après un geste (en permanence quand c'est figé). */
@@ -693,6 +763,7 @@ class VeilleView(ctx: Context) : View(ctx) {
 
     private fun dessinerFond(c: Canvas, w: Float, h: Float, t: Float) {
         c.drawColor(fond)
+        halosN = 0
         // Trois lueurs qui dérivent lentement : or pâle, rose poudré, ciel.
         val force = if (sombre) 0.5f else 1f
         halo(c, w * (0.22f + 0.12f * sin(t / 23f)), h * (0.30f + 0.15f * cos(t / 29f)), h * 0.95f, halos[0], 0.28f * force)
@@ -709,29 +780,48 @@ class VeilleView(ctx: Context) : View(ctx) {
             c.drawCircle(x * w, y * h, p.r * h * (0.8f + 0.4f * scintille), pForme)
         }
         // Un léger voile clair en bas, pour poser le pied de page.
-        pFond.shader = LinearGradient(0f, h * 0.7f, 0f, h, 0x00FFFFFF, 0x55FFFFFF, Shader.TileMode.CLAMP)
+        if (voile == null || voileH != h) { voileH = h; voile = LinearGradient(0f, h * 0.7f, 0f, h, 0x00FFFFFF, 0x55FFFFFF, Shader.TileMode.CLAMP) }
+        pFond.shader = voile
         c.drawRect(0f, 0f, w, h, pFond)
         pFond.shader = null
     }
 
+    // Veille-lot (fluidité) : les dégradés du fond sont créés une fois (par taille et par thème) puis seulement déplacés.
+    private var voile: LinearGradient? = null
+    private var voileH = 0f
+    private var halosN = 0
+    private val halosDegrades = arrayOfNulls<RadialGradient>(3)
+    private val halosCles = LongArray(3)
+    private val halosMatrice = android.graphics.Matrix()
+
     private fun halo(c: Canvas, x: Float, y: Float, r: Float, rgb: Int, force: Float) {
+        val i = halosN++ % 3
         val centre = Color.argb((force * 255).toInt().coerceIn(0, 255), Color.red(rgb), Color.green(rgb), Color.blue(rgb))
-        pFond.shader = RadialGradient(x, y, r, intArrayOf(centre, Color.TRANSPARENT), floatArrayOf(0f, 1f), Shader.TileMode.CLAMP)
+        val cle = (java.lang.Float.floatToIntBits(r).toLong() shl 32) xor (centre.toLong() and 0xFFFFFFFFL)
+        var s = halosDegrades[i]
+        if (s == null || halosCles[i] != cle) {
+            s = RadialGradient(0f, 0f, r, intArrayOf(centre, Color.TRANSPARENT), floatArrayOf(0f, 1f), Shader.TileMode.CLAMP)
+            halosDegrades[i] = s; halosCles[i] = cle
+        }
+        halosMatrice.setTranslate(x, y)
+        s.setLocalMatrix(halosMatrice)
+        pFond.shader = s
         c.drawCircle(x, y, r, pFond)
         pFond.shader = null
     }
 
-    private fun ecrire(c: Canvas, s: String, x: Float, y: Float, taille: Float, couleur: Int, alpha: Float, police: Typeface = normal, align: Paint.Align = Paint.Align.LEFT, espacement: Float = 0f) {
+    internal fun ecrire(c: Canvas, s: String, x: Float, y: Float, taille: Float, couleur: Int, alpha: Float, police: Typeface = normal, align: Paint.Align = Paint.Align.LEFT, espacement: Float = 0f) {
         pTexte.typeface = police
         pTexte.textSize = taille
         pTexte.color = couleur
         pTexte.alpha = (alpha * 255).toInt().coerceIn(0, 255)
         pTexte.textAlign = align
         pTexte.letterSpacing = espacement
-        c.drawText(s, x, y, pTexte)
+        // Veille-lot : sur le pixel entier (texte net, grille alignée) ; en mouvement, un pas d'un pixel par image.
+        c.drawText(s, Math.round(x).toFloat(), Math.round(y).toFloat(), pTexte)
     }
 
-    private fun largeur(s: String, taille: Float, police: Typeface): Float {
+    internal fun largeur(s: String, taille: Float, police: Typeface): Float {
         pTexte.typeface = police; pTexte.textSize = taille; pTexte.letterSpacing = 0f
         return pTexte.measureText(s)
     }
@@ -744,66 +834,75 @@ class VeilleView(ctx: Context) : View(ctx) {
         c.drawRoundRect(RectF(w * 0.08f, h * 0.19f, w * 0.08f + h * 0.08f * p, h * 0.19f + h * 0.005f), h * 0.003f, h * 0.003f, pForme)
     }
 
-    private fun cartePosee(c: Canvas, rect: RectF, h: Float, alpha: Float, bord: Int = carteBord, epaisseur: Float = 1f) {
+    internal fun cartePosee(c: Canvas, rect: RectF, h: Float, alpha: Float, bord: Int = carteBord, epaisseur: Float = 1f, trait: Float = 0f,
+                           rayon: Float = 0f) {
+        // 1.90.x : [rayon] (px) donne le même arrondi à toutes les cartes d'un tableau (sinon : selon l'échelle).
+        val r = if (rayon > 0f) rayon else h * 0.03f
         pForme.style = Paint.Style.FILL
         pForme.color = Color.BLACK; pForme.alpha = (alpha * 0x18).toInt()
-        c.drawRoundRect(RectF(rect.left, rect.top + h * 0.008f, rect.right, rect.bottom + h * 0.008f), h * 0.03f, h * 0.03f, pForme)
+        c.drawRoundRect(RectF(rect.left, rect.top + h * 0.008f, rect.right, rect.bottom + h * 0.008f), r, r, pForme)
         pForme.color = carte; pForme.alpha = (alpha * Color.alpha(carte)).toInt()
-        c.drawRoundRect(rect, h * 0.03f, h * 0.03f, pForme)
-        pForme.style = Paint.Style.STROKE; pForme.strokeWidth = h * 0.003f * epaisseur
+        c.drawRoundRect(rect, r, r, pForme)
+        // 1.90.x : [trait] (px) fixe l'épaisseur pour qu'elle soit la même sur toutes les cartes d'un tableau.
+        pForme.style = Paint.Style.STROKE; pForme.strokeWidth = if (trait > 0f) trait else h * 0.003f * epaisseur
         pForme.color = bord; pForme.alpha = (alpha * Color.alpha(bord)).toInt()
-        c.drawRoundRect(rect, h * 0.03f, h * 0.03f, pForme)
+        c.drawRoundRect(rect, r, r, pForme)
         pForme.style = Paint.Style.FILL
     }
 
     // --- Horloge -----------------------------------------------------------
 
+    // 1.91.2 : le style de l'horloge (StylesHorloge), relu toutes les cinq secondes au plus (jamais à chaque image).
+    private val pinceauxStyle = HorlogesVeille.Pinceaux().also { it.h24 = android.text.format.DateFormat.is24HourFormat(ctx) }
+    private var styleHorloge = HorlogesVeille.ANNEAU
+    private var styleLuA = 0L
+
+    /** Le style que la veille dessine (relu au plus toutes les cinq secondes). */
+    internal fun styleHorloge(): String {
+        val t = SystemClock.uptimeMillis()
+        if (styleLuA == 0L || t - styleLuA > 5_000L) {
+            styleLuA = t
+            // Une horloge de thème n'existe que sur la page de veille : le dessin de l'appli garde alors l'anneau.
+            styleHorloge = Local.styleHorlogeVeilleChoisi(context)?.takeUnless { StylesHorloge.estWeb(it) } ?: HorlogesVeille.ANNEAU
+        }
+        return styleHorloge
+    }
+
     private fun dessinerHorloge(c: Canvas, w: Float, h: Float, alpha: Float, ecoule: Long) {
+        val style = styleHorloge()
+        if (style != HorlogesVeille.ANNEAU) { dessinerStyle(c, style, w, h, alpha, ecoule); return }
         val maintenant = Date()
         val cal = Calendar.getInstance()
         val heure = heureFmt.format(maintenant)
         val date = dateLongue.format(maintenant).replaceFirstChar { it.uppercase() }
         val p0 = etape(ecoule, 0, 900)
-        // L'anneau des secondes, fin, qui s'écrit autour de l'heure.
+        // L'horloge stylisée de Vision (HorlogeVision, même dessin que l'accueil du téléphone) : l'anneau des secondes et
+        // l'heure dont les deux points battent la seconde.
         val sec = cal.get(Calendar.SECOND) + cal.get(Calendar.MILLISECOND) / 1000f
-        val r = h * 0.42f
-        val cadre = RectF(w / 2 - r, h * 0.5f - r, w / 2 + r, h * 0.5f + r)
-        pForme.style = Paint.Style.STROKE; pForme.strokeWidth = h * 0.006f; pForme.strokeCap = Paint.Cap.ROUND
-        pForme.color = or; pForme.alpha = (alpha * 60).toInt()
-        c.drawArc(cadre, -90f, 360f, false, pForme)
-        pForme.alpha = (alpha * 220 * p0).toInt()
-        c.drawArc(cadre, -90f, 360f * sec / 60f * p0, false, pForme)
-        pForme.style = Paint.Style.FILL
-        val ang = Math.toRadians((-90f + 360f * sec / 60f * p0).toDouble())
-        pForme.color = or; pForme.alpha = (alpha * 255 * p0).toInt()
-        c.drawCircle(w / 2 + (r * cos(ang)).toFloat(), h * 0.5f + (r * sin(ang)).toFloat(), h * 0.012f, pForme)
-
-        // L'heure : les deux points battent la seconde.
-        val taille = h * 0.30f
-        val echelle = 0.9f + 0.1f * rebond(p0)
-        c.save(); c.scale(echelle, echelle, w / 2, h * 0.5f)
-        val parties = heure.split(":")
-        val lHeure = largeur(parties[0], taille, fin); val lDeux = largeur(":", taille, fin); val lMin = largeur(parties.getOrElse(1) { "" }, taille, fin)
-        val total = lHeure + lDeux + lMin
-        var x = w / 2 - total / 2
-        ecrire(c, parties[0], x, h * 0.55f, taille, encre, alpha * p0, fin); x += lHeure
-        val batt = 0.35f + 0.65f * (0.5f + 0.5f * cos((sec % 1f) * 2 * Math.PI).toFloat())
-        ecrire(c, ":", x, h * 0.55f, taille, pourpre, alpha * p0 * batt, fin); x += lDeux
-        ecrire(c, parties.getOrElse(1) { "" }, x, h * 0.55f, taille, encre, alpha * p0, fin)
-        c.restore()
+        HorlogeVision.dessiner(c, w / 2, h * 0.5f, h * 0.42f, h * 0.30f, heure, sec, HorlogeVision.Couleurs(encre, pourpre, or),
+            fin, pForme, pTexte, alpha = alpha, apparition = p0, echelle = 0.9f + 0.1f * rebond(p0))
 
         val p1 = etape(ecoule, 300, 800)
         ecrire(c, date, w / 2, h * 0.66f + (1f - p1) * h * 0.02f, h * 0.05f, encre2, alpha * p1, normal, Paint.Align.CENTER, 0.04f)
+        // 1.93.05 (l'auteur, retour 35) : la page horloge ne montre QUE l'horloge stylisée (et sa date) : ni température, ni
+        // ciel, ni vigilance, ni pluie — quelle que soit l'horloge choisie (remplace le point 7 du 17-10).
         val d = donnees
         val p2 = etape(ecoule, 600, 800)
-        if (d != null && d.temperature != null) {
-            val ligne = "${deg(d.temperature)}  ·  ${libelle(d.etatMeteo)}"
-            ecrire(c, ligne, w / 2, h * 0.76f + (1f - p2) * h * 0.02f, h * 0.042f, or, alpha * p2, normal, Paint.Align.CENTER)
-            if (d.rang >= 1) ecrire(c, context.getString(R.string.veilleview_vigilance, d.niveau.lowercase(Locale.getDefault())), w / 2, h * 0.82f, h * 0.034f, couleurNiveau(d.niveau), alpha * p2, gras, Paint.Align.CENTER, 0.08f)
-        }
         if (erreur.isNotEmpty() && (d == null || SystemClock.uptimeMillis() - derniereReussite > 300_000L)) {
-            ecrire(c, context.getString(R.string.veilleview_injoignable, erreur), w / 2, h * 0.94f, h * 0.024f, encre3, alpha * p2, normal, Paint.Align.CENTER)
+            // Lot 6 (APP-24) : ce qu'il faut faire, plus le texte de l'exception.
+            ecrire(c, context.getString(R.string.lot6_veille_injoignable), w / 2, h * 0.94f, h * 0.024f, encre3, alpha * p2, normal, Paint.Align.CENTER)
         }
+    }
+
+    /** Un style de Vision ([HorlogesVeille]) : l'horloge, puis la date et la météo aux places que le style laisse. */
+    private fun dessinerStyle(c: Canvas, style: String, w: Float, h: Float, alpha: Float, ecoule: Long) {
+        val p0 = etape(ecoule, 0, 900)
+        HorlogesVeille.dessiner(c, style, w, h, pinceauxStyle, HorlogesVeille.Couleurs(encre, encre2, pourpre, or, carte or 0xFF000000.toInt(), fond or 0xFF000000.toInt()), alpha, p0)
+        val lignes = HorlogesVeille.lignesSous(style)
+        val date = dateLongue.format(Date()).replaceFirstChar { it.uppercase() }
+        val p1 = etape(ecoule, 300, 800)
+        ecrire(c, date, w / 2, h * lignes[0] + (1f - p1) * h * 0.02f, h * 0.05f, encre2, alpha * p1, normal, Paint.Align.CENTER, 0.04f)
+        // 1.93.05 (retour 35) : plus de température ni de ciel sous l'horloge.
     }
 
     private fun dessinerPetiteHorloge(c: Canvas, w: Float, h: Float) {
@@ -814,9 +913,11 @@ class VeilleView(ctx: Context) : View(ctx) {
         val h24 = android.text.format.DateFormat.is24HourFormat(context)
         val hh = if (h24) String.format(Locale.getDefault(), "%02d", cal.get(Calendar.HOUR_OF_DAY)) else String.format(Locale.getDefault(), "%d", (cal.get(Calendar.HOUR) + 11) % 12 + 1); val mm = String.format(Locale.getDefault(), "%02d", cal.get(Calendar.MINUTE))
         val lMin = largeur(mm, taille, fin); val lDeux = largeur(":", taille, fin)
-        ecrire(c, mm, w * 0.92f, h * 0.17f, taille, encre, 0.9f, fin, Paint.Align.RIGHT)
-        ecrire(c, ":", w * 0.92f - lMin, h * 0.17f, taille, pourpre, 0.9f * batt, fin, Paint.Align.RIGHT)
-        ecrire(c, hh, w * 0.92f - lMin - lDeux, h * 0.17f, taille, encre, 0.9f, fin, Paint.Align.RIGHT)
+        // 1.93.05 (retour 39) : décalée vers la gauche quand le coin du haut à droite est pris (QR, logo, bandeau).
+        val droite = CoinsVeille.Coins.bordDroit(OptionsVeille.HD, OptionsVeille.qr(context), OptionsVeille.logo(context), OptionsVeille.lecteur(context), w, h, w * 0.92f)
+        ecrire(c, mm, droite, h * 0.17f, taille, encre, 0.9f, fin, Paint.Align.RIGHT)
+        ecrire(c, ":", droite - lMin, h * 0.17f, taille, pourpre, 0.9f * batt, fin, Paint.Align.RIGHT)
+        ecrire(c, hh, droite - lMin - lDeux, h * 0.17f, taille, encre, 0.9f, fin, Paint.Align.RIGHT)
     }
 
     // L'œil de Vision, en bas à gauche : il regarde autour de lui et cligne de temps en temps.
@@ -829,6 +930,9 @@ class VeilleView(ctx: Context) : View(ctx) {
     private var prochainRegard = 0f
 
     private fun dessinerPied(c: Canvas, w: Float, h: Float, t: Float) {
+        // 1.93.05 (l'auteur, retour 39) : le logo a son coin (OptionsVeille.logo), ou il est masqué.
+        val coin = OptionsVeille.logo(context)
+        if (coin == OptionsVeille.CACHE) return
         // Les paupières : fermeture vive (0,1 s), réouverture plus douce (0,16 s), parfois deux fois de suite.
         if (t >= prochainClin) {
             clinDebut = t
@@ -850,8 +954,8 @@ class VeilleView(ctx: Context) : View(ctx) {
         }
         regardX += (cibleX - regardX) * 0.18f; regardY += (cibleY - regardY) * 0.18f
 
-        // Tout en bas à gauche, sous la zone des cartes (qui s'arrête à 89 %), hors de la marge des tableaux.
-        val cx = w * 0.035f + h * 0.03f; val cy = h * 0.95f
+        // En bas à gauche (sa place d'avant), sous la zone des cartes (qui s'arrête à 89 %) ; ailleurs, en miroir.
+        val (cx, cy) = CoinsVeille.Coins.oeil(coin, w, h)
         val demiL = h * 0.03f; val demiH = h * 0.017f
         val ouverture = demiH * (1f - fermeture * 0.96f)
         // L'amande de l'œil : deux arcs, la paupière du haut descend quand il cligne.
@@ -881,7 +985,8 @@ class VeilleView(ctx: Context) : View(ctx) {
         chemin.reset(); chemin.moveTo(cx - demiL, cy); chemin.quadTo(cx, cy + demiH * 2f * (1f - fermeture * 0.5f), cx + demiL, cy)
         c.drawPath(chemin, pForme)
         pForme.alpha = 255; pForme.style = Paint.Style.FILL
-        ecrire(c, "Vision", cx + demiL + h * 0.016f, cy + h * 0.009f, h * 0.026f, encre3, 0.9f, gras, espacement = 0.12f)
+        if (CoinsVeille.Coins.gauche(coin)) ecrire(c, "Vision", cx + demiL + h * 0.016f, cy + h * 0.009f, h * 0.026f, encre3, 0.9f, gras, espacement = 0.12f)
+        else ecrire(c, "Vision", cx - demiL - h * 0.016f, cy + h * 0.009f, h * 0.026f, encre3, 0.9f, gras, Paint.Align.RIGHT, 0.12f)
     }
 
     // --- Météo -------------------------------------------------------------
@@ -922,9 +1027,9 @@ class VeilleView(ctx: Context) : View(ctx) {
         }
     }
 
-    private fun deg(v: Double?): String = if (v == null) "—" else "${Math.round(v)}°"
+    internal fun deg(v: Double?): String = if (v == null) "—" else "${Math.round(v)}°"
 
-    private fun libelle(etat: String): String = when (etat) {
+    internal fun libelle(etat: String): String = when (etat) {
         "sunny" -> context.getString(R.string.veilleview_meteo_ensoleille)
         "clear-night" -> context.getString(R.string.veilleview_meteo_nuit_claire)
         "partlycloudy" -> context.getString(R.string.veilleview_meteo_eclaircies)
@@ -942,7 +1047,7 @@ class VeilleView(ctx: Context) : View(ctx) {
     }
 
     /** Icônes météo tracées au compas et animées : rayons qui tournent, pluie qui tombe, éclair qui flashe. */
-    private fun dessinerIcone(c: Canvas, etat: String, x: Float, y: Float, r: Float, alpha: Float, t: Float) {
+    internal fun dessinerIcone(c: Canvas, etat: String, x: Float, y: Float, r: Float, alpha: Float, t: Float) {
         val a = (alpha * 255).toInt().coerceIn(0, 255)
         val gris = 0xFF8C8F99.toInt()
         val grisClair = 0xFFB9BCC6.toInt()
@@ -1132,7 +1237,22 @@ class VeilleView(ctx: Context) : View(ctx) {
     }
 
     /** Coupe un texte en lignes qui tiennent dans la largeur ; la dernière finit par « … » si besoin. */
-    private fun decouper(texte: String, taille: Float, police: Typeface, max: Float, maxLignes: Int): List<String> {
+    /** Veille-lot (fluidité) : un texte se découpe une fois par taille et par largeur, puis se relit à chaque image. */
+    private class Decoupe(val taille: Float, val police: Typeface, val max: Float, val maxLignes: Int, val lignes: List<String>)
+    private val decoupes = HashMap<String, ArrayList<Decoupe>>()
+
+    internal fun decouper(texte: String, taille: Float, police: Typeface, max: Float, maxLignes: Int): List<String> {
+        val vus = decoupes[texte]
+        if (vus != null) for (i in vus.indices) { val d = vus[i]; if (d.taille == taille && d.police === police && d.max == max && d.maxLignes == maxLignes) return d.lignes }
+        val lignes = decouperCalcul(texte, taille, police, max, maxLignes)
+        if (decoupes.size > 600) decoupes.clear()
+        val l = decoupes.getOrPut(texte) { ArrayList(2) }
+        if (l.size >= 4) l.removeAt(0)
+        l.add(Decoupe(taille, police, max, maxLignes, lignes))
+        return lignes
+    }
+
+    private fun decouperCalcul(texte: String, taille: Float, police: Typeface, max: Float, maxLignes: Int): List<String> {
         val mots = texte.split(" ").filter { it.isNotEmpty() }
         val lignes = ArrayList<String>()
         var courante = ""
@@ -1490,63 +1610,145 @@ class VeilleView(ctx: Context) : View(ctx) {
         var colonnes = List(cols) { ArrayList<BlocDash>() }; var hauteurs = FloatArray(cols)
         for (b in blocs) {
             val ecart = 0.25f
-            val choix = (0 until cols).filter { hauteurs[it] + b.unites + (if (hauteurs[it] > 0f) ecart else 0f) <= unitesMax + 0.01f }.minByOrNull { hauteurs[it] }
+            // 1.90.x : un bloc sans titre en tête de colonne compte la bande de titre réservée (DispositionDash).
+            fun cout(i: Int) = b.unites + if (hauteurs[i] > 0f) ecart
+                else if (b.titre.isEmpty() && DispositionDash.ALIGNER_TITRES) DispositionDash.TITRE else 0f
+            val choix = (0 until cols).filter { hauteurs[it] + cout(it) <= unitesMax + 0.01f }.minByOrNull { hauteurs[it] }
             if (choix == null) {
                 pages.add(colonnes); colonnes = List(cols) { ArrayList<BlocDash>() }; hauteurs = FloatArray(cols)
-                colonnes[0].add(b); hauteurs[0] = b.unites
+                colonnes[0].add(b); hauteurs[0] = cout(0)
             } else {
-                colonnes[choix].add(b); hauteurs[choix] += b.unites + (if (hauteurs[choix] > 0f) ecart else 0f)
+                hauteurs[choix] += cout(choix); colonnes[choix].add(b)
             }
         }
         if (colonnes.any { it.isNotEmpty() }) pages.add(colonnes)
         return pages.take(8).mapIndexed { i, p -> PageDash(def, p.filter { it.isNotEmpty() }, unitesMax, i + 1, min(pages.size, 8)) }
     }
 
+    /**
+     * Veille-lot : la grille d'un écran de tableau de bord tombe au pixel physique. Colonnes et cartes sont réparties
+     * en pixels entiers (GrilleVeille) avec des écarts tous égaux ; la hauteur d'unité est entière, donc chaque rangée
+     * aussi. Seule l'entrée en scène (décalage vertical qui s'éteint) passe entre deux pixels, le temps d'arriver.
+     */
+    private var pastille = false
+    private val rCarte = RectF()
+
+    // Pour les essais (VeillePerfTest) : images dessinées, images en retard, et les cartes posées (seulement sur demande).
+    @Volatile internal var imagesDessinees = 0
+    /** Pour les essais : quand la première réponse de Home Assistant est arrivée (0 : pas encore), et l'état de la veille. */
+    @Volatile internal var premiereReussiteA = 0L
+    @Volatile internal var demarreeA = 0L
+    internal fun etatEssai(): String = listOf("reponse" to (premiereReussiteA > 0), "erreur" to erreur, "tableaux" to tableaux.map { it.genre },
+        "indice" to indice, "web" to web?.montree, "actif" to actif, "couverte" to couverte, "verrouille" to Etat.verrouilleEffectif())
+        .joinToString(" ") { (cle, valeur) -> "$cle=$valeur" }
+    @Volatile internal var imagesLentes = 0
+    @Volatile internal var noterRects = false
+    /**
+     * Les cartes posées par la dernière image complète (colonne, boîte), publiées d'un seul coup en fin d'image.
+     * Avant : une liste vidée au début de chaque image puis remplie carte par carte ; l'essai, qui lit depuis un autre
+     * fil, pouvait tomber entre les deux et trouver « aucune carte posée » (VeillePerfTest instable sur télé, 15/10).
+     */
+    @Volatile internal var dernieresCartes: List<Pair<Int, RectF>> = emptyList()
+    /** Pour les essais : le nom et la valeur affichée de chaque case vue (sur demande seulement). */
+    internal val casesVues = java.util.Collections.synchronizedSet(HashSet<String>())
+
+    /** Veille-lot : le dessin et les médias des cases typées (images, caméras, iframe, derniers passages). */
+    internal val typees = VeilleTypees(this)
+    internal val pastilleActive: Boolean get() = pastille
+
+    /** Les cases typées d'un écran de tableau de bord (calculé à la pagination, gardé avec la page). */
+    private fun casesTypees(p: PageDash): List<CasesVeille.Typee> = p.typees
+
     private fun dessinerDash(c: Canvas, w: Float, h: Float, alpha: Float, ecoule: Long, t: Float, page: PageDash) {
         titre(c, if (page.total > 1) "${page.def.titre}  ·  ${page.numero}/${page.total}" else page.def.titre, w, h, alpha, ecoule)
-        val gauche = w * 0.06f; val droite = w * 0.94f
-        val haut = h * 0.235f; val bas = h * 0.9f
-        val hu = (bas - haut) / page.unitesMax
-        val ecart = hu * 0.1f
-        val n = max(1, page.colonnes.size)
-        val ecartCol = min(w, h) * 0.03f
-        val lc = (droite - gauche - ecartCol * (n - 1)) / n
+        // 1.90.x : la mise en place est dans DispositionDash (haut des cartes aligné entre colonnes, essayé en JVM).
+        val modele = page.colonnes.map { blocs -> blocs.map { b -> DispositionDash.Bloc(b.titre, b.rangees.map { r -> r.map { DispositionDash.Carte(it.largeur, it.hauteur) } }) } }
+        val plan = DispositionDash.placer(modele, page.unitesMax, w, h, min(w, h) * 0.03f)
+        val hu = plan.hu
         var rang = 0
-        page.colonnes.forEachIndexed { i, blocs ->
-            val x0 = gauche + i * (lc + ecartCol)
-            var y = haut
-            blocs.forEachIndexed { b, bloc ->
-                if (b > 0) y += hu * 0.25f
-                if (bloc.titre.isNotEmpty()) {
-                    val pt = etape(ecoule, 80 + 60L * rang, 600)
-                    val taille = hu * 0.22f
-                    ecrire(c, decouper(bloc.titre.uppercase(Locale.getDefault()), taille, gras, lc, 1).firstOrNull() ?: "", x0, y + hu * 0.36f, taille, encre2, alpha * pt, gras, espacement = 0.08f)
-                    y += hu * 0.55f
-                }
-                for (rangee in bloc.rangees) {
-                    val hr = rangee.maxOf { it.hauteur } * hu
-                    // Les cartes gardent leurs proportions (sur 12) et la rangée occupe toute la largeur.
-                    val somme = rangee.sumOf { max(1, it.largeur) }.toFloat()
-                    var x = x0
-                    for (k in rangee) {
-                        val lk = (lc + ecart) * (max(1, k.largeur) / somme) - ecart
-                        val pi = etape(ecoule, 120 + 55L * rang, 650); rang++
-                        val r = RectF(x, y + (1f - pi) * hu * 0.18f, x + lk, y + hr - ecart + (1f - pi) * hu * 0.18f)
-                        dessinerCarteDash(c, r, h, hu, k, alpha * pi, etape(ecoule, 300 + 55L * rang, 1000), t)
-                        x += lk + ecart
-                    }
-                    y += hr
-                }
-            }
+        val notees = if (noterRects) ArrayList<Pair<Int, RectF>>() else null
+        for (ti in plan.titres) {
+            val bloc = page.colonnes[ti.colonne][ti.bloc]
+            val pt = etape(ecoule, 80 + 60L * rang, 600)
+            val taille = hu * 0.22f
+            ecrire(c, decouper(bloc.titre.uppercase(Locale.getDefault()), taille, gras, ti.largeur, 1).firstOrNull() ?: "", ti.x, ti.ligne, taille, encre2, alpha * pt, gras, espacement = 0.08f)
         }
+        for (pl in plan.cartes) {
+            val k = page.colonnes[pl.colonne][pl.bloc].rangees[pl.rangee][pl.index]
+            val pi = etape(ecoule, 120 + 55L * rang, 650); rang++
+            val d = (1f - pi) * hu * 0.18f
+            // Veille-lot (grille au pixel) : bords en pixels entiers, écarts tous égaux ; seule l'entrée en scène passe entre deux pixels.
+            val b = DispositionDash.auPixel(pl.boite, hu * 0.1f)
+            rCarte.set(b[0].toFloat(), b[1] + d, b[2].toFloat(), b[3] + d)
+            dessinerCarteDash(c, rCarte, h, hu, k, alpha * pi, etape(ecoule, 300 + 55L * rang, 1000), t)
+            if (notees != null && pi >= 1f) { notees.add(pl.colonne to RectF(rCarte)); casesVues.add(k.nom + "|" + formatValeur(k.valeur, k.unite)) }
+        }
+        // Une image complète, publiée d'un seul coup (jamais une liste à moitié remplie pour un autre fil).
+        if (notees != null) dernieresCartes = notees
+    }
+
+    /** Veille-lot : la pastille, petit fond arrondi derrière une valeur ou une icône (réglage « avec pastille »). */
+    private val rPastille = RectF()
+    private fun pastilleDerriere(c: Canvas, gauche: Float, haut: Float, droite: Float, bas: Float, a: Float) {
+        if (!pastille) return
+        rPastille.set(Math.round(gauche).toFloat(), Math.round(haut).toFloat(), Math.round(droite).toFloat(), Math.round(bas).toFloat())
+        pForme.style = Paint.Style.FILL
+        pForme.color = Palette.melanger(carte or 0xFF000000.toInt(), encre, 0.07f); pForme.alpha = (a * 255).toInt().coerceIn(0, 255)
+        val rayon = rPastille.height() * 0.32f
+        c.drawRoundRect(rPastille, rayon, rayon, pForme)
+    }
+
+    /** l'auteur (15/10) : comment les ouvertures se montrent sur cet appareil (style, couleurs, seulement ouvertes). */
+    private var indicateur = IndicateurOuverture.Reglages()
+
+    /**
+     * Le voyant d'une case « état », à gauche ([x], centré en [cy]) ; rend la largeur prise. Une ouverture suit les
+     * réglages de l'appareil (pastille, icône, liseré, aucun ; couleurs ; seulement ouverte) ; un autre état garde la
+     * pastille d'avant. Un état inconnu : indicateur neutre (or), jamais la couleur « fermé ».
+     */
+    private fun indicateurEtat(c: Canvas, k: Case, carte: RectF, x: Float, cy: Float, rayon: Float, a: Float, pf: Float, t: Float): Float {
+        val on = k.on
+        if (!k.ouverture) {
+            val couleur = when (on) { true -> if (k.classe in setOf("smoke", "problem", "moisture")) pourpre else vert; false -> encre3; null -> or }
+            pastilleEtat(c, x + rayon, cy, rayon, couleur, on == true, a, pf, t)
+            return rayon * 2
+        }
+        val r = indicateur
+        if (!IndicateurOuverture.montrer(r, on)) return 0f
+        val couleur = IndicateurOuverture.argb(IndicateurOuverture.couleurEtat(r, on), or, encre3, or)
+        when (r.style) {
+            IndicateurOuverture.ICONE -> {
+                pForme.color = couleur; pForme.alpha = (a * 240 * pf).toInt().coerceIn(0, 255)
+                IndicateurOuverture.dessinerIcone(c, k.typeOuverture, on, x + rayon * 1.2f, cy, rayon * 1.2f, pForme)
+                return rayon * 2.4f
+            }
+            IndicateurOuverture.LISERE -> {
+                // Un liseré de couleur au bord gauche de la case, sur toute sa hauteur (lisible de loin).
+                pForme.style = Paint.Style.FILL; pForme.color = couleur; pForme.alpha = (a * 230 * pf).toInt().coerceIn(0, 255)
+                // Une épaisseur fixe à l'échelle de l'écran (une grande case n'a pas un liseré plus gros), le texte décalé.
+                val e = max(3f, height * 0.0045f)
+                c.drawRoundRect(RectF(carte.left + e, carte.top + carte.height() * 0.18f, carte.left + e * 2.2f, carte.bottom - carte.height() * 0.18f), e, e, pForme)
+                return max(0f, carte.left + e * 3.5f - x)
+            }
+            else -> { pastilleEtat(c, x + rayon, cy, rayon, couleur, on == true, a, pf, t); return rayon * 2 }
+        }
+    }
+
+    private fun pastilleEtat(c: Canvas, cx: Float, cy: Float, rayon: Float, couleur: Int, halo: Boolean, a: Float, pf: Float, t: Float) {
+        pForme.style = Paint.Style.FILL
+        if (halo) { pForme.color = couleur; pForme.alpha = (a * (40 + 30 * sin(t * 2f))).toInt().coerceIn(0, 255); c.drawCircle(cx, cy, rayon * (1.5f + 0.15f * sin(t * 2f)) * pf, pForme) }
+        pForme.color = couleur; pForme.alpha = (a * 230).toInt()
+        c.drawCircle(cx, cy, rayon * pf, pForme)
     }
 
     /** Une carte d'un tableau de bord, redessinée dans le thème : tuile basse sur une rangée, grande case au-delà. */
     private fun dessinerCarteDash(c: Canvas, r: RectF, h: Float, hu: Float, k: Case, a: Float, pf: Float, t: Float) {
+        // Veille-lot : une case typée (météo, agenda, image, radar, caméra, iframe, derniers passages) a son propre dessin.
+        k.typee?.let { ty -> typees.dessiner(c, r, h, hu, k.nom, k.texte, ty, a, pf, t, derive[0], derive[1]); return }
         if (r.height() > hu * 1.5f) {
             // Assez haute : le dessin des cases composées (jauge en arc, courbe, valeur en grand), à l'échelle de la carte.
             val echelle = min(h, r.height() / 0.31f)
-            cartePosee(c, r, echelle, a)
+            cartePosee(c, r, echelle, a, trait = DispositionDash.bordPourCarte(h, r.height(), hu), rayon = DispositionDash.rayon(h, hu))
             val pad = echelle * 0.03f
             val petit = min(echelle * 0.026f, r.width() * 0.07f)
             ecrire(c, decouper(k.nom.uppercase(Locale.getDefault()), petit, gras, r.width() - pad * 2, 1).firstOrNull() ?: "", r.left + pad, r.top + pad + petit, petit, encre3, a, gras, espacement = 0.1f)
@@ -1567,20 +1769,20 @@ class VeilleView(ctx: Context) : View(ctx) {
             return
         }
         // Tuile : le nom au-dessus, la valeur ou l'état en dessous ; à gauche la pastille d'état, à droite la jauge ou la courbe.
-        cartePosee(c, r, r.height() / 0.42f, a)
+        cartePosee(c, r, r.height() / 0.42f, a, trait = DispositionDash.bordPourCarte(h, r.height(), hu), rayon = DispositionDash.rayon(h, hu))
         val pad = r.height() * 0.2f
         val tNom = r.height() * 0.2f; val tVal = r.height() * 0.32f
         var x = r.left + pad
         var droite = r.right - pad
         if (k.rendu == "etat") {
-            val on = k.on
-            val couleur = when (on) { true -> if (k.classe in setOf("door", "window", "garage_door", "opening", "smoke", "problem", "moisture", "lock")) pourpre else vert; false -> encre3; null -> or }
             val rayon = r.height() * 0.13f
-            pForme.style = Paint.Style.FILL
-            if (on == true) { pForme.color = couleur; pForme.alpha = (a * (40 + 30 * sin(t * 2f))).toInt().coerceIn(0, 255); c.drawCircle(x + rayon, r.centerY(), rayon * (1.5f + 0.15f * sin(t * 2f)) * pf, pForme) }
-            pForme.color = couleur; pForme.alpha = (a * 230).toInt()
-            c.drawCircle(x + rayon, r.centerY(), rayon * pf, pForme)
-            x += rayon * 2 + pad * 0.7f
+            val montre = !k.ouverture || IndicateurOuverture.montrer(indicateur, k.on)
+            if (montre && !(k.ouverture && indicateur.style == IndicateurOuverture.LISERE)) {
+                pastilleDerriere(c, x - rayon * 0.6f, r.centerY() - rayon * 1.6f, x + rayon * 2.6f, r.centerY() + rayon * 1.6f, a)
+                if (pastille) x += rayon * 0.4f
+            }
+            val pris = indicateurEtat(c, k, r, x, r.centerY(), rayon, a, pf, t)
+            if (pris > 0f) x += pris + pad * 0.7f
         }
         if (k.rendu == "courbe" && k.serie.size >= 2 && r.width() > r.height() * 2.6f) {
             // Une petite courbe 24 h sur la moitié droite.
@@ -1606,7 +1808,13 @@ class VeilleView(ctx: Context) : View(ctx) {
             "etat", "texte" -> k.texte.replaceFirstChar { it.uppercase() }
             else -> if (k.valeur != null) compter(formatValeur(k.valeur, k.unite), pf) + (k.consigne?.let { "  \u2192 ${formatValeur(it, k.unite)}" } ?: "") else k.texte
         }
-        ecrire(c, decouper(valeur, tVal, fin, largeurTexte, 1).firstOrNull() ?: "", x, r.bottom - pad * 0.95f, tVal, encre, a, fin)
+        val montre = decouper(valeur, tVal, fin, largeurTexte - (if (pastille) tVal * 0.5f else 0f), 1).firstOrNull() ?: ""
+        if (pastille && montre.isNotEmpty()) {
+            // La pastille épouse la valeur : même marge partout, même hauteur sur toute la rangée.
+            val bas = r.bottom - pad * 0.95f
+            pastilleDerriere(c, x, bas - tVal * 0.95f, x + largeur(montre, tVal, fin) + tVal * 0.5f, bas + tVal * 0.28f, a)
+            ecrire(c, montre, x + tVal * 0.25f, bas, tVal, encre, a, fin)
+        } else ecrire(c, montre, x, r.bottom - pad * 0.95f, tVal, encre, a, fin)
         if (k.rendu == "jauge" && k.valeur != null) {
             // La jauge devient un trait de progression au bas de la tuile.
             val part = (((k.valeur - k.min) / (k.max - k.min)).toFloat().coerceIn(0f, 1f)) * pf
@@ -1650,20 +1858,12 @@ class VeilleView(ctx: Context) : View(ctx) {
     }
 
     private fun dessinerCaseEtat(c: Canvas, r: RectF, h: Float, pad: Float, petit: Float, k: Case, a: Float, pf: Float, t: Float) {
-        val on = k.on
-        val couleur = when (on) { true -> if (k.classe in setOf("door", "window", "garage_door", "opening", "smoke", "problem", "moisture", "lock")) pourpre else vert; false -> encre3; null -> or }
         val rayon = min(r.height() * 0.11f, r.width() * 0.1f)
-        val cx = r.left + pad + rayon; val cy = r.centerY()
-        pForme.style = Paint.Style.FILL
-        if (on == true) {
-            // Un halo qui respire autour d'un état actif.
-            pForme.color = couleur; pForme.alpha = (a * (40 + 30 * sin(t * 2f))).toInt().coerceIn(0, 255)
-            c.drawCircle(cx, cy, rayon * (1.5f + 0.15f * sin(t * 2f)) * pf, pForme)
-        }
-        pForme.color = couleur; pForme.alpha = (a * 230).toInt()
-        c.drawCircle(cx, cy, rayon * pf, pForme)
+        val cy = r.centerY()
+        // Le voyant (un halo qui respire autour d'un état actif), l'icône ou le liseré, selon les réglages des ouvertures.
+        val pris = indicateurEtat(c, k, r, r.left + pad, cy, rayon, a, pf, t)
         val taille = min(r.height() * 0.2f, r.width() * 0.11f)
-        ecrire(c, k.texte.replaceFirstChar { it.uppercase() }, cx + rayon * 1.8f, cy + taille * 0.35f, taille, encre, a * pf, normal)
+        ecrire(c, k.texte.replaceFirstChar { it.uppercase() }, r.left + pad + if (pris > 0f) pris + rayon * 0.8f else 0f, cy + taille * 0.35f, taille, encre, a * pf, normal)
     }
 
     private fun dessinerCaseCourbe(c: Canvas, r: RectF, h: Float, pad: Float, petit: Float, k: Case, a: Float, pf: Float) {
@@ -1738,6 +1938,8 @@ class VeilleView(ctx: Context) : View(ctx) {
 
     private fun dessinerPluie(c: Canvas, w: Float, h: Float, alpha: Float, ecoule: Long, t: Float, surHorloge: Boolean) {
         val pl = donnees?.pluie ?: return
+        // 17-10 (l'auteur, point 7) : « Pas de pluie » est inutile — rien n'est dessiné (ni texte ni barre) sans pluie prévue.
+        if (!PluieVeille.aMontrer(pl.dans, pl.pluie, pl.points.map { it.second })) return
         val p0 = etape(ecoule, 900, 700)
         // Sur l'horloge, la barre reste dans l'anneau ; sur la météo, sous la vigilance.
         val largeurBarre = if (surHorloge) w * 0.16f else w * 0.26f
@@ -1780,7 +1982,9 @@ class VeilleView(ctx: Context) : View(ctx) {
         val texte = context.getString(R.string.lanceur_demande_quoi, d.prenom, d.libelle) + (if (liste.size > 1) "  +${liste.size - 1}" else "") + "  ·  " + ilYA(d.ts)
         val taille = h * 0.024f
         val l = largeur(texte, taille, normal) + h * 0.07f
-        val rect = RectF(w * 0.92f - l, h * 0.93f, w * 0.92f, h * 0.975f)
+        // 1.93.05 (retour 39) : à gauche du QR, du logo ou du bandeau posé en bas à droite (jamais dessus).
+        val droite = CoinsVeille.Coins.bordDroit(OptionsVeille.BD, OptionsVeille.qr(context), OptionsVeille.logo(context), OptionsVeille.lecteur(context), w, h, w * 0.92f)
+        val rect = RectF(droite - l, h * 0.93f, droite, h * 0.975f)
         pForme.style = Paint.Style.FILL; pForme.color = carte; pForme.alpha = (Color.alpha(carte) * 0.9f).toInt()
         c.drawRoundRect(rect, rect.height() / 2, rect.height() / 2, pForme)
         pForme.color = pourpre; pForme.alpha = (150 + 100 * sin(t * 4f)).toInt().coerceIn(0, 255)
@@ -2099,7 +2303,7 @@ class VeilleView(ctx: Context) : View(ctx) {
         }
     }
 
-    private fun tronquer(s: String, taille: Float, police: Typeface, max: Float): String {
+    internal fun tronquer(s: String, taille: Float, police: Typeface, max: Float): String {
         if (largeur(s, taille, police) <= max) return s
         var t = s
         while (t.length > 1 && largeur(t + "…", taille, police) > max) t = t.dropLast(1)
@@ -2339,3 +2543,9 @@ class VeilleView(ctx: Context) : View(ctx) {
 }
 
 private fun JSONObject.optDoubleOrNull(cle: String): Double? = if (has(cle) && !isNull(cle)) optDouble(cle) else null
+
+/** 17-10 (l'auteur, point 7) : la ligne de pluie de la veille n'annonce que de la pluie ; jamais « pas de pluie ». */
+object PluieVeille {
+    /** Vrai s'il pleut, s'il va pleuvoir dans l'heure, ou si une tranche de la prochaine heure a de la pluie. */
+    fun aMontrer(dans: Int?, pluie: Boolean, niveaux: List<Int>): Boolean = pluie || dans != null || niveaux.any { it > 0 }
+}

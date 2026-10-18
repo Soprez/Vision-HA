@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.5, prototype (retour d'essai) : l'œil sur le bouton Accueil (OeilAccueil). -->
+<resources>
+    <string name="oeilaccueil_titre">Occhio sul tasto Home</string>
+    <string name="oeilaccueil_active">Attivo</string>
+    <string name="oeilaccueil_desactive">Disattivo</string>
+    <string name="oeilaccueil_note">L’occhio di Vision sul tasto Home della barra a 3 pulsanti. Non appare nulla con la navigazione a gesti, a schermo intero o con la tastiera. Richiede il servizio di accessibilità di Vision.</string>
+</resources>

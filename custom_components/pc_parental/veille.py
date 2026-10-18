@@ -10,6 +10,7 @@ le secret de l'appareil, rien d'autre.
 from __future__ import annotations
 
 import datetime
+import logging
 import time
 from typing import Any
 
@@ -27,6 +28,8 @@ from .coordinator import PcParentalCoordinator
 from . import veille_plus as plus
 from . import veille_tableaux as tableaux
 from .esports import esports
+
+_LOGGER = logging.getLogger(__name__)
 
 URL_VEILLE = "/api/pc_parental/veille"
 EN_LIGNE_S = 120
@@ -61,7 +64,15 @@ def cameras_permises(coord: PcParentalCoordinator) -> set[str]:
         for c in (t.get("cases") or []) if isinstance(t, dict) else []:
             if isinstance(c, dict):
                 permises.add(str(c.get("entite") or "").strip())
+    # Les caméras des cases typées ne sont pas ici : elles sont permises appareil par appareil (camera_permise).
     return {e for e in permises if e.startswith("camera.")}
+
+
+def camera_permise_pour(coord: PcParentalCoordinator, moi: dict[str, Any], entite: str) -> bool:
+    """Choisie pour la veille, ou résolue pour CET appareil dans une case typée (veille_cases)."""
+    from . import veille_cases
+
+    return entite in cameras_permises(coord) or veille_cases.camera_permise(str(moi.get("id") or ""), entite)
 
 
 def _entite_meteo(hass: HomeAssistant) -> str:
@@ -167,13 +178,14 @@ def _tuile(hass: HomeAssistant, entree: str) -> dict[str, Any] | None:
     titre = morceaux[1] if len(morceaux) > 1 and morceaux[1] else ""
     theme_voulu = morceaux[2] if len(morceaux) > 2 and morceaux[2] else ""
     etat = hass.states.get(eid)
-    if etat is None:
-        return None
+    if etat is None or tableaux.exclue(eid):
+        return None  # 2.2.12 : une entité d'action ou de saisie n'est jamais une tuile
     a = etat.attributes
     classe = str(a.get("device_class") or "")
     domaine = eid.split(".")[0]
     valeur = str(etat.state)
-    unite = str(a.get("unit_of_measurement") or "")
+    lang = tableaux.langue(hass)
+    unite = tableaux.unite_locale(str(a.get("unit_of_measurement") or ""), lang)
     alerte = False
     if domaine == "climate":
         valeur = _joli(a.get("current_temperature"))
@@ -194,7 +206,10 @@ def _tuile(hass: HomeAssistant, entree: str) -> dict[str, Any] | None:
             valeur = textes.t("veille.actif" if allume else "veille.inactif")
         detail = ""
     else:
-        if _nombre(etat.state) is not None:
+        date = tableaux.date_lisible(valeur, lang)
+        if date is not None:
+            valeur = date
+        elif _nombre(etat.state) is not None:
             valeur = _joli(etat.state)
         elif valeur in ("unknown", "unavailable", "None"):
             valeur = "—"
@@ -331,13 +346,68 @@ async def _courbe(hass: HomeAssistant, coord: PcParentalCoordinator) -> dict[str
     return valeur
 
 
+def _demandes_accueil(hass: HomeAssistant, coord: PcParentalCoordinator, moi: dict[str, Any] | None) -> dict[str, Any]:
+    """2.5.3 (l'auteur : « Aucune demande en attente » alors qu'une demande attend) : ce que le widget Demandes montre.
+    - les demandes une à une (accès, temps, déverrouillage : la même source que « À décider »), et leur nombre total
+      (la liste est coupée à quatre, le compte ne l'est plus) ;
+    - pour un Décideur, aussi ce qui se traite par lots (appareil à valider, à classer, logiciels), que le widget
+      ignorait : seul « À décider » le montrait.
+    Une erreur ici ne coupe jamais le reste de l'accueil (avant : toute la réponse tombait, le widget disait « aucune »)."""
+    sortie: dict[str, Any] = {"demandes": [], "demandes_total": 0, "a_decider_lots": []}
+    if modules.coupe(coord.store, "demandes"):
+        return sortie
+    try:
+        from . import parent
+
+        toutes = parent.demandes_attente(hass, coord)
+        sortie["demandes"] = plus.demandes(hass, coord)
+        sortie["demandes_total"] = len(toutes)
+    except Exception:  # noqa: BLE001 - jamais l'accueil entier pour une demande mal formée
+        _LOGGER.exception("Vision : demandes de l'accueil")
+    if moi is not None and roles.a(coord.store, moi, "approuver"):
+        try:
+            from . import a_decider
+
+            sortie["a_decider_lots"] = a_decider.lots(hass, coord, textes.pour(hass, moi))
+        except Exception:  # noqa: BLE001
+            _LOGGER.exception("Vision : lots « À décider » de l'accueil")
+    return sortie
+
+
+def widgets_disponibles(d: dict[str, Any]) -> list[str]:
+    """2.5.3 (retour d'essai) : les widgets intégrés de l'accueil que les données de CE lieu permettent, d'après ce que /veille
+    envoie (aucun nom d'entité ici : Vision va dans d'autres foyers). L'appli ne propose que ceux-là ; ceux déjà posés
+    restent. Toujours : le temps d'écran et les demandes (les modules les règlent déjà) ; l'horloge stylisée de la zone du
+    haut n'est pas concernée (elle ne lit que l'heure). Pur."""
+    disponibles = ["temps", "demandes"]
+    # « Horloge, météo et pluie » : il lui faut une météo dans Home Assistant.
+    if d.get("meteo"):
+        disponibles.append("horloge")
+    chauffage = d.get("chauffage") or {}
+    if chauffage:
+        disponibles.append("chauffage")
+    # Le fioul : une source de consommation (jours, mois ou saison), pas seulement un thermostat.
+    if chauffage and (chauffage.get("jours") or chauffage.get("mois") is not None or chauffage.get("saison") is not None):
+        disponibles.append("fioul")
+    if d.get("ecole"):
+        disponibles += ["ecole", "infos", "devoirs"]
+    if d.get("cameras"):
+        disponibles.append("camera")
+    if d.get("batteries"):
+        disponibles.append("batteries")
+    # Les personnes (et celles qui sont là) : des appareils inscrits, rangés par personne.
+    if d.get("maison"):
+        disponibles += ["enfants", "maison"]
+    return disponibles
+
+
 async def etat_veille(hass: HomeAssistant, coord: PcParentalCoordinator, moi: dict[str, Any] | None = None, ecran: str = "tele", locaux: Any = None) -> dict[str, Any]:
     tuiles = []
     for entree in coord.store.veille_entites:
         t = _tuile(hass, entree)
         if t:
             tuiles.append(t)
-    return {
+    etat = {
         "ok": True,
         "heure": dt_util.now().isoformat(),
         "meteo": await _meteo(hass),
@@ -354,7 +424,7 @@ async def etat_veille(hass: HomeAssistant, coord: PcParentalCoordinator, moi: di
         "ecole": plus.ecole(hass),
         "agenda": await plus.agenda(hass),
         "pluie": plus.pluie(hass),
-        "demandes": [] if modules.coupe(coord.store, "demandes") else plus.demandes(hass, coord),
+        **_demandes_accueil(hass, coord, moi),
         "chauffage": await plus.chauffage(hass, coord),
         "photos": await plus.photos(hass),
         "batteries": await _sans_erreur(plus.batteries(hass), []),
@@ -363,6 +433,8 @@ async def etat_veille(hass: HomeAssistant, coord: PcParentalCoordinator, moi: di
         "locaux": await _sans_erreur(tableaux.resoudre_locaux(hass, locaux), []),
         "erreurs": list(_dernieres_erreurs),
     }
+    etat["widgets_disponibles"] = widgets_disponibles(etat)
+    return etat
 
 
 _dernieres_erreurs: list[str] = []
@@ -519,7 +591,7 @@ class PcParentalVeilleImageView(HomeAssistantView):
         if refus := modules.refus(self, coord.store, "veille"):  # 1.82.0
             return refus
         entite = str(corps.get("entite") or "")
-        if entite not in cameras_permises(coord) or self.hass.states.get(entite) is None:
+        if not camera_permise_pour(coord, moi, entite) or self.hass.states.get(entite) is None:
             return self.json({"ok": False, "error": "camera"}, status_code=404)
         try:
             from homeassistant.components.camera import async_get_image
@@ -560,7 +632,7 @@ class PcParentalVeilleFluxView(HomeAssistantView):
         if refus := modules.refus(self, coord.store, "veille"):  # 1.82.0
             return refus
         entite = str(corps.get("entite") or "")
-        if entite not in cameras_permises(coord) or self.hass.states.get(entite) is None:
+        if not camera_permise_pour(coord, moi, entite) or self.hass.states.get(entite) is None:
             return self.json({"ok": False, "error": "camera"}, status_code=404)
         try:
             chemin = await _flux_hls(self.hass, coord, entite)

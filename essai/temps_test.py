@@ -68,13 +68,13 @@ async def test_demande_de_temps_dans_la_liste_et_reponse(hass, hass_storage, has
     assert t["id"] == ident and t["minutes"] == 15 and t["pc"] == "e1"
     enfant = coord.store.pcs["e1"]
     enfant["messages"] = []
-    retour = await parent.agir(hass, coord, enfant, {"action": "acces", "demande": ident, "decision": "temporaire", "minutes": 60}, "Robin", "p1")
+    retour = await parent.agir(hass, coord, enfant, {"action": "acces", "demande": ident, "decision": "temporaire", "minutes": 60}, "Nolan", "p1")
     assert "15 min" in retour and enfant.get("demande") is None
     assert any("15 min" in m["text"] for m in enfant["messages"])
     assert not [d for d in parent.etat_maison(hass, coord, "p1")["demandes"] if d["genre"] == "temps"]
     # Refus
     _, ident2 = await _demander(client, hass, minutes=30)
-    retour = await parent.agir(hass, coord, enfant, {"action": "acces", "demande": ident2, "decision": "non"}, "Robin", "p1")
+    retour = await parent.agir(hass, coord, enfant, {"action": "acces", "demande": ident2, "decision": "non"}, "Nolan", "p1")
     assert "refusé" in retour and enfant.get("demande") is None
     # Trop vieille : elle ne s'affiche plus.
     _, _ident3 = await _demander(client, hass, minutes=30)

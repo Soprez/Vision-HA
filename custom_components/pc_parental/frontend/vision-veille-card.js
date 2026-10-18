@@ -24,7 +24,7 @@ const TEXTES = /*i18n-json*/{
     "echec_enregistrement": "L'enregistrement n'est pas passé ; réessaie.",
     "nouveau_tableau": "Nouveau tableau",
     "duree_min_s": "{m} min {ss} s", "duree_s": "{s} s",
-    "titre_court": "Écran de veille", "chargement": "Chargement…",
+    "titre_court": "Écran de veille", "chargement": "Chargement…", "choix_ecrans": "Écrans", "choix_publics": "Publics",
     "cases_one": "{n} case", "cases_other": "{n} cases",
     "titre_tableau": "Titre du tableau", "entite_exemple": "entité (sensor.…)", "libelle_optionnel": "libellé (optionnel)",
     "retirer": "Retirer", "ajouter_case": "+ une case", "apercu": "Aperçu", "supprimer_tableau": "Supprimer ce tableau",
@@ -53,7 +53,7 @@ const TEXTES = /*i18n-json*/{
     "echec_enregistrement": "Saving didn't work; try again.",
     "nouveau_tableau": "New board",
     "duree_min_s": "{m} min {ss} s", "duree_s": "{s} s",
-    "titre_court": "Screensaver", "chargement": "Loading…",
+    "titre_court": "Screensaver", "chargement": "Loading…", "choix_ecrans": "Screens", "choix_publics": "Audiences",
     "cases_one": "{n} tile", "cases_other": "{n} tiles",
     "titre_tableau": "Board title", "entite_exemple": "entity (sensor.…)", "libelle_optionnel": "label (optional)",
     "retirer": "Remove", "ajouter_case": "+ a tile", "apercu": "Preview", "supprimer_tableau": "Delete this board",
@@ -82,7 +82,7 @@ const TEXTES = /*i18n-json*/{
     "echec_enregistrement": "Das Speichern hat nicht geklappt; versuch es noch einmal.",
     "nouveau_tableau": "Neue Tafel",
     "duree_min_s": "{m} Min. {ss} s", "duree_s": "{s} s",
-    "titre_court": "Bildschirmschoner", "chargement": "Wird geladen…",
+    "titre_court": "Bildschirmschoner", "chargement": "Wird geladen…", "choix_ecrans": "Bildschirme", "choix_publics": "Zielgruppen",
     "cases_one": "{n} Feld", "cases_other": "{n} Felder",
     "titre_tableau": "Titel der Tafel", "entite_exemple": "Entität (sensor.…)", "libelle_optionnel": "Bezeichnung (optional)",
     "retirer": "Entfernen", "ajouter_case": "+ ein Feld", "apercu": "Vorschau", "supprimer_tableau": "Diese Tafel löschen",
@@ -111,7 +111,7 @@ const TEXTES = /*i18n-json*/{
     "echec_enregistrement": "No se ha podido guardar; inténtalo de nuevo.",
     "nouveau_tableau": "Nuevo panel",
     "duree_min_s": "{m} min {ss} s", "duree_s": "{s} s",
-    "titre_court": "Salvapantallas", "chargement": "Cargando…",
+    "titre_court": "Salvapantallas", "chargement": "Cargando…", "choix_ecrans": "Pantallas", "choix_publics": "Públicos",
     "cases_one": "{n} casilla", "cases_other": "{n} casillas",
     "titre_tableau": "Título del panel", "entite_exemple": "entidad (sensor.…)", "libelle_optionnel": "etiqueta (opcional)",
     "retirer": "Quitar", "ajouter_case": "+ una casilla", "apercu": "Vista previa", "supprimer_tableau": "Eliminar este panel",
@@ -140,7 +140,7 @@ const TEXTES = /*i18n-json*/{
     "echec_enregistrement": "Il salvataggio non è andato; riprova.",
     "nouveau_tableau": "Nuovo pannello",
     "duree_min_s": "{m} min {ss} s", "duree_s": "{s} s",
-    "titre_court": "Salvaschermo", "chargement": "Caricamento…",
+    "titre_court": "Salvaschermo", "chargement": "Caricamento…", "choix_ecrans": "Schermi", "choix_publics": "Pubblici",
     "cases_one": "{n} casella", "cases_other": "{n} caselle",
     "titre_tableau": "Titolo del pannello", "entite_exemple": "entità (sensor.…)", "libelle_optionnel": "etichetta (facoltativa)",
     "retirer": "Rimuovi", "ajouter_case": "+ una casella", "apercu": "Anteprima", "supprimer_tableau": "Elimina questo pannello",
@@ -169,7 +169,7 @@ const TEXTES = /*i18n-json*/{
     "echec_enregistrement": "Opslaan is niet gelukt; probeer het opnieuw.",
     "nouveau_tableau": "Nieuw bord",
     "duree_min_s": "{m} min {ss} s", "duree_s": "{s} s",
-    "titre_court": "Schermbeveiliging", "chargement": "Laden…",
+    "titre_court": "Schermbeveiliging", "chargement": "Laden…", "choix_ecrans": "Schermen", "choix_publics": "Doelgroepen",
     "cases_one": "{n} vak", "cases_other": "{n} vakken",
     "titre_tableau": "Titel van het bord", "entite_exemple": "entiteit (sensor.…)", "libelle_optionnel": "label (optioneel)",
     "retirer": "Verwijderen", "ajouter_case": "+ een vak", "apercu": "Voorbeeld", "supprimer_tableau": "Dit bord verwijderen",
@@ -185,7 +185,7 @@ const TEXTES = /*i18n-json*/{
   }
 }/*i18n-json:fin*/;
 // Les catégories (étiquettes de la maison) : cette carte n'en affiche pas.
-const CATEGORIES_I18N = /*i18n-categories*/{}/*i18n-categories:fin*/;
+const CATEGORIES_I18N = /*i18n-categories*/{"jeux": {"fr": "Jeux", "en": "Games", "de": "Spiele", "es": "Juegos", "it": "Giochi", "nl": "Games"}, "videos": {"fr": "Vidéos", "en": "Videos", "de": "Videos", "es": "Vídeos", "it": "Video", "nl": "Video's"}, "reseaux_sociaux": {"fr": "Réseaux sociaux", "en": "Social media", "de": "Soziale Medien", "es": "Redes sociales", "it": "Social network", "nl": "Sociale media"}, "tv": {"fr": "TV", "en": "TV", "de": "TV", "es": "TV", "it": "TV", "nl": "tv"}, "vod": {"fr": "VOD", "en": "Streaming", "de": "Streaming", "es": "Streaming", "it": "Streaming", "nl": "Streaming"}, "musique": {"fr": "Musique", "en": "Music", "de": "Musik", "es": "Música", "it": "Musica", "nl": "Muziek"}, "ia": {"fr": "IA", "en": "AI", "de": "KI", "es": "IA", "it": "IA", "nl": "AI"}, "internet": {"fr": "Internet", "en": "Internet", "de": "Internet", "es": "Internet", "it": "Internet", "nl": "Internet"}, "travail": {"fr": "Travail", "en": "Work", "de": "Arbeit", "es": "Trabajo", "it": "Lavoro", "nl": "Werk"}, "creation": {"fr": "Création", "en": "Creativity", "de": "Kreativität", "es": "Creatividad", "it": "Creatività", "nl": "Creativiteit"}, "actu_medias": {"fr": "Actu & médias", "en": "News & media", "de": "Nachrichten & Medien", "es": "Noticias y medios", "it": "Notizie e media", "nl": "Nieuws & media"}, "pub_tracage": {"fr": "Pub & traçage", "en": "Ads & tracking", "de": "Werbung & Tracking", "es": "Anuncios y rastreo", "it": "Pubblicità e tracciamento", "nl": "Advertenties & tracking"}, "contournement": {"fr": "Contournement", "en": "Bypass tools", "de": "Umgehung", "es": "Elusión", "it": "Aggiramento", "nl": "Omzeiling"}, "dangereux": {"fr": "Dangereux", "en": "Dangerous", "de": "Gefährlich", "es": "Peligroso", "it": "Pericoloso", "nl": "Gevaarlijk"}, "adulte": {"fr": "Adulte", "en": "Adult", "de": "Erwachsene", "es": "Adultos", "it": "Adulti", "nl": "Volwassenen"}, "pegi_12": {"fr": "PEGI 12", "en": "PEGI 12", "de": "PEGI 12", "es": "PEGI 12", "it": "PEGI 12", "nl": "PEGI 12"}, "pegi_16": {"fr": "PEGI 16", "en": "PEGI 16", "de": "PEGI 16", "es": "PEGI 16", "it": "PEGI 16", "nl": "PEGI 16"}, "pegi_18": {"fr": "PEGI 18", "en": "PEGI 18", "de": "PEGI 18", "es": "PEGI 18", "it": "PEGI 18", "nl": "PEGI 18"}, "systeme": {"fr": "Système", "en": "System", "de": "System", "es": "Sistema", "it": "Sistema", "nl": "Systeem"}, "google": {"fr": "Google", "en": "Google", "de": "Google", "es": "Google", "it": "Google", "nl": "Google"}, "discord": {"fr": "Discord", "en": "Discord", "de": "Discord", "es": "Discord", "it": "Discord", "nl": "Discord"}, "annuaires_discord": {"fr": "Annuaires Discord", "en": "Discord directories", "de": "Discord-Verzeichnisse", "es": "Directorios de Discord", "it": "Directory Discord", "nl": "Discord-gidsen"}, "toujours_autorise": {"fr": "Toujours autorisé", "en": "Always allowed", "de": "Immer erlaubt", "es": "Siempre permitido", "it": "Sempre consentito", "nl": "Altijd toegestaan"}, "ecole": {"fr": "École", "en": "School", "de": "Schule", "es": "Escuela", "it": "Scuola", "nl": "School"}}/*i18n-categories:fin*/;
 // ---- i18n:code — le même dans toutes les cartes de Vision (essai/i18n_cartes_test.py le vérifie) ----
 // Langue : celle de l'utilisateur Home Assistant (hass.locale.language, sinon hass.language), sur deux lettres ;
 // une langue que Vision ne parle pas → l'anglais. Un texte absent → l'anglais, puis le français, puis la clé.
@@ -430,6 +430,12 @@ class VisionVeilleCard extends HTMLElement {
     return m ? tr("duree_min_s", { m, ss: String(s).padStart(2, "0") }) : tr("duree_s", { s });
   }
 
+  // 15-10 (règle UX de l'auteur) : un groupe de choix multiple → <vision-choix> (étiquettes si 3 au plus tiennent, sinon liste).
+  _groupe(i, champ, titre, options, valeurs) {
+    if (!options.length) return "";
+    return `<vision-choix class="choix" multiple data-i="${i}" data-groupe="${champ}" titre="${esc(titre)}" options="${esc(JSON.stringify(options))}" valeurs="${esc(JSON.stringify(valeurs))}"></vision-choix>`;
+  }
+
   _rendre() {
     const d = this._donnees;
     const style = `
@@ -438,13 +444,12 @@ class VisionVeilleCard extends HTMLElement {
       .entete { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
       .entete h2 { margin: 0; font-size: 1.15em; font-weight: 500; flex: 1; }
       .sous { color: var(--secondary-text-color); font-size: 0.9em; }
-      .ligne { display: grid; grid-template-columns: 28px 36px 1fr auto auto auto; gap: 8px; align-items: center; padding: 8px 6px; border-top: 1px solid var(--divider-color); }
+      .ligne { display: grid; grid-template-columns: 28px 36px minmax(0, 1fr) minmax(0, 1.4fr) auto auto; gap: 8px; align-items: center; padding: 8px 6px; border-top: 1px solid var(--divider-color); }
       .ligne.inactif .nom { opacity: 0.5; }
       .nom { font-weight: 500; }
       .nom small { display: block; font-weight: 400; color: var(--secondary-text-color); }
-      .pub { display: flex; gap: 4px; flex-wrap: wrap; }
-      .puce { font-size: 0.75em; padding: 1px 8px; border-radius: 999px; background: var(--secondary-background-color); color: var(--secondary-text-color); border: 1px solid var(--divider-color); cursor: pointer; user-select: none; }
-      .puce.on { background: var(--primary-color); color: var(--text-primary-color, #fff); border-color: var(--primary-color); }
+      .pub { display: flex; gap: 8px; min-width: 0; }
+      .choix { flex: 1 1 0; min-width: 0; }
       .duree { display: inline-flex; align-items: center; gap: 2px; }
       .duree button, .fleches button, .btn { background: none; border: 1px solid var(--divider-color); color: var(--primary-text-color); border-radius: 8px; width: 28px; height: 28px; cursor: pointer; font-size: 1em; }
       .duree span { min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; }
@@ -464,7 +469,7 @@ class VisionVeilleCard extends HTMLElement {
       .apercu .c small { color: var(--secondary-text-color); }
       ha-icon { --mdc-icon-size: 22px; color: var(--secondary-text-color); }
       .supp { color: var(--error-color); }
-      @media (max-width: 700px) { .ligne { grid-template-columns: 28px 30px 1fr auto; } .pub { grid-column: 3 / -1; } .duree { grid-column: 3; justify-self: start; } .fleches { grid-column: 4; } .detail { padding-left: 0; } .case { grid-template-columns: 1fr 1fr; } }
+      @media (max-width: 700px) { .ligne { grid-template-columns: 28px 30px minmax(0, 1fr) auto; } .pub { grid-column: 3 / -1; } .duree { grid-column: 3; justify-self: start; } .fleches { grid-column: 4; } .detail { padding-left: 0; } .case { grid-template-columns: 1fr 1fr; } }
     `;
     if (!d) {
       this.shadowRoot.innerHTML = `<style>${style}</style><ha-card><div class="entete"><h2>${esc(tr("titre_court"))}</h2></div><div class="sous">${this._erreur ? esc(this._erreur) : esc(tr("chargement"))}</div></ha-card>`;
@@ -477,14 +482,11 @@ class VisionVeilleCard extends HTMLElement {
       const integre = t.code !== "entites";
       const nom = integre ? noms[t.code]?.nom || t.code : t.titre;
       const expl = integre ? noms[t.code]?.explication || "" : trn("cases", t.cases.length);
-      const puces = [
-        ...d.ecrans.map((e) => `<span class="puce ${t.ecrans.includes(e.code) ? "on" : ""}" data-i="${i}" data-ecran="${e.code}">${esc(e.nom)}</span>`),
-        `<span style="width:6px"></span>`,
-        ...d.publics.map((p) => `<span class="puce ${t.publics.includes(p.code) ? "on" : ""}" data-i="${i}" data-public="${p.code}">${esc(p.nom)}</span>`),
-      ].join("");
+      const puces = this._groupe(i, "ecrans", tr("choix_ecrans"), d.ecrans.map((e) => ({ cle: e.code, libelle: e.nom })), t.ecrans) +
+        this._groupe(i, "publics", tr("choix_publics"), d.publics.map((p) => ({ cle: p.code, libelle: p.nom })), t.publics);
       let detail = "";
       if (ouvert) {
-        const personnes = d.personnes.map((p) => `<span class="puce ${t.personnes.includes(p.id) ? "on" : ""}" data-i="${i}" data-personne="${p.id}">${esc(p.nom)}</span>`).join("");
+        const personnes = this._groupe(i, "personnes", tr("personnes_precises"), d.personnes.map((p) => ({ cle: p.id, libelle: p.nom })), t.personnes);
         let cases = "";
         if (!integre) {
           const options = this._entitesTriees();
@@ -503,7 +505,8 @@ class VisionVeilleCard extends HTMLElement {
         }
         detail = `<div class="detail">
           ${cases}
-          <div class="sous">${esc(tr("personnes_precises"))} <span class="pub">${personnes}</span></div>
+          <div class="sous">${esc(tr("personnes_precises"))}</div>
+          ${personnes}
         </div>`;
       }
       return `<div class="ligne ${t.actif ? "" : "inactif"}">
@@ -551,11 +554,16 @@ class VisionVeilleCard extends HTMLElement {
         if (a === "apercu") return this._apercu(l()[i].id);
       });
     });
-    root.querySelectorAll(".puce[data-ecran], .puce[data-public], .puce[data-personne]").forEach((el) => {
-      el.addEventListener("click", () => {
+    // Écrans, publics, personnes : <vision-choix> rend la nouvelle liste ; on retrouve l'option touchée et on garde la
+    // même règle (au moins un écran et un public ; les personnes peuvent rester vides).
+    root.querySelectorAll("vision-choix[data-groupe]").forEach((el) => {
+      el.addEventListener("vision-choix", (ev) => {
         const t = l()[Number(el.dataset.i)];
-        const champ = el.dataset.ecran ? "ecrans" : el.dataset.public ? "publics" : "personnes";
-        const v = el.dataset.ecran || el.dataset.public || el.dataset.personne;
+        const champ = el.dataset.groupe;
+        const apres = ev.detail.valeurs;
+        const cles = el.options.map((o) => String(o.cle));
+        const v = apres.find((x) => !t[champ].includes(x)) ?? t[champ].find((x) => cles.includes(x) && !apres.includes(x));
+        if (v === undefined) return;
         const idx = t[champ].indexOf(v);
         if (idx >= 0) { if (champ === "personnes" || t[champ].length > 1) t[champ].splice(idx, 1); } else t[champ].push(v);
         this._toucher();

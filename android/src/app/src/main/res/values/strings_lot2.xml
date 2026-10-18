@@ -367,7 +367,6 @@
     <string name="reglagestv_mode_nuit">Night mode</string>
     <string name="reglagestv_jamais">Never</string>
     <string name="reglagestv_son_veille">Sound during the screensaver</string>
-    <string name="reglagestv_source_son">Sound source</string>
     <string name="reglagestv_silence">Silence</string>
     <string name="reglagestv_flux_perso">Custom stream</string>
     <string name="reglagestv_autre_appli_joue">If another app is already playing (Spotify, YouTube Music…), the screensaver leaves it alone.</string>
@@ -436,7 +435,7 @@
     <string name="reglagestv_fond_titre">During the screensaver, these apps keep running in the background</string>
     <string name="reglagestv_applis_accueil">Apps on the home screen</string>
     <string name="scan_titre">Scan the Home Assistant QR code</string>
-    <string name="scan_explication">In Home Assistant: Vision → Configure → Generate a pairing QR code. Point this device at the QR code.</string>
+    <string name="scan_explication">In Home Assistant: Vision → Configure → Add a device, up to the pairing QR code. Point this device at the QR code.</string>
     <string name="scan_pas_de_camera">This device has no camera. Choose “Show a QR code on this device” or another way to connect it.</string>
     <string name="scan_besoin_camera">Vision needs the camera to read the QR code (only on this screen).</string>
     <string name="scan_sans_camera">Without the camera, connect the device another way: show a QR code, paste the block, or enter the address and the key.</string>
@@ -544,13 +543,7 @@
     <string name="vuewidget_suivant">Next</string>
     <string name="vuewidget_baisser_volume">Volume down</string>
     <string name="vuewidget_monter_volume">Volume up</string>
-    <string name="accueildefaut_ancienne_titre">The old Vision is still installed</string>
-    <string name="accueildefaut_ancienne_texte">Android also shows it as “Vision” when you choose a home screen, and picking it doesn\'t work. Uninstall it first: then there will be only one Vision to choose.</string>
-    <string name="accueildefaut_desinstaller_ancienne">Uninstall the old one</string>
-    <string name="accueildefaut_a_la_main_titre">Uninstall it by hand</string>
-    <string name="accueildefaut_a_la_main_texte">It isn\'t signed like Vision: remove it from the Android settings (Apps ▸ Vision ▸ Uninstall).</string>
     <string name="commun_lot2_ok">OK</string>
-    <string name="accueildefaut_continuer">Continue anyway</string>
     <string name="commun_lot2_annuler">Cancel</string>
     <string name="install_confirmer_titre">Vision: confirm the update</string>
     <string name="install_confirmer_texte">Tap to allow the installation. This is the last time: future updates will install on their own.</string>
@@ -792,6 +785,6 @@
     <string name="manifeste_appairage">Pairing</string>
     <string name="manifeste_couleurs">Colors</string>
     <string name="manifeste_fermes">What\'s blocked</string>
-    <string name="manifeste_maison">Management</string>
+    <string name="manifeste_maison">To decide</string>
     <string name="manifeste_musique">Music</string>
 </resources>

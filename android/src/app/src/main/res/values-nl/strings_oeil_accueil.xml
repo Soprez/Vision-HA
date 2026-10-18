@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.5, prototype (retour d'essai) : l'œil sur le bouton Accueil (OeilAccueil). -->
+<resources>
+    <string name="oeilaccueil_titre">Oog op de startknop</string>
+    <string name="oeilaccueil_active">Aan</string>
+    <string name="oeilaccueil_desactive">Uit</string>
+    <string name="oeilaccueil_note">Het oog van Vision op de startknop van de navigatiebalk met 3 knoppen. Niets zichtbaar bij gebarennavigatie, op volledig scherm of met het toetsenbord. Vereist de toegankelijkheidsdienst van Vision.</string>
+</resources>

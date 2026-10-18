@@ -183,7 +183,6 @@ object Etat {
         // Vision est en train de se mettre à jour : l'écran d'installation du système passe,
         // même appareil fermé. (Une désinstallation reste arrêtée par la protection des réglages.)
         if (pkg in MiseAJour.INSTALLATEURS && MiseAJour.installationPropreEnCours()) return null
-        if (Migration.ecranAutorise(ctx, pkg, "")) return null
         if (Assistant.autorise(ctx, pkg)) return null
         if (Deverrouillage.appPermise(ctx, pkg)) return null
         toujoursPermises(ctx)

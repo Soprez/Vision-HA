@@ -31,7 +31,7 @@ TABLETTE = {"id": "p4", "secret": "d" * 32}
 async def test_admin_sans_personne_ne_double_pas_un_parent(hass, hass_storage, hass_client):
     client = await hass_client()
     await _monter(hass, hass_storage, {"mode": "n", "n": 2})
-    admin = await hass.auth.async_create_user("Compte de Robin", group_ids=["system-admin"])  # lié à aucune personne
+    admin = await hass.auth.async_create_user("Compte de Nolan", group_ids=["system-admin"])  # lié à aucune personne
     lou = Appareil(client, ENFANT)
     await lou.demander()
     assert (await _decide(client, PARENT, lou.demande))[1]["etat"] == "partielle"
@@ -66,7 +66,7 @@ async def test_toutes_une_voix_non_prevue_ne_remplace_pas(hass, hass_storage, ha
     coord = await _monter(hass, hass_storage, {"mode": "toutes"})
     lou = Appareil(client, ENFANT)
     await lou.demander()
-    assert sorted(_demande(hass, lou.demande)["habilites"]) == ["person.mia", "person.robin"]
+    assert sorted(_demande(hass, lou.demande)["habilites"]) == ["person.mia", "person.nolan"]
     coord.store.pcs["e2"]["role"] = "parent"  # Noa devient approbateur après la demande
     assert (await _decide(client, PARENT, lou.demande))[1]["etat"] == "partielle"
     statut, r = await _decide(client, ENFANT2, lou.demande)
@@ -112,4 +112,4 @@ async def test_repli_directe_toujours_possible(hass, hass_storage, hass_client):
     await _decide(client, PARENT, lou.demande, minutes=12, remise="directe")
     _demande(hass, lou.demande)["repli"] = time.time() - 1
     a = (await lou.appel("etat", demande=lou.demande))[1]["approbation"]
-    assert a["minutes"] == 12 and a["par"] == "Robin" and lou.appliquer(a) == "ok"
+    assert a["minutes"] == 12 and a["par"] == "Nolan" and lou.appliquer(a) == "ok"

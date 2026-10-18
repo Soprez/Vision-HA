@@ -42,7 +42,7 @@
   "maison.bouton_toujours_dispo": "Immer verfügbar",
   "maison.bouton_categorie": "Kategorie",
   "maison.bouton_non": "Nein",
-  "maison.aide_choix": "Freigeben: offen, auch wenn die Kategorie gesperrt ist, während der freien Zeitfenster des Zeitplans. Immer verfügbar: nie gesperrt, auch wenn das Gerät gesperrt ist.",
+  "maison.aide_choix": "Ausnahme: auf allen Geräten, auch bei gesperrter Kategorie, aber nicht in Zeitfenstern. Immer verfügbar: nichts schließt sie.",
   "maison.les_actifs": "Gerade aktiv",
   "maison.aucun_inscrit": "Noch kein Gerät registriert.",
   "maison.aucun_appareil": "Kein Gerät",
@@ -405,7 +405,16 @@
   "code.injoignable": "Home Assistant ist nicht erreichbar: Versuche es gleich noch einmal.",
   "install.exemple_cle": "16 Zeichen, zum Beispiel 0123456789abcdef",
   "soutien.merci": "♥ Unterstützer – danke!",
-  "soutien.soutenir": "Projekt unterstützen",
+  "soutien.soutenir": "☕ Spendier mir einen Kaffee",
   "code.faux": "Das ist nicht der richtige Code ({n} Versuch(e) übrig).",
-  "code.trop": "Zu viele Versuche. Versuche es in {min} Min. erneut."
+  "code.trop": "Zu viele Versuche. Versuche es in {min} Min. erneut.",
+  "maison.bouton_15": "15 Min.",
+  "maison.bouton_exception": "Ausnahme",
+  "maison.bouton_refuser": "Ablehnen",
+  "moi.bloque_par_logiciel": "Was ein Programm blockiert",
+  "moi.groupe_sites_one": "{n} Website damit gesperrt:",
+  "moi.groupe_sites_other": "{n} Websites damit gesperrt:",
+  "moi.demander_pour": "Zugang für {nom} anfragen",
+  "moi.tentatives_one": "{n} Versuch",
+  "moi.tentatives_other": "{n} Versuche"
 }

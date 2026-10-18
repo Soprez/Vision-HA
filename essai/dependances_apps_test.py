@@ -26,10 +26,10 @@ async def _installer(hass, hass_storage, autorises=(), bloques=()):
                          autorises=list(autorises), bloques=list(bloques),
                          apps_vues={"robloxplayerbeta": {"premier": 1}},
                          sites_vus={"roblox.com": {"premier": 1, "adresses": ["c0.rbxcdn.com", "tr.rbxcdn.com"]}}),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
         }}
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": donnees}
-    for p in ("lou", "robin"):
+    for p in ("lou", "nolan"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)

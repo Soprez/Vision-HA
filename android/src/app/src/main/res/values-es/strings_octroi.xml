@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Faille du 16-10 : un appareil Décideur choisit son code dès qu'il l'est devenu. -->
+<resources>
+    <string name="garde_code_decideur_titre">Elige tu código de gestión</string>
+    <string name="garde_code_decideur_texte">Este dispositivo es ahora un dispositivo %1$s: elige un código ya. Se pedirá antes de cada concesión (o la huella, una vez activada en Ajustes).</string>
+    <string name="garde_code_pose_refaire">Código guardado. Repite la acción: pedirá el código o la huella.</string>
+    <string name="garde_code_suspendu">Demasiados códigos erróneos: inténtalo dentro de un cuarto de hora.</string>
+    <string name="garde_code_verrouille">Código de desbloqueo bloqueado (demasiados intentos erróneos): un administrador debe volver a definirlo en Home Assistant (Configurar › Seguridad).</string>
+    <string name="garde_code_ha_injoignable">No se puede contactar con Home Assistant: el código no se ha guardado. Inténtalo de nuevo.</string>
+    <string name="garde_code_actuel">Código actual</string>
+</resources>

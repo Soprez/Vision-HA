@@ -45,7 +45,8 @@ class NettoyageAccueilTest {
         assertEquals(listOf(spotify), r.etat.dossiers[0].pkgs)
         assertEquals(listOf(yt, "dossier:aa"), r.etat.ordre)
         assertEquals(listOf(yt), r.etat.dock)
-        assertEquals(setOf("com.autre"), r.etat.masquees)
+        // 17-10 (l'auteur, point 6) : une appli retirée de l'accueil le reste, même après une absence passagère.
+        assertEquals(setOf(vlc, "com.autre"), r.etat.masquees)
         // Réinstallée plus tard, elle reviendra comme une nouvelle appli.
         assertEquals(setOf(yt, spotify), r.etat.connues)
         // Son widget Android est retiré et rendu à libérer ; les autres restent.

@@ -38,7 +38,7 @@ object GestionAppareil {
 
     private fun corps(action: String, pc: String) = JSONObject().put("action", action).put("pc", pc)
 
-    private fun champ(act: Activity, indice: String, type: Int = InputType.TYPE_CLASS_TEXT, valeur: String = "") = EditText(act).apply {
+    private fun champ(act: Activity, indice: String, type: Int = InputType.TYPE_CLASS_TEXT, valeur: String = "") = EditText(act).also { ClavierTele.brancher(it) }.apply {
         hint = indice; inputType = type; setText(valeur); setTextColor(Ui.TEXTE); setHintTextColor(Ui.TEXTE_2)
     }
 

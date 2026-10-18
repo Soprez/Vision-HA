@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 3 : fiche d'une personne (espace Décideur) ; apparence, veille et son à un seul endroit. -->
+<resources>
+    <string name="fiche_de">Profiel van %1$s</string>
+    <string name="fiche_voir">Profiel bekijken</string>
+    <string name="fiche_precedente">Vorige persoon</string>
+    <string name="fiche_suivante">Volgende persoon</string>
+    <string name="fiche_resume">Overzicht</string>
+    <string name="fiche_temps_aujourdhui">Vandaag: %1$s</string>
+    <string name="fiche_horaires">Tijden</string>
+    <string name="fiche_prochain_changement">Volgende wijziging</string>
+    <string name="fiche_aucun_horaire">Geen tijden</string>
+    <string name="fiche_voir_appareils">Apparaten bekijken</string>
+    <string name="fiche_contenus">Inhoud</string>
+    <string name="fiche_selon_lieu">Afhankelijk van de plaats</string>
+    <string name="fiche_regle_lieu">%1$s: %2$s</string>
+    <string name="fiche_aucune_regle_lieu">Geen regels per plaats</string>
+    <string name="fiche_reveils">Wekkers</string>
+    <string name="fiche_reveil_active">Aan</string>
+    <string name="fiche_reveil_desactive">Uit</string>
+    <string name="fiche_reveil_prochain">Volgende: %1$s</string>
+    <string name="fiche_aucun_reveil">Geen wekkers</string>
+    <string name="fiche_recompenses">Beloningen</string>
+    <string name="fiche_recompense">%1$d min per taak uit ‘%2$s’, maximaal %3$d min per dag; vandaag %4$d min verdiend</string>
+    <string name="fiche_pas_recompense">Geen beloning ingesteld</string>
+    <string name="fiche_ecrans">Op de eigen schermen</string>
+    <string name="fiche_role">Rol</string>
+    <string name="fiche_note">Deze instellingen worden gewijzigd in Home Assistant (profiel van %1$s).</string>
+    <string name="lot3_apparence_veille_son">Weergave, schermbeveiliging en geluid</string>
+    <string name="lot3_apparence_veille_son_detail">Thema, kleuren, geluiden</string>
+    <string name="lot3_son">Geluid</string>
+    <plurals name="fiche_n_widgets">
+        <item quantity="one">%1$d Home Assistant-widget</item>
+        <item quantity="other">%1$d Home Assistant-widgets</item>
+    </plurals>
+</resources>

@@ -23,7 +23,7 @@
     <string name="lieu_defaut">Ort</string>
     <string name="soutien_titre">Projekt unterstützen</string>
     <string name="soutien_badge">♥ Unterstützer</string>
-    <string name="soutien_carte">☕ Spendier uns einen Kaffee</string>
+    <string name="soutien_carte">☕ Spendier mir einen Kaffee</string>
     <string name="soutien_merci">Danke! Dieser Ort unterstützt Vision.</string>
     <string name="soutien_explication">Das Unterstützer-Abzeichen ist rein dekorativ: Nichts wird freigeschaltet, Vision macht für alle genau dasselbe.</string>
     <string name="soutien_comment">Zum Einschalten: in Home Assistant Einstellungen → Geräte &amp; Dienste → Vision → Konfigurieren → Projekt unterstützen.</string>

@@ -91,8 +91,8 @@ assistants la règlent : la règle allumée ou non, « passer outre », et le se
 1. **La virgule.** L'intégration Pronote donne la moyenne en texte français : `"9,47"`. Une
    condition `numeric_state` ne sait pas la lire et tombe toujours à faux — ce qui, ici, rouvrirait.
    D'où `replace(',', '.') | float(none)`.
-2. **La panne.** Le capteur passe `unavailable` quand Pronote ne répond pas (six heures le
-   2 octobre 2026). Une automatisation naïve rouvrirait pendant toute la panne. D'où le déclencheur
+2. **La panne.** Le capteur passe `unavailable` quand Pronote ne répond pas (parfois des
+   heures). Une automatisation naïve rouvrirait pendant toute la panne. D'où le déclencheur
    `not_to: [unavailable, unknown]` et la branche « Pronote muet : on ne touche à rien » : les
    fermetures sont enregistrées dans Vision, elles tiennent d'elles-mêmes.
 

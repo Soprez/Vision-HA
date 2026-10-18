@@ -2,21 +2,67 @@
   "config": {
     "step": {
       "user": {
-        "title": "Vision",
-        "description": "Home Assistant si prenderà cura dei tuoi dispositivi: computer, telefoni e TV. Una volta aggiunta l'integrazione, ogni dispositivo si registra da solo installando il suo agente dalla plancia Vision.\n\nScegli un punto di partenza; ogni modulo si può poi attivare o disattivare in Configura → Moduli.",
+        "title": "Benvenuto in Vision (1/5): il luogo",
+        "description": "Vision aiuta a tenere sotto controllo gli schermi di un luogo: telefoni, tablet, TV e PC. Cinque passaggi brevi; tutto si può cambiare poi in Configura.\n\nPrima il nome del luogo, che compare nelle app, nella dashboard e nelle notifiche. Poi, se vuoi, le parole dei due ruoli.",
         "data": {
-          "prereglage": "Ciò che ti serve"
+          "lieu": "Nome del luogo",
+          "mots": "Le parole dei ruoli (facoltativo)"
+        },
+        "data_description": {
+          "lieu": "Esempi: Scuola, Ufficio, Club."
+        },
+        "sections": {
+          "mots": {
+            "name": "Le parole dei ruoli (facoltativo)",
+            "description": "Predefinite: {defauts}. Un campo vuoto mantiene la parola predefinita; al massimo {longueur} caratteri.",
+            "data": {
+              "decideur": "Chi decide (uno)",
+              "decideurs": "Chi decide (più persone)",
+              "demandeur": "Chi chiede (uno)",
+              "demandeurs": "Chi chiede (più persone)"
+            }
+          }
         }
+      },
+      "personnes": {
+        "title": "Le persone (2/5)",
+        "description": "Chi accetta o rifiuta le richieste? Queste persone saranno {decideurs}. Le altre saranno {demandeurs}: i loro dispositivi sono protetti e possono chiedere tempo o un accesso.\n\nL'elenco viene dalle persone di Home Assistant (Impostazioni → Persone). Nessuno nell'elenco? Continua: il ruolo si sceglierà più tardi, sulla scheda di ogni persona.",
+        "data": {
+          "decideurs": "Chi decide"
+        }
+      },
+      "objectifs": {
+        "title": "Gli obiettivi (3/5)",
+        "description": "{erreur}Spunta ciò che vuoi fare. Ogni obiettivo accende i moduli utili; il dettaglio, modulo per modulo, resta in Vision → Impostazioni → Funzioni.\n\nDa sapere: «Richieste e risposte a distanza» ha bisogno degli orari o dei contenuti (serve qualcosa da chiedere).",
+        "data": {
+          "objectifs": "Obiettivi"
+        }
+      },
+      "appareil": {
+        "title": "Il primo dispositivo (4/5)",
+        "description": "Quale dispositivo vuoi collegare per primo? Subito dopo, «Aggiungi un dispositivo» (in Configura) ti guiderà, con il link di installazione e il QR.",
+        "data": {
+          "appareil": "Primo dispositivo"
+        }
+      },
+      "pret": {
+        "title": "È pronto (5/5)",
+        "description": "Ecco cosa verrà impostato:\n{resume}\n\nLa dashboard di Vision ({tableau}) viene creata nella barra laterale.\n\n**Poi**: {suite}"
       }
     },
     "abort": {
-      "already_configured": "Vision è già installato."
+      "already_configured": "Vision è già installato.",
+      "single_instance_allowed": "Vision è già installato."
+    },
+    "error": {
+      "vocabulaire_trop_long": "Una parola è troppo lunga: al massimo 30 caratteri.",
+      "objectifs_dependances": "Manca un obiettivo: vedi il messaggio in alto."
     }
   },
   "options": {
     "step": {
       "cle": {
-        "title": "Chiave di registrazione",
+        "title": "🗝️ Chiave di registrazione",
         "description": "{changee}Solo per gli amministratori: la chiave non viene più mostrata da nessun'altra parte.\n\n**Chiave attuale**: `{cle}`\n\nRegistrazione di nuovi dispositivi: **{inscriptions}**.\n\n**PC** — in PowerShell, sul PC da configurare:\n```\n{commande}\n```\n\n**Telefono, tablet, TV** — blocco da incollare nell'app:\n```\n{android}\n```\n\nNon lasciare né il comando né il blocco su un dispositivo supervisionato. Cambiare la chiave non tocca i dispositivi già registrati.",
         "data": {
           "action": "Cosa vuoi fare?",
@@ -26,27 +72,17 @@
       "init": {
         "title": "Vision",
         "menu_options": {
+          "assistant": "🧭 Riavvia l'assistente",
           "ajouter": "➕ Aggiungi un dispositivo",
-          "appairage": "Dispositivi da approvare ({attente})",
-          "roles": "Persone e ruoli",
-          "appareils": "Dispositivi esistenti",
-          "securite": "Sicurezza",
-          "modules": "Moduli",
-          "entites": "Entità Home Assistant",
-          "general": "Impostazioni generali",
-          "musique": "Musica",
-          "journal_musique": "Registro Musica",
-          "accueil": "Messaggi di benvenuto",
-          "vocabulaire": "Vocabolario",
-          "avance": "Avanzate",
-          "temps_gagne": "Tempo guadagnato (compiti)",
-          "regles_lieu": "Regole in base al luogo",
-          "soutien": "♥ Sostieni il progetto"
+          "appairage": "✅ Dispositivi da approvare ({attente})",
+          "reparer": "🛠️ Riparare, salvare o ripristinare",
+          "autres": "🗂️ Altre impostazioni",
+          "soutien": "☕ Offrimi un caffè"
         },
         "description": "Cosa vuoi fare?"
       },
       "appairage": {
-        "title": "Dispositivi da approvare",
+        "title": "✅ Dispositivi da approvare",
         "description": "Il dispositivo da registrare mostra un QR e un codice. Controlla il codice, scegli la persona se sai chi è, poi approva: il dispositivo riceve il suo accesso da solo.\n\n{demandes}\n\nLe richieste di accesso, di tempo e di sblocco non sono qui: si decidono nella plancia di Vision.",
         "data": {
           "code": "Codice mostrato sul dispositivo",
@@ -55,18 +91,18 @@
         }
       },
       "installer": {
-        "title": "Installa Vision su un dispositivo",
+        "title": "📦 Installa Vision su un dispositivo",
         "description": "{installation}"
       },
       "inscriptions": {
-        "title": "Registrazione di nuovi dispositivi",
+        "title": "📝 Registrazione di nuovi dispositivi",
         "description": "Registrazione di nuovi dispositivi: **{etat}**.\n\n«Consenti {minutes} min» apre le registrazioni e poi le richiude da sola, anche se nel frattempo Home Assistant si riavvia. Per un dispositivo già registrato (app reinstallata), usa piuttosto «Consenti una nuova registrazione» nella sua scheda; l'abbinamento tramite QR, approvato da un amministratore, non ha bisogno che le registrazioni siano aperte.",
         "data": {
           "inscriptions": "Cosa vuoi fare?"
         }
       },
       "qr": {
-        "title": "Genera un QR di abbinamento",
+        "title": "🔳 Genera un QR di abbinamento",
         "description": "Il dispositivo scansiona questo QR dall'app Vision e si collega da solo. Il QR vale una sola volta e scade dopo pochi minuti; non contiene la chiave di registrazione.\n\nPersona: puoi sceglierla ora o più tardi. Dispositivo: solo per **riprendere** un dispositivo già registrato (app reinstallata); altrimenti un dispositivo già registrato viene rifiutato.",
         "data": {
           "personne": "Persona (facoltativo)",
@@ -74,11 +110,11 @@
         }
       },
       "qr_affiche": {
-        "title": "QR di abbinamento",
+        "title": "🔳 QR di abbinamento",
         "description": "![QR di abbinamento]({image})\n\nNell'app Vision del dispositivo: **Scansiona il QR di Home Assistant**. Valido {minutes} minuti, una sola volta. Non lasciarlo in vista di tutti: permette di registrare un dispositivo."
       },
       "deverrouillage": {
-        "title": "Richieste di sblocco",
+        "title": "🔓 Richieste di sblocco",
         "description": "{demandes} Sceglila, poi approvala (accorciando la durata se vuoi) o rifiutala.\n\n**Consegna**: «diretta», il dispositivo si sblocca da solo; «codice», leggi alla persona un codice di 6 cifre; «QR», la persona scansiona lo schermo.",
         "data": {
           "demande": "Richiesta",
@@ -88,29 +124,29 @@
         }
       },
       "deverrouillage_resultat": {
-        "title": "Sblocco",
+        "title": "🔓 Sblocco",
         "description": "{resultat}"
       },
       "roles": {
-        "title": "Persone e ruoli",
+        "title": "👥 Persone e ruoli",
         "description": "Un ruolo è un insieme di funzioni; ogni persona ne ha uno, e i suoi dispositivi lo seguono.\n\n{resume}",
         "menu_options": {
-          "roles_modifier": "Apri un ruolo: nome e funzioni",
-          "roles_personnes": "Scegli il ruolo di ogni persona",
-          "roles_creer": "Crea un ruolo",
-          "roles_appareils": "Eccezione: un ruolo solo per un dispositivo",
-          "roles_validation_appareil": "Eccezione: approvazione da più persone solo per un dispositivo"
+          "roles_modifier": "✏️ Apri un ruolo: nome e funzioni",
+          "roles_personnes": "👤 Scegli il ruolo di ogni persona",
+          "roles_creer": "🆕 Crea un ruolo",
+          "roles_appareils": "📱 Eccezione: un ruolo solo per un dispositivo",
+          "roles_validation_appareil": "🤝 Eccezione: approvazione da più persone solo per un dispositivo"
         }
       },
       "roles_modifier": {
-        "title": "I ruoli",
+        "title": "✏️ I ruoli",
         "description": "Scegli un ruolo per vedere e spuntare le sue funzioni.",
         "data": {
           "role": "Ruolo"
         }
       },
       "roles_edition": {
-        "title": "Ruolo",
+        "title": "✏️ Ruolo",
         "description": "{erreur}Persone: {personnes}.\nDispositivi: {appareils}.\nSblocco: {deverrouillage}.\n\n★ = funzione riservata a un amministratore. Ogni modifica viene registrata; resta sempre almeno un dispositivo che può «Gestire» e «Approvare».",
         "data": {
           "nom": "Nome",
@@ -121,7 +157,7 @@
         }
       },
       "roles_creer": {
-        "title": "Crea un ruolo",
+        "title": "🆕 Crea un ruolo",
         "description": "{erreur}Il nuovo ruolo parte dalle funzioni del modello; poi le sistemi tu.",
         "data": {
           "nom": "Nome (es. Ragazzo, Insegnante, Ospite)",
@@ -129,14 +165,14 @@
         }
       },
       "roles_personnes": {
-        "title": "Ruolo di ogni persona",
+        "title": "👤 Ruolo di ogni persona",
         "description": "Il ruolo di una persona vale su tutti i suoi dispositivi. Scegli una persona per cambiare il suo ruolo.",
         "data": {
           "personne": "Persona"
         }
       },
       "roles_appareils": {
-        "title": "Ruolo solo per un dispositivo",
+        "title": "📱 Ruolo solo per un dispositivo",
         "description": "{erreur}Di solito un dispositivo segue il ruolo della sua persona. Qui imposti un'eccezione per un dispositivo.\n\n{resume}",
         "data": {
           "appareil": "Dispositivo",
@@ -144,7 +180,7 @@
         }
       },
       "roles_validation_appareil": {
-        "title": "Approvazione solo per un dispositivo",
+        "title": "🤝 Approvazione solo per un dispositivo",
         "description": "Quante persone diverse devono approvare le richieste di sblocco di questo dispositivo. «In base al ruolo» toglie l'eccezione. Il codice di gestione digitato sul dispositivo funziona sempre da solo.\n\n{resume}",
         "data": {
           "appareil": "Dispositivo",
@@ -156,96 +192,78 @@
         }
       },
       "securite": {
-        "title": "Sicurezza",
+        "title": "🔒 Sicurezza",
         "menu_options": {
-          "deverrouillage": "Richieste di sblocco",
-          "inscriptions": "Registrazione di nuovi dispositivi (apri, chiudi, 5 min)",
-          "code_gestion": "Codice di gestione dei PC (sblocca un messaggio bloccante)"
-        }
-      },
-      "avance": {
-        "title": "Avanzate",
-        "description": "Per i casi particolari. Di solito basta la procedura guidata «Aggiungi un dispositivo».",
-        "menu_options": {
-          "installer": "Link di installazione e QR",
-          "qr": "Genera a mano un QR di abbinamento",
-          "cle": "Chiave di registrazione",
-          "sauvegarde": "Backup e ripristino",
-          "appareils_essai": "Dispositivi Android di prova"
-        }
-      },
-      "appareils": {
-        "title": "Dispositivi esistenti",
-        "menu_options": {
-          "appareils_relier": "Ricollega un dispositivo (app reinstallata, PC ripristinato)",
-          "roles_appareils": "Cambia il ruolo di un dispositivo",
-          "roles_validation_appareil": "Approvazione da più persone, per un dispositivo"
+          "deverrouillage": "🔓 Richieste di sblocco",
+          "inscriptions": "📝 Registrazione di nuovi dispositivi (apri, chiudi, 5 min)",
+          "code_gestion": "🔑 Codice di gestione dei PC (sblocca un messaggio bloccante)",
+          "code_octroi": "🛡️ Codice di sblocco dei decisori"
         }
       },
       "appareils_relier": {
-        "title": "Ricollega un dispositivo",
+        "title": "🔗 Ricollega un dispositivo",
         "description": "Mantiene la sua scheda, le sue regole e la sua persona; riceve un nuovo accesso.",
         "data": {
           "appareil": "Dispositivo"
         }
       },
       "ajouter": {
-        "title": "Aggiungi un dispositivo (1/4)",
+        "title": "➕ Aggiungi un dispositivo (1/4)",
         "description": "Quale dispositivo vuoi aggiungere?",
         "data": {
           "genre": "Dispositivo"
         }
       },
       "ajouter_qui": {
-        "title": "Per chi? (2/4)",
+        "title": "➕ Per chi? (2/4)",
         "description": "Il dispositivo prende il ruolo della persona scelta. Per la TV del soggiorno: «schermo condiviso».",
         "data": {
           "personne": "Persona"
         }
       },
       "ajouter_reprise": {
-        "title": "Un nuovo dispositivo? (2/4)",
+        "title": "➕ Un nuovo dispositivo? (2/4)",
         "description": "{personne} ha già un dispositivo di questo tipo in Vision. È un nuovo dispositivo, o lo stesso reinstallato? Se è lo stesso, mantiene le sue regole.",
         "data": {
           "reprise": "Risposta"
         }
       },
       "ajouter_installer_telephone": {
-        "title": "Installa Vision (3/4)",
+        "title": "➕ Installa Vision (3/4)",
         "description": "{qui}\n\nSul telefono o sul tablet, scansiona questo QR con la fotocamera, poi installa Vision (versione {version}). Se Android lo chiede, consenti l'installazione dal browser.\n\n![QR di installazione]({qr})\n\nOppure apri questo link sul dispositivo: {lien}\n\nPoi apri Vision e segui i passaggi. Tocca **Avanti** quando è installato."
       },
       "ajouter_installer_tele": {
-        "title": "Installa Vision (3/4)",
+        "title": "➕ Installa Vision (3/4)",
         "description": "{qui}\n\nSulla TV, apri l'app **Downloader** (installala dallo store della TV se serve) e digita questo indirizzo:\n\n## {court}\n\nInstalla Vision (versione {version}), aprila e segui i passaggi fino alla schermata che mostra **un codice**. A quel punto tocca **Avanti**."
       },
       "ajouter_installer_pc": {
-        "title": "Installa Vision (3/4)",
+        "title": "➕ Installa Vision (3/4)",
         "description": "{qui}\n\nSul PC, apri **PowerShell** (tasto Windows, digita «PowerShell», Invio), incolla il comando qui sotto e premi Invio. Accetta la richiesta di amministratore.\n\nIl comando installa Vision **e** collega il PC: non c'è altro da digitare. Funziona una sola volta e per {minutes} minuti.\n\nTocca **Avanti** quando PowerShell dice «registrato».",
         "data": {
           "commande": "Comando da copiare"
         }
       },
       "ajouter_relier_telephone": {
-        "title": "Collega (4/4)",
+        "title": "➕ Collega (4/4)",
         "description": "{qui}\n\nIn Vision, sul dispositivo, tocca **Scansiona il QR di Home Assistant** e inquadra questo QR:\n\n![QR di abbinamento]({image})\n\nValido {minutes} minuti, una sola volta. Tocca **Avanti** quando il dispositivo dice che è collegato."
       },
       "ajouter_relier_tele": {
-        "title": "Collega (4/4)",
+        "title": "➕ Collega (4/4)",
         "description": "{qui}\n\nDigita il codice mostrato sulla TV.",
         "data": {
           "code": "Codice mostrato sulla TV"
         }
       },
       "ajouter_relier_pc": {
-        "title": "Collega (4/4)",
+        "title": "➕ Collega (4/4)",
         "description": "{qui}\n\nIl PC si collega da solo alla fine dell'installazione. Tocca **Avanti** per controllare."
       },
       "ajouter_fini": {
-        "title": "Fatto",
+        "title": "➕ Fatto",
         "description": "## ✅ {nom} è collegato a {personne}\n\nRuolo: **{role}**.{reprise}\n\n{etat}"
       },
       "roles_edition_validation": {
-        "title": "Approvazione da più persone",
+        "title": "🤝 Approvazione da più persone",
         "description": "Per il ruolo **{role}**: quante persone devono approvare uno sblocco.",
         "data": {
           "validation_mode": "Quante persone devono approvare",
@@ -256,25 +274,28 @@
         }
       },
       "roles_personne_role": {
-        "title": "Ruolo di {personne}",
+        "title": "👤 Ruolo di {personne}",
         "description": "{erreur}I suoi dispositivi: {appareils}.",
         "data": {
           "role": "Ruolo"
         }
       },
       "general": {
-        "title": "Impostazioni generali",
-        "description": "Il nome del luogo compare nelle app, nella plancia e nelle notifiche. Esempi: Scuola, Ufficio, Club.",
+        "title": "⚙️ Impostazioni generali",
+        "description": "Gli schermi comuni e il canale Discord del luogo. Ogni decisore sceglie come riceve richieste, avvisi e riepilogo in Vision → Impostazioni → Le mie notifiche (o nell'app Vision). Il nome del luogo si imposta nella dashboard: Vision → Impostazioni.",
         "data": {
-          "lieu": "Nome del luogo",
-          "personnes_affichage": "Persone «schermo condiviso»"
+          "personnes_affichage": "Persone «schermo condiviso»",
+          "discord_service": "Discord: servizio di notifica",
+          "discord_cible": "Discord: canale"
         },
         "data_description": {
-          "personnes_affichage": "Le persone di Home Assistant create per una TV o uno schermo condiviso, non per qualcuno in particolare. Vuoto: quella che si chiama «Affichage»."
+          "personnes_affichage": "Le persone di Home Assistant create per una TV o uno schermo condiviso, non per qualcuno in particolare. Vuoto: quella che si chiama «Affichage».",
+          "discord_service": "Il servizio notify dell'integrazione Discord di Home Assistant. Vuoto: niente Discord.",
+          "discord_cible": "L'ID del canale (più di uno: separati da virgole)."
         }
       },
       "accueil": {
-        "title": "Messaggi di benvenuto",
+        "title": "👋 Messaggi di benvenuto",
         "description": "{erreur}Il messaggio mostrato in alto nell'app, su ogni dispositivo, nella sua lingua. Scrivi un messaggio per riga; le variabili qui sotto vengono compilate al momento della visualizzazione. Niente scritto: «Ciao!» («Buonasera!» dalle 18).\n\nModalità «In base al momento della giornata»: inizia una riga con `mattina:`, `pomeriggio:`, `sera:` o `notte:` (oppure `morning:`, `afternoon:`, `evening:`, `night:`) per riservarla a quel momento (mattina 5–12, pomeriggio 12–18, sera 18–22, notte 22–5); una riga senza prefisso vale sempre. Modalità «Casuale»: i prefissi vengono ignorati.\n\nPer esperti (sezione Avanzate): un modello Jinja di Home Assistant sostituisce i messaggi, con le stesse variabili, per esempio `{exemple}`. Se dà errore, o un testo vuoto o più lungo di 200 caratteri, si mostra il messaggio normale.\n\n**Variabili** (valore attuale)\n{aide}\n\n**Anteprima** (ciò che è salvato)\n{apercu}",
         "data": {
           "messages": "Messaggi (uno per riga)",
@@ -297,53 +318,45 @@
           }
         }
       },
-      "modules": {
-        "title": "Moduli",
-        "description": "{erreur}Spunta ciò che ti serve: il resto sparisce ovunque (Home Assistant, app, TV, PC). Le sue impostazioni restano salvate per dopo; le sue entità vengono disattivate senza perdere la cronologia. La base (dispositivi, persone e ruoli, gestione a distanza, aggiornamenti) resta sempre attiva.",
-        "data": {
-          "prereglage": "Preimpostazione",
-          "modules": "Moduli"
-        }
-      },
       "modules_protections": {
-        "title": "Disattivare le protezioni?",
+        "title": "⚙️ Disattivare le protezioni?",
         "description": "⚠️ Senza le protezioni contro l'aggiramento, una persona seguita può disinstallare Vision, diventare amministratore del suo PC o aprire le impostazioni protette, e così togliere tutte le regole. {concernes}: {appareils}.\n\nDisattivale solo se ti fidi di tutte le persone che usano questi dispositivi.",
         "data": {
           "je_comprends": "Ho capito, disattiva le protezioni"
         }
       },
       "entites": {
-        "title": "Entità Home Assistant",
+        "title": "🧩 Entità Home Assistant",
         "description": "I widget Home Assistant dell'app Vision: ogni dispositivo vede solo le entità date alla sua persona (più le sue eccezioni) e può usare solo le azioni spuntate qui. Sola lettura per impostazione predefinita; serrature e allarmi non si comandano mai da un dispositivo.\n\n{resume}",
         "menu_options": {
-          "entites_personnes": "Entità di ogni persona",
-          "entites_appareils": "Eccezioni per dispositivo",
-          "entites_actions": "Azioni consentite"
+          "entites_personnes": "👤 Entità di ogni persona",
+          "entites_appareils": "📱 Eccezioni per dispositivo",
+          "entites_actions": "▶️ Azioni consentite"
         }
       },
       "entites_personnes": {
-        "title": "Entità di ogni persona",
+        "title": "👤 Entità di ogni persona",
         "description": "Scegli una persona per cambiare l'elenco delle entità che vede sui suoi dispositivi.",
         "data": {
           "personne": "Persona"
         }
       },
       "entites_personne_liste": {
-        "title": "Entità di {personne}",
+        "title": "👤 Entità di {personne}",
         "description": "Le entità che {personne} vede nell'app (con la funzione di ruolo «Vedere le entità Home Assistant del proprio elenco»). Niente si può comandare senza «Azioni consentite».",
         "data": {
           "entites": "Entità"
         }
       },
       "entites_appareils": {
-        "title": "Eccezioni per dispositivo",
+        "title": "📱 Eccezioni per dispositivo",
         "description": "Scegli un dispositivo per aggiungergli o togliergli entità rispetto all'elenco della sua persona.",
         "data": {
           "appareil": "Dispositivo"
         }
       },
       "entites_appareil_liste": {
-        "title": "Eccezioni di «{appareil}»",
+        "title": "📱 Eccezioni di «{appareil}»",
         "description": "Persona: {personne}. Il suo elenco: {liste}.\n\n«In più» si aggiunge a questo elenco; «In meno» ne viene tolto (e ha la precedenza). Un dispositivo senza persona vede solo «In più».",
         "data": {
           "plus": "In più",
@@ -351,64 +364,31 @@
         }
       },
       "entites_actions": {
-        "title": "Azioni consentite",
+        "title": "▶️ Azioni consentite",
         "description": "{pilotables} Spunta cosa possono fare i dispositivi (serve anche la funzione di ruolo «Comandare le entità consentite»); niente spuntato = sola lettura. Serrature e allarmi non vengono mai proposti."
       },
       "sauvegarde": {
-        "title": "Backup e ripristino",
+        "title": "💾 Backup e ripristino",
         "description": "Tutta la configurazione di Vision: ruoli, persone, dispositivi e le loro regole, moduli, luogo, widget, salvaschermo. I file restano in Home Assistant (cartella «vision_sauvegardes» della configurazione) e finiscono nei suoi backup. Ogni notte viene fatto un backup automatico.\n\nBackup disponibili:\n{liste}",
         "menu_options": {
-          "sauvegarde_creer": "Fai un backup ora",
-          "sauvegarde_restaurer": "Ripristina un backup"
+          "sauvegarde_creer": "📥 Fai un backup ora",
+          "sauvegarde_restaurer": "♻️ Ripristina un backup"
         }
       },
       "sauvegarde_creer": {
-        "title": "Fai un backup ora",
+        "title": "📥 Fai un backup ora",
         "description": "Salva la configurazione attuale di Vision. Vengono tenuti gli ultimi 20 backup fatti qui.\n\nGià presenti:\n{liste}"
       },
       "sauvegarde_restaurer": {
-        "title": "Ripristina un backup",
+        "title": "♻️ Ripristina un backup",
         "description": "Sostituisce tutta la configurazione attuale di Vision con quella del backup scelto. Lo stato attuale viene salvato prima, così puoi tornare indietro. Un dispositivo collegato dopo la data del backup dovrà essere ricollegato.",
         "data": {
           "sauvegarde": "Backup",
           "confirmer": "Sostituisco la configurazione attuale con questo backup"
         }
       },
-      "temps_gagne": {
-        "title": "Tempo guadagnato",
-        "description": "Un compito spuntato in una lista di cose da fare di Home Assistant dà tempo in più sui dispositivi della persona. I compiti già spuntati quando imposti questa regola non contano, e un compito tolto e rispuntato conta una sola volta. Lascia vuota la lista per togliere l'impostazione di una persona.\n\nImpostazioni attuali:\n{resume}",
-        "data": {
-          "personne": "Persona",
-          "liste": "Lista di cose da fare",
-          "minutes": "Minuti per compito spuntato",
-          "max": "Al massimo, al giorno"
-        }
-      },
-      "regles_lieu": {
-        "title": "Regole in base al luogo",
-        "description": "Finché la persona è nella zona scelta (in base alla sua posizione in Home Assistant), le categorie spuntate sono bloccate sui suoi dispositivi. Quando esce dalla zona, tutto torna come prima. Non spuntare nessuna categoria per togliere la regola di questa persona in questa zona.\n\nRegole attuali:\n{resume}",
-        "data": {
-          "personne": "Persona",
-          "zone": "Zona",
-          "etiquettes": "Categorie bloccate in questa zona"
-        }
-      },
-      "vocabulaire": {
-        "title": "Vocabolario",
-        "description": "Le parole che Vision usa per i ruoli (dashboard, notifiche, messaggi inviati ai dispositivi), nella lingua di Home Assistant. Svuota un campo per tornare alla parola predefinita ({defauts}). Al massimo {longueur} caratteri.\n\nIl nome del luogo (ora: {nom_lieu}) si imposta in «Impostazioni generali».\n\n**Anteprima** (ciò che è salvato)\n{apercu}",
-        "data": {
-          "decideur": "Decisore (uno)",
-          "decideurs": "Decisori (più di uno)",
-          "demandeur": "Richiedente (uno)",
-          "demandeurs": "Richiedenti (più di uno)"
-        },
-        "data_description": {
-          "decideur": "Chi accetta o rifiuta le richieste.",
-          "demandeur": "Chi fa le richieste."
-        }
-      },
       "musique": {
-        "title": "Musica",
+        "title": "🎵 Musica",
         "description": "Lettori Music Assistant proposti come altoparlanti in Musica. Sono tutti selezionati per impostazione predefinita.",
         "data": {
           "enceintes": "Altoparlanti proposti",
@@ -422,14 +402,14 @@
         }
       },
       "journal_musique": {
-        "title": "Registro Musica",
+        "title": "📜 Registro Musica",
         "description": "Ultimi comandi Musica (chi, cosa, da dove):\n\n{journal}",
         "data": {
           "jours": "Conserva il registro per"
         }
       },
       "appareils_essai": {
-        "title": "Dispositivi Android di prova",
+        "title": "🧪 Dispositivi Android di prova",
         "description": "Strumento di prova: questi dispositivi Android ricevono la versione di prova dell'app prima degli altri. Lascia vuoto se non provi l'app.",
         "data": {
           "appareils_essai": "Dispositivi Android di prova"
@@ -445,30 +425,104 @@
           "confirmation": "Lo stesso codice, ancora una volta"
         },
         "description": "{etat}\n\nQuesto codice sblocca, su un PC, un messaggio bloccante «fino allo sblocco». Si imposta solo qui (amministratori): la finestra Vision del PC non permette più di sceglierlo. Home Assistant ne conserva solo l'impronta e lo verifica da sé; il PC non ne conserva nulla. Dopo {essais} codici errati su un PC, i suoi tentativi vengono sospesi per {minutes} minuti; dopo {total} codici errati in 24 h in tutto il luogo, il codice viene bloccato finché non viene cambiato qui.\n\nDa 6 a 32 caratteri. Il codice digitato su un PC passa per la sessione del Richiedente: non digitarlo davanti a lui e cambialo se hai un dubbio. Un messaggio bloccante si sblocca anche da Home Assistant (azione «Sblocca un messaggio»), senza codice.",
-        "title": "Codice di gestione dei PC"
+        "title": "🔑 Codice di gestione dei PC"
       },
       "soutien": {
-        "description": "Vision è gratuito e open source. Se vuoi ringraziare il progetto, puoi offrirgli un caffè: {lien}\n\nIn cambio appare un badge «Sostenitore» e l'occhio di Vision ogni tanto fa l'occhiolino, con un piccolo cuore, sul salvaschermo e in «Informazioni». È solo decorativo: nessuna funzione è bloccata.\n\nIl codice ricevuto via e-mail viene verificato qui, offline: non viene inviato nulla da nessuna parte.",
-        "menu_options": {
-          "soutien_cafe": "Ho offerto un caffè (sul mio onore)",
-          "soutien_code": "Ho un codice"
-        },
-        "title": "Sostieni il progetto"
+        "description": "Vision è gratuito e open source. Se vuoi ringraziare il progetto, puoi offrirmi un caffè: {lien}\n\nIn cambio appare un badge «Sostenitore» e l'occhio di Vision ogni tanto fa l'occhiolino, con un piccolo cuore, sul salvaschermo e in «Informazioni». È solo decorativo: nessuna funzione è bloccata.\n\nIl codice ricevuto via e-mail viene verificato qui, offline: non viene inviato nulla da nessuna parte.",
+        "title": "☕ Offrimi un caffè",
+        "data": {
+          "code": "Codice di sostegno"
+        }
       },
       "soutien_actif": {
         "description": "♥ Grazie! Il badge «Sostenitore» è mostrato sui dispositivi di questo luogo.\n\nPagina delle donazioni: {lien}",
         "menu_options": {
-          "soutien_code": "Inserisci un altro codice",
-          "soutien_retirer": "Rimuovi il badge"
+          "soutien_code": "🎟️ Inserisci un altro codice",
+          "soutien_retirer": "🗑️ Rimuovi il badge"
         },
-        "title": "Sostieni il progetto"
+        "title": "☕ Offrimi un caffè"
       },
       "soutien_code": {
         "data": {
           "code": "Codice di sostegno"
         },
         "description": "Incolla il codice ricevuto via e-mail (spazi, trattini e a capo vengono ignorati). Viene verificato qui, offline.",
-        "title": "Ho un codice"
+        "title": "🎟️ Ho un codice"
+      },
+      "reparer": {
+        "title": "🛠️ Riparare, salvare o ripristinare",
+        "menu_options": {
+          "appareils_relier": "🔗 Ricollega un dispositivo (app reinstallata, PC ripristinato)",
+          "sauvegarde": "💾 Backup e ripristino",
+          "installer": "📦 Link di installazione e QR",
+          "qr": "🔳 Genera a mano un QR di abbinamento",
+          "cle": "🗝️ Chiave di registrazione"
+        }
+      },
+      "autres": {
+        "title": "🗂️ Altre impostazioni",
+        "description": "Tutte le impostazioni di prima, in attesa del loro nuovo posto.",
+        "menu_options": {
+          "roles": "👥 Persone e ruoli",
+          "securite": "🔒 Sicurezza",
+          "entites": "🧩 Entità Home Assistant",
+          "general": "⚙️ Impostazioni generali",
+          "accueil": "👋 Messaggi di benvenuto",
+          "musique": "🎵 Musica",
+          "journal_musique": "📜 Registro Musica",
+          "appareils_essai": "🧪 Dispositivi Android di prova"
+        }
+      },
+      "assistant": {
+        "title": "🧭 Assistente di nuovo (1/4): il luogo",
+        "description": "Le risposte attuali sono già compilate: cambia solo ciò che vuoi. Non si salva nulla prima dell'ultimo passaggio.\n\nPredefinite: {defauts}.",
+        "data": {
+          "lieu": "Nome del luogo",
+          "mots": "Le parole dei ruoli (facoltativo)"
+        },
+        "data_description": {
+          "lieu": "Esempi: Scuola, Ufficio, Club."
+        },
+        "sections": {
+          "mots": {
+            "name": "Le parole dei ruoli (facoltativo)",
+            "description": "Predefinite: {defauts}. Un campo vuoto mantiene la parola predefinita; al massimo {longueur} caratteri.",
+            "data": {
+              "decideur": "Chi decide (uno)",
+              "decideurs": "Chi decide (più persone)",
+              "demandeur": "Chi chiede (uno)",
+              "demandeurs": "Chi chiede (più persone)"
+            }
+          }
+        }
+      },
+      "assistant_personnes": {
+        "title": "🧭 Assistente di nuovo (2/4): le persone",
+        "description": "Chi accetta o rifiuta le richieste? Le persone spuntate saranno {decideurs}. Una persona non più spuntata che lo era riprende il ruolo predefinito; le altre mantengono il loro ruolo.",
+        "data": {
+          "decideurs": "Chi decide"
+        }
+      },
+      "assistant_objectifs": {
+        "title": "🧭 Assistente di nuovo (3/4): gli obiettivi",
+        "description": "{erreur}Un obiettivo tolto spegne i suoi moduli (le loro impostazioni restano). Un obiettivo spuntato accende i suoi moduli consigliati. Un obiettivo invariato mantiene i suoi moduli così come sono.",
+        "data": {
+          "objectifs": "Obiettivi"
+        }
+      },
+      "assistant_pret": {
+        "title": "🧭 Assistente di nuovo (4/4): pronto da salvare",
+        "description": "{erreur}{resume}\n\nSalvare applica tutto in una volta; viene annotato nel registro."
+      },
+      "code_octroi": {
+        "title": "🛡️ Codice di sblocco dei decisori",
+        "description": "{etat}\n\nIl codice di sblocco di un decisore è lo stesso nell'app Vision e nella dashboard: viene chiesto a OGNI azione che concede qualcosa (accettare una richiesta, sbloccare, dare tempo, aprire, consentire, convalidare un dispositivo, assegnare un ruolo). Di solito il decisore lo sceglie nell'app; qui puoi impostarlo, cambiarlo o rimuoverlo (codice dimenticato o bloccato). Home Assistant ne conserva solo l'impronta; l'impronta digitale resta possibile sui suoi dispositivi. Dopo {essais} codici errati, un account o un dispositivo attende {minutes} minuti; dopo {total} codici errati in 24 h, tutto è bloccato finché non si imposta di nuovo un codice.\n\nAlmeno 4 caratteri.",
+        "data": {
+          "personne": "Decisore",
+          "action": "Cosa fare?",
+          "code": "Nuovo codice",
+          "confirmation": "Lo stesso codice di nuovo"
+        }
       }
     },
     "error": {
@@ -485,17 +539,10 @@
       "deverrouillage_deja_vote": "Hai già approvato questa richiesta: serve l'approvazione di un'altra persona.",
       "ajout_pas_encore": "Non ancora collegato. Completa il passaggio sul dispositivo, poi tocca di nuovo Avanti.",
       "ajout_expire": "Il tempo è scaduto: ecco un nuovo QR (o un nuovo comando).",
-      "modules_dependances": "Mancano dei moduli di cui altri hanno bisogno (dettagli qui sopra).",
       "modules_confirmer": "Spunta la casella per confermare, o chiudi questa finestra per tenere le protezioni.",
       "confirmer_restauration": "Spunta la casella per confermare: la configurazione attuale sarà sostituita.",
       "sauvegarde_introuvable": "Questo backup non esiste più. Scegline un altro.",
       "sauvegarde_illisible": "Questo backup non si può leggere o viene da una versione più recente di Vision. Non è stato cambiato nulla.",
-      "temps_gagne_personne": "Scegli una persona.",
-      "temps_gagne_liste": "Scegli una lista di cose da fare (entità «todo»).",
-      "temps_gagne_minutes": "I minuti per compito vanno da 1 a 240, e il limite giornaliero non può essere più piccolo di un compito.",
-      "regles_lieu_personne": "Scegli una persona.",
-      "regles_lieu_zone": "Scegli una zona di Home Assistant.",
-      "regles_lieu_trop": "Ci sono già 40 regole di luogo: togline una prima di aggiungerne un'altra.",
       "accueil_modele_invalide": "Il modello Jinja non è valido: controlla la sintassi (il dettaglio è in alto nella schermata).",
       "vocabulaire_trop_long": "Troppo lungo: al massimo 30 caratteri.",
       "code_court": "Da 6 a 32 caratteri.",
@@ -503,24 +550,23 @@
       "soutien_format": "Non è un codice completo: verifica che sia stato copiato per intero.",
       "soutien_signature": "Questo codice non è valido (firma rifiutata). Ricopialo dall'e-mail.",
       "soutien_version": "Questo codice proviene da una versione più recente di Vision: aggiorna Vision.",
-      "soutien_vide": "Incolla il codice ricevuto via e-mail."
+      "soutien_vide": "Incolla il codice ricevuto via e-mail.",
+      "objectifs_dependances": "Manca un obiettivo: vedi il messaggio in alto.",
+      "entites_rien_a_piloter": "Nessuna entità comandabile è data a una persona o a un dispositivo: scegli prima delle entità (luci, interruttori, script, scene, pulsanti, tapparelle, termostati).",
+      "code_court_deverrouillage": "Almeno 4 caratteri.",
+      "personne_inconnue": "Questo decisore non esiste."
     },
     "abort": {
       "not_loaded": "Vision non è caricato: riprova tra un attimo.",
       "ajout_impossible": "Per ora non è possibile: {raison}",
-      "entites_rien_a_piloter": "Nessuna entità comandabile è data a una persona o a un dispositivo: scegli prima delle entità (luci, interruttori, script, scene, pulsanti, tapparelle, termostati).",
       "sauvegarde_faite": "Backup fatto: {sauvegarde}. Si trova nella cartella «{dossier}» della configurazione di Home Assistant.",
       "sauvegarde_restauree": "Configurazione ripristinata dal backup del {sauvegarde}. Lo stato precedente è stato salvato: {avant}.",
       "aucune_sauvegarde": "Ancora nessun backup. Comincia con «Fai un backup ora».",
-      "temps_gagne_ok": "Tempo guadagnato salvato.\n\n{resume}",
-      "temps_gagne_coupe": "Il modulo «Tempo guadagnato» (o «Tempo di utilizzo») è disattivato: attivalo in Configura → Moduli.",
-      "regles_lieu_ok": "Regola salvata.\n\n{resume}",
-      "regles_lieu_coupe": "Il modulo «Regole in base al luogo» (o «Blocco delle app» e «Filtro web») è disattivato: attivalo in Configura → Moduli.",
       "accueil_ok": "Messaggi di benvenuto salvati.\n\n**Anteprima**\n{apercu}",
-      "vocabulaire_ok": "Vocabolario salvato.\n\n**Anteprima**\n{apercu}",
       "essai_aucun_android": "Nessun dispositivo Android in Vision: niente da impostare.",
       "soutien_merci": "♥ Grazie per il tuo sostegno! Il badge appare sui dispositivi al loro prossimo controllo.",
-      "soutien_retire": "Badge rimosso."
+      "soutien_retire": "Badge rimosso.",
+      "aucun_decideur": "Ancora nessun decisore: assegna prima questo ruolo a una persona."
     }
   },
   "selector": {
@@ -578,21 +624,6 @@
         "telephone": "📱 Un telefono o un tablet",
         "tele": "📺 Una TV Android",
         "pc": "💻 Un PC Windows"
-      }
-    },
-    "prereglage": {
-      "options": {
-        "simple": "Semplice: fasce orarie, tempo di utilizzo, richieste, messaggi",
-        "famille": "Consigliato: Semplice, più blocco delle app, filtro web, sblocco, sospensione della protezione, salvaschermo, schermata Home, protezioni, «Blocca tutto»",
-        "tout": "Tutto: tutti i moduli"
-      }
-    },
-    "prereglage_options": {
-      "options": {
-        "simple": "Semplice: fasce orarie, tempo di utilizzo, richieste, messaggi",
-        "famille": "Consigliato: Semplice, più blocco delle app, filtro web, sblocco, sospensione della protezione, salvaschermo, schermata Home, protezioni, «Blocca tutto»",
-        "tout": "Tutto: tutti i moduli",
-        "garder": "Tengo la mia scelta (caselle qui sotto)"
       }
     },
     "action_lot": {
@@ -739,6 +770,36 @@
         "240": "4 h",
         "perso": "Personalizzato"
       }
+    },
+    "reprise_action": {
+      "options": {
+        "simuler": "Simula",
+        "appliquer": "Applica",
+        "annuler": "Annulla"
+      }
+    },
+    "objectifs": {
+      "options": {
+        "horaires": "⏰ Orari e tempo davanti allo schermo: fasce, tempo al giorno, preavviso",
+        "contenus": "🛡️ Contenuti: blocco delle app, filtro web, protezioni",
+        "demandes": "💬 Richieste e risposte a distanza: richieste, sblocco, messaggi, «Chiudi tutto»",
+        "ecrans": "📺 Schermi condivisi: salvaschermo (TV e Android), messaggi di benvenuto"
+      }
+    },
+    "premier_appareil": {
+      "options": {
+        "telephone": "📱 Un telefono o un tablet",
+        "tele": "📺 Una TV Android",
+        "pc": "💻 Un PC Windows",
+        "plus_tard": "⏳ Più tardi"
+      }
+    },
+    "code_octroi_action": {
+      "options": {
+        "garder": "Non cambiare nulla",
+        "changer": "Scegliere un nuovo codice",
+        "retirer": "Rimuovere il codice (il decisore lo sceglierà di nuovo nell'app)"
+      }
     }
   },
   "services": {
@@ -838,7 +899,7 @@
         },
         "elements": {
           "name": "Elementi indicati",
-          "description": "Siti o software indicati per nome, senza passare da una categoria. Elenco di { genre: sites|apps, nom: … }."
+          "description": "Siti o software indicati per nome, senza passare da una categoria. Elenco di (genre: sites|apps, nom: …)."
         },
         "couleur": {
           "name": "Colore (scheda programma)",
@@ -906,7 +967,7 @@
         },
         "elements": {
           "name": "Elementi indicati",
-          "description": "Elenco di { genre: sites|apps, nom: … }. Elenco vuoto per toglierli tutti."
+          "description": "Elenco di (genre: sites|apps, nom: …). Elenco vuoto per toglierli tutti."
         },
         "sauf": {
           "name": "Tranne su",
@@ -948,7 +1009,7 @@
     },
     "build_dashboard": {
       "name": "Rigenera la plancia",
-      "description": "Ricostruisce la plancia Vision a partire dai dispositivi e dalle fasce orarie attuali."
+      "description": "Ricrea la plancia Vision dal modello predefinito. Quella attuale, con le tue modifiche, viene prima salvata in /config/vision_outils/sauvegardes/."
     },
     "update_agent": {
       "name": "Aggiorna l'agente",
@@ -1028,7 +1089,7 @@
       "fields": {
         "elements": {
           "name": "Elementi",
-          "description": "Elenco di { genre: sites|apps, nom: … }."
+          "description": "Elenco di (genre: sites|apps, nom: …)."
         },
         "etiquettes": {
           "name": "Etichette",
@@ -1112,7 +1173,7 @@
       "fields": {
         "elements": {
           "name": "Elementi",
-          "description": "Elenco di {genre: apps|sites, nom}."
+          "description": "Elenco di (genre: apps|sites, nom)."
         },
         "decision": {
           "name": "Decisione",
@@ -1144,7 +1205,7 @@
       "fields": {
         "propositions": {
           "name": "Proposte",
-          "description": "Elenco di {cle, verdict (garder | hors_demarrage | nuisible), raison, confiance 0-100}."
+          "description": "Elenco di (cle, verdict (garder | hors_demarrage | nuisible), raison, confiance 0-100)."
         },
         "par": {
           "name": "Autore",
@@ -1544,7 +1605,7 @@
           "name": "Nome"
         },
         "repetition": {
-          "description": "{minutes, max} — predefinito 9 min, 3 volte.",
+          "description": "(minutes, max) — predefinito 9 min, 3 volte.",
           "name": "Posticipo"
         },
         "repli": {
@@ -1564,7 +1625,7 @@
           "name": "Indirizzo o contenuto"
         },
         "volume": {
-          "description": "{debut: %, fin: %, montee_s: seconds} — predefinito 10 → 60 % in 180 s.",
+          "description": "(debut: %, fin: %, montee_s: seconds) — predefinito 10 → 60 % in 180 s.",
           "name": "Volume"
         }
       },
@@ -1662,7 +1723,7 @@
           "name": "Nome"
         },
         "repetition": {
-          "description": "{minutes, max} — predefinito 9 min, 3 volte.",
+          "description": "(minutes, max) — predefinito 9 min, 3 volte.",
           "name": "Posticipo"
         },
         "repli": {
@@ -1686,7 +1747,7 @@
           "name": "Indirizzo o contenuto"
         },
         "volume": {
-          "description": "{debut: %, fin: %, montee_s: seconds} — predefinito 10 → 60 % in 180 s.",
+          "description": "(debut: %, fin: %, montee_s: seconds) — predefinito 10 → 60 % in 180 s.",
           "name": "Volume"
         }
       },
@@ -1811,6 +1872,98 @@
         }
       },
       "name": "Sveglia — elimina"
+    },
+    "reprise_autorisations": {
+      "name": "Passaggio delle autorizzazioni",
+      "description": "Nuove regole di autorizzazione (per un po', eccezione, sempre disponibile): simulare cosa cambia, applicare dopo la verifica o tornare indietro.",
+      "fields": {
+        "action": {
+          "name": "Azione",
+          "description": "Simula: rapporto senza cambiare nulla. Applica: si applica il nuovo motore di decisione (lo stato precedente viene salvato). Annulla: ritorno al motore precedente."
+        }
+      }
+    },
+    "ecran_regler": {
+      "name": "Schermo – impostazioni di un dispositivo",
+      "description": "Schermo di un dispositivo (solo amministratori e automazioni). Di base non cambia nulla.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo."
+        },
+        "veille_vision": {
+          "name": "Salvaschermo di Vision",
+          "description": "Consente il salvaschermo di Vision (orologio, foto, playlist) su questo dispositivo."
+        },
+        "garder_allume": {
+          "name": "Tenere lo schermo acceso",
+          "description": "La schermata iniziale di Vision impedisce allo schermo Android di spegnersi."
+        }
+      }
+    },
+    "veille_regler": {
+      "name": "Salvaschermo — opzioni del dispositivo",
+      "description": "Opzioni del salvaschermo di un dispositivo (solo amministratori e automazioni). Il dispositivo applica l'impostazione più recente, da Home Assistant o dalla TV stessa.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo."
+        },
+        "lecteur": {
+          "name": "Banner del lettore musicale",
+          "description": "Mostra copertina, titolo, artista e riproduci/pausa della musica di questo dispositivo durante la riproduzione (disattivato per impostazione predefinita)."
+        },
+        "qr": {
+          "name": "Codice QR degli ospiti",
+          "description": "Angolo del codice QR degli ospiti (modalità festa aperta): haut_gauche (in alto a sinistra), haut_droite (in alto a destra), bas_gauche (in basso a sinistra), bas_droite (in basso a destra) o cache (nascosto). In basso a destra per impostazione predefinita."
+        },
+        "logo": {
+          "name": "Logo di Vision",
+          "description": "Angolo dell'occhio di Vision: stessi valori; in basso a sinistra (il suo posto abituale) per impostazione predefinita. Il codice QR e il logo non condividono mai un angolo."
+        }
+      }
+    },
+    "son_regler": {
+      "name": "Livello sonoro — impostazioni di un dispositivo",
+      "description": "Impostazioni della misura del rumore su un dispositivo (solo amministratori e automazioni). Solo un numero esce dal dispositivo: nessun suono viene registrato o inviato.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo."
+        },
+        "actif": {
+          "name": "Misura su questo dispositivo",
+          "description": "Attiva o disattiva la misura con il microfono su questo dispositivo."
+        },
+        "seuil_db": {
+          "name": "Soglia",
+          "description": "Livello relativo (da 0 a 100) oltre il quale la stanza è troppo rumorosa."
+        },
+        "sensibilite_s": {
+          "name": "Sensibilità",
+          "description": "Secondi sopra la soglia prima di un avviso (i picchi più brevi sono ignorati)."
+        },
+        "alertes_avant_coupure": {
+          "name": "Avvisi prima del blocco",
+          "description": "Il dispositivo viene bloccato a questo avviso; 0 = solo avvisi."
+        },
+        "coupure_min": {
+          "name": "Durata del blocco",
+          "description": "Il tempo per cui il dispositivo resta chiuso."
+        },
+        "calme_min": {
+          "name": "Azzeramento con la calma",
+          "description": "Minuti senza rumore prima che il contatore degli avvisi torni a zero."
+        },
+        "calibration_db": {
+          "name": "Calibrazione",
+          "description": "Aggiunta alla misura del dispositivo (i microfoni sono diversi)."
+        },
+        "plages": {
+          "name": "Fasce attive",
+          "description": "Elenco di (debut, fin) in HH:MM; vuoto = tutto il giorno."
+        }
+      }
     }
   },
   "entity": {
@@ -2104,6 +2257,9 @@
       },
       "reveil_source": {
         "name": "Sorgente"
+      },
+      "niveau_sonore": {
+        "name": "Livello sonoro"
       }
     },
     "switch": {
@@ -2383,16 +2539,5 @@
     "reveil_type": {
       "message": "Tipo di attivazione sconosciuto: {valeur}."
     }
-  },
-  "musique": {
-    "fin_1": "The End 🎬",
-    "fin_2": "The Show Must Go On… aggiungi un brano 🎭",
-    "fin_3": "Silence Is Golden 🤫",
-    "fin_4": "Bis! 👏",
-    "fin_5": "Play It Again 🎹",
-    "fin_6": "Stop! In the Name of Love ✋",
-    "fin_7": "One More Time 🔁",
-    "fin_8": "Don't Stop Me Now 🎤",
-    "fin_action": "Aggiungi un brano per riaccendere la festa"
   }
 }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 17-10 (l'auteur, point 12) : « Ajuster l'écran », la zone sûre de la télé (ZoneSure, AjusterEcranActivity). -->
+<resources>
+    <string name="zonesure_titre">Regola lo schermo</string>
+    <string name="zonesure_aide_1">Allinea le frecce ai bordi visibili del televisore.</string>
+    <string name="zonesure_aide_2">▶ e ▲ allargano la cornice, ◀ e ▼ la restringono.</string>
+    <string name="zonesure_valeurs" formatted="true">Lati %1$d %% · sopra e sotto %2$d %%</string>
+    <string name="zonesure_touches" formatted="false">OK: salva · Indietro: annulla · Tieni premuto OK: torna al 5 %</string>
+    <string name="zonesure_enregistre" formatted="true">Schermo regolato: lati %1$d %%, sopra e sotto %2$d %%.</string>
+    <string name="zonesure_court" formatted="true">Lati %1$d %% · sopra e sotto %2$d %%</string>
+</resources>

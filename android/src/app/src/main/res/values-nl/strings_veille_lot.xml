@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Veille télé (lot repris pour la 1.92) : mise en place de l'économiseur, grille, cases typées. -->
+<resources>
+    <string name="eco_etat_vision">De tv start de Vision-schermbeveiliging al. Niets te doen.</string>
+    <string name="eco_etat_vision_eteint">Vision is gekozen, maar de schermbeveiliging van de tv staat uit.</string>
+    <string name="eco_etat_autre">De schermbeveiliging van de tv is niet Vision.</string>
+    <string name="eco_etat_inconnu">Deze tv zegt niet welke schermbeveiliging hij gebruikt.</string>
+    <string name="eco_ecrire">Vision mag de schermbeveiliging zelf instellen: druk gewoon op ‘Vision kiezen’.</string>
+    <string name="eco_reglage">Kies in de instellingen die opengaan met de afstandsbediening ‘Schermbeveiliging’ (of ‘Daydream’) en dan ‘Vision’. Kom daarna terug met Terug.</string>
+    <string name="eco_adb">Dit model biedt Vision niet aan in de instellingen (Google TV, Chromecast…). Een Beslisser kan het één keer instellen vanaf een computer, met ADB-foutopsporing aan op de tv (Instellingen → Systeem → Ontwikkelaarsopties):</string>
+    <string name="eco_adb_apres">De eerste opdracht is genoeg: Vision stelt de schermbeveiliging daarna zelf in en zet hem terug na een update van de tv. De andere twee stellen hem direct in.</string>
+    <string name="eco_repli_accueils">Intussen start Vision zijn schermbeveiliging op het startscherm van de tv na %1$d min zonder afstandsbediening, nooit over een andere app, en haalt hem weg bij de eerste druk.</string>
+    <string name="eco_repli_accueil_vision">Intussen start Vision zijn schermbeveiliging na %1$d min zonder afstandsbediening, alleen op zijn eigen startscherm. Zet voor het startscherm van de tv ook de toegankelijkheid van Vision aan.</string>
+    <string name="eco_repli_aucun">Zonder schermbeveiliging kan die van Vision alleen vanzelf starten als Vision het startscherm van de tv is of als de toegankelijkheid aanstaat.</string>
+    <string name="eco_repli_jamais">De Vision-schermbeveiliging op het startscherm staat op ‘Nooit’.</string>
+    <string name="eco_choisir_vision">Vision kiezen</string>
+    <string name="eco_utiliser_repli">Vision-schermbeveiliging gebruiken</string>
+    <string name="eco_plus_tard">Later</string>
+    <string name="eco_ok">OK</string>
+    <string name="eco_ecrit">Klaar: de tv start de Vision-schermbeveiliging.</string>
+    <string name="eco_ecrit_echec">De tv weigerde de instelling. De Vision-schermbeveiliging op het startscherm neemt het over.</string>
+    <string name="eco_introuvable">Deze tv biedt de instelling van de schermbeveiliging niet aan. De Vision-schermbeveiliging op het startscherm neemt het over.</string>
+    <string name="eco_valeur_vision">Vision</string>
+    <string name="eco_valeur_ecrire">OK: Vision kiezen</string>
+    <string name="eco_valeur_reglage">Een andere: OK om te wijzigen</string>
+    <string name="eco_valeur_adb">ADB-opdracht nodig: OK om te zien</string>
+    <string name="reg_pastille">Achtergrond achter de waarden</string>
+    <string name="oui">Ja</string>
+    <string name="non">Nee</string>
+    <string name="reg_direct">Camera\'s live</string>
+    <string name="direct_auto">Auto</string>
+    <string name="direct_aide">Auto: één camera tegelijk live (lichte stream), beelden als de tv het niet bijhoudt.</string>
+    <string name="direct_images">Alleen beelden</string>
+    <string name="ecart_instant">zojuist</string>
+    <string name="ecart_min">%1$d min geleden</string>
+    <string name="ecart_h">%1$d u geleden</string>
+    <string name="ecart_hier">gisteren</string>
+    <string name="ecart_j">%1$d d geleden</string>
+    <string name="agenda_aujourdhui">Vandaag</string>
+    <string name="agenda_demain">Morgen</string>
+    <string name="agenda_journee">Hele dag</string>
+    <string name="agenda_vide">Niets gepland</string>
+    <string name="clips_vide">Geen activiteit</string>
+</resources>

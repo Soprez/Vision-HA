@@ -367,7 +367,6 @@
     <string name="reglagestv_mode_nuit">Nachtmodus</string>
     <string name="reglagestv_jamais">Nooit</string>
     <string name="reglagestv_son_veille">Geluid tijdens de schermbeveiliging</string>
-    <string name="reglagestv_source_son">Geluidsbron</string>
     <string name="reglagestv_silence">Stilte</string>
     <string name="reglagestv_flux_perso">Eigen stream</string>
     <string name="reglagestv_autre_appli_joue">Als een andere app al speelt (Spotify, YouTube Music…), laat de schermbeveiliging die met rust.</string>
@@ -436,7 +435,7 @@
     <string name="reglagestv_fond_titre">Tijdens de schermbeveiliging gaan deze apps op de achtergrond door</string>
     <string name="reglagestv_applis_accueil">Apps op het startscherm</string>
     <string name="scan_titre">QR-code van Home Assistant scannen</string>
-    <string name="scan_explication">In Home Assistant: Vision → Configureren → Koppel-QR-code maken. Richt dit apparaat op de QR-code.</string>
+    <string name="scan_explication">In Home Assistant: Vision → Configureren → Apparaat toevoegen, tot aan de koppel-QR-code. Richt dit apparaat op de QR-code.</string>
     <string name="scan_pas_de_camera">Dit apparaat heeft geen camera. Kies ‘QR-code op dit apparaat tonen’ of een andere manier om het te koppelen.</string>
     <string name="scan_besoin_camera">Vision heeft de camera nodig om de QR-code te lezen (alleen op dit scherm).</string>
     <string name="scan_sans_camera">Zonder camera koppel je het apparaat anders: een QR-code tonen, het blok plakken, of het adres en de sleutel invoeren.</string>
@@ -544,13 +543,7 @@
     <string name="vuewidget_suivant">Volgende</string>
     <string name="vuewidget_baisser_volume">Zachter</string>
     <string name="vuewidget_monter_volume">Harder</string>
-    <string name="accueildefaut_ancienne_titre">De oude Vision is nog geïnstalleerd</string>
-    <string name="accueildefaut_ancienne_texte">Android toont haar ook als ‘Vision’ bij het kiezen van het startscherm, en die kiezen werkt niet. Verwijder haar eerst: dan blijft er maar één Vision over om te kiezen.</string>
-    <string name="accueildefaut_desinstaller_ancienne">De oude verwijderen</string>
-    <string name="accueildefaut_a_la_main_titre">Handmatig verwijderen</string>
-    <string name="accueildefaut_a_la_main_texte">Ze is niet ondertekend zoals Vision: verwijder haar via de Android-instellingen (Apps ▸ Vision ▸ Verwijderen).</string>
     <string name="commun_lot2_ok">OK</string>
-    <string name="accueildefaut_continuer">Toch doorgaan</string>
     <string name="commun_lot2_annuler">Annuleren</string>
     <string name="install_confirmer_titre">Vision: update bevestigen</string>
     <string name="install_confirmer_texte">Tik om de installatie toe te staan. Dit is de laatste keer: de volgende updates gaan vanzelf.</string>
@@ -792,6 +785,6 @@
     <string name="manifeste_appairage">Koppelen</string>
     <string name="manifeste_couleurs">Kleuren</string>
     <string name="manifeste_fermes">Wat geblokkeerd is</string>
-    <string name="manifeste_maison">Beheer</string>
+    <string name="manifeste_maison">Te beslissen</string>
     <string name="manifeste_musique">Muziek</string>
 </resources>

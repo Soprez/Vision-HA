@@ -14,7 +14,9 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.ScrollView
 import android.widget.Toast
 import org.json.JSONObject
@@ -24,10 +26,32 @@ import org.json.JSONObject
  * l'appareil, les alertes s'il y en a, les gros boutons du rôle, le temps du jour, les réglages repliés,
  * une ligne pour les autorisations et une pour la version. Tout est navigable à la télécommande. Les
  * réglages sensibles sont derrière le code de gestion.
+ *
+ * Refonte UX, lot 5 (etude-ux/05-architecture-cible.md §3) : une fois l'appareil relié, l'écran se partage en
+ * espaces (Espaces) : Aujourd'hui, Personnes, Appareils, Réglages pour un Décideur ; Moi et Réglages pour un
+ * Demandeur. Téléphone : une barre d'onglets en bas ; tablette : un rail à gauche ; télé : un rail à gauche à
+ * grandes rubriques (gauche / droite passent du rail à la page, Retour remonte d'un niveau).
  */
 class SetupActivity : Activity() {
 
     private lateinit var racine: LinearLayout
+    /** Lot 5 : la page qui défile (contient [racine]) et la navigation entre espaces (barre ou rail). */
+    private lateinit var defile: ScrollView
+    private lateinit var nav: LinearLayout
+    /** Lot 5 : l'espace affiché (Espaces.AUJOURDHUI…), gardé à la recréation de l'écran. */
+    private var espace = ""
+    /** Lot 5 : « Avancé » déplié dans Réglages (autorisations, version). */
+    private var avanceDeplie = false
+    private var navEspaces: List<String> = emptyList()
+    private var navVisible = false
+    /** Pendant que l'écran se rebâtit, un focus tombé sur le rail ne change pas d'espace. */
+    private var enConstruction = false
+    private val modeNav by lazy { Espaces.navigation(Identite.type(this)) }
+    private val tele get() = modeNav == Espaces.RAIL_TELE
+    /** 1.93.05 (retour 33) : renvoyée aux réglages de la télé dès onCreate (rien n'est construit). */
+    private var redirigee = false
+    /** La dernière touche de la télécommande (le rail ne suit que les déplacements voulus). */
+    private var toucheA = 0L
     private val cfg by lazy { Config(this) }
 
     /** Une protection à accorder : son état et le réglage système qui l'active. */
@@ -65,9 +89,9 @@ class SetupActivity : Activity() {
             l.add(Protection(getString(R.string.setup_p_batterie), getString(R.string.setup_p_batterie_detail), { batterieIgnoree() },
                 getString(R.string.setup_p_batterie_sans),
                 { existe(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, pkgUri)) || existe(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }) { demanderBatterie() })
-        // Point 7 : Vision comme accueil, par la boîte officielle d'Android (sans confusion avec l'ancienne Vision).
+        // Point 7 : Vision comme accueil, par la boîte officielle d'Android.
         if (!tele && Modules.actif(this, Modules.ACCUEIL)) l.add(Protection(getString(R.string.setup_p_accueil), getString(R.string.setup_p_accueil_detail), { AccueilDefaut.estAccueil(this) },
-            getString(if (Migration.ancienneInstallee(this)) R.string.setup_p_accueil_sans_ancienne else R.string.setup_p_accueil_sans),
+            getString(R.string.setup_p_accueil_sans),
             { AccueilDefaut.possible(this) }) { AccueilDefaut.demander(this) })
         l.add(Protection(getString(R.string.setup_p_maj), getString(R.string.setup_p_maj_detail), { MiseAJour.peutInstaller(this) },
             getString(R.string.setup_p_maj_sans),
@@ -112,7 +136,16 @@ class SetupActivity : Activity() {
         super.onCreate(b)
         Ui.charger(this)
         // 1.84.0 : ouvert depuis la section « Décideurs » des réglages télé : l'espace gestion déjà déplié.
-        if (intent?.getBooleanExtra(EXTRA_GESTION, false) == true) gestionDepliee = true
+        val gestion = intent?.getBooleanExtra(EXTRA_GESTION, false) == true
+        // 1.93.05 (l'auteur, retour 33) : sur une télé reliée, l'ancien menu de style téléphone (Moi, Réglages, café…) n'est
+        // plus montré : ce qui y servait est dans les réglages de la télé (version, mise à jour, apparence, demandes).
+        // Restent ici, sur la télé : la première connexion, le choix de la personne, l'espace de gestion ouvert derrière
+        // le code depuis « Décideurs » (sans le menu ni le café), et les écrans ouverts pour un blocage précis.
+        if (sansAncienMenu(this, intent, gestion)) { redirigee = true; ReglagesTvActivity.ouvrir(this, "parametres"); finish(); return }
+        if (gestion) { gestionDepliee = true; avanceDeplie = true }
+        // Lot 5 : l'espace gardé (recréation), sinon celui demandé (EXTRA_ESPACE, ou Réglages pour l'espace gestion).
+        espace = Espaces.initial(Etat.parent, intent?.getStringExtra(EXTRA_ESPACE) ?: if (gestion) Espaces.REGLAGES else null, b?.getString(ETAT_ESPACE))
+        if (b != null) avanceDeplie = b.getBoolean(ETAT_AVANCE, avanceDeplie)
         if (Build.VERSION.SDK_INT >= 21) {
             window.statusBarColor = Ui.FOND
             window.navigationBarColor = Ui.FOND
@@ -121,12 +154,23 @@ class SetupActivity : Activity() {
             setBackgroundColor(Ui.FOND)
             isFillViewport = true
         }
+        defile = scroll
         racine = Ui.colonne(this, Ui.dp(this, 20f))
-        // 1.71.0 : sur un grand écran (télé, tablette en paysage), une colonne centrée d'au plus 760 dp, lisible de loin.
-        val largeur = resources.configuration.screenWidthDp
-        if (largeur > 800) { val cote = Ui.dp(this, (largeur - 760) / 2f); racine.setPadding(cote, racine.paddingTop, cote, racine.paddingBottom) }
         scroll.addView(racine)
-        setContentView(scroll)
+        // Lot 5 : la barre d'onglets sous la page (téléphone), ou le rail à sa gauche (tablette, télé).
+        nav = LinearLayout(this).apply { tag = "navigation"; visibility = View.GONE }
+        val cadre = LinearLayout(this).apply { setBackgroundColor(Ui.FOND) }
+        if (modeNav == Espaces.BARRE) {
+            cadre.orientation = LinearLayout.VERTICAL
+            cadre.addView(scroll, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+            cadre.addView(nav, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        } else {
+            cadre.orientation = LinearLayout.HORIZONTAL
+            cadre.addView(nav, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT))
+            cadre.addView(scroll, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
+        }
+        ajusterColonne()
+        setContentView(cadre)
         if (Build.VERSION.SDK_INT >= 33) {
             try { requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 9) } catch (_: Exception) {}
         }
@@ -135,7 +179,17 @@ class SetupActivity : Activity() {
 
     override fun onNewIntent(i: Intent?) {
         super.onNewIntent(i)
+        // Lot 5 : rouvert (singleTask) sur un espace, ou sur l'espace gestion (section « Décideurs » des réglages télé).
+        if (i?.getBooleanExtra(EXTRA_GESTION, false) == true) { gestionDepliee = true; avanceDeplie = true; espace = Espaces.REGLAGES }
+        i?.getStringExtra(EXTRA_ESPACE)?.takeIf { it.isNotEmpty() }?.let { espace = Espaces.valide(Etat.parent, it) }
         traiterIntent(i)
+    }
+
+    override fun onSaveInstanceState(out: Bundle) {
+        super.onSaveInstanceState(out)
+        if (redirigee) return
+        out.putString(ETAT_ESPACE, espace)
+        out.putBoolean(ETAT_AVANCE, avanceDeplie)
     }
 
     /** Toucher de la notification « nouvelle version » : on ouvre l'installation. Ou une page partagée vers Vision. */
@@ -154,7 +208,7 @@ class SetupActivity : Activity() {
                 toast(getString(R.string.setup_connexion))
                 AgentService.demarrer(this)
                 racine.postDelayed({ dessiner() }, 2500)
-            } else toast(getString(R.string.setup_bloc_incomplet))
+            } else toast(getString(R.string.setup_bloc_incomplet), OeilModele.Genre.ERREUR)
             return
         }
         if (i?.action == Intent.ACTION_SEND && cfg.inscrit) {
@@ -164,17 +218,21 @@ class SetupActivity : Activity() {
             i.action = ""
             if (!Modules.actif(this, Modules.DEMANDES)) { dessiner(); return }
             if (hote.isNotEmpty()) Acces.dialogue(this, "sites", hote, hote, lien) { dessiner() }
-            else toast(getString(R.string.setup_aucun_lien))
+            else toast(getString(R.string.setup_aucun_lien), OeilModele.Genre.ERREUR)
             return
         }
         val nom = i?.getStringExtra(MiseAJour.EXTRA_INSTALLER) ?: return
         i.removeExtra(MiseAJour.EXTRA_INSTALLER)
         val f = java.io.File(MiseAJour.dossier(this), nom)
-        if (f.isFile) MiseAJour.installer(this, f) else toast(getString(R.string.setup_fichier_maj_introuvable))
+        if (f.isFile) MiseAJour.installer(this, f) else toast(getString(R.string.setup_fichier_maj_introuvable), OeilModele.Genre.ERREUR)
     }
 
     override fun onResume() {
-        super.onResume(); auPremierPlan = true
+        super.onResume()
+        if (redirigee) return  // 1.93.05 (retour 33) : renvoyée aux réglages de la télé, rien à dessiner
+        auPremierPlan = true
+        Garde.exigerCodeDecideur(this)  // faille du 16-10 : un Décideur a toujours un code
+        NiveauSonore.assurer(this)  // le micro ne se lance qu'au premier plan (Android)
         Assistant.retour()
         if (assistant) avancerAssistant() else dessiner()
     }
@@ -187,7 +245,7 @@ class SetupActivity : Activity() {
         if (manquantes.isEmpty()) {
             assistant = false; assistantDerniere = ""
             Assistant.terminer(this)
-            toast(getString(R.string.setup_tout_en_place)); dessiner(); return
+            toast(getString(R.string.setup_tout_en_place), OeilModele.Genre.SUCCES); dessiner(); return
         }
         val suivante = manquantes.first()
         if (retourInfos) {
@@ -221,30 +279,385 @@ class SetupActivity : Activity() {
     // ------------------------------------------------------------- Écran
 
     private fun dessiner() {
+        // La vue qui avait le focus dans la page (télécommande, clavier) : rendue après reconstruction, au même rang.
+        val f = currentFocus
+        val rang = if (f != null && estDans(f, racine)) racine.getFocusables(View.FOCUS_FORWARD).indexOf(f) else -1
+        enConstruction = true
+        try { dessinerPage() } finally { enConstruction = false }
+        if (rang >= 0) racine.post { racine.getFocusables(View.FOCUS_FORWARD).let { l -> l.getOrNull(rang) ?: l.lastOrNull() }?.requestFocus() }
+        else if (navVisible && f != null && estDans(f, nav) && f.tag != "nav_$espace") focusRail()
+        // Télé : rien n'a le focus (ouverture) : il se pose sur l'espace affiché, jamais sur une action de la page.
+        else if (navVisible && tele && f == null) focusRail()
+    }
+
+    private fun dessinerPage() {
         racine.removeAllViews()
         entete()
-        if (!cfg.inscrit) { carteNonRelie(); ecranConnexion(); return }
+        if (!cfg.inscrit) { montrerNav(false); carteNonRelie(); ecranConnexion(); return }
 
-        // 1.71.0 (maquette validée en essai) : l'état, les alertes s'il y en a, les actions du rôle, le temps,
-        // les réglages repliés, puis une ligne pour les autorisations et une pour la version.
-        carteEtat()
+        if (cfg.personne.isEmpty() && cfg.personnes.isNotEmpty()) { montrerNav(false); carteEtat(); choixPersonne(); return }
 
-        if (cfg.personne.isEmpty() && cfg.personnes.isNotEmpty()) { choixPersonne(); return }
+        // Lot 5 : un espace à la fois. L'assistant des autorisations se suit dans le premier (Aujourd'hui ou Moi).
+        espace = if (assistant) Espaces.accueil(Etat.parent) else Espaces.valide(Etat.parent, espace)
+        montrerNav(true)
 
         val toutes = protections()
         val manquantes = toutes.filter { !it.ok() && it.possible() }
         val impossibles = toutes.filter { !it.ok() && !it.possible() }
 
+        when (espace) {
+            Espaces.AUJOURDHUI -> espaceAujourdhui(toutes, manquantes, impossibles)
+            Espaces.PERSONNES -> espacePersonnes()
+            Espaces.APPAREILS -> espaceAppareils(toutes, manquantes, impossibles)
+            Espaces.REGLAGES -> espaceReglages(toutes, manquantes, impossibles)
+            else -> espaceMoi(toutes, manquantes, impossibles)
+        }
+        racine.addView(Ui.espace(this, 24f))
+    }
+
+    // ------------------------------------------------------------- Lot 5 : les espaces
+
+    /**
+     * Aujourd'hui (Décideur) : l'état, les alertes, ce qui est à décider, les actions rapides (pause générale,
+     * ajouter du temps, messages) et le temps du jour — ce que montrait l'écran principal 1.71.0.
+     */
+    private fun espaceAujourdhui(toutes: List<Protection>, manquantes: List<Protection>, impossibles: List<Protection>) {
+        carteEtat()
+        // 15-10 (retour d'essai) : « Offre-nous un café » sur la première page, bien visible (avant : au fond des réglages).
+        carteSoutien()
         bandeauMiseAJour()
         if (manquantes.isNotEmpty()) alerteAutorisations(toutes, manquantes, impossibles)
         alertesAccueil()
-
-        if (Etat.parent) actionsDecideur() else actionsDemandeur()
+        actionsDecideur()
         monTemps()
-        reglagesReplies()
-        ligneAutorisations(toutes, manquantes, impossibles)
-        ligneVersion()
-        racine.addView(Ui.espace(this, 24f))
+    }
+
+    /**
+     * 15-10 (retour d'essai) : soutenir le projet, sur la première page d'un Décideur — un petit QR de la page de don, le texte, le
+     * badge s'il est actif. Un toucher : l'explication et la page de don (Soutien.expliquer).
+     */
+    private fun carteSoutien() {
+        // 1.93.05 (retour 33) : sur la télé, le soutien a sa carte à elle (QR dans le menu des réglages de la télé).
+        if (ReglagesTvActivity.estTele(this)) return
+        val c = Ui.carte(this, Ui.CARTE_HAUTE).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL; tag = "soutien" }
+        val cote = Ui.dp(this, 56f)
+        Soutien.qr(cote)?.let { b ->
+            c.addView(android.widget.ImageView(this).apply {
+                setImageBitmap(b); tag = "qr_soutien"; importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                background = Ui.fond(android.graphics.Color.WHITE, Ui.dp(this@SetupActivity, 6f).toFloat()); val p = Ui.dp(this@SetupActivity, 3f); setPadding(p, p, p, p)
+            }, LinearLayout.LayoutParams(cote + Ui.dp(this, 6f), cote + Ui.dp(this, 6f)).apply { marginEnd = Ui.dp(this@SetupActivity, 14f) })
+        }
+        val col = Ui.colonne(this)
+        col.addView(Ui.texte(this, getString(R.string.soutien_carte), 17f, Ui.TEXTE, gras = true))
+        // Le badge (soutien actif) sur sa propre ligne, à l'or, comme sur la télé.
+        if (Soutien.actif()) col.addView(Ui.texte(this, getString(R.string.soutien_badge), 13f, Ui.OR, gras = true))
+        col.addView(Ui.texte(this, getString(R.string.soutien_titre), 13f, Ui.TEXTE_2))
+        c.addView(Ui.poids(col))
+        c.addView(Ui.texte(this, "›", 22f, Ui.TEXTE_2))
+        c.contentDescription = getString(R.string.soutien_carte) + ", " + getString(R.string.soutien_titre) + (if (Soutien.actif()) ", " + getString(R.string.soutien_badge) else "")
+        c.isClickable = true; c.isFocusable = true
+        c.setOnClickListener { Soutien.expliquer(this, ReglagesTvActivity.estTele(this)) }
+        racine.addView(c)
+    }
+
+    /** Moi (Demandeur) : l'état de mon appareil, mes demandes (temps, accès) et mon temps du jour. */
+    private fun espaceMoi(toutes: List<Protection>, manquantes: List<Protection>, impossibles: List<Protection>) {
+        carteEtat()
+        bandeauMiseAJour()
+        if (manquantes.isNotEmpty()) alerteAutorisations(toutes, manquantes, impossibles)
+        alertesAccueil()
+        actionsDemandeur()
+        monTemps()
+    }
+
+    /** Personnes : une ligne par personne suivie (relevé de gestion), qui ouvre sa fiche ; puis tout le détail. */
+    private fun espacePersonnes() {
+        chargerResume()
+        val r = resumeGestion
+        racine.addView(Ui.section(this, getString(R.string.espace_personnes)))
+        if (r == null) { racine.addView(texteVide(getString(R.string.commun_chargement))); return }
+        val appareils = appareilsSuivis(r).associateBy { it.optString("id") }
+        val a = r.optJSONArray("personnes") ?: org.json.JSONArray()
+        val personnes = (0 until a.length()).mapNotNull { a.optJSONObject(it) }.filter { !it.optBoolean("parent") && it.optString("entite").isNotEmpty() }
+        val liste = personnes.map { it.optString("entite") to it.optString("prenom") }
+        if (personnes.isEmpty()) racine.addView(texteVide(getString(R.string.lot5_personnes_vide)))
+        val temps = Modules.actif(this, Modules.TEMPS)
+        personnes.forEach { p ->
+            val ids = p.optJSONArray("appareils")?.let { x -> (0 until x.length()).map { x.optString(it) } }.orEmpty()
+            val siens = ids.mapNotNull { appareils[it] }
+            val detail = listOfNotNull(
+                p.optString("role").takeIf { it.isNotEmpty() },
+                resources.getQuantityString(R.plurals.parents_n_appareils, ids.size, ids.size),
+                p.optJSONObject("temps")?.takeIf { temps }?.let { Profil.duree(it.optInt("actif")) },
+                resumeListe(siens).takeIf { siens.isNotEmpty() },
+            ).joinToString(" · ")
+            racine.addView(ligneReglage(p.optString("prenom"), detail) { FichePersonneActivity.ouvrir(this, p.optString("entite"), liste) })
+        }
+        racine.addView(Ui.marge(this, ligneReglage(getString(R.string.lot5_voir_tous), "") { ParentsActivity.ouvrir(this) }, haut = 8f))
+    }
+
+    /** Appareils : « Cet appareil » en tête (état, autorisations), puis tous les appareils suivis, chacun vers son détail. */
+    private fun espaceAppareils(toutes: List<Protection>, manquantes: List<Protection>, impossibles: List<Protection>) {
+        chargerResume()
+        racine.addView(Ui.section(this, getString(R.string.lot5_cet_appareil)))
+        val possibles = toutes.size - impossibles.size
+        val detail = listOf(etatCetAppareil(),
+            if (manquantes.isEmpty()) resources.getQuantityString(R.plurals.setup_n_accordees, possibles, possibles)
+            else resources.getQuantityString(R.plurals.lot6_n_sur_m_accordees, possibles - manquantes.size, possibles - manquantes.size, possibles)).joinToString(" · ")
+        // Toucher : les autorisations de cet appareil, dans Réglages › Avancé (un seul endroit).
+        racine.addView(ligneReglage(cfg.nom.ifEmpty { Identite.appareil() }, detail) {
+            avanceDeplie = true; autorisationsDepliees = true; choisirEspace(Espaces.REGLAGES)
+        }.apply { tag = "cet_appareil" })
+        racine.addView(Ui.section(this, getString(R.string.setup_tous_appareils)))
+        val r = resumeGestion
+        if (r == null) { racine.addView(texteVide(getString(R.string.commun_chargement))) }
+        else {
+            // La personne de chaque appareil : son détail s'ouvre déplié dans l'espace de gestion.
+            val aQui = HashMap<String, String>()
+            r.optJSONArray("personnes")?.let { ps -> for (i in 0 until ps.length()) ps.optJSONObject(i)?.let { p ->
+                p.optJSONArray("appareils")?.let { x -> for (k in 0 until x.length()) aQui[x.optString(k)] = p.optString("entite") }
+            } }
+            val suivis = appareilsSuivis(r)
+            if (suivis.isEmpty()) racine.addView(texteVide(getString(R.string.parents_aucun_appareil)))
+            suivis.forEach { a ->
+                val nom = a.optString("nom"); val prenom = a.optString("prenom")
+                val titre = if (prenom.isNotEmpty() && prenom != nom) getString(R.string.parents_appareil_etat, prenom, nom) else nom
+                racine.addView(ligneReglage(titre, resumeListe(listOf(a))) {
+                    startActivity(Intent(this, ParentsActivity::class.java).putExtra(ParentsActivity.EXTRA_DEPLIER, aQui[a.optString("id")] ?: "autres"))
+                })
+            }
+        }
+        racine.addView(Ui.marge(this, ligneReglage(getString(R.string.lot5_voir_tous), "") { ParentsActivity.ouvrir(this) }, haut = 8f))
+    }
+
+    /**
+     * Réglages : « Pour tous » (apparence, veille, son, accueil…), « Réservé aux {décideurs} 🔒 » (l'espace gestion,
+     * derrière le code), puis « Avancé », replié (autorisations, version). Mêmes groupes et même ordre partout.
+     */
+    private fun espaceReglages(toutes: List<Protection>, manquantes: List<Protection>, impossibles: List<Protection>) {
+        // 15-10 (retour d'essai) : « Offre-nous un café » saute aux yeux dès l'entrée dans les réglages, tout en haut, sans défiler.
+        carteSoutien()
+        racine.addView(Ui.marge(this, Ui.section(this, getString(R.string.lot5_pour_tous)), haut = 10f))
+        reglagesPourTous()
+        racine.addView(Ui.marge(this, Ui.section(this, getString(R.string.lot5_reserve, Vocabulaire.decideurs(this))), haut = 10f))
+        reglagesReserves()
+        racine.addView(Ui.marge(this, ligneReglage(getString(R.string.lot5_avance), getString(R.string.lot5_avance_detail), if (avanceDeplie) "▾" else "▸") {
+            avanceDeplie = !avanceDeplie; dessiner()
+        }.apply { tag = "avance" }, haut = 10f))
+        if (avanceDeplie) {
+            ligneAutorisations(toutes, manquantes, impossibles)
+            ligneVersion()
+        }
+    }
+
+    private fun texteVide(t: String): View = Ui.carte(this).apply { addView(Ui.texte(this@SetupActivity, t, 14f, Ui.TEXTE_2)) }
+
+    /** Les appareils suivis du relevé de gestion (hors ceux des décideurs). */
+    private fun appareilsSuivis(r: JSONObject): List<JSONObject> {
+        val a = r.optJSONArray("appareils") ?: return emptyList()
+        return (0 until a.length()).mapNotNull { a.optJSONObject(it) }.filter { !it.optBoolean("parent") }
+    }
+
+    /** L'état de cet appareil, en un mot (comme la grande carte). */
+    private fun etatCetAppareil(): String = getString(when {
+        Etat.horsLigne() -> R.string.commun_hors_ligne
+        cfg.modeParent -> R.string.statut_suspendue
+        Etat.verrouilleEffectif() -> R.string.statut_ferme
+        else -> R.string.statut_ouvert
+    })
+
+    // ------------------------------------------------------------- Lot 5 : navigation entre espaces
+
+    /** La colonne centrée des grands écrans : au plus 760 dp de large, dans la place laissée par le rail. */
+    private fun ajusterColonne() {
+        val largeur = resources.configuration.screenWidthDp
+        val pris = if (!navVisible) 0 else when (modeNav) { Espaces.RAIL -> 104; Espaces.RAIL_TELE -> (largeur * 0.24f).toInt(); else -> 0 }
+        val reste = largeur - pris
+        val cote = if (reste > 800) Ui.dp(this, (reste - 760) / 2f) else Ui.dp(this, 20f)
+        racine.setPadding(cote, racine.paddingTop, cote, racine.paddingBottom)
+    }
+
+    private fun montrerNav(oui: Boolean) {
+        // 1.93.05 (retour 33) : sur la télé, l'espace de gestion (ouvert derrière le code) sans le menu « Moi / Réglages ».
+        if (oui && ReglagesTvActivity.estTele(this) && intent?.getBooleanExtra(EXTRA_GESTION, false) == true) { montrerNav(false); return }
+        if (oui) construireNav()
+        if (navVisible != oui) { navVisible = oui; nav.visibility = if (oui) View.VISIBLE else View.GONE; ajusterColonne() }
+    }
+
+    private fun libelleEspace(e: String): String = getString(when (e) {
+        Espaces.AUJOURDHUI -> R.string.espace_aujourdhui
+        Espaces.PERSONNES -> R.string.espace_personnes
+        Espaces.APPAREILS -> R.string.espace_appareils
+        Espaces.REGLAGES -> R.string.espace_reglages
+        else -> R.string.espace_moi
+    })
+
+    private fun iconeEspace(e: String): Int = when (e) {
+        Espaces.AUJOURDHUI -> R.drawable.ic_espace_aujourdhui
+        Espaces.PERSONNES -> R.drawable.ic_espace_personnes
+        Espaces.APPAREILS -> R.drawable.ic_espace_appareils
+        Espaces.REGLAGES -> R.drawable.ic_espace_reglages
+        else -> R.drawable.ic_espace_moi
+    }
+
+    /**
+     * La barre (téléphone : icône et libellé toujours visibles, 4 onglets au plus) ou le rail (tablette ; télé à
+     * grandes rubriques). L'onglet affiché se reconnaît à son fond en pilule et à son libellé en gras, pas qu'à la
+     * couleur ; chaque rubrique fait au moins 48 dp et garde un anneau de focus visible (télécommande, clavier).
+     */
+    private fun construireNav() {
+        val liste = Espaces.pour(Etat.parent)
+        if (liste == navEspaces && nav.childCount > 0) { majNav(); return }
+        navEspaces = liste
+        nav.removeAllViews()
+        nav.contentDescription = getString(R.string.lot5_navigation)
+        val p = Ui.dp(this, 8f)
+        when (modeNav) {
+            Espaces.BARRE -> {
+                nav.orientation = LinearLayout.HORIZONTAL
+                nav.setPadding(p, p / 2, p, p)
+                nav.background = android.graphics.drawable.LayerDrawable(arrayOf(android.graphics.drawable.ColorDrawable(Ui.LIGNE), android.graphics.drawable.ColorDrawable(Ui.CARTE)))
+                    .apply { setLayerInset(1, 0, Ui.dp(this@SetupActivity, 1f), 0, 0) }
+            }
+            Espaces.RAIL -> {
+                nav.orientation = LinearLayout.VERTICAL
+                nav.setPadding(p, Ui.dp(this, 20f), p, p)
+                nav.setBackgroundColor(Ui.CARTE)
+                nav.minimumWidth = Ui.dp(this, 96f)
+            }
+            else -> {
+                nav.orientation = LinearLayout.VERTICAL
+                val dm = resources.displayMetrics
+                nav.setPadding(Ui.dp(this, 16f) + ZoneSure.x(this@SetupActivity, 0f), ZoneSure.y(this@SetupActivity, 0.06f), Ui.dp(this, 12f), ZoneSure.y(this@SetupActivity, 0.05f))
+                nav.setBackgroundColor(Palette.melanger(Ui.FOND, Ui.TEXTE, 0.04f))
+                nav.minimumWidth = (dm.widthPixels * 0.22f).toInt()
+                // La marque est déjà en tête de la page : le rail ne la répète pas (lot 6).
+            }
+        }
+        liste.forEach { e -> nav.addView(elementNav(e)) }
+        majNav()
+    }
+
+    private fun elementNav(e: String): View {
+        val tv = tele
+        val item = LinearLayout(this).apply {
+            tag = "nav_$e"
+            orientation = if (tv) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+            gravity = if (tv) Gravity.CENTER_VERTICAL or Gravity.START else Gravity.CENTER
+            isClickable = true; isFocusable = true
+            val h = Ui.dp(this@SetupActivity, if (tv) 14f else 2f); val v = Ui.dp(this@SetupActivity, if (tv) 12f else 6f)
+            setPadding(h, v, h, v)
+            minimumHeight = Ui.dp(this@SetupActivity, if (tv) 64f else if (modeNav == Espaces.RAIL) 64f else Ui.CIBLE_MIN + 8f)
+        }
+        val icone = ImageView(this).apply { setImageResource(iconeEspace(e)); tag = "icone" }
+        val d = Ui.dp(this, if (tv) 30f else 24f)
+        item.addView(icone, LinearLayout.LayoutParams(d, d).apply { if (tv) rightMargin = Ui.dp(this@SetupActivity, 14f) else bottomMargin = Ui.dp(this@SetupActivity, 2f) })
+        // Le libellé brut (sans coupure douce) : un mot entier, que la taille ajuste au besoin.
+        val libelle = Ui.texte(this, libelleEspace(e), if (tv) 22f else 13f, Ui.TEXTE_2, gras = false, centre = !tv).apply { tag = "libelle"; text = libelleEspace(e) }
+        item.addView(libelle, LinearLayout.LayoutParams(if (tv) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        // Libellés traduits longs (« Einstellungen », 130 %) : sur une ligne, la taille baisse plutôt que de couper
+        // le mot ; mesurée en gras (l'onglet affiché l'est), jamais de points de suspension.
+        if (!tv) libelleSurUneLigne(libelle)
+        item.setOnClickListener { choisirEspace(e) }
+        // Télé : la page suit le focus du rail (comme les réglages de la télé) ; l'anneau est celui de partout.
+        Ui.anneauFocus(item, Ui.themeActif(this), 14f, agrandir = tv) { a ->
+            // Seulement sous le doigt de la télécommande : le focus posé par Android à l'ouverture ne change pas d'espace.
+            if (a && tv && !enConstruction && e != espace && android.os.SystemClock.uptimeMillis() - toucheA < 1000) choisirEspace(e)
+        }
+        val ecart = Ui.dp(this, 1f); val sous = Ui.dp(this, if (tv) 6f else 8f)
+        val lp = if (modeNav == Espaces.BARRE) LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = ecart; rightMargin = ecart }
+            else LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = sous }
+        item.layoutParams = lp
+        return item
+    }
+
+    private fun libelleSurUneLigne(t: TextView) {
+        t.maxLines = 1; t.ellipsize = null; t.setHorizontallyScrolling(false)
+        t.addOnLayoutChangeListener { _, l, _, r, _, ol, _, or2, _ ->
+            if (r - l == or2 - ol) return@addOnLayoutChangeListener
+            val dispo = (r - l - t.paddingLeft - t.paddingRight) * 0.96f
+            if (dispo <= 0f) return@addOnLayoutChangeListener
+            val p = android.text.TextPaint(t.paint).apply { typeface = Polices.gras(this@SetupActivity) }
+            val echelle = resources.displayMetrics.scaledDensity
+            var sp = 13f
+            while (sp > 7f) { p.textSize = sp * echelle; if (p.measureText(t.text.toString()) <= dispo) break; sp -= 0.5f }
+            if (kotlin.math.abs(t.textSize - sp * echelle) > 0.5f) t.post { t.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, sp) }
+        }
+    }
+
+    /** L'onglet affiché : fond en pilule, libellé en gras, icône dorée ; annoncé « affiché » au lecteur d'écran. */
+    private fun majNav() {
+        for (i in 0 until nav.childCount) {
+            val item = nav.getChildAt(i) as? LinearLayout ?: continue
+            val e = (item.tag as? String)?.removePrefix("nav_")?.takeIf { (item.tag as String).startsWith("nav_") } ?: continue
+            val choisi = e == espace
+            item.isSelected = choisi
+            item.background = if (choisi) Ui.fond(Palette.melanger(Ui.CARTE, Ui.OR, 0.16f), Ui.dp(this, 16f).toFloat(), Ui.dp(this, 1f), Palette.melanger(Ui.CARTE, Ui.OR, 0.5f)) else null
+            (item.findViewWithTag<View>("libelle") as? TextView)?.apply {
+                setTextColor(if (choisi) Ui.TEXTE else Ui.TEXTE_2)
+                typeface = if (choisi) Polices.gras(this@SetupActivity) else Polices.texte(this@SetupActivity)
+            }
+            (item.findViewWithTag<View>("icone") as? ImageView)?.let { if (Build.VERSION.SDK_INT >= 21) it.imageTintList = android.content.res.ColorStateList.valueOf(if (choisi) Ui.OR else Ui.TEXTE_2) }
+            item.contentDescription = if (choisi) getString(R.string.lot5_espace_affiche, libelleEspace(e)) else libelleEspace(e)
+        }
+    }
+
+    /** Passe à l'espace [e] : la page repart du haut ; le rail garde le focus (télé). */
+    private fun choisirEspace(e: String) {
+        val cible = Espaces.valide(Etat.parent, e)
+        if (cible == espace) { defile.smoothScrollTo(0, 0); return }
+        espace = cible
+        defile.scrollTo(0, 0)
+        dessiner()
+    }
+
+    private fun estDans(v: View, parent: View): Boolean { var x: View? = v; while (x != null) { if (x === parent) return true; x = x.parent as? View }; return false }
+
+    private fun focusRail() { nav.findViewWithTag<View>("nav_$espace")?.requestFocus() }
+
+    /**
+     * Rail (télé, tablette au clavier) : droite depuis le rail entre dans la page (sa première case, jamais une
+     * action sensible : celles-ci ne sont jamais en tête d'un espace) ; gauche au bord de la page revient au rail ;
+     * haut et bas au bout de la page la font seulement défiler (le focus ne saute pas dans le rail).
+     */
+    override fun dispatchKeyEvent(ev: android.view.KeyEvent): Boolean {
+        if (ev.action == android.view.KeyEvent.ACTION_DOWN) toucheA = android.os.SystemClock.uptimeMillis()
+        if (navVisible && modeNav != Espaces.BARRE && ev.action == android.view.KeyEvent.ACTION_DOWN) {
+            val f = currentFocus
+            val code = ev.keyCode
+            if (f != null && estDans(f, nav) && code == android.view.KeyEvent.KEYCODE_DPAD_RIGHT) {
+                val premier = racine.getFocusables(View.FOCUS_FORWARD).firstOrNull { it.isShown }
+                if (premier != null) { premier.requestFocus(); return true }
+            }
+            if (f != null && estDans(f, racine)) {
+                val sens = when (code) {
+                    android.view.KeyEvent.KEYCODE_DPAD_LEFT -> View.FOCUS_LEFT
+                    android.view.KeyEvent.KEYCODE_DPAD_UP -> View.FOCUS_UP
+                    android.view.KeyEvent.KEYCODE_DPAD_DOWN -> View.FOCUS_DOWN
+                    else -> 0
+                }
+                if (sens != 0 && android.view.FocusFinder.getInstance().findNextFocus(defile, f, sens) == null) {
+                    if (sens == View.FOCUS_LEFT) focusRail()
+                    else defile.smoothScrollBy(0, (if (sens == View.FOCUS_DOWN) 1 else -1) * defile.height / 3)
+                    return true
+                }
+            }
+        }
+        return super.dispatchKeyEvent(ev)
+    }
+
+    /** Retour : de la page au rail (télé), puis d'un espace au premier (Aujourd'hui ou Moi) ; de là, comme avant. */
+    @Suppress("OVERRIDE_DEPRECATION")
+    override fun onBackPressed() {
+        val f = currentFocus
+        if (navVisible && tele && f != null && estDans(f, racine)) { focusRail(); return }
+        val haut = if (navVisible) Espaces.retour(Etat.parent, espace) else null
+        if (haut != null) {
+            choisirEspace(haut)
+            if (tele) focusRail()
+            return
+        }
+        @Suppress("DEPRECATION") super.onBackPressed()
     }
 
     private fun entete() {
@@ -290,7 +703,7 @@ class SetupActivity : Activity() {
                     else getString(R.string.setup_reouverture, Etat.quand(prochain)))
             }
             prochain > 0 && prochain - maintenant < 24 * 3600_000L ->
-                lignes.add(getString(R.string.setup_encore, Temps.duree(minutesJusqua(prochain))))
+                lignes.add(Tr.finPhrase(getString(R.string.setup_encore, Temps.duree(minutesJusqua(prochain)))))
             else -> lignes.add(getString(R.string.statut_aucune_fermeture))
         }
         if (!horsLigne && !pause && !ferme && prochain > 0 && prochain - maintenant < 24 * 3600_000L)
@@ -400,17 +813,8 @@ class SetupActivity : Activity() {
         racine.addView(c)
     }
 
-    /** L'ancienne Vision encore là, ou Vision encore accueil alors que la fonction est coupée : sous l'état. */
+    /** Vision encore accueil alors que la fonction est coupée : sous l'état. */
     private fun alertesAccueil() {
-        if (Migration.ancienneInstallee(this)) {
-            val a = Ui.carte(this, Ui.CARTE_HAUTE)
-            a.addView(Ui.texte(this, getString(R.string.setup_ancienne_titre), 16f, Ui.TEXTE, gras = true))
-            a.addView(Ui.marge(this, Ui.texte(this, getString(R.string.setup_ancienne_texte), 13f, Ui.TEXTE_2), haut = 4f))
-            a.addView(Ui.marge(this, Ui.boutonPrimaire(this, getString(R.string.setup_ancienne_supprimer)) {
-                if (!Migration.supprimerAncienne(this)) toast(getString(R.string.setup_desinstallation_impossible))
-            }, haut = 12f))
-            racine.addView(a)
-        }
         if (!Modules.actif(this, Modules.ACCUEIL) && AccueilDefaut.possible(this) && AccueilDefaut.estAccueil(this)) {
             val ad = Ui.carte(this, Ui.CARTE_HAUTE)
             ad.addView(Ui.texte(this, getString(R.string.setup_encore_accueil), 16f, Ui.TEXTE, gras = true))
@@ -440,16 +844,24 @@ class SetupActivity : Activity() {
         chargerResume()
         val r = resumeGestion
         val m = Modules.actifs(this)
-        val tuiles = ArrayList<View>()
+        // Lot 5 : « À décider » (le même compteur que la boîte de l'espace de gestion), puis les actions rapides.
+        // « Tous les appareils » a quitté cette page pour l'espace Appareils.
         if (Modules.actifDans(m, Modules.DEMANDES) || Modules.actifDans(m, Modules.DEVERROUILLAGE)) {
-            val n = r?.optJSONArray("demandes")?.length() ?: -1
-            tuiles.add(Ui.tuile(this, if (n > 0) getString(R.string.setup_demandes_n, n) else getString(R.string.setup_demandes),
-                when { n < 0 -> getString(R.string.setup_demandes_detail); n == 0 -> getString(R.string.setup_demandes_aucune)
-                    else -> resources.getQuantityString(R.plurals.setup_a_traiter, n, n) }, n > 0) {
+            // 16-10 (l'auteur : « 1 demande en attente », et aucune demande à l'ouverture) : on comptait chaque LOT (« 229 éléments
+            // à classer ») comme une demande. Les demandes (et appareils à valider) d'un côté, les lots en clair de l'autre.
+            val n = r?.let { Demandes.total(it) } ?: -1
+            val lots = Demandes.lots(r).map { it.first }
+            racine.addView(Ui.section(this, getString(R.string.adec_titre)))
+            val t = Ui.tuile(this, if (n > 0) getString(R.string.setup_demandes_n, n) else getString(R.string.setup_demandes),
+                when { n < 0 -> getString(R.string.setup_demandes_detail)
+                    n == 0 && lots.isNotEmpty() -> lots.joinToString(" · ")
+                    n == 0 -> getString(R.string.setup_demandes_aucune)
+                    else -> resources.getQuantityString(R.plurals.setup_a_traiter, n, n) }, n > 0 || lots.isNotEmpty()) {
                 ParentsActivity.ouvrir(this)
-            })
+            }
+            racine.addView(Ui.marge(this, t.apply { layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }, bas = 10f))
         }
-        tuiles.add(Ui.tuile(this, getString(R.string.setup_tous_appareils), resumeAppareils(r) ?: getString(R.string.setup_tous_appareils_detail), false) { ParentsActivity.ouvrir(this) })
+        val tuiles = ArrayList<View>()
         if (PauseGenerale.visible(Modules.actifDans(m, Modules.PAUSE_GENERALE), Profil.fonctions(this))) {
             val fin = r?.let { PauseGenerale.lire(it) }?.takeIf { it > System.currentTimeMillis() }
             tuiles.add(Ui.tuile(this, getString(R.string.parents_pause_generale), if (fin != null) getString(R.string.setup_en_cours_jusqua, PauseGenerale.heure(fin)) else getString(R.string.setup_fermer_tous), fin != null) {
@@ -463,13 +875,14 @@ class SetupActivity : Activity() {
         if (Modules.actif(this, Modules.MESSAGES)) tuiles.add(Ui.tuile(this, getString(R.string.msgenv_titre), getString(R.string.setup_message_detail), false) {
             startActivity(Intent(this, MessageEnvoiActivity::class.java))
         })
+        // Réveil : les réveils de tout le monde (création et modification selon les droits).
+        if (Modules.actif(this, Modules.REVEIL)) tuiles.add(tuileReveils())
+        if (tuiles.isNotEmpty()) racine.addView(Ui.section(this, getString(R.string.lot5_actions_rapides)))
         grille(tuiles)
     }
 
-    /** « 5 ouverts · 1 fermé » sur les appareils suivis (hors ceux des gestionnaires), ou null sans relevé. */
-    private fun resumeAppareils(r: JSONObject?): String? {
-        val a = r?.optJSONArray("appareils") ?: return null
-        val suivis = (0 until a.length()).mapNotNull { a.optJSONObject(it) }.filter { !it.optBoolean("parent") }
+    /** « 5 ouverts · 1 fermé » sur des appareils suivis (hors ceux des décideurs). */
+    private fun resumeListe(suivis: List<JSONObject>): String {
         if (suivis.isEmpty()) return getString(R.string.setup_aucun_suivi)
         val horsLigne = suivis.count { !it.optBoolean("en_ligne") }
         val fermes = suivis.count { it.optBoolean("en_ligne") && it.optBoolean("verrouille") }
@@ -495,43 +908,44 @@ class SetupActivity : Activity() {
         }.start()
     }
 
+    /** Réveil : la tuile « Réveils » et la prochaine alarme armée sur cet appareil. */
+    private fun tuileReveils(): View {
+        val armee = Reveils.prochaineArmee(this)
+        return Ui.tuile(this, getString(R.string.reveils_titre),
+            if (armee > 0) getString(R.string.reveils_prochain, Tr.date(armee, "EEEdMMM") + " · " + Tr.heure(armee)) else getString(R.string.reveils_tuile_detail), false) {
+            ReveilsActivity.ouvrir(this)
+        }
+    }
+
+    /** Niveau sonore : l'état de la mesure sur cet appareil ; un toucher explique et demande le micro. */
+    private fun tuileSon(): View = Ui.tuile(this, getString(R.string.son_titre), NiveauSonore.libelle(this), false) { NiveauSonore.ouvrir(this) }
+
     /** Demandeur : demander du temps, demander un déverrouillage (module « Demandes » actif). */
     private fun actionsDemandeur() {
+        // Niveau sonore : visible sur l'appareil mesuré (le micro s'y autorise), même sans le module « Demandes ».
+        if (NiveauSonore.demandee(this))
+            racine.addView(Ui.marge(this, tuileSon().apply { layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }, bas = 10f))
+        // Réveil : « Mes réveils », même sans le module « Demandes ».
+        if (!cfg.modeParent && Modules.actif(this, Modules.REVEIL))
+            racine.addView(Ui.marge(this, tuileReveils().apply { layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }, bas = 10f))
         if (cfg.modeParent || !Modules.actif(this, Modules.DEMANDES)) return
         val m = Modules.actifs(this)
         val tuiles = ArrayList<View>()
         val envoyee = cfg.demandeTemps > 0 || System.currentTimeMillis() - demandeTempsA < 10 * 60_000L
         if (Modules.horaires(m)) tuiles.add(Ui.tuile(this, getString(R.string.setup_demander_temps),
-            if (envoyee) getString(R.string.setup_demande_envoyee_detail, Vocabulaire.decideur(this)) else getString(R.string.setup_durees_exemple, Tr.duree(15), Tr.duree(30), Tr.duree(60)), false) { demanderTemps() })
+            if (envoyee) getString(R.string.setup_demande_envoyee_detail, Vocabulaire.decideur(this)) else getString(R.string.setup_durees_exemple, Tr.duree(Durees.DEMANDE[0]), Tr.duree(Durees.DEMANDE[1]), Tr.duree(Durees.DEMANDE[2])), false) { demanderTemps() })
         val nb = Etat.recentsBloques().size
         val deverrouiller = Modules.actifDans(m, Modules.DEVERROUILLAGE)
         tuiles.add(Ui.tuile(this, getString(R.string.deva_titre),
             if (nb > 0) resources.getQuantityString(R.plurals.setup_fermes_recemment, nb, nb) else getString(R.string.setup_deverrouillage_detail), false) {
-            if (!deverrouiller) startActivity(Intent(this, FermesActivity::class.java))
-            else Ui.dialogue(this).setTitle(R.string.deva_titre)
-                .setItems(arrayOf(if (nb > 0) getString(R.string.setup_appli_site_ferme_n, nb) else getString(R.string.setup_appli_site_ferme), getString(R.string.setup_tout_appareil))) { _, k ->
-                    if (k == 0) startActivity(Intent(this, FermesActivity::class.java)) else DeverrouillageActivity.ouvrir(this, "parent")
-                }.setNegativeButton(R.string.commun_annuler, null).show()
+            DemandesAppareil.demanderDeverrouillage(this)
         })
         // Une colonne : deux gros boutons l'un sous l'autre, lisibles de loin sur une télé.
         tuiles.forEach { racine.addView(Ui.marge(this, it.apply { layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }, bas = 10f)) }
         racine.addView(Ui.espace(this, 6f))
     }
 
-    private fun demanderTemps() {
-        val choix = listOf(15 to resources.getQuantityString(R.plurals.temps_minutes, 15, 15), 30 to resources.getQuantityString(R.plurals.temps_minutes, 30, 30),
-            60 to resources.getQuantityString(R.plurals.temps_heures, 1, 1), 120 to resources.getQuantityString(R.plurals.temps_heures, 2, 2))
-        Ui.dialogue(this).setTitle(R.string.setup_demander_temps)
-            .setItems(choix.map { it.second }.toTypedArray()) { _, k ->
-                cfg.demandeTemps = choix[k].first
-                demandeTempsA = System.currentTimeMillis()
-                AgentService.demarrer(this)
-                Ui.dialogue(this).setTitle(R.string.deva_envoyee)
-                    .setMessage(getString(R.string.setup_demande_temps_envoyee, Vocabulaire.decideur(this)))
-                    .setPositiveButton(R.string.commun_ok, null).show()
-                dessiner()
-            }.setNegativeButton(R.string.commun_annuler, null).show()
-    }
+    private fun demanderTemps() = DemandesAppareil.demanderTemps(this) { dessiner() }
 
     // ------------------------------------------------- Temps, réglages, autorisations, version
 
@@ -568,34 +982,22 @@ class SetupActivity : Activity() {
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = Ui.dp(this@SetupActivity, 8f) }
         }
 
-    private fun reglagesReplies() {
-        racine.addView(Ui.section(this, getString(R.string.setup_reglages)))
+    /** Lot 5 : Réglages › Pour tous (ce qui était « Réglages » sur l'écran principal, sans l'espace gestion). */
+    private fun reglagesPourTous() {
         val tele = ReglagesTvActivity.estTele(this)
-        racine.addView(ligneReglage(getString(R.string.setup_apparence), getString(R.string.setup_apparence_detail)) { ReglagesTvActivity.ouvrir(this, "s_apparence") })
-        val accueilActif = Modules.actif(this, Modules.ACCUEIL)
-        val detailAccueil = when {
-            tele -> getString(R.string.setup_accueil_detail_tele)
-            accueilActif && AccueilDefaut.possible(this) -> getString(if (AccueilDefaut.estAccueil(this)) R.string.setup_accueil_detail_oui else R.string.setup_accueil_detail_non)
-            else -> getString(R.string.setup_accueil_detail)
-        }
-        racine.addView(ligneReglage(getString(if (tele) R.string.setup_accueil else R.string.setup_accueil_widgets), detailAccueil) { ReglagesTvActivity.ouvrir(this, "s_accueil") })
-        if (!Identite.telephone(this) && Modules.actif(this, Modules.VEILLE))
-            racine.addView(ligneReglage(getString(R.string.eco_titre), getString(if (Modules.actif(this, Modules.VEILLE_TABLEAUX)) R.string.setup_veille_detail_tableaux else R.string.setup_veille_detail)) {
-                ReglagesTvActivity.ouvrir(this, "s_veille")
+        if (tele) {
+            // La télé garde ses réglages de l'appareil (rail, télécommande) : apparence, veille, son, accueil.
+            racine.addView(ligneReglage(getString(R.string.lot3_apparence_veille_son), getString(R.string.lot3_apparence_veille_son_detail)) {
+                ReglagesTvActivity.ouvrir(this, "s_apparence")
             })
+            racine.addView(ligneReglage(getString(R.string.setup_accueil), getString(R.string.setup_accueil_detail_tele)) { ReglagesTvActivity.ouvrir(this, "s_accueil") })
+        } else reglagesAppareil()
         // 1.76.0 (point 6 bis) : le statut permanent dans les notifications, quel que soit le lanceur.
         if (Modules.actif(this, Modules.TEMPS)) racine.addView(ligneReglage(getString(R.string.setup_statut_notif),
             getString(if (StatutNotif.voulu(this)) R.string.setup_statut_notif_affiche else R.string.setup_masque)) {
             StatutNotif.poser(this, !StatutNotif.voulu(this)); AgentService.demarrer(this); dessiner()
         })
-        // 2.0.0 (notifications v2, décision du projet) : le son des messages, choisi par la personne sur son appareil.
-        if (Modules.actif(this, Modules.MESSAGES)) racine.addView(ligneReglage(getString(R.string.setup_son_messages), MessagesV2.nomSon(MessagesV2.sonAppareil(this))) {
-            val s = MessagesV2.SONS
-            Ui.dialogue(this).setTitle(R.string.setup_son_messages)
-                .setSingleChoiceItems(s.map { MessagesV2.nomSon(it) }.toTypedArray(), s.indexOf(MessagesV2.sonAppareil(this))) { d, k ->
-                    MessagesV2.noterSon(this, s[k]); d.dismiss(); dessiner()
-                }.setNegativeButton(R.string.commun_annuler, null).show()
-        })
+        // 2.0.0 : le son des messages se choisit désormais dans « Apparence, veille et son » (Refonte lot 3).
         // 1.79.0 (point 13 bis) : l'écran verrouillé aux couleurs de Vision, et ce qu'il montre du statut.
         if (EcranVerrou.possible(this) && cfg.inscrit) {
             racine.addView(ligneReglage(getString(R.string.setup_verrou),
@@ -614,6 +1016,51 @@ class SetupActivity : Activity() {
         racine.addView(ligneReglage(getString(R.string.setup_ouvrir_accueil), getString(R.string.setup_ouvrir_accueil_detail)) {
             startActivity(Intent(this, LanceurActivity::class.java))
         })
+    }
+
+    /**
+     * 15-10 (l'auteur : « Réglages de l'appareil » presque obsolète sur le téléphone et la tablette) : ses réglages sont
+     * répartis — l'apparence et le fond dans Couleurs, la disposition et la zone du haut dans Disposition (menu de
+     * l'accueil) ; ici, ceux de l'appareil. Couleurs et Disposition sont aussi atteignables d'ici. L'écran de veille
+     * (tablette) et la musique gardent leur page (ReglagesTvActivity, une section seule).
+     */
+    private fun reglagesAppareil() {
+        val apres = { dessiner() }
+        racine.addView(ligneReglage(getString(R.string.manifeste_couleurs), Themes.libelle(Local.theme(this)) + " · " + ReglagesPartages.nomModeSombre(this)) {
+            startActivity(Intent(this, CouleursActivity::class.java))
+        }.apply { tag = "r_couleurs" })
+        if (Modules.actif(this, Modules.ACCUEIL)) racine.addView(ligneReglage(getString(R.string.reglagestv_disposition), DispositionAccueil.nomMode(this, Accueil.mode(this))) {
+            ReglagesPartages.menuDisposition(this, apres)
+        }.apply { tag = "r_disposition" })
+        if (Modules.actif(this, Modules.MESSAGES)) racine.addView(ligneReglage(getString(R.string.reglagestv_son_des_messages), MessagesV2.nomSon(MessagesV2.sonAppareil(this))) {
+            ReglagesPartages.choisirSonMessages(this, apres)
+        }.apply { tag = "son_messages" })
+        // L'œil sur le bouton Accueil de la barre de navigation (prototype, désactivé par défaut) et sa note.
+        racine.addView(ligneReglage(getString(R.string.oeilaccueil_titre), ReglagesPartages.nomOeilAccueil(this)) {
+            ReglagesPartages.basculerOeilAccueil(this, apres)
+        }.apply { tag = "oeil_accueil" })
+        racine.addView(Ui.marge(this, Ui.texte(this, getString(R.string.oeilaccueil_note), 13f, Ui.TEXTE_2), bas = 8f))
+        // La bulle ouvre l'écran de veille : sans le module « veille », elle n'a plus d'objet.
+        if (Modules.actif(this, Modules.VEILLE)) racine.addView(ligneReglage(getString(R.string.reglagestv_bulle), ReglagesPartages.nomBulle(this)) {
+            ReglagesPartages.basculerBulle(this, apres)
+        }.apply { tag = "bulle" })
+        val accueilActif = Modules.actif(this, Modules.ACCUEIL)
+        if (!accueilActif && AccueilDefaut.possible(this) && AccueilDefaut.estAccueil(this))
+            racine.addView(ligneReglage(getString(R.string.reglagestv_encore_accueil), getString(R.string.reglagestv_rendre_accueil)) { AccueilDefaut.rendreOrigine(this) }.apply { tag = "accueil_rendre" })
+        if (accueilActif && AccueilDefaut.possible(this)) racine.addView(ligneReglage(getString(R.string.reglagestv_faire_accueil),
+            getString(if (AccueilDefaut.estAccueil(this)) R.string.reglagestv_oui_fait else R.string.reglagestv_non_toucher)) {
+            if (!AccueilDefaut.estAccueil(this)) AccueilDefaut.demander(this)
+        }.apply { tag = "accueil_defaut" })
+        // Le mode de l'appareil (Gestion, Demandeur, affichage) : montré seulement.
+        racine.addView(ligneReglage(getString(R.string.modeappareil_titre), ReglagesPartages.nomModeAppareil(this), "") { }.apply { tag = "mode_appareil" })
+        // Les pages qui restent : l'écran de veille (tablette avec la veille) et la musique.
+        if (!Identite.telephone(this) && Modules.actif(this, Modules.VEILLE))
+            racine.addView(ligneReglage(getString(R.string.reglages_section_veille), getString(R.string.reglagestv_ouvrir)) { ReglagesTvActivity.ouvrir(this, "s_veille") }.apply { tag = "r_veille" })
+        racine.addView(ligneReglage(getString(R.string.musrech_section), getString(R.string.reglagestv_ouvrir)) { ReglagesMusique.ouvrir(this) }.apply { tag = "r_musique" })
+    }
+
+    /** Lot 5 : Réglages › Réservé aux {décideurs} 🔒 : l'espace gestion, derrière le code. */
+    private fun reglagesReserves() {
         // L'espace gestion se déplie sur place : code, empreinte, pause, désinstallation.
         val deplie = gestionDepliee || !cfg.aUnCode || cfg.modeParent || gestionOuverte
         val detail = when {
@@ -633,7 +1080,7 @@ class SetupActivity : Activity() {
     private fun ligneAutorisations(toutes: List<Protection>, manquantes: List<Protection>, impossibles: List<Protection>) {
         val titre = getString(if (manquantes.isEmpty()) R.string.setup_tout_en_ordre else R.string.setup_toutes_autorisations)
         val detail = if (manquantes.isEmpty()) resources.getQuantityString(R.plurals.setup_n_accordees, toutes.size - impossibles.size, toutes.size - impossibles.size)
-            else getString(R.string.setup_n_sur_m_accordees, toutes.size - manquantes.size - impossibles.size, toutes.size - impossibles.size)
+            else resources.getQuantityString(R.plurals.lot6_n_sur_m_accordees, toutes.size - manquantes.size - impossibles.size, toutes.size - manquantes.size - impossibles.size, toutes.size - impossibles.size)
         racine.addView(Ui.marge(this, ligneReglage(titre, detail, if (autorisationsDepliees) "▾" else "▸") { autorisationsDepliees = !autorisationsDepliees; dessiner() }, haut = 10f, bas = 8f))
         if (!autorisationsDepliees) return
         val protections = Ui.carte(this)
@@ -656,6 +1103,9 @@ class SetupActivity : Activity() {
         val v = Ui.texte(this, getString(if (prete) R.string.setup_version_maj_prete else R.string.setup_version_a_jour, BuildConfigCompat.version(this)), 13f, Ui.TEXTE_3, centre = true).apply {
             isFocusable = true; isClickable = true
             val p = Ui.dp(this@SetupActivity, 10f); setPadding(p, p, p, p)
+            // Lot 6 (APP-13, APP-21) : 48 dp de haut et l'anneau de focus commun, visible à la télécommande.
+            minHeight = Ui.dp(this@SetupActivity, Ui.CIBLE_MIN); gravity = Gravity.CENTER
+            Ui.anneauFocus(this, Ui.themeActif(this@SetupActivity), 12f, agrandir = false)
             contentDescription = getString(R.string.setup_version_description)
             setOnClickListener {
                 val corps = listOf(MiseAJour.etatAuto(this@SetupActivity), MiseAJour.etat).filter { it.isNotEmpty() }.joinToString("\n\n")
@@ -734,7 +1184,7 @@ class SetupActivity : Activity() {
         c.addView(Ui.marge(this, Ui.boutonPrimaire(this, getString(R.string.setup_connecter)) {
             val (externe, interne, cle) = analyserBloc(bloc.text.toString())
             if (externe.isEmpty() && interne.isEmpty() || cle.isEmpty()) {
-                toast(getString(R.string.setup_pas_trouve)); return@boutonPrimaire
+                toast(getString(R.string.setup_pas_trouve), OeilModele.Genre.ERREUR); return@boutonPrimaire
             }
             connecter(externe, interne, cle, user.text.toString())
         }, haut = 16f))
@@ -853,7 +1303,7 @@ class SetupActivity : Activity() {
         c.addView(adresse)
         val afficher: () -> Unit = {
             val url = normaliserAdresse(adresse.text.toString())
-            if (url.isEmpty()) { toast(getString(R.string.setup_ecris_adresse_ha)); adresse.requestFocus() }
+            if (url.isEmpty()) { toast(getString(R.string.setup_ecris_adresse_ha), OeilModele.Genre.ERREUR); adresse.requestFocus() }
             else startActivity(Intent(this, AppairageActivity::class.java).putExtra(AppairageActivity.EXTRA_ADRESSE, url))
         }
         val bouton = if (principale) Ui.boutonPrimaire(this, getString(R.string.setup_afficher_qr), afficher).apply { tag = "bienvenue_principal" }
@@ -917,9 +1367,9 @@ class SetupActivity : Activity() {
         c.addView(Ui.marge(this, Ui.boutonPrimaire(this, getString(R.string.setup_connecter)) {
             val url = normaliserAdresse(adresse.text.toString())
             val k = cle.text.toString().trim()
-            if (url.isEmpty()) { toast(getString(R.string.setup_ecris_adresse_serveur)); return@boutonPrimaire }
+            if (url.isEmpty()) { toast(getString(R.string.setup_ecris_adresse_serveur), OeilModele.Genre.ERREUR); return@boutonPrimaire }
             if (k.length < 6 || k.length > 64 || k.any { it.isWhitespace() }) {
-                toast(getString(R.string.setup_cle_longueur)); return@boutonPrimaire
+                toast(getString(R.string.setup_cle_longueur), OeilModele.Genre.ERREUR); return@boutonPrimaire
             }
             val prive = adressePrivee(url)
             connecter(if (prive) "" else url, if (prive) url else "", k, cfg.utilisateur)
@@ -969,7 +1419,7 @@ class SetupActivity : Activity() {
             c.addView(Ui.marge(this, Ui.boutonSecondaire(this, nom) {
                 cfg.personne = id; cfg.utilisateur = nom; cfg.personneAEnvoyer = true
                 AgentService.demarrer(this)
-                toast(getString(R.string.setup_appareil_de, nom))
+                toast(getString(R.string.setup_appareil_de, nom), OeilModele.Genre.SUCCES)
                 assistant = true; assistantDerniere = ""; avancerAssistant()
             }.apply { layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }, haut = 8f))
         }
@@ -987,8 +1437,11 @@ class SetupActivity : Activity() {
             c.addView(pin)
             c.addView(Ui.marge(this, Ui.boutonPrimaire(this, getString(R.string.setup_definir_code)) {
                 val code = pin.text.toString()
-                if (code.length < 4) { toast(getString(R.string.setup_au_moins_4)); return@boutonPrimaire }
-                cfg.definirCode(code); toast(getString(R.string.setup_code_enregistre)); dessiner()
+                if (code.length < 4) { toast(getString(R.string.setup_au_moins_4), OeilModele.Genre.ERREUR); return@boutonPrimaire }
+                CodeDecideur.definir(this, code, null) { res ->
+                    if (res.juste) { toast(getString(R.string.setup_code_enregistre), OeilModele.Genre.SUCCES); dessiner() }
+                    else toast(res.message, OeilModele.Genre.ERREUR)
+                }
             }, haut = 12f))
             return
         }
@@ -1022,33 +1475,27 @@ class SetupActivity : Activity() {
         // La durée, choisie maintenant ; au plus la « Durée max de pause » de cet appareil (Home Assistant).
         val choix = Pauses.choix(this)
         var minutes = choix.firstOrNull { it.second == 15 }?.second ?: choix.first().second
-        // 1.87.0 (recette visuelle) : les durées passent à la ligne au lieu de défiler hors de l'écran (« 1 h » coupé à 360 dp, police 130 %).
-        val duree = Pastilles(this, Ui.dp(this, 6f))
-        val boutonsDuree = ArrayList<android.widget.Button>()
-        fun peindre() { boutonsDuree.forEachIndexed { i, b -> val on = choix[i].second == minutes; b.alpha = if (on) 1f else 0.5f } }
-        choix.forEach { (lbl, m) ->
-            val b = Ui.boutonSecondaire(this, lbl) { minutes = m; peindre() }
-            boutonsDuree.add(b)
-            duree.addView(b)
-        }
-        peindre()
+        // 15-10 (règle UX de l'auteur) : étiquettes si 3 durées au plus tiennent sur une ligne, sinon une liste (ChoixAdaptatif).
+        val duree = Ui.choix(this, getString(R.string.setup_pause_texte), choix.map { (lbl, m) -> ChoixAdaptatif.Option(m.toString(), lbl) }, minutes.toString()) {
+            minutes = it.toIntOrNull() ?: minutes
+        }.apply { tag = "pause_duree" }
         c.addView(Ui.marge(this, duree, haut = 8f))
         c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.setup_pause_max, Pauses.max(this)), 12f, Ui.TEXTE_3), haut = 4f))
         val pin = Ui.champ(this, getString(R.string.garde_code_gestion), "", chiffres = true)
         c.addView(pin)
         c.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.setup_pause_code)) {
-            if (!cfg.verifierCode(pin.text.toString())) { toast(getString(R.string.setup_code_incorrect)); return@boutonSecondaire }
+            if (!cfg.verifierCode(pin.text.toString())) { toast(getString(R.string.setup_code_incorrect), OeilModele.Genre.ERREUR); return@boutonSecondaire }
             // Code juste sur l'appareil d'un parent : la biométrie (si HA la permet) se (ré)arme.
             Biometrie.armerApresCode(this)
             Pauses.mettre(this, minutes, "code")
-            toast(getString(R.string.setup_pause_n, minutes)); dessiner()
+            toast(getString(R.string.setup_pause_n, minutes), OeilModele.Genre.SUCCES); dessiner()
         }, haut = 10f))
         // Appareil d'un parent (décidé par Home Assistant) : empreinte ou visage à la place du code.
         if (Biometrie.disponible(this)) c.addView(Ui.marge(this, Ui.boutonPrimaire(this, getString(R.string.setup_pause_empreinte)) {
             val m = minutes
             Biometrie.demander(this, getString(R.string.setup_mettre_pause, m), ok = {
                 Pauses.mettre(this, m, "biometrie")
-                toast(getString(R.string.setup_pause_n, m)); dessiner()
+                toast(getString(R.string.setup_pause_n, m), OeilModele.Genre.SUCCES); dessiner()
             }, code = { pin.requestFocus() })
         }, haut = 10f))
     }
@@ -1062,9 +1509,16 @@ class SetupActivity : Activity() {
         c.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.setup_enregistrer_code)) {
             val a = nouveau.text.toString(); val b = encore.text.toString()
             when {
-                a.length < 4 -> toast(getString(R.string.setup_au_moins_4))
-                a != b -> toast(getString(R.string.setup_codes_differents))
-                else -> { cfg.definirCode(a); Biometrie.armerApresCode(this); toast(getString(R.string.setup_code_change)); dessiner() }
+                a.length < 4 -> toast(getString(R.string.setup_au_moins_4), OeilModele.Genre.ERREUR)
+                a != b -> toast(getString(R.string.setup_codes_differents), OeilModele.Genre.ERREUR)
+                // 16-10 (retour d'essai) : un Décideur change son code dans HA (le même partout) : l'ancien d'abord.
+                else -> {
+                    val changer = { ancien: String? -> CodeDecideur.definir(this, a, ancien) { res ->
+                        if (res.juste) { Biometrie.armerApresCode(this); toast(getString(R.string.setup_code_change), OeilModele.Genre.SUCCES); dessiner() }
+                        else toast(res.message, OeilModele.Genre.ERREUR)
+                    } }
+                    if (CodeDecideur.estDecideur(this) && CodeDecideur.codeHa(this) == true) Garde.saisirCodeActuel(this) { changer(it) } else changer(null)
+                }
             }
         }, haut = 8f))
         c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.setup_deverrouiller_avec), 15f, Ui.TEXTE, gras = true), haut = 18f))
@@ -1081,7 +1535,7 @@ class SetupActivity : Activity() {
             Biometrie.Etat.A_ACTIVER -> c.addView(Ui.marge(this, Ui.boutonPrimaire(this, getString(R.string.setup_bio_activer)) {
                 Biometrie.armerApresCode(this)
                 Biometrie.demander(this, getString(R.string.setup_bio_activer_raison),
-                    ok = { toast(getString(R.string.setup_bio_actives)); dessiner() },
+                    ok = { toast(getString(R.string.setup_bio_actives), OeilModele.Genre.SUCCES); dessiner() },
                     code = { Biometrie.couper(this); toast(getString(R.string.setup_bio_non_active)); dessiner() })
             }, haut = 8f))
             Biometrie.Etat.ACTIVEE -> c.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.setup_bio_ne_plus)) {
@@ -1092,12 +1546,10 @@ class SetupActivity : Activity() {
         c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.setup_gerer_telephone), 15f, Ui.TEXTE, gras = true), haut = 18f))
         c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.setup_gerer_telephone_texte), 13f, Ui.TEXTE_2), haut = 4f))
         val actuel = Garde.minutes(this)
-        val choix = Pastilles(this, Ui.dp(this, 6f))
-        Garde.CHOIX_MINUTES.forEach { m ->
-            val lbl = if (m == 0) getString(R.string.veille_repli_jamais) else getString(R.string.tr_duree_min, m)
-            val b = if (m == actuel) Ui.boutonPrimaire(this, lbl) {} else Ui.boutonSecondaire(this, lbl) { Garde.regler(this, m); Garde.fermer(); dessiner() }
-            choix.addView(b)
-        }
+        // 15-10 (règle UX de l'auteur) : ChoixAdaptatif (5 durées : une liste qui montre la durée choisie).
+        val choix = Ui.choix(this, getString(R.string.setup_gerer_telephone),
+            Garde.CHOIX_MINUTES.map { m -> ChoixAdaptatif.Option(m.toString(), if (m == 0) getString(R.string.veille_repli_jamais) else getString(R.string.tr_duree_min, m)) },
+            actuel.toString()) { k -> k.toIntOrNull()?.let { m -> Garde.regler(this, m); Garde.fermer(); dessiner() } }.apply { tag = "garde_minutes" }
         c.addView(Ui.marge(this, choix, haut = 8f))
     }
 
@@ -1114,7 +1566,7 @@ class SetupActivity : Activity() {
         }
         try {
             startActivity(Intent(Intent.ACTION_DELETE, Uri.parse("package:$packageName")))
-        } catch (_: Exception) { toast(getString(R.string.setup_ouvre_reglages_desinstaller)) }
+        } catch (_: Exception) { toast(getString(R.string.setup_ouvre_reglages_desinstaller), OeilModele.Genre.ERREUR) }
     }
 
     // ---------------------------------------------------- Actions système
@@ -1134,7 +1586,7 @@ class SetupActivity : Activity() {
         val i = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
             .putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, AdminReceiver.composant(this))
             .putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, getString(R.string.admin_desc))
-        try { startActivity(i) } catch (_: Exception) { toast(getString(R.string.setup_indisponible)) }
+        try { startActivity(i) } catch (_: Exception) { toast(getString(R.string.setup_indisponible), OeilModele.Genre.ERREUR) }
     }
 
     private fun demanderBatterie() {
@@ -1149,7 +1601,7 @@ class SetupActivity : Activity() {
         if (Build.VERSION.SDK_INT >= 26) try {
             startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                 Uri.parse("package:$packageName")))
-        } catch (_: Exception) { toast(getString(R.string.eco_introuvable_titre)) }
+        } catch (_: Exception) { toast(getString(R.string.eco_introuvable_titre), OeilModele.Genre.ERREUR) }
     }
 
     override fun onActivityResult(req: Int, res: Int, data: Intent?) {
@@ -1167,13 +1619,33 @@ class SetupActivity : Activity() {
     }
 
     private fun ouvrir(action: String) = try { startActivity(Intent(action)) }
-        catch (_: Exception) { toast(getString(R.string.eco_introuvable_titre)) }
+        catch (_: Exception) { toast(getString(R.string.eco_introuvable_titre), OeilModele.Genre.ERREUR) }
 
-    private fun toast(t: String) = Toast.makeText(this, t, Toast.LENGTH_SHORT).show()
+    private fun toast(t: String, genre: OeilModele.Genre = OeilModele.Genre.INFO) = Ui.toast(this, t, court = true, genre = genre)
 
     companion object {
         /** 1.84.0 : ouvrir avec l'espace gestion déplié (section « Décideurs » des réglages télé). */
         const val EXTRA_GESTION = "gestion"
+
+        /**
+         * 1.93.05 (l'auteur, retour 33) : l'ancien menu (Moi, Réglages…) ne s'ouvre plus sur une télé reliée dont la personne
+         * est choisie ; seuls passent la première connexion, le choix de la personne, l'espace de gestion et les écrans
+         * ouverts pour un blocage précis. Pur (testé en JVM).
+         */
+        fun sansAncienMenu(tele: Boolean, inscrit: Boolean, personneChoisie: Boolean, gestion: Boolean, cible: Boolean): Boolean =
+            tele && inscrit && personneChoisie && !gestion && !cible
+        fun sansAncienMenu(act: android.app.Activity, i: android.content.Intent?, gestion: Boolean): Boolean {
+            val cfg = Config(act)
+            return sansAncienMenu(ReglagesTvActivity.estTele(act), cfg.inscrit, cfg.personne.isNotEmpty() || cfg.personnes.isEmpty() || cfg.personnes == "[]",
+                gestion, i?.hasExtra(EXTRA_BLOC) == true || i?.hasExtra(EXTRA_UTILISATEUR) == true)
+        }
+        /** Lot 5 : l'espace à montrer à l'ouverture (Espaces.AUJOURDHUI, PERSONNES, APPAREILS, REGLAGES, MOI). */
+        const val EXTRA_ESPACE = "espace"
+        private const val ETAT_ESPACE = "espace"
+        private const val ETAT_AVANCE = "avance"
+        /** Lot 5 : ouvre l'écran principal sur un espace. */
+        fun ouvrir(ctx: Context, espace: String) =
+            ctx.startActivity(Intent(ctx, SetupActivity::class.java).putExtra(EXTRA_ESPACE, espace).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         /** Vrai quand l'écran de Vision est devant : l'écran du système peut alors s'ouvrir directement. */
         @Volatile var auPremierPlan = false
         /** Le dernier relevé de gestion (décideur) : nombre de demandes, état des appareils, pause générale. */

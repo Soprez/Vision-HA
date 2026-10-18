@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Veille : l'indicateur des ouvertures (l'auteur, 15/10) — style, couleurs, seulement ouvert. -->
+<resources>
+    <string name="ouv_indicateur">Indicator voor openingen</string>
+    <string name="ouv_style_pastille">Stip</string>
+    <string name="ouv_style_icone">Pictogram (deur, raam, poort…)</string>
+    <string name="ouv_style_lisere">Gekleurde rand</string>
+    <string name="ouv_style_aucun">Geen (alleen tekst)</string>
+    <string name="ouv_couleur_ouvert">Kleur als het open is</string>
+    <string name="ouv_couleur_ferme">Kleur als het dicht is</string>
+    <string name="ouv_seulement_ouvert">Indicator alleen als het open is</string>
+    <string name="ouv_couleur_rouge">Rood</string>
+    <string name="ouv_couleur_orange">Oranje</string>
+    <string name="ouv_couleur_vert">Groen</string>
+    <string name="ouv_couleur_bleu">Blauw</string>
+    <string name="ouv_couleur_accent">Accent van het thema</string>
+    <string name="ouv_couleur_gris">Grijs</string>
+</resources>

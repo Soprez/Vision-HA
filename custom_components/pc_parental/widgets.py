@@ -89,9 +89,18 @@ TOUCHERS = (TOUCHER_ROLE, TOUCHER_DETAILS, TOUCHER_VUE, TOUCHER_RIEN)
 CHEMIN_MAX = 200
 _CHEMIN_PERMIS = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/_-.?=&%#")
 AFFICHAGES = ("valeur", "detail", "valeur_detail")
+# 2.5.3 (l'auteur, version suivante) : la mise en page d'un widget — la même pour l'onglet Widgets HA et le téléphone d'un
+# Décideur. Alignement du titre et de la valeur, taille de la valeur (« remplir » : la plus grande qui tient), titre et
+# icône montrés ou non. Défaut : valeur grande et centrée, titre et icône montrés.
+ALIGNS_H = ("gauche", "centre", "droite")
+ALIGNS_V = ("haut", "centre", "bas")
+TAILLES = ("remplir", "s", "m", "l", "xl")
+MISE_EN_PAGE_DEFAUT: dict[str, Any] = {"align_h": "centre", "align_v": "centre", "taille": "remplir", "titre": True, "icone": True}
 # Confirmation cochée d'office quand le rôle est posé (modifiable ensuite) : ce qui agit sur plusieurs choses ou dure.
 CONFIRMER_DEFAUT = frozenset({"script", "cover", "climate"})
 NOM_MAX, ICONE_MAX, ATTRIBUTS_MAX, DETAIL_MAX = 60, 64, 8, 20
+# 2.4.4 : un attribut liste prend une ligne par élément ; le détail des attributs va jusqu'à 40 lignes.
+DETAIL_ATTRIBUTS_MAX = 40
 # Jamais montrés comme « détail » (techniques, ou déjà montrés ailleurs).
 ATTRIBUTS_CACHES = frozenset({"friendly_name", "icon", "entity_picture", "supported_features", "attribution",
                               "unit_of_measurement", "device_class", "state_class", "editable", "id", "restored",
@@ -207,6 +216,71 @@ def _role_deduit(store, eid: str) -> str:
     return possibles[1] if len(possibles) > 1 else LECTURE
 
 
+def mise_en_page(m: Any) -> dict[str, Any]:
+    """La mise en page complète (défauts compris) d'après ce qui est enregistré ; une valeur inconnue → le défaut."""
+    m = m if isinstance(m, dict) else {}
+    return {
+        "align_h": m.get("align_h") if m.get("align_h") in ALIGNS_H else MISE_EN_PAGE_DEFAUT["align_h"],
+        "align_v": m.get("align_v") if m.get("align_v") in ALIGNS_V else MISE_EN_PAGE_DEFAUT["align_v"],
+        "taille": m.get("taille") if m.get("taille") in TAILLES else MISE_EN_PAGE_DEFAUT["taille"],
+        "titre": bool(m.get("titre", MISE_EN_PAGE_DEFAUT["titre"])),
+        "icone": bool(m.get("icone", MISE_EN_PAGE_DEFAUT["icone"])),
+    }
+
+
+def mise_en_page_voulue(actuelle: dict[str, Any], voulu: Any) -> dict[str, Any]:
+    """Ce qui change dans la mise en page ([voulu] : une partie des clés). textes.Erreur si une valeur est fausse."""
+    if not isinstance(voulu, dict) or not set(voulu) <= set(MISE_EN_PAGE_DEFAUT):
+        raise textes.Erreur("wida.reglage_inconnu")
+    nouvelle = dict(actuelle)
+    for cle, permis in (("align_h", ALIGNS_H), ("align_v", ALIGNS_V), ("taille", TAILLES)):
+        if cle in voulu:
+            if voulu[cle] not in permis:
+                raise textes.Erreur("wida.reglage_inconnu")
+            nouvelle[cle] = voulu[cle]
+    for cle in ("titre", "icone"):
+        if cle in voulu:
+            if not isinstance(voulu[cle], bool):
+                raise textes.Erreur("wida.reglage_inconnu")
+            nouvelle[cle] = voulu[cle]
+    return nouvelle
+
+
+# 17-10 (l'auteur, « widget chauffage lisible ») : une entité dont l'état s'écrit sous la valeur du widget (« Réduit jusqu'à
+# 12:00, puis Confort 20 °C »). Choisie dans la carte Widgets HA ; aucun nom d'entité dans le code.
+TEXTE_MAX = 160
+
+
+def _texte_valide(t: Any) -> str:
+    t = str(t or "").strip()
+    if not t:
+        return ""
+    if len(t) > 255 or "." not in t or domaine(t) in INTERDITS or not all(c.isalnum() or c in "._" for c in t):
+        raise textes.Erreur("wida.texte")
+    return t
+
+
+def texte_lie(hass: HomeAssistant | None, store, eid: str) -> str | None:
+    """L'état de l'entité « texte » liée au widget de `eid` (None : pas d'entité liée ; « » : rien à dire)."""
+    t = reglage(store, eid)["texte"]
+    if not t:
+        return None
+    etat = hass.states.get(t) if hass is not None else None
+    if etat is None or etat.state in ("unknown", "unavailable", ""):
+        return ""
+    return etat.state[:TEXTE_MAX]
+
+
+def liens_texte(store, eids: Any) -> dict[str, list[str]]:
+    """Entité texte → les entités (parmi `eids`) dont le widget l'affiche : un changement du texte redessine leur widget."""
+    sortie: dict[str, list[str]] = {}
+    for e in eids:
+        t = reglage(store, e)["texte"]
+        if t:
+            sortie.setdefault(t, []).append(e)
+    return sortie
+
+
 def reglage(store, eid: str) -> dict[str, Any]:
     """Le réglage complet d'une entité, valeurs par défaut comprises (jamais None)."""
     r = dict(getattr(store, "entites_reglages", {}).get(eid) or {})
@@ -222,6 +296,8 @@ def reglage(store, eid: str) -> dict[str, Any]:
         "attributs": attributs,
         "toucher": r.get("toucher") if r.get("toucher") in TOUCHERS else TOUCHER_ROLE,
         "chemin": str(r.get("chemin") or "")[:CHEMIN_MAX],
+        "mise_en_page": mise_en_page(r.get("mise_en_page")),
+        "texte": r.get("texte") if isinstance(r.get("texte"), str) and len(r.get("texte")) <= 255 else "",
     }
 
 
@@ -501,6 +577,8 @@ def fiche(hass: HomeAssistant, store, pc: dict[str, Any], eid: str) -> dict[str,
         "role": r["role"],
         "confirmer": r["confirmer"] and r["role"] != LECTURE,
         "affichage": r["affichage"],
+        # 2.5.3 : la mise en page, commune à HA et aux téléphones des Décideurs.
+        "mise_en_page": r["mise_en_page"],
         # 2.4.3 : le toucher, selon les droits de cet appareil ; « ouvrir » : il peut ouvrir les détails ou une vue
         # (l'éditeur de l'appli ne propose pas plus).
         "toucher": toucher_pour(store, pc, eid)[0],
@@ -513,6 +591,7 @@ def fiche(hass: HomeAssistant, store, pc: dict[str, Any], eid: str) -> dict[str,
         "attributs_utiles": attributs_utiles(etat, hass),
         "actions": actions_permises(store, pc, eid),
         "styles": styles(etat, eid),
+        **({"texte": t} if (t := texte_lie(hass, store, eid)) is not None else {}),
     }
 
 
@@ -528,11 +607,23 @@ def detail_attributs(etat: State | None, choisis: list[str]) -> list[dict[str, s
     cles = [c for c in choisis if c in a] if choisis else [c for c in a if c not in ATTRIBUTS_CACHES]
     sortie = []
     for c in cles:
-        v = _simple(a[c])
-        if isinstance(v, list):
-            v = ", ".join(str(x) for x in v)
-        sortie.append({"texte": _humain(c), "valeur": str(v)[:120]})
+        brut = a[c]
+        # 2.4.4 : un attribut liste se lit élément par élément — une ligne d'en-tête (nom de
+        # l'attribut, nombre d'éléments), puis une ligne par élément ; avant, tout était collé en une ligne coupée.
+        if isinstance(brut, (list, tuple)):
+            elements = [x for x in brut if x is not None and str(x).strip() != ""]
+            sortie.append({"texte": _humain(c), "valeur": str(len(elements))})
+            sortie += [{"texte": _element(x), "valeur": ""} for x in elements]
+            continue
+        sortie.append({"texte": _humain(c), "valeur": str(_simple(brut))[:120]})
     return sortie
+
+
+def _element(x: Any) -> str:
+    """Un élément d'un attribut liste, en texte : tel quel, ou ses valeurs simples pour un dictionnaire."""
+    if isinstance(x, dict):
+        x = " · ".join(str(v) for v in x.values() if isinstance(v, (str, int, float)) and str(v).strip())
+    return str(_simple(x) if not isinstance(x, str) else x)[:200]
 
 
 _DETAILS_TODO: dict[str, tuple[float, list[dict[str, str]], int]] = {}
@@ -574,15 +665,17 @@ async def avec_detail(hass: HomeAssistant, store, eid: str, sortie: dict[str, An
         detail, total = await detail_todo(hass, eid)
     else:
         tout = detail_attributs(hass.states.get(eid), r["attributs"])
-        detail, total = tout[:DETAIL_MAX], len(tout)
+        detail, total = tout[:DETAIL_ATTRIBUTS_MAX], len(tout)
     sortie["detail"], sortie["detail_total"] = detail, total
     return sortie
 
 
-def etat_court(etat: State | None, hass: HomeAssistant | None = None) -> dict[str, Any]:
+def etat_court(etat: State | None, hass: HomeAssistant | None = None, store=None, eid: str = "") -> dict[str, Any]:
+    texte = texte_lie(hass, store, eid) if store is not None and eid else None
+    plus = {"texte": texte} if texte is not None else {}
     if etat is None:
-        return {"etat": "unavailable", "attributs_utiles": {}, "depuis": ""}
-    return {"etat": etat.state, "attributs_utiles": attributs_utiles(etat, hass), "depuis": _depuis(etat)}
+        return {"etat": "unavailable", "attributs_utiles": {}, "depuis": "", **plus}
+    return {"etat": etat.state, "attributs_utiles": attributs_utiles(etat, hass), "depuis": _depuis(etat), **plus}
 
 
 # ----------------------------------------------------------------------------- Historique réduit
@@ -771,6 +864,12 @@ def regler_entite(hass: HomeAssistant, store, eid: str, voulu: dict[str, Any], p
         nouveau["toucher"] = voulu["toucher"]
     if nouveau["toucher"] == TOUCHER_VUE and not nouveau["chemin"]:
         raise textes.Erreur("wida.chemin")
+    if "mise_en_page" in voulu:
+        nouveau["mise_en_page"] = mise_en_page_voulue(actuel["mise_en_page"], voulu["mise_en_page"])
+    if "texte" in voulu:
+        nouveau["texte"] = _texte_valide(voulu.get("texte"))
+        if nouveau["texte"] == eid:
+            raise textes.Erreur("wida.texte")
     if nouveau == actuel and eid in store.entites_reglages:
         return False
     store.entites_reglages[eid] = nouveau
@@ -865,7 +964,7 @@ class PcParentalWidgetsEtatsView(_Porte):
             choisies = permises
         # 2.4.0 : « details » : les entités dont un widget de l'appli montre le détail (choix fait dans l'appli).
         details = {str(e) for e in (corps.get("details") or [])[:200]} if isinstance(corps.get("details"), list) else set()
-        return self.json({"ok": True, "etats": {e: await avec_detail(self.hass, coord.store, e, etat_court(self.hass.states.get(e), self.hass), e in details)
+        return self.json({"ok": True, "etats": {e: await avec_detail(self.hass, coord.store, e, etat_court(self.hass.states.get(e), self.hass, coord.store, e), e in details)
                                                for e in choisies}})
 
 
@@ -896,10 +995,10 @@ ACTIONS_PAR_MINUTE = 30
 _recentes: dict[str, list[float]] = {}
 
 
-def _trop_vite(pc_id: str) -> bool:
+def _trop_vite(pc_id: str, maximum: int = ACTIONS_PAR_MINUTE) -> bool:
     maintenant = time.monotonic()
     l = [t for t in _recentes.get(pc_id, []) if maintenant - t < 60]
-    trop = len(l) >= ACTIONS_PAR_MINUTE
+    trop = len(l) >= maximum
     if not trop:
         l.append(maintenant)
     _recentes[pc_id] = l
@@ -978,27 +1077,34 @@ class PcParentalWidgetsFluxView(_Porte):
         pc_id = str(pc.get("id"))
         secret = str(pc.get("secret") or "")
         file: asyncio.Queue = asyncio.Queue(maxsize=FILE_MAX)
-        permises: dict[str, Any] = {"ens": set(), "quand": 0.0}
+        permises: dict[str, Any] = {"ens": set(), "quand": 0.0, "liens": {}}
 
         def _ensemble() -> set[str]:
             permises["ens"], permises["quand"] = set(visibles(coord.store, coord.store.pcs.get(pc_id))), time.monotonic()
+            permises["liens"] = liens_texte(coord.store, permises["ens"])
             return permises["ens"]
+
+        def _pousser(eid: str, nouveau: State | None) -> None:
+            try:
+                file.put_nowait({"entity_id": eid, **etat_court(nouveau, hass, coord.store, eid)} if nouveau is not None else
+                                {"entity_id": eid, "etat": None, "attributs_utiles": {}, "depuis": ""})
+            except asyncio.QueueFull:
+                pass  # un appareil trop lent rattrape par /etats
 
         @callback
         def _sur_etat(event: Event) -> None:
             eid = event.data.get("entity_id")
+            # 17-10 : l'entité « texte » d'un widget a changé : le widget est redessiné avec son nouveau texte.
+            for lie in permises["liens"].get(eid, []):
+                if lie in permises["ens"]:
+                    _pousser(lie, hass.states.get(lie))
             # Une entité inconnue de l'appareil : on ne recalcule ses droits qu'au plus toutes les 5 s (un ajout
             # arrive avec ce délai) ; une entité permise : droits recalculés à chaque fois (un retrait est immédiat).
             if eid not in permises["ens"] and time.monotonic() - permises["quand"] < 5:
                 return
             if eid not in _ensemble():
                 return
-            nouveau = event.data.get("new_state")
-            try:
-                file.put_nowait({"entity_id": eid, **etat_court(nouveau, hass)} if nouveau is not None else
-                                {"entity_id": eid, "etat": None, "attributs_utiles": {}, "depuis": ""})
-            except asyncio.QueueFull:
-                pass  # un appareil trop lent rattrape par /etats
+            _pousser(eid, event.data.get("new_state"))
 
         @callback
         def _arret(_event: Event) -> None:
@@ -1046,7 +1152,33 @@ class PcParentalWidgetsFluxView(_Porte):
         return reponse
 
 
+class PcParentalWidgetsMiseEnPageView(_Porte):
+    """2.5.3 : la mise en page d'un widget depuis le téléphone d'un Décideur — la même que dans l'onglet Widgets HA.
+    Réservée aux appareils qui pilotent (entites_piloter), pour une entité qu'ils voient ; rien d'autre ne change."""
+
+    url = URL + "/mise_en_page"
+    name = "api:pc_parental:widgets_mise_en_page"
+
+    async def post(self, request: web.Request) -> web.Response:
+        coord, pc, corps, err = await self._ouvrir(request)
+        if err is not None:
+            return err
+        store = coord.store
+        if not peut_piloter(store, pc):
+            return self.json({"ok": False, "error": "piloter"}, status_code=403)
+        eid = str(corps.get("entite") or "")
+        if eid not in visibles(store, pc):
+            return self.json({"ok": False, "error": "entite"}, status_code=403)
+        try:
+            change = regler_entite(self.hass, store, eid, {"mise_en_page": corps.get("mise_en_page")}, str(pc.get("name") or pc.get("id") or ""))
+        except textes.Erreur as e:
+            return self.json({"ok": False, "error": "reglage", "message": textes.erreur(e, textes.pour(self.hass, pc))}, status_code=400)
+        if change:
+            await store.async_save()
+        return self.json({"ok": True, "mise_en_page": reglage(store, eid)["mise_en_page"], "version": version(store, pc)})
+
+
 def enregistrer_vues(hass: HomeAssistant) -> None:
     for vue in (PcParentalWidgetsEntitesView, PcParentalWidgetsEtatsView, PcParentalWidgetsHistoriqueView,
-                PcParentalWidgetsActionView, PcParentalWidgetsFluxView):
+                PcParentalWidgetsActionView, PcParentalWidgetsFluxView, PcParentalWidgetsMiseEnPageView):
         hass.http.register_view(vue(hass))

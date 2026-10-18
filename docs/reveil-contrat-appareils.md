@@ -63,7 +63,7 @@ Chaque ordre est remis **une seule fois**. L'exécuter tout de suite et ignorer 
 
 - **Source.**
   - `url` ou `video` : lire `uri`.
-  - `ma` : en V1, Music Assistant joue sur `lecteur` (piloté par HA, lot 10), et l'appareil joue sa sonnerie.
+  - `ma` : en V1, l'appareil joue sa sonnerie ; si `lecteur` est donné, HA lance aussi la lecture sur cette enceinte dès l'événement `sonne`, la met en pause au `reporte` et l'arrête à l'`arrete`. Si Music Assistant échoue : `vision_reveil_echec` (`detail: music_assistant`).
   - `sonnerie` : la sonnerie embarquée.
   - **Repli obligatoire** : si aucun son au bout de 20 s, ou si la source est en erreur, l'appareil joue la sonnerie locale au volume de fin et émet `echec` avec `raison: source` et `repli_joue: true`. Ce repli ne se désactive jamais.
 - **Volume.** Monter de `volume.debut` à `volume.fin` en `volume.montee_s` secondes, sur le flux « alarme », en passant outre le mode silencieux.
@@ -131,7 +131,7 @@ Elle sert aux écrans Réveils (lot 5).
 
 | `action` | Corps en plus | Réponse |
 |---|---|---|
-| `liste` | — | `reveils` (vue + `peut`, `automatisation`), `droits {gerer, propres}`, `demandeurs` (personnes et leurs appareils), `moi` |
+| `liste` | — | `reveils` (vue + `peut`, `automatisation`), `droits {gerer, propres}`, `demandeurs` (personnes et leurs appareils), `moi`, `noms` (nom affiché de chaque personne citée) |
 | `creer` | `reveil` : les champs du modèle (`nom`, `demandeur` (soi par défaut), `appareils`, `declenchement {type, heure, jours, date, entite, attribut, modele, decalage, bornes, repli}`, `source`, `volume`, `repetition`, `impose`, `allumer_tv`, `actif`) | `reveil` |
 | `modifier` | `reveil_id`, `reveil` (partiel) | `reveil` |
 | `activer`, `desactiver`, `supprimer` | `reveil_id` | `reveil` ou `supprime` |

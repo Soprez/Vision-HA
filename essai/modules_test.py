@@ -24,7 +24,6 @@ from deverrouillage_test import (  # noqa: F401  (fixtures du banc)
     expected_lingering_timers,
 )
 
-FLUX = "/api/config/config_entries/options/flow"
 MIA = {"id": "p2", "secret": "c" * 32}
 PC = {"id": "w1", "secret": "w" * 32}
 SOIR = {"id": 1, "name": "Soir", "start": 72000, "end": 25200, "weekdays": [True] * 7, "enabled": True}
@@ -50,13 +49,13 @@ async def _monter(hass, hass_storage, data=None, stocke=True):
                              sites_vus={"jeu-exemple.com": {}}),
                 "e2": _fiche("e2", "TEL-NOA", ENFANT2["secret"], person="person.noa", platform="android",
                              role="enfant"),
-                "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android",
+                "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android",
                              role="parent"),
                 "p2": _fiche("p2", "PIXEL-MIA", MIA["secret"], person="person.mia", platform="android",
                              role="parent"),
                 "w1": _fiche("w1", "PC-LOU", PC["secret"], person="person.lou"),
             }}}
-    for p in ("lou", "noa", "robin", "mia"):
+    for p in ("lou", "noa", "nolan", "mia"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data=data or {}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -76,27 +75,17 @@ async def _choisir(hass, voulus):
     return store
 
 
-async def _suite(admin, flux, corps):
-    r = await admin.post(f"{FLUX}/{flux['flow_id']}", json=corps)
-    assert r.status == 200, await r.text()
-    return await r.json()
-
-
-async def _ecran_modules(admin, entree):
-    flux = await (await admin.post(FLUX, json={"handler": entree.entry_id})).json()
-    assert flux["type"] == "menu" and "modules" in flux["menu_options"]
-    flux = await _suite(admin, flux, {"next_step_id": "modules"})
-    assert flux["step_id"] == "modules"
-    return flux
+REGLAGES = "/api/pc_parental/reglages/admin"
 
 
 async def _regler(hass, admin, entree, voulus=None, prereglage="garder", confirmer=True):
-    """Configurer → Modules, jusqu'au bout (avec l'avertissement des protections s'il vient)."""
-    flux = await _ecran_modules(admin, entree)
-    flux = await _suite(admin, flux, {"prereglage": prereglage, "modules": sorted(voulus or [])})
-    if flux.get("step_id") == "modules_protections":
-        flux = await _suite(admin, flux, {"je_comprends": confirmer})
-    assert flux["type"] == "create_entry", flux
+    """Lot 5 : le choix des modules (assistant ou Réglages › Fonctions) — le même effet que l'ancien écran Modules."""
+    m = _modules()
+    store = _actuel(hass).store
+    cible = set(m.PRESETS[prereglage]) if prereglage in m.PRESETS else set(voulus or [])
+    m.regler(hass, store, cible, "essai")
+    await store.async_save()
+    hass.config_entries.async_schedule_reload(entree.entry_id)
     await hass.async_block_till_done()
     return _actuel(hass)
 
@@ -131,11 +120,9 @@ async def test_dependances_refusees(hass, hass_storage, hass_client):
     assert set(m.manques({"double_validation", "widgets"})) == {"double_validation", "widgets"}
     with pytest.raises(ValueError):
         m.regler(hass, coord.store, {"pause"}, "essai")
-    # Par l'écran : refusé, et on dit ce qui manque ; rien n'est enregistré.
-    flux = await _ecran_modules(admin, entree)
-    flux = await _suite(admin, flux, {"prereglage": "garder", "modules": ["demandes", "double_validation"]})
-    assert flux["type"] == "form" and flux["errors"] == {"base": "modules_dependances"}
-    assert "Déverrouillage" in flux["description_placeholders"]["erreur"]
+    # Par Réglages › Fonctions (lot 5) : refusé, et on dit ce qui manque ; rien n'est enregistré.
+    r = await admin.post(REGLAGES, json={"op": "module", "module": "deverrouillage", "actif": False})
+    assert r.status == 400 and "Déverrouillage" in (await r.json())["retour"]
     assert _actuel(hass).store.modules == {}
     # absent = actif, sauf les modules coupés par défaut (le Réveil)
     assert m.actifs(_actuel(hass).store) == set(m.TOUS) - m.INACTIFS_PAR_DEFAUT
@@ -157,17 +144,12 @@ async def test_avertissement_protections(hass, hass_storage, hass_client):
     entree, coord = await _monter(hass, hass_storage)
     m = _modules()
     assert m.demandeurs(coord.store)  # Lou et Noa sont protégés
-    sans = sorted(set(m.TOUS) - {"protections"})
-    flux = await _ecran_modules(admin, entree)
-    flux = await _suite(admin, flux, {"prereglage": "garder", "modules": sans})
-    assert flux["step_id"] == "modules_protections"
-    assert "TEL-LOU" in flux["description_placeholders"]["appareils"]
-    # Sans cocher « je comprends » : refusé, rien ne change.
-    flux = await _suite(admin, flux, {"je_comprends": False})
-    assert flux["errors"] == {"base": "modules_confirmer"}
+    # Réglages › Fonctions (lot 5) : sans confirmation, refusé en nommant les appareils ; rien ne change.
+    r = await admin.post(REGLAGES, json={"op": "module", "module": "protections", "actif": False})
+    assert r.status == 400 and "TEL-LOU" in (await r.json())["retour"]
     assert "protections" in m.actifs(_actuel(hass).store)
-    flux = await _suite(admin, flux, {"je_comprends": True})
-    assert flux["type"] == "create_entry"
+    r = await admin.post(REGLAGES, json={"op": "module", "module": "protections", "actif": False, "confirmer": True})
+    assert r.status == 200
     await hass.async_block_till_done()
     assert "protections" not in m.actifs(_actuel(hass).store)
     assert _desactivee(hass, "binary_sensor", "compte_admin_w1") is er.RegistryEntryDisabler.INTEGRATION
@@ -238,10 +220,10 @@ async def test_couper_puis_retrouver(hass, hass_storage, hass_client):
         assert rpc["processus"] == {"demarrage": [], "taches": [], "services": [], "arreter": []}
 
     # demandes : la demande de temps au relevé est ignorée, personne n'est prévenu.
-    robin_avant = len(store.pcs["p1"].get("messages") or [])
+    nolan_avant = len(store.pcs["p1"].get("messages") or [])
     await _releve(client, demande_temps=30)
     assert not store.pcs["e1"].get("demande")
-    assert len(store.pcs["p1"].get("messages") or []) == robin_avant
+    assert len(store.pcs["p1"].get("messages") or []) == nolan_avant
 
     # Les portes des modules coupés : 403 « module ».
     portes = [
@@ -311,7 +293,8 @@ async def test_couper_puis_retrouver(hass, hass_storage, hass_client):
     from custom_components.pc_parental import dashboard
 
     chemins = [v["path"] for v in dashboard.build(hass, _actuel(hass))["views"]]
-    assert not ({"listes", "message", "veille", "protection"} & set(chemins)) and "appareils" in chemins
+    # Lot 3 : l'onglet « Apparence, veille et son » (chemin veille) reste, même sans le module Veille.
+    assert not ({"listes", "message", "protection"} & set(chemins)) and {"appareils", "veille"} <= set(chemins)
 
     # --- Tout retrouver -----------------------------------------------------------------------------
     coord = await _regler(hass, admin, entree, prereglage="tout")

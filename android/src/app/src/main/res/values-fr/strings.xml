@@ -23,7 +23,7 @@
     <string name="lieu_defaut">Lieu</string>
     <string name="soutien_titre">Soutenir le projet</string>
     <string name="soutien_badge">♥ Soutien</string>
-    <string name="soutien_carte">☕ Payez-nous un café</string>
+    <string name="soutien_carte">☕ Payez-moi un café</string>
     <string name="soutien_merci">Merci ! Ce lieu soutient Vision.</string>
     <string name="soutien_explication">Le badge Soutien est purement décoratif : rien ne se débloque, Vision fait exactement la même chose pour tout le monde.</string>
     <string name="soutien_comment">Pour l\'activer : dans Home Assistant, Paramètres → Appareils et services → Vision → Configurer → Soutenir le projet.</string>

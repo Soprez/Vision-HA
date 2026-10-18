@@ -113,9 +113,9 @@
     <string name="editeurwidget_changer_entite">Changer d\'entité</string>
     <string name="editeurwidget_rechercher">Rechercher (nom, pièce, identifiant)</string>
     <string name="editeurwidget_aucune_correspond">Aucune entité ne correspond.</string>
-    <string name="editeurwidget_autres">%1$s autres : affinez la recherche.</string>
+    <string name="editeurwidget_autres">%1$s autres : affine la recherche.</string>
     <string name="editeurwidget_exemple_injoignable">Données d\'exemple (Home Assistant injoignable).</string>
-    <string name="editeurwidget_exemple_choisir">Données d\'exemple : choisissez une entité.</string>
+    <string name="editeurwidget_exemple_choisir">Données d\'exemple : choisis une entité.</string>
     <string name="editeurwidget_en_direct">En direct.</string>
     <string name="etat_appli_telephone">Téléphone</string>
     <string name="etat_appli_messages">Messages</string>
@@ -298,14 +298,14 @@
     <string name="partyecran_retirer_file">Retirer de la file</string>
     <string name="partyecran_qr_description">Code à flasher pour proposer un titre</string>
     <string name="partyecran_proposer_titre">Proposer un titre</string>
-    <string name="partyecran_flashez_soiree">Flashez ce code avec un téléphone. Il ne marche que pendant cette soirée.</string>
+    <string name="partyecran_flashez_soiree">Flashe ce code avec un téléphone. Il ne marche que pendant cette soirée.</string>
     <string name="partyecran_file_attente">File d\'attente</string>
     <string name="partyecran_enceinte_nom">Enceinte : %1$s</string>
     <string name="partyecran_changer_enceinte">Changer d\'enceinte</string>
     <string name="partyecran_en_cours_court">En cours</string>
     <string name="partyecran_propose_par_invite">proposé par un invité</string>
     <string name="partyecran_titre_en_file">Titre en file : %1$s</string>
-    <string name="partyecran_rien_dautre">Rien d\'autre pour l\'instant : « Ajouter un titre », ou proposez-en un avec le code.</string>
+    <string name="partyecran_rien_dautre">Rien d\'autre pour l\'instant : « Ajouter un titre », ou propose-en un avec le code.</string>
     <string name="partyecran_fin_similaires">À la fin de la file : titres similaires</string>
     <string name="partyecran_fin_arret">À la fin de la file : la musique s\'arrête</string>
     <string name="partyecran_deplacer_aide">Déplacer : haut / bas pour bouger · OK pour valider · Retour pour annuler</string>
@@ -367,7 +367,6 @@
     <string name="reglagestv_mode_nuit">Mode nuit</string>
     <string name="reglagestv_jamais">Jamais</string>
     <string name="reglagestv_son_veille">Son pendant la veille</string>
-    <string name="reglagestv_source_son">Source du son</string>
     <string name="reglagestv_silence">Silence</string>
     <string name="reglagestv_flux_perso">Flux personnalisé</string>
     <string name="reglagestv_autre_appli_joue">Si une autre appli joue déjà (Spotify, YouTube Music…), l\'écran de veille la laisse.</string>
@@ -436,7 +435,7 @@
     <string name="reglagestv_fond_titre">Pendant la veille, ces applis continuent en fond</string>
     <string name="reglagestv_applis_accueil">Applications sur l\'accueil</string>
     <string name="scan_titre">Scanner le QR de Home Assistant</string>
-    <string name="scan_explication">Dans Home Assistant : Vision → Configurer → Générer un QR d\'appairage. Vise le QR avec cet appareil.</string>
+    <string name="scan_explication">Dans Home Assistant : Vision → Configurer → Ajouter un appareil, jusqu\'au QR d\'appairage. Vise le QR avec cet appareil.</string>
     <string name="scan_pas_de_camera">Cet appareil n\'a pas de caméra. Choisis « Afficher un QR sur cet appareil » ou une autre façon de le relier.</string>
     <string name="scan_besoin_camera">Vision a besoin de la caméra pour lire le QR (seulement sur cet écran).</string>
     <string name="scan_sans_camera">Sans la caméra, relie l\'appareil autrement : afficher un QR, coller le bloc, ou saisir l\'adresse et la clé.</string>
@@ -544,13 +543,7 @@
     <string name="vuewidget_suivant">Suivant</string>
     <string name="vuewidget_baisser_volume">Baisser le volume</string>
     <string name="vuewidget_monter_volume">Monter le volume</string>
-    <string name="accueildefaut_ancienne_titre">L\'ancienne Vision est encore installée</string>
-    <string name="accueildefaut_ancienne_texte">Android la montre elle aussi sous le nom « Vision » dans le choix de l\'accueil, et la choisir ne marche pas. Désinstalle-la d\'abord : il ne restera qu\'une seule Vision à choisir.</string>
-    <string name="accueildefaut_desinstaller_ancienne">Désinstaller l\'ancienne</string>
-    <string name="accueildefaut_a_la_main_titre">Désinstallation à faire à la main</string>
-    <string name="accueildefaut_a_la_main_texte">Elle n\'est pas signée comme Vision : retire-la depuis les réglages Android (Applis ▸ Vision ▸ Désinstaller).</string>
     <string name="commun_lot2_ok">OK</string>
-    <string name="accueildefaut_continuer">Continuer quand même</string>
     <string name="commun_lot2_annuler">Annuler</string>
     <string name="install_confirmer_titre">Vision : confirmer la mise à jour</string>
     <string name="install_confirmer_texte">Touche pour autoriser l\'installation. Ce sera la dernière fois : les prochaines mises à jour se feront toutes seules.</string>
@@ -792,6 +785,6 @@
     <string name="manifeste_appairage">Appairage</string>
     <string name="manifeste_couleurs">Couleurs</string>
     <string name="manifeste_fermes">Ce qui est fermé</string>
-    <string name="manifeste_maison">Espace gestion</string>
+    <string name="manifeste_maison">À décider</string>
     <string name="manifeste_musique">Musique</string>
 </resources>

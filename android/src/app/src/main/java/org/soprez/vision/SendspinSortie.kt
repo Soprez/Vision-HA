@@ -44,6 +44,27 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
         /** Trous dans la ligne de temps du serveur entre deux blocs d'un même flux (un enchaînement sans blanc n'en a aucun). */
         @Volatile var trous = 0
         @Volatile var trouMaxMs = 0L
+        // Banc Musique (2026-10-12) : ce qui sort vraiment, pour les essais de bout en bout.
+        /** Niveau RMS (dBFS) du dernier bloc écrit ; -120 pour un silence numérique. */
+        @Volatile var niveauDb = -120.0
+        /** Heure locale (µs, [maintenantUs]) jusqu'à laquelle du son non silencieux est programmé à la sortie. */
+        @Volatile var sonJusquaUs = 0L
+        /** Heure locale (µs) prévue pour le premier bloc non silencieux depuis le dernier début de flux. */
+        @Volatile var premierSonFluxUs = 0L
+        /** Débuts de flux (`stream/start` après un arrêt ou un vidage) et heure locale du dernier (µs). */
+        @Volatile var debutsFlux = 0
+        @Volatile var debutFluxUs = 0L
+        @Volatile var tramesEcrites = 0L
+        /** Sous-alimentations comptées par l'AudioTrack lui-même (Android 7+) : de vrais trous à la sortie. */
+        @Volatile var sousAlimentationsPiste = 0
+        /** Blocs mis en attente de la synchro de l'horloge, et silences coupés en demi-secondes (banc Musique). */
+        @Volatile var attentesHorloge = 0
+        @Volatile var silencesBornes = 0
+        /** Recalages d'un flux livré en retard ([SendspinSynchro.reancrage]) et décalage en cours (µs) du flux joué. */
+        @Volatile var reancrages = 0
+        @Volatile var decalageUs = 0L
+        /** Décodeurs FLAC rouverts après une erreur ou une ouverture ratée. */
+        @Volatile var decodeurRelances = 0
     }
     val mesures = Mesures()
 
@@ -57,10 +78,13 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
     private var finAttendue = Long.MIN_VALUE
     @Volatile private var fil: Thread? = null
     @Volatile var actif = false; private set
+    /** Un `stream/clear` a eu lieu : le prochain `stream/start` est un nouveau début (mesures). */
+    @Volatile private var attenteDebut = false
 
     /** `stream/start` : nouveau flux, ou nouveau format sur le flux en cours (suite sans blanc sur la même ligne de temps). */
     fun demarrer(f: Format) {
         val ancien = format
+        if (ancien == null || attenteDebut) { mesures.debutsFlux++; mesures.debutFluxUs = maintenantUs(); mesures.premierSonFluxUs = 0L; attenteDebut = false }
         format = f
         hd.post {
             if (ancien == null || ancien.codec != f.codec || ancien.debit != f.debit || ancien.canaux != f.canaux || !ancien.entete.contentEquals(f.entete)) {
@@ -73,6 +97,7 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
 
     /** `stream/clear` : tout ce qui est en attente part ; la suite arrive avec de nouveaux horodatages. */
     fun vider() {
+        attenteDebut = true
         generation++
         blocs.clear()
         hd.post { try { decodeur?.flush() } catch (_: Exception) {}; enAttente.clear(); finAttendue = Long.MIN_VALUE }
@@ -99,7 +124,13 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
                     "pcm" -> pousser(g, ts, pcm16(donnees, f.bits))
                     "flac" -> decoder(g, ts, donnees)
                 }
-            } catch (e: Exception) { Log.w(TAG, "morceau illisible : $e") }
+            } catch (e: Exception) {
+                Log.w(TAG, "morceau illisible : $e")
+                // Banc Musique (2026-10-12) : un décodeur en erreur (« work failed to complete », puis « Released state »)
+                // refusait tous les morceaux suivants : silence jusqu'au titre suivant. On le referme ; le morceau suivant
+                // en rouvre un ([decodeurPret]).
+                if (f.codec == "flac") fermerDecodeur()
+            }
         }
     }
 
@@ -119,12 +150,20 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
     // ------------------------------------------------------------------------------------------- FLAC
 
     private fun ouvrirDecodeur(f: Format) {
+        var c: MediaCodec? = null
         try {
             val mf = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_FLAC, f.debit, f.canaux)
             f.entete?.let { mf.setByteBuffer("csd-0", ByteBuffer.wrap(it)) }
             if (Build.VERSION.SDK_INT >= 24) mf.setInteger(MediaFormat.KEY_PCM_ENCODING, AudioFormat.ENCODING_PCM_16BIT)
-            decodeur = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_AUDIO_FLAC).apply { configure(mf, null, null, 0); start() }
-        } catch (e: Exception) { Log.w(TAG, "décodeur FLAC indisponible : $e"); decodeur = null }
+            c = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_AUDIO_FLAC)
+            c.configure(mf, null, null, 0); c.start()
+            decodeur = c
+        } catch (e: Exception) {
+            Log.w(TAG, "décodeur FLAC indisponible : $e")
+            // Banc Musique : un codec créé mais pas configuré restait ouvert (les décodeurs de l'appareil s'épuisent).
+            try { c?.release() } catch (_: Exception) {}
+            decodeur = null
+        }
     }
 
     private fun fermerDecodeur() {
@@ -133,9 +172,22 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
         decodeur = null; enAttente.clear(); finAttendue = Long.MIN_VALUE
     }
 
+    private var dernierEssaiDecodeur = 0L
+
+    /** Le décodeur FLAC, rouvert au besoin (après une erreur ou une ouverture ratée), au plus toutes les 0,5 s. */
+    private fun decodeurPret(f: Format): MediaCodec? {
+        decodeur?.let { return it }
+        val maintenant = android.os.SystemClock.elapsedRealtime()
+        if (maintenant - dernierEssaiDecodeur < 500) return null
+        dernierEssaiDecodeur = maintenant
+        ouvrirDecodeur(f)
+        if (decodeur != null) { mesures.decodeurRelances++; Log.i(TAG, "décodeur FLAC rouvert") }
+        return decodeur
+    }
+
     private fun decoder(g: Int, ts: Long, d: ByteArray) {
-        val c = decodeur ?: return
         val f = format ?: return
+        val c = decodeurPret(f) ?: return
         val i = c.dequeueInputBuffer(20_000)
         if (i >= 0) {
             val buf = c.getInputBuffer(i)!!
@@ -188,6 +240,7 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
         var pisteGeneration = -1
         var ecrits = 0L
         var finPrecedente = Long.MIN_VALUE
+        var decalageFlux = 0L
         val ts = AudioTimestamp()
         try {
             while (!Thread.currentThread().isInterrupted) {
@@ -198,10 +251,17 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
                     continue
                 }
                 if (f == null || b.generation != generation) continue
+                // Banc Musique (2026-10-12) : avant la synchro de l'horloge (≈ 0,4 s après chaque connexion), l'heure d'un
+                // bloc n'a pas de sens (versLocal rend l'heure du serveur telle quelle) : le bloc attend la synchro.
+                if (!horloge.synchro) {
+                    if (actif) { blocs.addFirst(b); mesures.attentesHorloge++; Thread.sleep(20) }
+                    continue
+                }
                 // Nouvelle sortie à chaque flux vidé ou nouveau format : les compteurs de trames repartent de zéro.
                 if (piste == null || pisteFormat?.debit != f.debit || pisteFormat?.canaux != f.canaux || pisteGeneration != b.generation) {
                     try { piste?.pause(); piste?.flush(); piste?.release() } catch (_: Exception) {}
                     piste = nouvellePiste(f); pisteFormat = f; pisteGeneration = b.generation; ecrits = 0
+                    decalageFlux = 0L; mesures.decalageUs = 0L
                     finPrecedente = Long.MIN_VALUE
                 }
                 if (finPrecedente != Long.MIN_VALUE && b.ts - finPrecedente > 5_000) {
@@ -213,23 +273,38 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
                 val avecTs = p.getTimestamp(ts) && ts.framePosition > 0
                 val prevue = SendspinSynchro.sortiePrevue(ecrits, f.debit, if (avecTs) ts.framePosition else null,
                     if (avecTs) ts.nanoTime / 1000 else null, maintenantUs(), p.playbackHeadPosition.toLong() and 0xFFFFFFFFL, LATENCE_NOMINALE_US)
-                val voulue = horloge.versLocal(b.ts) - retardMs() * 1000L
+                var voulue = horloge.versLocal(b.ts) - retardMs() * 1000L + decalageFlux
+                // Flux livré en retard (démarrage d'un titre chez MA) : on se recale au lieu de tout jeter.
+                SendspinSynchro.reancrage(prevue - voulue).takeIf { it > 0 }?.let { d ->
+                    decalageFlux += d; voulue += d; mesures.reancrages++; mesures.decalageUs = decalageFlux
+                    Log.i(TAG, "flux en retard de ${d / 1000} ms : recalé (décalage ${decalageFlux / 1000} ms)")
+                }
                 val ecart = prevue - voulue
                 mesures.ecartUs = ecart
                 mesures.tamponMs = (voulue - maintenantUs()) / 1000
                 val trames = b.pcm.size / f.canaux
                 val d = SendspinSynchro.decider(ecart, trames, f.debit)
-                if (d.recalage) mesures.recalages++
+                if (d.recalage) {
+                    mesures.recalages++
+                    Log.i(TAG, "recalage : ${ecart / 1000} ms ${if (ecart > 0) "en retard (trames jetées)" else "en avance (silence)"}, tampon ${mesures.tamponMs} ms, horloge ±${horloge.erreur / 1000} ms, génération ${b.generation}, écrites ${ecrits}")
+                }
                 var pcm = b.pcm
                 if (d.jeter > 0) {
                     if (d.jeter >= trames) { mesures.blocsEnRetard++; continue }
                     pcm = pcm.copyOfRange(d.jeter * f.canaux, pcm.size)
                 }
-                if (d.silence > 0) { val z = ShortArray(d.silence * f.canaux); ecrire(p, z); ecrits += d.silence }
+                if (d.silence > 0) {
+                    // Jamais plus d'une demi-seconde de silence d'un coup : le bloc est réévalué ensuite.
+                    val s = SendspinSynchro.silenceParPas(d.silence, f.debit)
+                    ecrire(p, ShortArray(s * f.canaux)); ecrits += s
+                    if (s < d.silence) { mesures.silencesBornes++; blocs.addFirst(b); continue }
+                }
                 if (d.retirer > 0 || d.doubler > 0) { pcm = SendspinSynchro.corriger(pcm, f.canaux, d.retirer, d.doubler); mesures.corrections += d.retirer + d.doubler }
                 if (mesures.premierSonUs == 0L) mesures.premierSonUs = voulue
                 ecrire(p, pcm)
                 ecrits += pcm.size / f.canaux
+                noterNiveau(pcm, voulue, pcm.size / f.canaux * 1_000_000L / f.debit)
+                if (Build.VERSION.SDK_INT >= 24) try { mesures.sousAlimentationsPiste = p.underrunCount } catch (_: Exception) {}
                 if (blocs.isEmpty() && actif) mesures.sousAlimentations++
             }
         } catch (_: InterruptedException) {
@@ -238,7 +313,23 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
         }
     }
 
+    /** Banc Musique : niveau du bloc et heure jusqu'à laquelle du son (au-dessus de -60 dBFS) est programmé. */
+    private fun noterNiveau(pcm: ShortArray, debutUs: Long, dureeUs: Long) {
+        var somme = 0.0
+        for (x in pcm) somme += x.toDouble() * x
+        val rms = if (pcm.isEmpty()) 0.0 else Math.sqrt(somme / pcm.size) / 32768.0
+        val db = if (rms <= 1e-6) -120.0 else 20 * Math.log10(rms)
+        mesures.niveauDb = db
+        mesures.tramesEcrites += pcm.size
+        if (db > SEUIL_SON_DB) {
+            mesures.sonJusquaUs = debutUs + dureeUs
+            if (mesures.premierSonFluxUs == 0L) mesures.premierSonFluxUs = debutUs
+        }
+    }
+
     private fun ecrire(p: AudioTrack, pcm: ShortArray) {
+        // 1.91.0 : le niveau du son, pour le fond animé de l'écran Musique (réactif au son).
+        NiveauSon.noter(pcm, android.os.SystemClock.elapsedRealtime())
         var o = 0
         while (o < pcm.size) {
             val n = p.write(pcm, o, pcm.size - o)
@@ -251,6 +342,8 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
         private const val TAG = "VisionSendspin"
         /** Latence prise d'avance tant que la sortie n'a pas d'horodatage (corrigée dès qu'elle en a). */
         private const val LATENCE_NOMINALE_US = 60_000L
+        /** En dessous, un bloc compte pour du silence (banc Musique). */
+        const val SEUIL_SON_DB = -60.0
 
         /** FLAC si l'appareil sait le décoder (Android 8.1 et plus, en général), sinon PCM : MA sert les deux. */
         fun flacDecodable(): Boolean = try {

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.0 : écran Musique — saut dans le titre (curseur) et fond animé (styles, intensité, couleurs). -->
+<resources>
+    <string name="lecture_position">Posición en la pista</string>
+    <string name="lecture_position_valeur">%1$s de %2$s</string>
+    <string name="fond_titre">Fondo animado</string>
+    <string name="fond_bouton">Fondo animado: %1$s</string>
+    <string name="fond_style_aucun">Ninguno</string>
+    <string name="fond_style_ondes">Ondas suaves</string>
+    <string name="fond_style_particules">Partículas</string>
+    <string name="fond_style_aurore">Aurora</string>
+    <string name="fond_style_degrade">Degradado vivo</string>
+    <string name="fond_intensite_douce">suave</string>
+    <string name="fond_intensite_moyenne">media</string>
+    <string name="fond_intensite_vive">viva</string>
+    <string name="fond_intensite">Intensidad: %1$s</string>
+    <string name="fond_pochette">Colores de la portada</string>
+    <string name="fond_pochette_valeur">Colores de la portada: %1$s</string>
+    <string name="fond_son">Reacciona al sonido</string>
+    <string name="fond_son_valeur">Reacciona al sonido: %1$s</string>
+    <string name="fond_son_aide">El fondo sigue el sonido cuando este dispositivo reproduce la música él mismo (reproductor Sendspin).</string>
+    <string name="fond_reduit">Las animaciones están reducidas en este dispositivo: el fondo permanece quieto.</string>
+</resources>

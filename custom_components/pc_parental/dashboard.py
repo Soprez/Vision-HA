@@ -1,7 +1,9 @@
 """Tableau de bord Vision, construit par l'intégration.
 
-Il est régénéré dès qu'un PC s'inscrit ou qu'une plage apparaît : il n'y a
-jamais rien à recopier à la main. Il est réservé aux administrateurs.
+2.5.10 (l'auteur, retour 28) : il est rempli une fois, quand il ne contient encore aucun onglet de Vision ; ensuite, il
+appartient à l'utilisateur (titres renommés, cartes retouchées). Vision ne le réécrit plus au démarrage ni à une mise
+à jour. Le bouton « Régénérer le tableau de bord » (service build_dashboard) le refait, après avoir sauvegardé
+l'ancien dans /config/vision_outils/sauvegardes/. Il est réservé aux administrateurs.
 """
 
 from __future__ import annotations
@@ -42,6 +44,8 @@ def _t(hass: HomeAssistant, cle: str, **champs: Any) -> str:
 # séparé faisait deux entrées pour une seule chose, et l'on ne savait
 # jamais laquelle ouvrir.
 URL_PATH = "vision-maison"
+# Refonte lot 5 (architecture cible § 2) : cinq espaces en onglets ; le reste en sous-pages, chemins inchangés.
+CHEMIN_REGLAGES = "reglages"
 TITRE = "Vision"
 ICONE = "mdi:eye"
 THEME = "Vision"
@@ -53,8 +57,9 @@ URL_ANCIEN = "controle-parental-pc"
 # Les onglets que Vision écrit lui-même. Tout autre onglet trouvé dans
 # le tableau de bord a été fait à la main : on le garde, et on le garde
 # **devant** — c'est la page d'accueil de la maison, elle passe d'abord.
+# « personnes » (onglet retiré le 15/10) y reste : l'onglet déjà enregistré ne doit pas passer pour fait à la main.
 CHEMINS = ("maison", "veille", "pc", "listes", "processus", "plages", "statistiques", "message", "ajouter", "reglages", "protection", "appareils",
-           "widgets")
+           "widgets", "reveils", "personnes")
 # Les sous-vues d'une personne portent son nom : on les reconnaît au préfixe.
 PREFIXE_PERSONNE = "personne-"
 
@@ -485,62 +490,6 @@ def _section_installation(
             {"type": "entities", "entities": lignes},
         ],
     }
-
-
-def _section_courbe(
-    hass: HomeAssistant, coord: PcParentalCoordinator
-) -> dict[str, Any]:
-    """Un mois de tentatives bloquées, une ligne par machine.
-
-    Deux représentations de la même chose, et c'est voulu : le graphique de
-    Home Assistant est plus lisible, mais son historique est purgé au bout
-    de quelques jours ; le tableau, lui, est lu dans notre propre stockage
-    et couvre toujours trente jours.
-    """
-    capteurs = []
-    lignes = []
-    for pc_id in sorted(coord.pcs, key=lambda p: coord.pc_name(p).lower()):
-        eid = _eid(hass, "sensor", f"{DOMAIN}_blocages_{pc_id}")
-        if not eid:
-            continue
-        capteurs.append(eid)
-        lignes.append(
-            "| **" + coord.pc_name(pc_id) + "** | `{{ state_attr('" + eid
-            + "', 'courbe') }}` | {{ state_attr('" + eid
-            + "', 'total_30_jours') }} | {{ states('" + eid + "') }} |"
-        )
-
-    cartes: list[dict[str, Any]] = [
-        {
-            "type": "heading",
-            "heading": _t(hass, "courbe_titre"),
-            "heading_style": "title",
-            "icon": "mdi:chart-line",
-        },
-        {
-            "type": "markdown",
-            "content": _t(hass, "courbe_aide"),
-        },
-    ]
-    if capteurs:
-        cartes.append(
-            {
-                "type": "history-graph",
-                "hours_to_show": 720,
-                "entities": [{"entity": e} for e in capteurs],
-            }
-        )
-    if lignes:
-        cartes.append(
-            {
-                "type": "markdown",
-                "content": (
-                    _t(hass, "courbe_entete") + "\n"
-                    "|---|---|---|---|\n" + "\n".join(lignes)
-                ),
-            }
-        )
-    return {"type": "grid", "cards": cartes}
 
 
 def _lignes(hass: HomeAssistant, triplets) -> list[dict[str, Any]]:
@@ -1008,41 +957,56 @@ def _vue_processus(hass: HomeAssistant) -> dict[str, Any]:
 
 
 def _vue_veille(hass: HomeAssistant, coord: PcParentalCoordinator) -> dict[str, Any]:
-    """L'écran de veille des télés : les tableaux à composer, et les réglages d'ambiance."""
+    """Refonte lot 3 (B3, HA-18) : l'apparence, la veille et le son au même endroit (« Pour tous »).
+
+    Le thème du tableau (carte Apparence, venue de l'onglet Appareils), les tableaux de l'écran de veille des télés et
+    des appareils Android (module Veille), et les réglages par défaut des appareils (thème, radio, mode nuit, musique),
+    que chaque appareil peut changer pour lui seul dans Vision → Réglages. Le chemin « veille » ne change pas (liens)."""
     reglages = []
     for plateforme, uid in (("select", "veille_theme"), ("select", "veille_radio"), ("text", "veille_nuit"), ("text", "veille_musique"),
                             ("text", "veille_entites"), ("text", "veille_courbe"), ("text", "veille_flux_suffixe")):
         if eid := _eid(hass, plateforme, f"{DOMAIN}_{uid}"):
             reglages.append(eid)
+    veille = not modules.coupe(coord.store, "veille")
+    sections: list[dict[str, Any]] = [
+        {
+            "type": "grid",
+            "cards": [
+                _titre(_t(hass, "titre_apparence"), "mdi:palette-outline"),
+                {"type": "custom:vision-apparence-card"},
+                {"type": "markdown", "content": _t(hass, "apparence_aide")},
+            ],
+        },
+    ]
+    if veille:
+        sections.insert(0, {
+            "type": "grid",
+            "column_span": 2,
+            "cards": [
+                _titre(_t(hass, "titre_ecran_veille"), "mdi:television-ambient-light"),
+                {"type": "custom:vision-dashboards-card", "grid_options": {"columns": "full"}},
+                {
+                    "type": "markdown",
+                    "content": "_" + _t(hass, "carte_vide") + "_",
+                },
+            ],
+        })
+    if reglages:
+        sections.append({
+            "type": "grid",
+            "cards": [
+                _titre(_t(hass, "veille_sur_chaque_appareil"), "mdi:cellphone-cog"),
+                {"type": "markdown", "content": _t(hass, "veille_defauts_aide")},
+                *({"type": "tile", "entity": e} for e in reglages),
+            ],
+        })
     return {
         "type": "sections",
-        "title": _t(hass, "onglet_veille"),
+        "title": _t(hass, "onglet_pour_tous"),
         "path": "veille",
-        "icon": "mdi:television-ambient-light",
+        "icon": "mdi:palette-outline",
         "max_columns": 3,
-        "sections": [
-            {
-                "type": "grid",
-                "column_span": 2,
-                "cards": [
-                    {"type": "custom:vision-dashboards-card", "grid_options": {"columns": "full"}},
-                    {
-                        "type": "markdown",
-                        "content": "_" + _t(hass, "carte_vide") + "_",
-                    },
-                ],
-            },
-            {
-                "type": "grid",
-                "cards": [
-                    _titre(_t(hass, "veille_sur_chaque_appareil"), "mdi:palette-outline"),
-                    {
-                        "type": "markdown",
-                        "content": _t(hass, "veille_aide"),
-                    },
-                ],
-            },
-        ],
+        "sections": sections,
     }
 
 
@@ -1055,53 +1019,50 @@ def _vue_statistiques(
     les regarder, pas les changer. Les mêler aux cartes des PC, c'était
     faire descendre tout le monde pour rien.
     """
-    sections = [] if modules.coupe(coord.store, "filtrage") else [_section_courbe(hass, coord)]
-    # 1.97.0 (point 16.3) : d'abord le temps d'écran des 7 derniers jours, en barres, un appareil par couleur.
-    temps = [e for pc_id in sorted(coord.pcs, key=lambda p: coord.pc_name(p).lower())
-             if (e := _eid(hass, "sensor", f"{DOMAIN}_temps_ecran_{pc_id}"))]
+    # Retours de l'auteur (15/10) : l'onglet est synthétisé — le temps d'écran de la semaine en barres, puis UN tableau
+    # (une ligne par appareil : temps d'écran du jour, sites bloqués du jour, les 30 derniers jours), et les adresses
+    # tentées repliées. Avant : un graphique d'un mois, un tableau, puis une carte de quatre lignes par appareil.
+    ordre = sorted(coord.pcs, key=lambda p: coord.pc_name(p).lower())
+    sections: list[dict[str, Any]] = []
+    temps = [e for pc_id in ordre if (e := _eid(hass, "sensor", f"{DOMAIN}_temps_ecran_{pc_id}"))]
     if temps and not modules.coupe(coord.store, "temps"):
-        sections.insert(0, {"type": "grid", "column_span": 2, "cards": [
+        sections.append({"type": "grid", "column_span": 2, "cards": [
             {"type": "heading", "heading": _t(hass, "statistiques_temps_7_jours"), "icon": "mdi:chart-bar"},
             {"type": "statistics-graph", "entities": temps, "chart_type": "bar", "period": "day", "days_to_show": 7,
              "stat_types": ["change"], "hide_legend": False},
         ]})
-    for pc_id in sorted(coord.pcs, key=lambda p: coord.pc_name(p).lower()):
-        lignes = _outils(
-            hass,
-            (
-                ("sensor", f"{DOMAIN}_temps_ecran_{pc_id}", _t(hass, "statistiques_temps_ecran")),
-                ("sensor", f"{DOMAIN}_blocages_{pc_id}", _t(hass, "statistiques_sites_bloques")),
-                ("sensor", f"{DOMAIN}_alertes_{pc_id}", _t(hass, "statistiques_tentatives")),
-                ("sensor", f"{DOMAIN}_presence_{pc_id}", _t(hass, "statistiques_presence")),
-            ),
-        )
-        if not lignes:
+    filtrage = not modules.coupe(coord.store, "filtrage")
+    lignes, tentatives = [], []
+    for pc_id in ordre:
+        ecran = _eid(hass, "sensor", f"{DOMAIN}_temps_ecran_{pc_id}")
+        bloc = _eid(hass, "sensor", f"{DOMAIN}_blocages_{pc_id}") if filtrage else None
+        if not ecran and not bloc:
             continue
-        cartes = [
-            _titre(coord.pc_name(pc_id), "mdi:chart-box-outline", "subtitle"),
-            {"type": "entities", "entities": lignes},
-        ]
-        if eid := _eid(hass, "sensor", f"{DOMAIN}_alertes_{pc_id}"):
-            cartes.append(
-                {
-                    "type": "markdown",
-                    "content": (
-                        "{% set l = state_attr('" + eid + "', 'lignes') %}"
-                        "{% if l %}"
-                        "{{ state_attr('" + eid + "', 'entete') }}\n"
-                        "{% for r in l %}{{ r }}\n{% endfor %}"
-                        "{% else %}_" + _t(hass, "statistiques_aucune_tentative") + "_{% endif %}"
-                    ),
-                }
-            )
-        sections.append({"type": "grid", "cards": [_bloc(cartes)]})
+        duree = ("{% set m = states('" + ecran + "') | int(0) %}{{ (m // 60) ~ ' h ' ~ '%02d' | format(m % 60) "
+                 "if m >= 60 else m ~ ' min' }}") if ecran else "—"
+        lignes.append("| **" + coord.pc_name(pc_id).replace("|", "/") + "** | " + duree + " | "
+                      + ("{{ states('" + bloc + "') }}" if bloc else "—") + " | "
+                      + ("`{{ state_attr('" + bloc + "', 'courbe') }}` {{ state_attr('" + bloc + "', 'total_30_jours') }}"
+                         if bloc else "—") + " |")
+        if filtrage and (al := _eid(hass, "sensor", f"{DOMAIN}_alertes_{pc_id}")):
+            tentatives.append("{% set l = state_attr('" + al + "', 'lignes') %}{% if l %}<details><summary>"
+                              + _t(hass, "activite_tentatives") + " · " + coord.pc_name(pc_id) + "</summary>\n\n{{ state_attr('" + al + "', 'entete') }}\n"
+                              "{% for r in l %}{{ r }}\n{% endfor %}\n</details>\n{% endif %}")
+    if lignes:
+        cartes: list[dict[str, Any]] = [
+            {"type": "heading", "heading": _t(hass, "activite_resume"), "icon": "mdi:devices"},
+            {"type": "markdown", "content": _t(hass, "activite_entete") + "\n|---|---|---|---|\n" + "\n".join(lignes)}]
+        if tentatives:
+            # Lot 6 (HA-15) : les adresses tentées restent repliées (un écran que d'autres voient).
+            cartes.append({"type": "markdown", "content": "".join(tentatives)})
+        sections.append({"type": "grid", "column_span": 2, "cards": cartes})
 
     return {
         "type": "sections",
         "title": _t(hass, "onglet_activite"),
         "path": "statistiques",
         "icon": "mdi:chart-timeline-variant",
-        "max_columns": 3,
+        "max_columns": 2,
         "sections": sections,
     }
 
@@ -1124,6 +1085,41 @@ def _vue_message(hass: HomeAssistant, coord: PcParentalCoordinator) -> dict[str,
         "sections": [{"type": "grid", "column_span": 2, "cards": [{"type": "custom:vision-messages-card"}]},
                      _section_message(hass, coord)],
     }
+
+
+def _vue_reveils(hass: HomeAssistant, coord: PcParentalCoordinator) -> dict[str, Any]:
+    """Module Réveil : la liste de tous les réveils, à jour en direct (carte Markdown à modèle : un réveil créé
+    après la construction du tableau y apparaît aussitôt), les interrupteurs des réveils connus au moment de la
+    construction, et, repliée, l'aide pour piloter les réveils par automatisation (services, événements, modèle)."""
+    from . import reveil
+
+    colonnes = [_t(hass, c) for c in ("reveils_col_reveil", "reveils_col_pour", "reveils_col_prochain", "reveils_col_etat")]
+    modele = (
+        "{% set l = states.switch | selectattr('entity_id', 'match', 'switch[.]vision_reveil_') | list %}"
+        "{% if l | count == 0 %}" + _t(hass, "reveils_aucun") + "{% else %}\n"
+        "| " + " | ".join(colonnes) + " |\n|---|---|---|---|\n"
+        "{% for s in l %}{% set b = s.object_id %}{% set p = state_attr(s.entity_id, 'demandeur') %}"
+        "{% set n = states('sensor.' ~ b ~ '_prochain') %}"
+        "| {{ s.name }} | {{ state_attr(p, 'friendly_name') or p }} | "
+        "{{ (n | as_datetime | as_local).strftime('%d/%m %H:%M') if n not in ['unknown', 'unavailable', ''] else '—' }} | "
+        "{{ state_translated('sensor.' ~ b ~ '_etat') }} |\n{% endfor %}{% endif %}"
+    )
+    tuiles = []
+    for r in sorted(reveil.reveils(coord.store).values(), key=lambda x: (str(x.get("demandeur")), str(x.get("nom")))):
+        eid = _eid(hass, "switch", f"{DOMAIN}_reveil_{r['id']}_actif")
+        if eid:
+            tuiles.append({"type": "tile", "entity": eid})
+    aide = {
+        "type": "markdown",
+        "content": "<details><summary>" + _t(hass, "reveils_automatisation_titre") + "</summary>\n\n"
+                   + _t(hass, "reveils_automatisation") + "\n\n</details>",
+    }
+    sections = [{"type": "grid", "column_span": 2, "cards": [{"type": "markdown", "content": modele}]}]
+    if tuiles:
+        sections.append({"type": "grid", "column_span": 2, "cards": tuiles})
+    sections.append({"type": "grid", "column_span": 2, "cards": [aide]})
+    return {"type": "sections", "title": _t(hass, "onglet_reveils"), "path": "reveils", "icon": "mdi:alarm",
+            "max_columns": 2, "sections": sections}
 
 
 def _section_retrait(
@@ -1336,7 +1332,23 @@ def _personnes_du_tableau(
 def _vue_personne(
     hass: HomeAssistant, coord: PcParentalCoordinator, personne: dict[str, Any]
 ) -> dict[str, Any]:
-    """La page d'une personne : on y arrive depuis la ligne de la maison."""
+    """La page d'une personne : on y arrive depuis la ligne de la maison.
+
+    Refonte lot 3 : pour une vraie personne, la page est sa fiche (vision-personne-card : Résumé, Horaires, Contenus,
+    Réveils, Récompenses, Sur ses écrans, Rôle ; ‹ › d'une personne à l'autre). Les appareils sans personne gardent
+    la page d'avant (carte des appareils, puis un planning par appareil)."""
+    if personne["entite"]:
+        return {
+            "type": "sections",
+            "title": personne["prenom"],
+            "path": f"{PREFIXE_PERSONNE}{personne['cle']}",
+            "icon": "mdi:account",
+            "subview": True,
+            "max_columns": 3,
+            "sections": [{"type": "grid", "column_span": 3, "cards": [{
+                "type": "custom:vision-personne-card", "grid_options": {"columns": "full"},
+                "personne": personne["entite"], "chemin": f"/{URL_PATH}"}]}],
+        }
     sections: list[dict[str, Any]] = [
         {
             "type": "grid",
@@ -1400,7 +1412,6 @@ def _vue_personne(
         "path": f"{PREFIXE_PERSONNE}{personne['cle']}",
         "icon": "mdi:account",
         "subview": True,
-        "back_path": f"/{URL_PATH}/maison",
         "max_columns": 3,
         "sections": sections,
     }
@@ -1413,29 +1424,27 @@ def _section_pause_generale(hass: HomeAssistant, coord: PcParentalCoordinator) -
     # Lot 1 (HA-08) : « Pause générale » s'appelle « Tout fermer » (sa fin, « Rouvrir »), et fermer tous les appareils
     # protégés demande une confirmation : un appui de trop sur l'accueil ne ferme plus tout le lieu. Les entités
     # (boutons, capteur) ne changent pas.
-    boutons = _boutons(hass, (
-        (f"{DOMAIN}_pause_generale_30", _t(hass, "pause_generale_30"), "mdi:lock-clock"),
-        (f"{DOMAIN}_pause_generale_fin", _t(hass, "pause_generale_fin"), "mdi:lock-open-variant-outline"),
-    ))
-    if boutons is not None:
-        for bouton in boutons["cards"]:
-            action: dict[str, Any] = {"action": "perform-action", "perform_action": "button.press",
-                                      "target": {"entity_id": bouton["entity"]}}
-            if bouton["entity"] == _eid(hass, "button", f"{DOMAIN}_pause_generale_30"):
-                action["confirmation"] = {"text": _t(hass, "pause_generale_confirmation")}
-            bouton["tap_action"] = action
-            bouton["hold_action"] = {"action": "more-info"}
+    # Lot 2 (A8) : la durée se choisit (15 min à 2 h), la limite est dite avant le choix, et chaque durée demande une
+    # confirmation qui la répète. Le service « pause_generale » fait le travail (même règle 1 à 240 min partout).
+    duree = {15: _t(hass, "pause_generale_min", m=15), 30: _t(hass, "pause_generale_min", m=30),
+             60: _t(hass, "pause_generale_h", h=1), 120: _t(hass, "pause_generale_h", h=2)}
+    choix = [{"type": "button", "name": duree[m], "icon": "mdi:lock-clock", "show_state": False,
+              "tap_action": {"action": "perform-action", "perform_action": f"{DOMAIN}.pause_generale", "data": {"minutes": m},
+                             "confirmation": {"text": _t(hass, "pause_generale_confirmation", duree=duree[m])}}}
+             for m in (15, 30, 60, 120)]
     capteur = _eid(hass, "binary_sensor", f"{DOMAIN}_pause_generale")
-    if boutons is None and capteur is None:
-        return None
     cartes: list[dict[str, Any]] = [_titre(_t(hass, "pause_generale"), "mdi:lock-alert-outline")]
+    # Retours de l'auteur (15/10) : plus de phrase d'explication quand rien n'est fermé (les boutons et leur confirmation
+    # suffisent) ; seul l'état « fermé jusqu'à… » s'affiche, et seulement pendant la fermeture.
     if capteur:
-        cartes.append(_mot(
-            "{% if is_state('" + capteur + "', 'on') %}"
-            + _t(hass, "pause_generale_en_cours", heure="{{ state_attr('" + capteur + "', 'fin_heure') }}")
-            + "{% else %}" + _t(hass, "pause_generale_aucune") + "{% endif %}"))
-    if boutons is not None:
-        cartes.append(boutons)
+        cartes.append({"type": "conditional", "conditions": [{"condition": "state", "entity": capteur, "state": "on"}],
+                       "card": _mot(_t(hass, "pause_generale_en_cours",
+                                       heure="{{ state_attr('" + capteur + "', 'fin_heure') }}"))})
+    cartes.append({"type": "grid", "columns": 4, "square": False, "cards": choix})
+    # FAILLE DE SÉCURITÉ (l'auteur, 16/10) : rouvrir avant l'heure accorde ; le bouton standard de Home Assistant
+    # (button.press) ne pouvait demander aucun code. « Rouvrir » est maintenant un bouton de la carte Vision, qui
+    # passe par /api/pc_parental/maison et exige le code de déverrouillage ; il ne s'affiche que pendant la fermeture.
+    cartes.append({"type": "custom:vision-maison-card", "mode": "rouvrir", **({"entity": capteur} if capteur else {})})
     return {"type": "grid", "column_span": 2, "cards": cartes}
 
 
@@ -1446,11 +1455,11 @@ def build(hass: HomeAssistant, coord: PcParentalCoordinator) -> dict[str, Any]:
     trouvait ce qu'on voulait. Les onglets font le travail, et Home Assistant
     les affiche avec leur icône en haut de page.
     """
-    # Lot 1 (HA-04) : la première vue s'appelle « Aujourd'hui » (et non plus du nom du lieu). Son chemin reste
-    # « maison » : les liens déjà écrits (notifications, cartes, favoris) continuent de mener ici.
+    # Lot 1 (HA-04) : la première vue ne porte plus le nom du lieu ; 2.5.10 (l'auteur, retour 28) : « Utilisateur » (avant :
+    # « Aujourd'hui »). Son chemin reste « maison » : les liens déjà écrits (notifications, cartes, favoris) y mènent.
     vue_maison = {
         "type": "sections",
-        "title": _t(hass, "onglet_aujourdhui"),
+        "title": _t(hass, "onglet_utilisateur"),
         "path": "maison",
         "icon": "mdi:home-heart",
         "max_columns": 2,
@@ -1512,26 +1521,49 @@ def build(hass: HomeAssistant, coord: PcParentalCoordinator) -> dict[str, Any]:
         "sections": [
             _section_installation(hass, coord),
             _section_retrait(hass, coord),
-            # 1.95.0 (point 16.2) : l'apparence du tableau (palette, clair / sombre / automatique, accent).
-            {"type": "grid", "cards": [{"type": "custom:vision-apparence-card"}]},
+            # Refonte lot 3 (B3) : l'apparence du tableau a rejoint l'onglet « Apparence, veille et son ».
         ],
     }
 
     # 1.82.0 : l'onglet d'un module coupé n'est plus construit (il revient avec le module).
     coupe = lambda *m: modules.coupe(coord.store, *m)  # noqa: E731
-    vues = [
-        vue_maison,
-        *vues_personnes,
-        *([] if coupe("blocage", "filtrage") else [_vue_listes(hass, coord)]),
-        _vue_statistiques(hass, coord),
-        *([] if coupe("messages") else [_vue_message(hass, coord)]),
-        *([vue_protection] if vue_protection["sections"] else []),
-        *([] if coupe("veille") else [_vue_veille(hass, coord)]),
+    # Refonte lot 5 : cinq espaces (Aujourd'hui, Personnes, Appareils, Activité, Réglages). Les anciens onglets
+    # deviennent des sous-pages (même chemin : les liens déjà écrits continuent de mener au bon endroit).
+    vue_message = None if coupe("messages") else _vue_message(hass, coord)
+    if vue_message is not None:
+        vue_maison["sections"].append(_section_actions_rapides(hass))
+    # Décision de l'auteur (15/10) : plus d'onglets Personnes ni Appareils. Les appareils sont déjà sous chaque personne
+    # dans Aujourd'hui (d'où l'on ouvre aussi chaque fiche), les personnes sont les utilisateurs de Home Assistant.
+    # Ce qui n'existait que là est déplacé : la tuile de protection par appareil reste en tête de Protection ;
+    # l'installation (liens, inscriptions, mises à jour, création d'un PC) et l'aide au retrait deviennent la
+    # sous-page Réglages › Avancé › Appareils (même chemin : les liens déjà écrits y mènent toujours).
+    # Retours de l'auteur (15/10) : Autorisations et Protection reviennent dans le menu du haut (onglets, plus des
+    # sous-pages de Réglages › Avancé).
+    vue_listes = None if coupe("blocage", "filtrage") else _vue_listes(hass, coord)
+    sous_pages_avancees = [
         vue_appareils,
-        # 1.94.0 (point 16.1) : les entités Home Assistant données aux personnes, réservé aux administrateurs (la carte le vérifie).
+        # Module Réveil (2.5) : la liste des réveils et l'aide pour les automatisations, en sous-page (refonte lot 5).
+        *([] if coupe("reveil") else [_vue_reveils(hass, coord)]),
         *([] if coupe("entites") else [{"type": "sections", "title": _t(hass, "onglet_widgets"), "path": "widgets", "icon": "mdi:home-import-outline",
                                           "max_columns": 2, "sections": [{"type": "grid", "column_span": 2,
                                                                           "cards": [{"type": "custom:vision-widgets-card"}]}]}]),
+    ]
+    # Refonte lot 3 : toujours là (l'apparence y vit), même sans le module Veille.
+    vue_pour_tous = _vue_veille(hass, coord)
+    # Retours de l'auteur (15/10) : sans « back_path », la flèche de retour d'une sous-page ramène à la page d'où l'on
+    # vient (historique du navigateur), et non plus toujours à Réglages.
+    for v in (vue_pour_tous, *sous_pages_avancees, *((vue_message,) if vue_message is not None else ())):
+        v["subview"] = True
+    vues = [
+        vue_maison,
+        *([vue_listes] if vue_listes is not None else []),
+        *([vue_protection] if vue_protection["sections"] else []),
+        _vue_statistiques(hass, coord),
+        _vue_reglages(hass, coord, vue_pour_tous, sous_pages_avancees),
+        *vues_personnes,
+        *([vue_message] if vue_message is not None else []),
+        vue_pour_tous,
+        *sous_pages_avancees,
     ]
     plus, comment = _t(hass, "en_savoir_plus"), _t(hass, "comment_ca_marche")
     for v in vues:
@@ -1580,6 +1612,8 @@ def signature(coord: PcParentalCoordinator) -> str:
     morceaux.append("mots:" + repr(sorted((lg, sorted(m.items())) for lg, m in (getattr(coord.store, "mots_vocabulaire", None) or {}).items())))
     # 1.82.0 : les modules actifs choisissent les onglets.
     morceaux.append("modules:" + ",".join(modules.public(coord.store)))
+    # Module Réveil : un réveil créé ou supprimé change les interrupteurs de l'onglet « Réveils ».
+    morceaux.append("reveils:" + ",".join(sorted(getattr(coord.store, "reveils", None) or {})))
     # 1.84.0 : les textes du tableau changent aussi (vocabulaire neutre, nom du lieu) ; sans cette marque, un
     # tableau déjà en place gardait ses anciens textes. À changer à chaque nouvelle rédaction.
     from .const import VERSION
@@ -1687,7 +1721,60 @@ async def _a_la_main(store, propres: set[str] | frozenset[str] = frozenset()) ->
     return gardees
 
 
-async def async_build(hass: HomeAssistant, coord: PcParentalCoordinator) -> bool:
+def _vues_de_vision(config: Any) -> bool:
+    """Vrai si le tableau contient déjà au moins un onglet écrit par Vision (il a été rempli une fois)."""
+    vues = config.get("views") if isinstance(config, dict) else None
+    for vue in vues or []:
+        chemin = str(vue.get("path") or "") if isinstance(vue, dict) else ""
+        if chemin in CHEMINS or chemin.startswith(PREFIXE_PERSONNE):
+            return True
+    return False
+
+
+def _ecrire_sauvegarde(dossier: str, nom: str, contenu: str) -> str:
+    import os
+
+    os.makedirs(dossier, exist_ok=True)
+    chemin = os.path.join(dossier, nom)
+    with open(chemin, "w", encoding="utf-8") as f:
+        f.write(contenu)
+    return chemin
+
+
+async def async_sauvegarder(hass: HomeAssistant, store) -> str | None:
+    """2.5.10 : copie le tableau en place avant de le recréer. Rend le fichier écrit (None : rien à sauver).
+    Lève une exception si la copie échoue : on ne recrée pas un tableau qu'on n'a pas pu sauver."""
+    import json
+    import time
+
+    try:
+        config = await store.async_load(False)
+    except Exception:  # noqa: BLE001 - un tableau vide n'a rien à sauver
+        return None
+    if not config:
+        return None
+    nom = f"tableau-{URL_PATH}-{time.strftime('%Y%m%d-%H%M%S')}.json"
+    return await hass.async_add_executor_job(
+        _ecrire_sauvegarde, hass.config.path("vision_outils", "sauvegardes"), nom, json.dumps(config, ensure_ascii=False, indent=1))
+
+
+async def async_remplir_si_vide(hass: HomeAssistant, coord: PcParentalCoordinator) -> bool:
+    """2.5.10 (l'auteur, retour 28) : au démarrage, le tableau n'est rempli que s'il ne contient encore aucun onglet de Vision.
+    Déjà rempli, il appartient à l'utilisateur : ni le démarrage ni une mise à jour ne le réécrivent."""
+    tableaux = _tableaux(hass)
+    store = tableaux.get(URL_PATH) if tableaux is not None else None
+    if store is None:
+        return False
+    try:
+        config = await store.async_load(False)
+    except Exception:  # noqa: BLE001 - illisible : on ne touche à rien
+        return False
+    if _vues_de_vision(config):
+        return False
+    return await async_build(hass, coord)
+
+
+async def async_build(hass: HomeAssistant, coord: PcParentalCoordinator, sauvegarder: bool = False) -> bool:
     """Met à jour le contenu du tableau de bord. Sans casse en cas d'échec.
 
     Home Assistant ne permet pas à une intégration de *créer* un tableau de
@@ -1723,6 +1810,15 @@ async def async_build(hass: HomeAssistant, coord: PcParentalCoordinator) -> bool
             )
         except Exception:  # noqa: BLE001 - sans la liste, les réglages restent cachés
             hass.data[f"{DOMAIN}_adultes"] = []
+        if sauvegarder:
+            # 2.5.10 (l'auteur, retour 28) : le tableau appartient à l'utilisateur ; on le recrée seulement après l'avoir sauvé.
+            try:
+                copie = await async_sauvegarder(hass, store)
+            except Exception:  # noqa: BLE001 - pas de copie, pas de recréation
+                _LOGGER.exception("Tableau de bord non recréé : la sauvegarde de l'ancien a échoué")
+                return False
+            if copie:
+                _LOGGER.warning("Tableau de bord « %s » recréé ; l'ancien est sauvegardé dans %s", TITRE, copie)
         config = build(hass, coord)
         propres = {str(v.get("path")) for v in config["views"] if isinstance(v, dict) and v.get("path")}
         config["views"] = (await _a_la_main(store, propres)) + config["views"]
@@ -1733,3 +1829,40 @@ async def async_build(hass: HomeAssistant, coord: PcParentalCoordinator) -> bool
     except Exception:  # noqa: BLE001 - un tableau raté ne doit rien casser
         _LOGGER.exception("Impossible de générer le tableau de bord")
         return False
+
+# ----------------------------------------------------------------------------- Refonte lot 5 : les espaces
+
+
+def _naviguer(nom: str, icone: str, chemin: str) -> dict[str, Any]:
+    """Un bouton qui mène à une page du tableau (ou de Home Assistant)."""
+    return {"type": "button", "name": nom, "icon": icone, "show_state": False,
+            "tap_action": {"action": "navigate", "navigation_path": chemin}}
+
+
+def _section_actions_rapides(hass: HomeAssistant) -> dict[str, Any]:
+    """Aujourd'hui › Actions rapides : un message à tous (« Tout fermer » a sa propre section)."""
+    return {"type": "grid", "column_span": 2, "cards": [
+        {"type": "heading", "heading": _t(hass, "actions_rapides"), "icon": "mdi:flash-outline"},
+        _naviguer(_t(hass, "envoyer_message"), "mdi:message-text-outline", f"/{URL_PATH}/message")]}
+
+
+def _vue_reglages(hass: HomeAssistant, coord: PcParentalCoordinator, pour_tous: dict[str, Any],
+                  avancees: list[dict[str, Any]]) -> dict[str, Any]:
+    """Réglages : Pour tous · Réservé aux Décideurs 🔒 · Avancé (architecture cible § 2)."""
+    avance = [{"type": "heading", "heading": _t(hass, "reglages_avance"), "icon": "mdi:cog-outline"}]
+    for v in avancees:
+        avance.append(_naviguer(v["title"], v.get("icon") or "mdi:chevron-right", f"/{URL_PATH}/{v['path']}"))
+    avance.append(_naviguer(_t(hass, "reglages_configurer"), "mdi:wrench-outline", f"/config/integrations/integration/{DOMAIN}"))
+    return {"type": "sections", "title": _t(hass, "onglet_reglages"), "path": CHEMIN_REGLAGES, "icon": "mdi:cog",
+            "max_columns": 2, "sections": [
+                {"type": "grid", "column_span": 2, "cards": [
+                    {"type": "heading", "heading": _t(hass, "reglages_pour_tous"), "icon": "mdi:account-multiple-outline"},
+                    _naviguer(pour_tous["title"], "mdi:palette-outline", f"/{URL_PATH}/{pour_tous['path']}")]},
+                # 2.5.6 (l'auteur, 15/10) : chaque Décideur choisit comment il reçoit demandes, alertes et résumé.
+                {"type": "grid", "column_span": 2, "cards": [
+                    {"type": "custom:vision-canaux-card", "grid_options": {"columns": "full"}}]},
+                {"type": "grid", "column_span": 2, "cards": [
+                    {"type": "heading", "heading": _t(hass, "reglages_reserve"), "icon": "mdi:lock-outline"},
+                    {"type": "custom:vision-reglages-card", "grid_options": {"columns": "full"}}]},
+                {"type": "grid", "column_span": 2, "cards": avance},
+            ]}

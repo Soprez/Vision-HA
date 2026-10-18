@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Veille : l'indicateur des ouvertures (l'auteur, 15/10) — style, couleurs, seulement ouvert. -->
+<resources>
+    <string name="ouv_indicateur">Indicatore delle aperture</string>
+    <string name="ouv_style_pastille">Pallino</string>
+    <string name="ouv_style_icone">Icona (porta, finestra, cancello…)</string>
+    <string name="ouv_style_lisere">Bordo colorato</string>
+    <string name="ouv_style_aucun">Nessuno (solo testo)</string>
+    <string name="ouv_couleur_ouvert">Colore quando è aperto</string>
+    <string name="ouv_couleur_ferme">Colore quando è chiuso</string>
+    <string name="ouv_seulement_ouvert">Indicatore solo quando è aperto</string>
+    <string name="ouv_couleur_rouge">Rosso</string>
+    <string name="ouv_couleur_orange">Arancione</string>
+    <string name="ouv_couleur_vert">Verde</string>
+    <string name="ouv_couleur_bleu">Blu</string>
+    <string name="ouv_couleur_accent">Accento del tema</string>
+    <string name="ouv_couleur_gris">Grigio</string>
+</resources>

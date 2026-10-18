@@ -317,7 +317,7 @@
     <string name="whc_titre">Widget Home Assistant</string>
     <string name="whc_sous_titre">Choisis l\'entité à montrer, puis son style. Seules les entités permises sur cet appareil sont proposées.</string>
     <string name="whc_pas_relie">Vision n\'est pas encore relié à Home Assistant sur cet appareil : ouvre Vision et relie-le d\'abord.</string>
-    <string name="whc_desactives">Les widgets Home Assistant sont désactivés dans Vision (Configurer → Modules, dans Home Assistant).</string>
+    <string name="whc_desactives">Les widgets Home Assistant sont désactivés dans Vision (Vision → Réglages → Fonctions, dans Home Assistant).</string>
     <string name="whc_chargement">Chargement des entités… S\'il n\'y en a aucune, un administrateur doit en permettre dans Home Assistant (Vision → Widgets HA).</string>
     <string name="whc_chercher">Chercher une entité</string>
     <string name="whc_pilotable">%1$s · peut être piloté</string>
@@ -507,8 +507,8 @@
     <string name="wha_err_entite">Cette entité n\'est plus partagée avec cet appareil.</string>
     <string name="wha_err_403">Home Assistant refuse cette demande.</string>
     <string name="wha_err_404">Cette entité n\'existe plus dans Home Assistant.</string>
-    <string name="wha_err_429">Trop d\'actions d\'affilée : réessayez dans une minute.</string>
-    <string name="wha_err_502">Home Assistant n\'a pas pu exécuter l\'action. Réessayez plus tard.</string>
+    <string name="wha_err_429">Trop d\'actions d\'affilée : réessaie dans une minute.</string>
+    <string name="wha_err_502">Home Assistant n\'a pas pu exécuter l\'action. Réessaie plus tard.</string>
     <string name="wha_err_periode">Cette période d\'historique n\'est pas proposée.</string>
     <string name="wha_err_data">Ce réglage n\'est pas permis pour cette entité.</string>
     <string name="wha_err_400">Home Assistant n\'a pas compris la demande.</string>
@@ -702,7 +702,6 @@
     <string name="setup_p_accueil">Faire de Vision l\'écran d\'accueil</string>
     <string name="setup_p_accueil_detail">La touche Accueil ouvre Vision</string>
     <string name="setup_p_accueil_sans">Sans : la touche Accueil ramène au lanceur du téléphone ; Vision reste une appli parmi d\'autres.</string>
-    <string name="setup_p_accueil_sans_ancienne">Sans : la touche Accueil ramène au lanceur du téléphone ; Vision reste une appli parmi d\'autres. L\'ancienne Vision est encore installée : elle porte le même nom dans la liste d\'Android.</string>
     <string name="setup_p_maj">Mises à jour</string>
     <string name="setup_p_maj_detail">Vision peut installer ses nouvelles versions</string>
     <string name="setup_p_maj_sans">Sans : chaque nouvelle version attend une confirmation à l\'écran.</string>
@@ -733,8 +732,8 @@
     <string name="setup_installation">Installation…</string>
     <string name="setup_details">Détails</string>
     <string name="setup_etape_restreints">Étape : Autoriser les paramètres restreints</string>
-    <string name="setup_restreints_texte">Android a refusé « %1$s » (« Accès refusé » ou « Paramètre restreint ») : Vision a été installée depuis un fichier, hors Play Store. Pour l\'autoriser :\n1. Touchez « Ouvrir Infos de l\'appli ».\n2. Touchez ⋮ en haut à droite → Autoriser les paramètres restreints, puis confirmez.\n3. Revenez avec la flèche retour : Vision redemande « %1$s » toute seule.</string>
-    <string name="setup_restreints_pas_de_menu">Pas de ⋮, ou rien dedans ? Android ne le propose qu\'après un refus : touchez « Réessayer », puis revenez.</string>
+    <string name="setup_restreints_texte">Android a refusé « %1$s » (« Accès refusé » ou « Paramètre restreint ») : Vision a été installée depuis un fichier, hors Play Store. Pour l\'autoriser :\n1. Touche « Ouvrir Infos de l\'appli ».\n2. Touche ⋮ en haut à droite → Autoriser les paramètres restreints, puis confirme.\n3. Reviens avec la flèche retour : Vision redemande « %1$s » toute seule.</string>
+    <string name="setup_restreints_pas_de_menu">Pas de ⋮, ou rien dedans ? Android ne le propose qu\'après un refus : touche « Réessayer », puis reviens.</string>
     <string name="setup_ouvrir_infos">Ouvrir Infos de l\'appli</string>
     <string name="setup_arreter">Arrêter</string>
     <string name="setup_etape_n">Étape %1$d sur %2$d : %3$s</string>
@@ -752,10 +751,6 @@
         <item quantity="other">Et %1$d autres : « Corriger maintenant » les enchaîne toutes, ou « Toutes les autorisations », en bas de l\'écran.</item>
     </plurals>
     <string name="setup_acces_refuse_aide">« Accès refusé » ou interrupteur grisé ? Infos de l\'appli ▸ menu ⋮ ▸ « Autoriser les paramètres restreints » (proposé après un premier refus).</string>
-    <string name="setup_ancienne_titre">L\'ancienne version de Vision est encore là</string>
-    <string name="setup_ancienne_texte">Cette appli la remplace. Si l\'ancienne Vision protège encore cet appareil, suspends d\'abord sa protection (son code de gestion).</string>
-    <string name="setup_ancienne_supprimer">Supprimer l\'ancienne version</string>
-    <string name="setup_desinstallation_impossible">Impossible d\'ouvrir la désinstallation</string>
     <string name="setup_encore_accueil">Vision est encore l\'écran d\'accueil</string>
     <string name="setup_encore_accueil_texte">Cette fonction est coupée dans Home Assistant. Choisis l\'accueil d\'origine dans l\'écran du système.</string>
     <string name="setup_rendre_accueil">Rendre l\'accueil d\'origine</string>
@@ -798,20 +793,15 @@
     <string name="setup_voir_detail">%1$s, voir le détail</string>
     <string name="setup_tes_appareils">Sur tes appareils à toi ; les écrans partagés ne comptent pas.</string>
     <string name="setup_reglages">Réglages</string>
-    <string name="setup_apparence">Apparence</string>
-    <string name="setup_apparence_detail">Thème, couleurs, mode nuit</string>
     <string name="setup_accueil_detail_tele">Applications visibles, bulle</string>
     <string name="setup_accueil_detail_oui">Vision est l\'accueil : oui · applications, disposition</string>
     <string name="setup_accueil_detail_non">Vision est l\'accueil : non · applications, disposition</string>
     <string name="setup_accueil_detail">Applications visibles, disposition</string>
     <string name="setup_accueil">Accueil</string>
     <string name="setup_accueil_widgets">Accueil et widgets</string>
-    <string name="setup_veille_detail_tableaux">Tableaux, son, délai</string>
-    <string name="setup_veille_detail">Son, délai</string>
     <string name="setup_statut_notif">Statut dans les notifications</string>
     <string name="setup_statut_notif_affiche">Affiché : ouvert ou fermé, et le temps qui reste</string>
     <string name="setup_masque">Masqué</string>
-    <string name="setup_son_messages">Son des messages</string>
     <string name="setup_verrou">Habiller l\'écran verrouillé</string>
     <string name="setup_verrou_fond_vision">Fond Vision : prénom et état (ouvert, protection suspendue, temps écoulé, fermé)</string>
     <string name="setup_verrou_fond_origine">Fond d\'origine</string>
@@ -826,7 +816,7 @@
     <string name="setup_en_pause_reprise">Protection suspendue, reprise %1$s</string>
     <string name="setup_gestion_detail_max">Code, empreinte, suspension de la protection (au plus %1$d min)</string>
     <string name="setup_gestion_detail">Code, empreinte, suspension de la protection</string>
-    <string name="setup_espace_gestion">Espace gestion</string>
+    <string name="setup_espace_gestion">Déverrouillage</string>
     <string name="setup_tout_en_ordre">✅ Tout est en ordre</string>
     <string name="setup_toutes_autorisations">Toutes les autorisations</string>
     <plurals name="setup_n_accordees">
@@ -856,7 +846,7 @@
     <string name="setup_connecter">Connecter</string>
     <string name="setup_pas_trouve">Je n\'ai pas trouvé d\'adresse et de clé dans ce texte</string>
     <string name="setup_par_qr">Ou par QR code, sans clé</string>
-    <string name="setup_qr_camera_texte">Dans Home Assistant, un administrateur ouvre Vision → Configurer → Générer un QR d\'appairage ; scanne-le avec cet appareil.</string>
+    <string name="setup_qr_camera_texte">Dans Home Assistant, un administrateur ouvre Vision → Configurer → Ajouter un appareil, jusqu\'au QR d\'appairage ; scanne-le avec cet appareil.</string>
     <string name="setup_scanner_qr_ha">Scanner le QR de Home Assistant</string>
     <string name="setup_qr_inverse">Ou l\'inverse : Vision affiche un QR et un code, un %1$s le scanne avec l\'appli Home Assistant et valide.</string>
     <string name="setup_qr_sans_camera">Vision affiche un QR et un code ; un %1$s le scanne avec l\'appli Home Assistant de son téléphone et valide.</string>

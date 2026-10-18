@@ -16,6 +16,11 @@ class Config(ctx: Context) {
     var urlExterne: String
         get() = p.getString("url_ext", "") ?: ""
         set(v) = p.edit().putString("url_ext", nettoyer(v)).apply()
+    /** 1.90.3 (télé d'essai) : l'adresse IP de Home Assistant sur le réseau local, vérifiée ([HoteLocal]). Le lecteur
+     *  de musique (Squeezelite ou Sendspin) en a besoin même quand l'appareil est relié par l'adresse externe. */
+    var hoteLocal: String
+        get() = p.getString("hote_local", "") ?: ""
+        set(v) = p.edit().putString("hote_local", v.trim()).apply()
     /** Dernière adresse qui a répondu : on la tente en premier. */
     var urlActive: String
         get() = p.getString("url_ok", "") ?: ""
@@ -106,6 +111,9 @@ class Config(ctx: Context) {
     val aUnCode: Boolean get() = (p.getString("pin", "") ?: "").isNotEmpty()
 
     fun definirCode(code: String) = p.edit().putString("pin", hacher(code)).apply()
+
+    /** L'empreinte locale du code (pour la migration vers Home Assistant, CodeDecideur) ; jamais le code. */
+    fun empreinteLocale(): String = p.getString("pin", "") ?: ""
     fun verifierCode(code: String): Boolean {
         val attendu = p.getString("pin", "") ?: ""
         return attendu.isNotEmpty() && attendu == hacher(code)

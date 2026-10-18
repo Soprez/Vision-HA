@@ -50,6 +50,8 @@ from .const import DOMAIN, POLL_SECONDS, PRODUIT
 _LOGGER = logging.getLogger(__name__)
 
 APPAIRAGE_MINUTES = 5
+# 2.4.7 : une demande d'appareil vit 10 min (avant 5) — le {decideur} répond depuis son téléphone, sans code.
+DEMANDE_MINUTES = 10
 # Sans 0/O, 1/I/L : un code se lit à voix haute et se tape sans erreur.
 ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 LONGUEUR_CODE = 6
@@ -275,8 +277,15 @@ class PcParentalAppairageDemandeView(HomeAssistantView):
             return self.json({"ok": False, "error": "host"}, status_code=400)
         demandes = _demandes(self.hass)
         adresse = str(request.remote or "")
+        from . import appairage_decideur as _dec
+
         en_cours = [d for d in demandes.values() if d["etat"] == "en_attente"]
-        if len(en_cours) >= MAX_DEMANDES or sum(d["adresse"] == adresse for d in en_cours) >= MAX_PAR_ADRESSE:
+        # 2.4.7 : une nouvelle demande du même appareil remplace l'ancienne : elle ne compte pas dans la limite.
+        meme = [d for d in en_cours if (corps.get("uid") and d["uid"] == str(corps.get("uid"))[:64])
+                or (d["host"] == host and d["adresse"] == adresse)]
+        en_cours = [d for d in en_cours if d not in meme]
+        trop = len(en_cours) >= MAX_DEMANDES or sum(d["adresse"] == adresse for d in en_cours) >= MAX_PAR_ADRESSE
+        if trop or _dec.trop_de_demandes(self.hass, adresse):
             return self.json({"ok": False, "error": "trop"}, status_code=429)
         codes = {d["code"] for d in demandes.values()}
         code = "".join(secrets.choice(ALPHABET) for _ in range(LONGUEUR_CODE))
@@ -288,15 +297,23 @@ class PcParentalAppairageDemandeView(HomeAssistantView):
             "id": ident, "code": code, "attente": secrets.token_hex(16), "etat": "en_attente",
             "host": host, "nom": str(corps.get("nom") or "").strip()[:64], "uid": str(corps.get("uid") or "")[:64],
             "platform": str(corps.get("platform") or "")[:16], "user": str(corps.get("user") or "")[:64],
-            "adresse": adresse, "cree": maintenant, "expire": maintenant + APPAIRAGE_MINUTES * 60,
+            "genre": "tele" if corps.get("genre") == "tele" else "",
+            "adresse": adresse, "cree": maintenant, "expire": maintenant + DEMANDE_MINUTES * 60,
         }
         demandes[ident] = demande
+        _dec.remplacer_anciennes(self.hass, demande)
+        _dec.noter_demande(self.hass, adresse)
+        # 2.4.7 (l'auteur : aucun code à l'écran) : la demande part sur les appareils des {decideur}s.
+        coord = _coordinateur(self.hass)
+        decideurs = _dec.notifier(self.hass, coord, demande)
+        if decideurs:
+            await coord.store.async_save()
         chemin = f"/{PANNEAU}?code={code}"
         langue = textes.ha(self.hass)
         persistent_notification.async_create(
             self.hass,
             textes.t("app.notif_demande", langue, nom=demande['nom'] or host, produit=PRODUIT, code=code, chemin=chemin,
-                     minutes=APPAIRAGE_MINUTES),
+                     minutes=DEMANDE_MINUTES),
             title=textes.t("app.titre_demande", langue),
             notification_id=f"{DOMAIN}_appairage_{code}",
         )
@@ -312,8 +329,11 @@ class PcParentalAppairageDemandeView(HomeAssistantView):
             # Le QR : un lien profond de l'appli Home Assistant, rien d'autre que le code.
             "qr": f"homeassistant://navigate{chemin}",
             "lien": f"{_adresse(request)}{chemin}",
-            "expire_dans": APPAIRAGE_MINUTES * 60,
+            "expire_dans": DEMANDE_MINUTES * 60,
             "intervalle": INTERVALLE_S,
+            # 2.4.7 : combien d'appareils de {decideur} ont reçu la demande (0 : l'appareil propose « Autre méthode »).
+            "decideurs": decideurs,
+            "nom": demande["nom"] or host,
         })
 
 
@@ -389,6 +409,15 @@ class PcParentalAppairageAdminView(HomeAssistantView):
             corps: dict[str, Any] = await request.json()
         except ValueError:
             return self.json({"ok": False, "error": "json"}, status_code=400)
+        # FAILLE DE SÉCURITÉ (l'auteur, 16/10) : valider un appareil l'admet dans le Lieu : code de déverrouillage à chaque fois.
+        if corps.get("action") != "refuser":
+            from . import octroi
+
+            entrees = list(self.hass.data.get(DOMAIN, {}).values())
+            if not entrees:
+                return self.json({"ok": False, "error": "loading"}, status_code=503)
+            if (refus_code := await octroi.exiger(self.hass, entrees[0], request, corps, True)) is not None:
+                return self.json(refus_code, status_code=403)
         try:
             if corps.get("action") == "refuser":
                 refuser(self.hass, str(corps.get("code") or ""))
@@ -418,6 +447,14 @@ class PcParentalAppairageInvitationView(HomeAssistantView):
             corps: dict[str, Any] = await request.json()
         except ValueError:
             corps = {}
+        # FAILLE DE SÉCURITÉ (l'auteur, 16/10) : un QR d'appairage relie un appareil tout seul : code de déverrouillage à chaque fois.
+        from . import octroi
+
+        entrees = list(self.hass.data.get(DOMAIN, {}).values())
+        if not entrees:
+            return self.json({"ok": False, "error": "loading"}, status_code=503)
+        if (refus_code := await octroi.exiger(self.hass, entrees[0], request, corps, True)) is not None:
+            return self.json(refus_code, status_code=403)
         try:
             inv = creer_invitation(self.hass, *adresses(self.hass, request),
                                    str(corps.get("personne") or ""), str(corps.get("appareil") or ""))
@@ -534,6 +571,10 @@ async def async_installer(hass: HomeAssistant) -> None:
         hass.http.register_view(PcParentalAppairageInvitationView(hass))
         hass.http.register_view(PcParentalAppairageInvitationQrView(hass))
         hass.http.register_view(PcParentalAppairageJetonView(hass))
+        from . import appairage_decideur as _dec
+
+        hass.http.register_view(_dec.ListeView(hass))
+        hass.http.register_view(_dec.DecisionView(hass))
         try:
             from homeassistant.components.http import StaticPathConfig
 

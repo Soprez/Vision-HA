@@ -27,7 +27,7 @@ import org.json.JSONObject
  * (format, position, pochette, trous entre deux titres, synchro, mémoire JS, PIN d'appairage) part dans le journal
  * (tag VisionSendspin) et s'affiche à l'écran, pour la télé comme pour adb :
  *
- *   adb shell am start -n org.soprez.vision/.PrototypeSendspinActivity --es hote 192.168.1.x [--es port 8927] [--es codecs flac]
+ *   adb shell am start -n org.soprez.vision/.PrototypeSendspinActivity --es hote 10.1.1.x [--es port 8927] [--es codecs flac]
  *   adb logcat -s VisionSendspin
  *   --es commande pause|play|next : commande de lecture ; --ez appairer true : ouvre la fenêtre d'appairage (PIN).
  *

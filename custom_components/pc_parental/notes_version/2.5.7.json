@@ -1,0 +1,78 @@
+{
+  "version": "2.5.7",
+  "date": "2026-10-16",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Sécurité : accorder exige l'empreinte ou le code à chaque fois, sur tous les écrans.",
+        "en": "Security: granting always requires the fingerprint or the code, on every screen.",
+        "de": "Sicherheit: Freigeben verlangt jedes Mal den Fingerabdruck oder den Code, auf jedem Bildschirm.",
+        "es": "Seguridad: conceder exige siempre la huella o el código, en todas las pantallas.",
+        "it": "Sicurezza: concedere richiede sempre l'impronta o il codice, su ogni schermata.",
+        "nl": "Beveiliging: toestaan vraagt altijd de vingerafdruk of de code, op elk scherm."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Un seul code de déverrouillage : le même dans l'appli Vision et au tableau, demandé à chaque geste.",
+        "en": "One unlock code: the same in the Vision app and on the dashboard, asked for every action.",
+        "de": "Ein einziger Entsperrcode: derselbe in der Vision-App und im Dashboard, bei jeder Aktion verlangt.",
+        "es": "Un solo código de desbloqueo: el mismo en la app Vision y en el panel, pedido en cada acción.",
+        "it": "Un solo codice di sblocco: lo stesso nell'app Vision e nella dashboard, richiesto a ogni azione.",
+        "nl": "Eén ontgrendelcode: dezelfde in de Vision-app en op het dashboard, gevraagd bij elke actie."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Notifications de l'appli Compagnon : seulement « Refuser » ; accorder se fait dans Vision.",
+        "en": "Companion app notifications: only “Decline”; granting is done in Vision.",
+        "de": "Benachrichtigungen der Companion-App: nur „Ablehnen“; Freigeben geht in Vision.",
+        "es": "Notificaciones de la app Companion: solo «Rechazar»; conceder se hace en Vision.",
+        "it": "Notifiche dell'app Companion: solo «Rifiuta»; concedere si fa in Vision.",
+        "nl": "Meldingen van de Companion-app: alleen „Weigeren”; toestaan gebeurt in Vision."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Musique : la soirée suit le lecteur de la télé, « Jouer maintenant » garde l'ordre de la file.",
+        "en": "Music: the party follows the TV's player, “Play now” keeps the queue order.",
+        "de": "Musik: Die Party folgt dem Player des Fernsehers, „Jetzt abspielen“ behält die Reihenfolge.",
+        "es": "Música: la fiesta sigue al reproductor de la tele, «Reproducir ahora» respeta el orden de la cola.",
+        "it": "Musica: la festa segue il lettore della TV, «Riproduci ora» mantiene l'ordine della coda.",
+        "nl": "Muziek: het feest volgt de speler van de tv, „Nu afspelen” houdt de volgorde van de wachtrij."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Invités : ils voient où en sont leurs titres ; trois modes d'ajout au choix.",
+        "en": "Guests: they see where their songs are; three ways of adding to choose from.",
+        "de": "Gäste: Sie sehen, wo ihre Titel stehen; drei Arten des Hinzufügens zur Wahl.",
+        "es": "Invitados: ven dónde están sus temas; tres modos de añadir a elegir.",
+        "it": "Ospiti: vedono a che punto sono i loro brani; tre modi di aggiunta a scelta.",
+        "nl": "Gasten: ze zien waar hun nummers staan; drie manieren van toevoegen naar keuze."
+      }
+    }
+  ]
+}

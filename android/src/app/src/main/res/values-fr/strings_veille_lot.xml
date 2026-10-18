@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Veille télé (lot repris pour la 1.92) : mise en place de l'économiseur, grille, cases typées. -->
+<resources>
+    <string name="eco_etat_vision">La télé lance déjà la veille de Vision. Rien à faire.</string>
+    <string name="eco_etat_vision_eteint">Vision est choisi, mais l\'économiseur de la télé est désactivé.</string>
+    <string name="eco_etat_autre">L\'économiseur d\'écran de la télé n\'est pas Vision.</string>
+    <string name="eco_etat_inconnu">Cette télé ne dit pas quel économiseur d\'écran elle utilise.</string>
+    <string name="eco_ecrire">Vision a le droit de régler l\'économiseur lui-même : un appui sur « Choisir Vision » suffit.</string>
+    <string name="eco_reglage">Dans le réglage qui va s\'ouvrir, à la télécommande : choisis « Économiseur d\'écran » (ou « Écran de veille »), puis « Vision ». Reviens ensuite avec Retour.</string>
+    <string name="eco_adb">Ce modèle ne propose pas Vision dans ses réglages (Google TV, Chromecast…). Un Décideur peut le régler une fois depuis un ordinateur, débogage ADB activé sur la télé (Réglages → Système → Options pour les développeurs) :</string>
+    <string name="eco_adb_apres">La première commande suffit : Vision règle ensuite l\'économiseur lui-même, et le remet après une mise à jour de la télé. Les deux autres le règlent directement.</string>
+    <string name="eco_repli_accueils">En attendant, Vision lance sa veille sur l\'accueil de la télé après %1$d min sans télécommande, jamais devant une autre appli, et la retire au premier appui.</string>
+    <string name="eco_repli_accueil_vision">En attendant, Vision lance sa veille après %1$d min sans télécommande, seulement sur son propre accueil. Pour l\'accueil de la télé aussi, active l\'accessibilité de Vision.</string>
+    <string name="eco_repli_aucun">Sans économiseur, la veille de Vision ne peut venir seule que si Vision est l\'accueil de la télé ou si son accessibilité est active.</string>
+    <string name="eco_repli_jamais">La veille de Vision sur l\'accueil est réglée sur « Jamais ».</string>
+    <string name="eco_choisir_vision">Choisir Vision</string>
+    <string name="eco_utiliser_repli">Utiliser la veille de Vision</string>
+    <string name="eco_plus_tard">Plus tard</string>
+    <string name="eco_ok">OK</string>
+    <string name="eco_ecrit">C\'est fait : la télé lancera la veille de Vision.</string>
+    <string name="eco_ecrit_echec">La télé a refusé le réglage. La veille de Vision sur l\'accueil prend le relais.</string>
+    <string name="eco_introuvable">Cette télé ne propose pas le réglage de l\'économiseur d\'écran. La veille de Vision sur l\'accueil prend le relais.</string>
+    <string name="eco_valeur_vision">Vision</string>
+    <string name="eco_valeur_ecrire">OK : choisir Vision</string>
+    <string name="eco_valeur_reglage">Un autre : OK pour le régler</string>
+    <string name="eco_valeur_adb">Commande ADB à faire : OK pour la voir</string>
+    <string name="reg_pastille">Pastille derrière les valeurs</string>
+    <string name="oui">Oui</string>
+    <string name="non">Non</string>
+    <string name="reg_direct">Caméras en direct</string>
+    <string name="direct_auto">Auto</string>
+    <string name="direct_aide">Auto : une seule caméra en direct à la fois (flux léger), des images si la télé peine.</string>
+    <string name="direct_images">Images seulement</string>
+    <string name="ecart_instant">à l\'instant</string>
+    <string name="ecart_min">il y a %1$d min</string>
+    <string name="ecart_h">il y a %1$d h</string>
+    <string name="ecart_hier">hier</string>
+    <string name="ecart_j">il y a %1$d j</string>
+    <string name="agenda_aujourdhui">Aujourd\'hui</string>
+    <string name="agenda_demain">Demain</string>
+    <string name="agenda_journee">Journée</string>
+    <string name="agenda_vide">Rien de prévu</string>
+    <string name="clips_vide">Aucun passage</string>
+</resources>

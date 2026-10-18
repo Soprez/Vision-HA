@@ -51,7 +51,7 @@ async def _monter(hass, hass_storage, module=True, roles=None, **plus):
             "e1": _fiche("e1", "TEL-ALEX", ENFANT["secret"], person="person.alex", platform="android", type="telephone"),
             "e2": _fiche("e2", "TEL-SAM", ENFANT2["secret"], person="person.sam", platform="android", type="telephone"),
             "t1": _fiche("t1", "TV-ALEX", TELE["secret"], person="person.alex", platform="android", type="tv"),
-            "p1": _fiche("p1", "PIXEL-DECIDEUR", PARENT["secret"], person="person.robin", platform="android",
+            "p1": _fiche("p1", "PIXEL-DECIDEUR", PARENT["secret"], person="person.nolan", platform="android",
                          type="telephone", role="parent"),
         },
         **plus,
@@ -62,7 +62,7 @@ async def _monter(hass, hass_storage, module=True, roles=None, **plus):
         donnees["roles"] = roles
         donnees["vocabulaire_neutre"] = True
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": donnees}
-    for p in ("alex", "sam", "robin"):
+    for p in ("alex", "sam", "nolan"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     # Le premier relevé crée l'étiquette « Toujours autorisé », ce qui recharge Vision (comportement existant) :
     # elle existe d'avance, pour garder le même coordinateur pendant tout l'essai.
@@ -420,7 +420,9 @@ async def test_porte_de_l_appli(hass, hass_storage, hass_client, monkeypatch):
     # Le Décideur voit tout et peut tout.
     s, r = await _appli(client, PARENT, "liste")
     assert s == 200 and r["droits"] == {"gerer": True, "propres": False} and len(r["reveils"]) == 2
-    assert {d["personne"] for d in r["demandeurs"]} == {"person.alex", "person.sam", "person.robin"}
+    # Les noms affichés des personnes citées (l'appli ne montre jamais « person.… »).
+    assert r["noms"]["person.alex"] == "Alex" and r["noms"]["person.sam"] == "Sam" and r["noms"]["person.nolan"] == "Nolan"
+    assert {d["personne"] for d in r["demandeurs"]} == {"person.alex", "person.sam", "person.nolan"}
     s, r = await _appli(client, PARENT, "creer", reveil={"demandeur": "person.sam", "nom": "Sam 2",
                                                          "declenchement": {"heure": "06:50", "jours": [0, 1]}})
     assert s == 200 and r["reveil"]["declenchement"]["heure"] == "06:50" and r["reveil"]["automatisation"] is False
@@ -560,3 +562,71 @@ async def test_blueprint_jours_d_ecole(hass, hass_storage):
     agendas["calendar.ouvres"] = False  # jour non ouvré
     r = await lancer("fixe")
     assert demain in r["sauter"]
+
+
+# ----------------------------------------------------------------------------- Music Assistant (lot 10, V1)
+
+
+async def test_source_music_assistant_sur_son_enceinte(hass, hass_storage, hass_client, monkeypatch):
+    """Source « ma » avec une enceinte : HA lance la lecture quand l'appareil sonne, met en pause au report, arrête à
+    l'arrêt. Music Assistant en échec : vision_reveil_echec (la sonnerie de l'appareil, elle, continue)."""
+    from homeassistant.core import ServiceCall, SupportsResponse
+
+    from custom_components.pc_parental import reveil
+
+    _horloge(monkeypatch, LUNDI_6H.replace(hour=7))
+    await _monter(hass, hass_storage)
+    appels = []
+
+    async def noter(call: ServiceCall):
+        appels.append((call.domain, call.service, dict(call.data)))
+    hass.services.async_register("music_assistant", "play_media", noter, supports_response=SupportsResponse.NONE)
+    for s in ("media_pause", "media_stop"):
+        hass.services.async_register("media_player", s, noter)
+    ident = (await _service(hass, "reveil_creer", {"demandeur": "person.alex", "nom": "Playlist", "source": "ma",
+                                                   "uri": "library://playlist/10", "lecteur": "media_player.chambre"}))["id"]
+    client = await hass_client()
+    occ = f"{ident}@2026-10-12"
+    ev = {"reveil": ident, "occurrence": occ}
+    await _releve(client, ENFANT, reveils={"evenements": [{**ev, "eid": "m1", "type": "sonne"}]})
+    await _releve(client, ENFANT, reveils={"evenements": [{**ev, "eid": "m2", "type": "reporte", "nombre": 1}]})
+    await _releve(client, ENFANT, reveils={"evenements": [{**ev, "eid": "m3", "type": "arrete", "par": "appareil"}]})
+    await hass.async_block_till_done()
+    assert [(d, s) for d, s, _ in appels] == [("music_assistant", "play_media"), ("media_player", "media_pause"),
+                                              ("media_player", "media_stop")]
+    assert appels[0][2]["media_id"] == "library://playlist/10" and appels[0][2]["media_type"] == "playlist"
+    assert appels[0][2]["entity_id"] in ("media_player.chambre", ["media_player.chambre"])
+    assert reveil.type_media("ytmusic://track/abc") == "track" and reveil.type_media("x://podcast/1") == "podcast"
+    assert reveil.type_media("bizarre") == "track"
+    # Une source « sonnerie » ne touche à rien ; Music Assistant en panne : échec signalé.
+    vus = _ecouter(hass)
+    hass.services.async_remove("music_assistant", "play_media")
+    await _releve(client, ENFANT, reveils={"evenements": [{**ev, "eid": "m4", "type": "sonne", "occurrence": f"{ident}@2026-10-13"}]})
+    await hass.async_block_till_done()
+    assert ("echec", "music_assistant") in [(v[0], v[1].get("detail")) for v in vus]
+
+
+async def test_onglet_reveils_du_tableau(hass, hass_storage, monkeypatch):
+    """L'onglet « Réveils » du tableau de Vision : liste en direct (modèle rendu), interrupteurs, aide ; absent si le
+    module est coupé ; l'empreinte du tableau suit les réveils."""
+    from homeassistant.helpers.template import Template
+
+    from custom_components.pc_parental import dashboard, modules
+
+    _horloge(monkeypatch, DIMANCHE_21H)
+    coord = await _monter(hass, hass_storage)
+    vide = next(v for v in dashboard.build(hass, coord)["views"] if v["path"] == "reveils")
+    rendu = Template(vide["sections"][0]["cards"][0]["content"], hass).async_render(parse_result=False)
+    assert "Aucun réveil" in rendu or "No alarm" in rendu
+    avant = dashboard.signature(coord)
+    await _service(hass, "reveil_creer", {"demandeur": "person.alex", "nom": "Collège"})
+    await hass.async_block_till_done()
+    await coord.async_refresh()
+    assert dashboard.signature(coord) != avant
+    vue = next(v for v in dashboard.build(hass, coord)["views"] if v["path"] == "reveils")
+    assert {"type": "tile", "entity": "switch.vision_reveil_college"} in vue["sections"][1]["cards"]
+    rendu = Template(vue["sections"][0]["cards"][0]["content"], hass).async_render(parse_result=False)
+    assert "| Collège | Alex |" in rendu and "12/10 07:00" in rendu, rendu
+    assert "pc_parental.reveil_creer" in vue["sections"][2]["cards"][0]["content"]
+    modules.regler(hass, coord.store, modules.actifs(coord.store) - {"reveil"}, "essai")
+    assert "reveils" not in [v["path"] for v in dashboard.build(hass, coord)["views"]]

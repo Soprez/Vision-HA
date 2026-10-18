@@ -2,10 +2,10 @@
 
 Ce qu'on vérifie :
 - la dernière version Android publiée est servie à une adresse versionnée, un ancien
-  lien mène à la dernière version, l'ancienne appli garde son canal ;
+  lien mène à la dernière version, la première appli (autre paquet) n'est plus servie ;
 - le QR encode ce lien, et rien d'autre ;
 - la section (tableau de bord et Vision → Configurer) ne contient jamais la clé ;
-- chaque appli ne se voit proposer que sa propre mise à jour.
+- chaque appareil se voit proposer la version publiée, ou l'essai s'il en fait partie (jamais un essai périmé).
 
 Banc : le même que essai/securite_test.py.
     python -m pytest essai/installation_test.py -q -o asyncio_mode=auto
@@ -33,18 +33,20 @@ _dest = (_banc / "custom_components").joinpath(source.name)
 shutil.copytree(source, _dest, ignore=shutil.ignore_patterns("__pycache__", "android", "*.apk"))
 (_banc / "custom_components" / "__init__.py").write_text("")
 
-# Deux applis publiées : l'ancienne (1.48.0) et la nouvelle (1.50.0).
+# L'appli publiée (1.50.0) et un essai (1.51.0) pour deux appareils. Les fichiers de la première appli
+# (vision.apk / vision.json, autre identifiant de paquet) ne sont plus servis depuis la 2.5.8.
 _android = _dest / "android"
 _android.mkdir()
 NOUVELLE = b"APK org.soprez.vision 1.50.0"
-ANCIENNE = b"APK ancienne appli 1.48.0"
+ESSAI = b"APK org.soprez.vision 1.51.0"
+ANCIENNE = b"APK de la premiere appli 1.48.0"
 (_android / "installation.apk").write_bytes(NOUVELLE)
 (_android / "installation.json").write_text(json.dumps(
     {"version": "1.50.0", "sha256": hashlib.sha256(NOUVELLE).hexdigest()}))
-(_android / "vision.apk").write_bytes(ANCIENNE)
-(_android / "essai.apk").write_bytes(ANCIENNE)
+(_android / "essai.apk").write_bytes(ESSAI)
 (_android / "essai.json").write_text(json.dumps(
-    {"version": "1.48.1", "sha256": hashlib.sha256(ANCIENNE).hexdigest(), "appareils": ["Google Pixel 9", "Télé"]}))
+    {"version": "1.51.0", "sha256": hashlib.sha256(ESSAI).hexdigest(), "appareils": ["Google Pixel 9", "Télé"]}))
+(_android / "vision.apk").write_bytes(ANCIENNE)
 (_android / "vision.json").write_text(json.dumps(
     {"version": "1.48.0", "sha256": hashlib.sha256(ANCIENNE).hexdigest()}))
 
@@ -103,12 +105,11 @@ async def test_lien_versionne_et_ancien_lien(hass, hass_client_no_auth):
     r = await client.get("/api/pc_parental/android/vision.apk", allow_redirects=False)
     assert r.status == 200 and await r.read() == NOUVELLE
     assert "vision-1.50.0.apk" in r.headers["Content-Disposition"]
-    # L'ancienne appli a son propre canal, et c'est lui qu'on lui annonce.
-    r = await client.get("/api/pc_parental/android/ancienne.apk")
-    assert r.status == 200 and await r.read() == ANCIENNE
-    assert _module("android_maj").infos(hass)["path"] == "/api/pc_parental/android/ancienne.apk?v=1.48.0"
+    # La première appli n'a plus de canal : ses fichiers, même restés sur le disque, ne sont pas servis.
+    assert _module("android_maj").infos(hass)["path"] == "/api/pc_parental/android/vision-1.50.0.apk"
     # Rien d'autre n'est servi.
-    for nom in ("vision-..%2Fmanifest.json.apk", "installation.json.apk", "vision-1.50.0.apk.json"):
+    for nom in ("ancienne.apk", "vision.json", "vision-..%2Fmanifest.json.apk", "installation.json.apk",
+                "vision-1.50.0.apk.json"):
         assert (await client.get(f"/api/pc_parental/android/{nom}", allow_redirects=False)).status in (302, 400, 404)
 
 
@@ -145,8 +146,8 @@ async def test_section_sans_cle(hass):
 async def test_configurer_installer(hass):
     entree, coord = await _monter(hass)
     r = await hass.config_entries.options.async_init(entree.entry_id)
-    assert r["type"] == FlowResultType.MENU and "avance" in r["menu_options"]
-    r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "avance"})
+    assert r["type"] == FlowResultType.MENU and "autres" in r["menu_options"]
+    r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "reparer"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "installer"})
     assert r["type"] == FlowResultType.FORM and r["step_id"] == "installer"
     texte = r["description_placeholders"]["installation"]
@@ -155,28 +156,40 @@ async def test_configurer_installer(hass):
     assert r["type"] == FlowResultType.CREATE_ENTRY
 
 
-async def test_chaque_appli_sa_mise_a_jour(hass):
+async def test_la_mise_a_jour_de_chaque_appareil(hass):
     await _monter(hass)
     maj = _module("android_maj")
     assert maj.infos_pour(hass, "Pixel", "1.49.1")["version"] == "1.50.0"
     assert maj.infos_pour(hass, "Pixel", "1.50.0")["path"].endswith("vision-1.50.0.apk")
-    assert maj.infos_pour(hass, "Pixel 8a", "1.10.0")["version"] == "1.48.0"
-    assert maj.infos_pour(hass, "Inconnu", "")["version"] == "1.48.0"
-    # L'essai de l'ancienne appli ne touche pas un appareil passé à la nouvelle.
-    assert maj.infos_pour(hass, "Google Pixel 9", "1.50.0")["version"] == "1.50.0"
-    assert maj.infos_pour(hass, "Télé", "1.48.0")["version"] == "1.48.1"
-    assert not maj.nouvelle_appli("1.48.9") and maj.nouvelle_appli("1.49.0") and maj.nouvelle_appli("2.0")
+    assert maj.infos_pour(hass, "Inconnu", "")["version"] == "1.50.0"
+    # Les appareils d'essai reçoivent l'essai.
+    assert maj.infos_pour(hass, "Google Pixel 9", "1.50.0")["version"] == "1.51.0"
+    assert maj.infos_pour(hass, "Télé", "1.49.0")["path"] == "/api/pc_parental/android/essai.apk?v=1.51.0"
 
 
-async def test_lien_stable_sans_nouvelle_appli(hass, hass_client_no_auth):
-    """Tant que la nouvelle appli n'est pas publiée, le lien stable sert l'ancienne (comme avant)."""
+async def test_essai_perime_ignore(hass):
+    """Un essai plus ancien que la version publiée (l'essai 1.47.0 de la première appli, resté sur l'installation
+    de référence) n'est jamais proposé : il installerait l'ancienne appli à côté de l'actuelle."""
+    await _monter(hass)
+    maj = _module("android_maj")
+    sauve = maj._ETAT["essai"]
+    maj._ETAT["essai"] = {"version": "1.47.0", "sha256": "ab", "appareils": {"google pixel 9", "télé"}}
+    try:
+        assert maj.infos_pour(hass, "Google Pixel 9", "1.50.0")["version"] == "1.50.0"
+        assert maj.infos_pour(hass, "Télé", "1.49.0", "t1", ["t1"])["version"] == "1.50.0"
+    finally:
+        maj._ETAT["essai"] = sauve
+
+
+async def test_lien_stable_sans_appli_publiee(hass, hass_client_no_auth):
+    """Rien de publié : le lien stable ne sert rien (plus de repli sur la première appli)."""
     await _monter(hass)
     maj = _module("android_maj")
     sauve = dict(maj._ETAT)
     maj._ETAT["installation"] = {}
     try:
         r = await (await hass_client_no_auth()).get("/api/pc_parental/android/vision.apk")
-        assert r.status == 200 and await r.read() == ANCIENNE
+        assert r.status == 404
         assert _module("installation").liens(hass)["android"] == ""
     finally:
         maj._ETAT.update(sauve)

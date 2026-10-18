@@ -42,7 +42,7 @@
   "maison.bouton_toujours_dispo": "Toujours disponible",
   "maison.bouton_categorie": "Catégorie",
   "maison.bouton_non": "Non",
-  "maison.aide_choix": "Autoriser : ouverte même si sa catégorie est fermée, pendant les plages ouvertes de l'agenda. Toujours disponible : jamais bloquée, même appareil fermé.",
+  "maison.aide_choix": "Exception : sur tous ses appareils, même si la catégorie est fermée, mais pas pendant les plages. Toujours disponible : rien ne la ferme.",
   "maison.les_actifs": "Les actifs",
   "maison.aucun_inscrit": "Aucun appareil inscrit pour l'instant.",
   "maison.aucun_appareil": "Aucun appareil",
@@ -405,7 +405,16 @@
   "code.injoignable": "Home Assistant est injoignable : réessaie dans un instant.",
   "install.exemple_cle": "16 caractères, par exemple 0123456789abcdef",
   "soutien.merci": "♥ Soutien — merci !",
-  "soutien.soutenir": "Soutenir le projet",
+  "soutien.soutenir": "☕ Payez-moi un café",
   "code.faux": "Ce n'est pas le bon code ({n} essai(s) restant(s)).",
-  "code.trop": "Trop d'essais. Réessaie dans {min} min."
+  "code.trop": "Trop d'essais. Réessaie dans {min} min.",
+  "maison.bouton_15": "15 min",
+  "maison.bouton_exception": "Exception",
+  "maison.bouton_refuser": "Refuser",
+  "moi.bloque_par_logiciel": "Ce qui bloque un logiciel",
+  "moi.groupe_sites_one": "{n} site bloqué avec lui :",
+  "moi.groupe_sites_other": "{n} sites bloqués avec lui :",
+  "moi.demander_pour": "Demander l'accès pour {nom}",
+  "moi.tentatives_one": "{n} tentative",
+  "moi.tentatives_other": "{n} tentatives"
 }

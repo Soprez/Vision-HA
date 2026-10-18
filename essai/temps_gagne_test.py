@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+from octroi_banc import CODE_OCTROI, poser_code_octroi
 from gestion_attaques_test import (  # noqa: F401  (fixtures du banc)
     DOMAIN, ENFANT, ENFANT2, PARENT, _fiche, _integrations, expected_lingering_tasks, expected_lingering_timers,
 )
@@ -75,7 +76,8 @@ async def test_tache_cochee_donne_du_temps(hass, hass_storage):
     tg.async_debrancher(hass)
 
 
-async def test_parcours_configurer(hass, hass_storage):
+async def test_parcours_fiche(hass, hass_storage, hass_client):
+    """Lot 5 : le réglage se fait sur la fiche de la personne (Configurer ne l'a plus)."""
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": {
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", type="telephone"),
@@ -87,16 +89,17 @@ async def test_parcours_configurer(hass, hass_storage):
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
-    om = hass.config_entries.options
-    r = await om.async_init(entree.entry_id)
-    assert "temps_gagne" in r["menu_options"]
-    r = await om.async_configure(r["flow_id"], {"next_step_id": "temps_gagne"})
-    assert r["type"] == "form" and "Aucune personne" in r["description_placeholders"]["resume"]
-    r = await om.async_configure(r["flow_id"], {"personne": "person.lou", "liste": "todo.lou", "minutes": 30, "max": 20})
-    assert r["errors"] == {"base": "temps_gagne_minutes"}
-    r = await om.async_configure(r["flow_id"], {"personne": "person.lou", "liste": "todo.lou", "minutes": 20, "max": 60})
-    assert r["type"] == "abort" and r["reason"] == "temps_gagne_ok"
-    assert "Lou : Tâches de Lou, 20 min par tâche, au plus 60 min par jour" in r["description_placeholders"]["resume"]
+    admin = await hass_client()
+    url = "/api/pc_parental/personne/admin"
+    poser_code_octroi(hass)
+    d = await (await admin.get(url, params={"personne": "person.lou"})).json()
+    assert d["recompense"] is None
+    r = await admin.post(url, json={"code_octroi": CODE_OCTROI, "op": "temps_gagne", "personne": "person.lou", "liste": "todo.lou", "minutes": 30, "max": 20})
+    assert r.status == 400 and (await r.json())["retour"]
+    r = await admin.post(url, json={"code_octroi": CODE_OCTROI, "op": "temps_gagne", "personne": "person.lou", "liste": "todo.lou", "minutes": 20, "max": 60})
+    assert r.status == 200
+    d = await r.json()
+    assert d["recompense"]["liste"] == "todo.lou" and d["recompense"]["minutes"] == 20 and d["recompense"]["max"] == 60
     await hass.async_block_till_done()
     from custom_components.pc_parental import temps_gagne as tg
 

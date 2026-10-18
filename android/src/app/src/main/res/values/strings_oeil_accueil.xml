@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.5, prototype (retour d'essai) : l'œil sur le bouton Accueil (OeilAccueil). -->
+<resources>
+    <string name="oeilaccueil_titre">Eye on the Home button</string>
+    <string name="oeilaccueil_active">On</string>
+    <string name="oeilaccueil_desactive">Off</string>
+    <string name="oeilaccueil_note">Vision’s eye on the Home button of the 3-button navigation bar. Nothing is shown with gesture navigation, in full screen or with the keyboard. Needs Vision’s accessibility service.</string>
+</resources>

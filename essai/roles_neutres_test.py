@@ -12,7 +12,7 @@ from __future__ import annotations
 from homeassistant.data_entry_flow import FlowResultType
 
 from roles_test import (  # noqa: F401  (fixtures du banc)
-    DOMAIN, ROBIN, _fiche, _integrations, _monter, expected_lingering_tasks, expected_lingering_timers,
+    DOMAIN, NOLAN, _fiche, _integrations, _monter, expected_lingering_tasks, expected_lingering_timers,
 )
 
 
@@ -32,9 +32,9 @@ def _anciens(noms=("Parent", "Enfant")):
 def _maison():
     """Comme dans une maison déjà installée : le rôle Décideur posé appareil par appareil, aucune personne rattachée."""
     return {
-        "p1": _fiche("p1", "PIXEL-ROBIN", ROBIN["secret"], platform="android", person="person.robin", role="parent"),
-        "p2": _fiche("p2", "PC-ROBIN", "b" * 32, person="person.robin", role="parent"),
-        "t1": _fiche("t1", "Télé de Robin", "c" * 32, platform="android", type="tv", person="person.robin"),
+        "p1": _fiche("p1", "PIXEL-NOLAN", NOLAN["secret"], platform="android", person="person.nolan", role="parent"),
+        "p2": _fiche("p2", "PC-NOLAN", "b" * 32, person="person.nolan", role="parent"),
+        "t1": _fiche("t1", "Télé de Nolan", "c" * 32, platform="android", type="tv", person="person.nolan"),
         "e1": _fiche("e1", "TEL-LOU", "e" * 32, platform="android", person="person.lou"),
     }
 
@@ -46,7 +46,7 @@ async def test_migration_noms_et_personnes(hass, hass_storage):
                                                    "roles_migres": True})
     s = coord.store
     assert s.roles["parent"]["nom"] == "Décideur" and s.roles["enfant"]["nom"] == "Demandeur"
-    assert s.roles_personnes == {"person.robin": "parent"}
+    assert s.roles_personnes == {"person.nolan": "parent"}
     # Les surcharges devenues inutiles disparaissent ; la télé garde son rôle effectif (Demandeur).
     assert s.pcs["p1"]["role"] == "" and s.pcs["p2"]["role"] == ""
     assert s.pcs["t1"]["role"] == "enfant"
@@ -77,6 +77,7 @@ async def test_ecran_roles(hass, hass_storage):
     _e, coord = await _monter(hass, hass_storage, {"pcs": _maison(), "roles": _anciens(), "roles_personnes": {},
                                                    "roles_migres": True})
     r = await hass.config_entries.options.async_init(_e.entry_id)
+    r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "autres"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "roles"})
     resume = r["description_placeholders"]["resume"]
     assert "| **Décideur** | 1 | 2 |" in resume and "| **Demandeur** | 0 | 2 |" in resume
@@ -87,8 +88,8 @@ async def test_ecran_roles(hass, hass_storage):
     assert labels == ["Décideur · 1 personne · 2 appareils", "Demandeur · aucune personne · 2 appareils"]
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"role": "parent"})
     assert r["step_id"] == "roles_edition"
-    assert r["description_placeholders"]["personnes"] == "Robin"
-    assert set(r["description_placeholders"]["appareils"].split(", ")) == {"PIXEL-ROBIN", "PC-ROBIN"}
+    assert r["description_placeholders"]["personnes"] == "Nolan"
+    assert set(r["description_placeholders"]["appareils"].split(", ")) == {"PIXEL-NOLAN", "PC-NOLAN"}
     fonctions = list(coord.store.roles["parent"]["fonctions"])
     r = await hass.config_entries.options.async_configure(r["flow_id"], {
         "nom": "Décideur", "fonctions": fonctions, "pause_max": 60, "validation": True, "supprimer": False})
@@ -103,10 +104,11 @@ async def test_role_d_une_personne(hass, hass_storage):
     _e, coord = await _monter(hass, hass_storage, {"pcs": _maison(), "roles": _anciens(), "roles_personnes": {},
                                                    "roles_migres": True})
     r = await hass.config_entries.options.async_init(_e.entry_id)
+    r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "autres"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "roles"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "roles_personnes"})
     labels = {o["value"]: o["label"] for o in _options(r)}
-    assert labels["person.robin"] == "Robin · Décideur" and labels["person.lou"] == "Lou · Demandeur, par défaut"
+    assert labels["person.nolan"] == "Nolan · Décideur" and labels["person.lou"] == "Lou · Demandeur, par défaut"
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"personne": "person.lou"})
     assert r["step_id"] == "roles_personne_role" and r["description_placeholders"]["appareils"] == "TEL-LOU"
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"role": "enfant"})

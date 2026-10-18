@@ -39,6 +39,7 @@ class EcransAllemandLot1Test : InstrumentationTestCase() {
 
     override fun setUp() {
         super.setUp()
+        CodeEssai.poser(instrumentation.targetContext)  // faille du 16-10 : un Décideur a toujours un code
         shell("cmd locale set-app-locales org.soprez.vision --locales de-DE")
         SystemClock.sleep(1500)
     }
@@ -46,6 +47,7 @@ class EcransAllemandLot1Test : InstrumentationTestCase() {
     override fun tearDown() {
         shell("settings put system font_scale 1.0")
         shell("cmd locale set-app-locales org.soprez.vision --locales \"\"")
+        CodeEssai.rendre(instrumentation.targetContext)
         super.tearDown()
     }
 

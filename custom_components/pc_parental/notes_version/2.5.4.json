@@ -1,0 +1,80 @@
+{
+  "version": "2.5.4",
+  "date": "2026-10-15",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Menus réorganisés : « À décider » regroupe les demandes, Configurer est réduit à l'essentiel.",
+        "en": "Reorganised menus: “To decide” gathers the requests, Configure is cut down to the essentials.",
+        "de": "Neu geordnete Menüs: „Zu entscheiden“ sammelt die Anfragen, Konfigurieren ist aufs Wesentliche gekürzt.",
+        "es": "Menús reorganizados: «Por decidir» reúne las solicitudes y Configurar se reduce a lo esencial.",
+        "it": "Menu riorganizzati: «Da decidere» raccoglie le richieste, Configura è ridotto all'essenziale.",
+        "nl": "Menu's opnieuw ingedeeld: „Te beslissen” bundelt de verzoeken, Configureren is ingekort tot de kern."
+      }
+    },
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Accueil : liste alphabétique sur le téléphone, disposition « Vertical » et widgets HA sur la télé.",
+        "en": "Start screen: alphabetical list on the phone, “Vertical” layout and HA widgets on the TV.",
+        "de": "Startbildschirm: alphabetische Liste am Telefon, Anordnung „Vertikal“ und HA-Widgets am Fernseher.",
+        "es": "Inicio: lista alfabética en el teléfono, disposición «Vertical» y widgets de HA en la tele.",
+        "it": "Schermata iniziale: elenco alfabetico sul telefono, disposizione «Verticale» e widget HA sulla TV.",
+        "nl": "Startscherm: alfabetische lijst op de telefoon, indeling „Verticaal” en HA-widgets op de tv."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Horloge : les 8 styles de Vision et les horloges des thèmes, pour l'accueil et pour la veille.",
+        "en": "Clock: Vision's 8 styles and the theme clocks, for the start screen and for the screensaver.",
+        "de": "Uhr: die 8 Vision-Stile und die Uhren der Themen, für den Startbildschirm und den Bildschirmschoner.",
+        "es": "Reloj: los 8 estilos de Vision y los relojes de los temas, para el inicio y el salvapantallas.",
+        "it": "Orologio: gli 8 stili di Vision e gli orologi dei temi, per la schermata iniziale e il salvaschermo.",
+        "nl": "Klok: de 8 stijlen van Vision en de klokken van de thema's, voor het startscherm en de schermbeveiliging."
+      }
+    },
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Widgets : le contenu défile dans la tuile, avec une hauteur au choix (compacte, moyenne, grande).",
+        "en": "Widgets: the content scrolls inside the tile, with a height of your choice (compact, medium, large).",
+        "de": "Widgets: Der Inhalt scrollt in der Kachel, Höhe nach Wahl (kompakt, mittel, groß).",
+        "es": "Widgets: el contenido se desplaza en la ficha, con altura a elegir (compacta, media, grande).",
+        "it": "Widget: il contenuto scorre nel riquadro, con altezza a scelta (compatta, media, grande).",
+        "nl": "Widgets: de inhoud schuift in de tegel, met een hoogte naar keuze (compact, middel, groot)."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele",
+        "pc"
+      ],
+      "texte": {
+        "fr": "« ☕ Payez-moi un café » : la page de don du projet, partout au même endroit (rien ne se débloque).",
+        "en": "“☕ Buy me a coffee”: the project's donation page, in the same place everywhere (nothing unlocks).",
+        "de": "„☕ Spendier mir einen Kaffee“: die Spendenseite des Projekts, überall am selben Ort (nichts wird freigeschaltet).",
+        "es": "«☕ Invítame a un café»: la página de donación del proyecto, en el mismo sitio (no se desbloquea nada).",
+        "it": "«☕ Offrimi un caffè»: la pagina di donazione del progetto, ovunque nello stesso posto (nulla si sblocca).",
+        "nl": "„☕ Trakteer me op koffie”: de donatiepagina van het project, overal op dezelfde plek (niets wordt ontgrendeld)."
+      }
+    }
+  ]
+}

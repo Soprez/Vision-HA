@@ -17,6 +17,8 @@ class VeilleActivity : Activity() {
     companion object {
         /** Veille de repli lancée par l'accueil : le premier appui (touche ou toucher) la retire. */
         const val PREMIER_APPUI = "premier_appui"
+        /** Veille-lot : la veille en activité est à l'écran (le repli de l'agent ne s'ouvre pas par-dessus). */
+        @Volatile var devant = false
     }
     private val premierAppui by lazy { intent?.getBooleanExtra(PREMIER_APPUI, false) == true }
 
@@ -41,6 +43,8 @@ class VeilleActivity : Activity() {
         cadre.addView(v, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         cadre.addView(cameras, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         VeilleWeb.attacher(cadre, v)
+        // 1.93.05 (retour 36) : par-dessus tout (page de HA comprise), le bandeau « Lecteur musique ».
+        cadre.addView(CoinsVeille(cadre.context, v).apply { tag = "coins_veille" }, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         vue = v
         setContentView(cadre)
         this.cadre = cadre
@@ -49,8 +53,9 @@ class VeilleActivity : Activity() {
 
     override fun onDestroy() { cadre?.let { MessagesRiches.retirerHote(this, it) }; super.onDestroy() }
 
-    override fun onResume() { super.onResume(); Veille.fermer(); vue?.demarrer(); parGeste = false; guetteur.demarrer() }
+    override fun onResume() { super.onResume(); devant = true; Veille.fermer(); vue?.demarrer(); parGeste = false; guetteur.demarrer(); ToucheMedia.maintenir(this) }
     override fun onPause() {
+        devant = false; ToucheMedia.maintenir(this)
         guetteur.arreter()
         // Recouverte sans qu'on l'ait demandé (un cast ouvre son appli par-dessus) : la veille reviendra en couche si le flux est permis.
         if (!parGeste && !isFinishing && !Veille.ouverte) Flux.guetterApres(this)

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Veille : l'indicateur des ouvertures (l'auteur, 15/10) — style, couleurs, seulement ouvert. -->
+<resources>
+    <string name="ouv_indicateur">Indicateur des ouvertures</string>
+    <string name="ouv_style_pastille">Pastille</string>
+    <string name="ouv_style_icone">Icône (porte, fenêtre, portail…)</string>
+    <string name="ouv_style_lisere">Liseré de couleur</string>
+    <string name="ouv_style_aucun">Aucun (texte seul)</string>
+    <string name="ouv_couleur_ouvert">Couleur quand c\'est ouvert</string>
+    <string name="ouv_couleur_ferme">Couleur quand c\'est fermé</string>
+    <string name="ouv_seulement_ouvert">Indicateur seulement quand c\'est ouvert</string>
+    <string name="ouv_couleur_rouge">Rouge</string>
+    <string name="ouv_couleur_orange">Orange</string>
+    <string name="ouv_couleur_vert">Vert</string>
+    <string name="ouv_couleur_bleu">Bleu</string>
+    <string name="ouv_couleur_accent">Accent du thème</string>
+    <string name="ouv_couleur_gris">Gris</string>
+</resources>

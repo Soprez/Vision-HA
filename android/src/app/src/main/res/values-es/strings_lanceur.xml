@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lanceur : liste alphabétique (téléphone), place de la zone du haut, disposition Vertical (télé). -->
+<resources>
+    <string name="lanceur_liste_alpha">Lista alfabética</string>
+    <string name="lanceur_index_alpha">Índice alfabético</string>
+    <string name="lanceur_index_cote">Lado del índice</string>
+    <string name="lanceur_index_droite">A la derecha</string>
+    <string name="lanceur_index_gauche">A la izquierda (zurdo)</string>
+    <string name="lanceur_favoris">Favoritos</string>
+    <string name="lanceur_favoris_haut">Favoritos fijados arriba</string>
+    <string name="lanceur_epingler_favori">Fijar en favoritos</string>
+    <string name="lanceur_retirer_favori">Quitar de favoritos</string>
+    <string name="lanceur_zone_position">Zona superior</string>
+    <string name="lanceur_zone_dessus">Encima de los iconos</string>
+    <string name="lanceur_zone_dessous">Debajo de los iconos</string>
+    <string name="lanceur_tele_rangees">Filas</string>
+    <string name="lanceur_tele_vertical">Vertical</string>
+    <string name="lanceur_colonne">Columna de apps</string>
+    <string name="lanceur_colonne_gauche">A la izquierda</string>
+    <string name="lanceur_colonne_centre">En el centro</string>
+    <string name="lanceur_colonne_droite">A la derecha</string>
+    <string name="lanceur_zone_gauche">Zona de widgets izquierda</string>
+    <string name="lanceur_zone_droite">Zona de widgets derecha</string>
+    <string name="lanceur_zone_activee">activada</string>
+    <string name="lanceur_zone_desactivee">desactivada</string>
+    <string name="lanceur_zone_widgets">Elegir los widgets</string>
+    <string name="lanceur_zone_activer">Activar esta zona</string>
+    <string name="lanceur_zone_desactiver">Desactivar esta zona</string>
+    <string name="lanceur_zones_note">Una zona solo aparece si tiene widgets y está activada.</string>
+    <string name="lanceur_aide_deplacement_vertical">Arriba y abajo mueven · OK suelta</string>
+</resources>

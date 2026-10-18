@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lanceur : liste alphabétique (téléphone), place de la zone du haut, disposition Vertical (télé). -->
+<resources>
+    <string name="lanceur_liste_alpha">Alfabetische lijst</string>
+    <string name="lanceur_index_alpha">Alfabetische index</string>
+    <string name="lanceur_index_cote">Kant van de index</string>
+    <string name="lanceur_index_droite">Rechts</string>
+    <string name="lanceur_index_gauche">Links (linkshandig)</string>
+    <string name="lanceur_favoris">Favorieten</string>
+    <string name="lanceur_favoris_haut">Favorieten bovenaan vastgezet</string>
+    <string name="lanceur_epingler_favori">Vastzetten bij favorieten</string>
+    <string name="lanceur_retirer_favori">Uit favorieten halen</string>
+    <string name="lanceur_zone_position">Bovenzone</string>
+    <string name="lanceur_zone_dessus">Boven de pictogrammen</string>
+    <string name="lanceur_zone_dessous">Onder de pictogrammen</string>
+    <string name="lanceur_tele_rangees">Rijen</string>
+    <string name="lanceur_tele_vertical">Verticaal</string>
+    <string name="lanceur_colonne">App-kolom</string>
+    <string name="lanceur_colonne_gauche">Links</string>
+    <string name="lanceur_colonne_centre">Midden</string>
+    <string name="lanceur_colonne_droite">Rechts</string>
+    <string name="lanceur_zone_gauche">Widgetzone links</string>
+    <string name="lanceur_zone_droite">Widgetzone rechts</string>
+    <string name="lanceur_zone_activee">aan</string>
+    <string name="lanceur_zone_desactivee">uit</string>
+    <string name="lanceur_zone_widgets">Widgets kiezen</string>
+    <string name="lanceur_zone_activer">Deze zone aanzetten</string>
+    <string name="lanceur_zone_desactiver">Deze zone uitzetten</string>
+    <string name="lanceur_zones_note">Een zone verschijnt pas als ze widgets heeft en aanstaat.</string>
+    <string name="lanceur_aide_deplacement_vertical">Omhoog en omlaag verplaatsen · OK zet neer</string>
+</resources>

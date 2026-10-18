@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.2 (retour d'essai) : le défilement du contenu d'un widget, réglage par widget. -->
+<resources>
+    <string name="wha_voir_tout">Alles anzeigen</string>
+    <string name="wha_voir_tout_desc">Alles anzeigen: %1$d weitere</string>
+    <string name="editeurwidget_contenu">Inhalt</string>
+    <string name="editeurwidget_defilement_oui">Inhalt scrollt</string>
+    <string name="editeurwidget_defilement_non">Was passt, dann Alles anzeigen</string>
+    <string name="editeurwidget_hauteur">Maximale Höhe</string>
+    <string name="editeurwidget_hauteur_compacte">Kompakt (3 Zeilen)</string>
+    <string name="editeurwidget_hauteur_moyenne">Mittel (6 Zeilen)</string>
+    <string name="editeurwidget_hauteur_grande">Groß (10 Zeilen)</string>
+</resources>

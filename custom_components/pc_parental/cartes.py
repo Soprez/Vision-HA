@@ -27,6 +27,7 @@ DOSSIER = os.path.join(os.path.dirname(__file__), "frontend")
 # Les cartes que l'interface charge partout. Le panneau de l'écran de veille et son cœur
 # ne sont chargés que par le panneau lui-même.
 CARTES = (
+    "vision-choix.js",  # 15-10 (règle UX de l'auteur) : le sélecteur « étiquettes ou liste » de toutes les cartes
     "vision-etiquettes-card.js",
     "vision-planning-card.js",
     "vision-processus-card.js",
@@ -34,6 +35,9 @@ CARTES = (
     "vision-veille-card.js",
     "vision-dashboards-card.js",
     "vision-widgets-card.js",
+    "vision-personne-card.js",  # refonte lot 3 : la fiche d'une personne
+    "vision-reglages-card.js",  # refonte lot 5 : Réglages › Réservé
+    "vision-canaux-card.js",  # 2.5.6 : Réglages › Mes notifications (chaque Décideur)
     "vision-apparence-card.js",
     "vision-messages-card.js",
 )

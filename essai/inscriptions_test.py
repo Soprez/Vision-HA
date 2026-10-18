@@ -82,7 +82,8 @@ async def _inscrire(client, cle, nom):
 
 async def _options(hass, entree, mode):
     r = await hass.config_entries.options.async_init(entree.entry_id)
-    assert r["type"] == FlowResultType.MENU and "securite" in r["menu_options"]
+    assert r["type"] == FlowResultType.MENU and "autres" in r["menu_options"]
+    r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "autres"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "securite"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "inscriptions"})
     assert r["type"] == FlowResultType.FORM and r["step_id"] == "inscriptions"

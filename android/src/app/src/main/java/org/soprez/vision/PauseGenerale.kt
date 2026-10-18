@@ -22,6 +22,8 @@ object PauseGenerale {
     const val ACTION = "pause_generale"
     const val FIN = "fin_pause_generale"
     const val MINUTES_MAX = 240
+    /** Refonte UX, lot 2 (A8) : les durées proposées, toutes dans la limite. */
+    val DUREES = listOf(15, 30, 60, 120, 240)
 
     /** L'heure de fin (ms) si elle est à venir ; null sinon (pas de pause, ou pause échue). */
     fun finMs(finSecondes: Long?, maintenantMs: Long): Long? =

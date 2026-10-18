@@ -36,9 +36,11 @@ if str(_banc / "custom_components") not in list(custom_components.__path__):
     custom_components.__path__.append(str(_banc / "custom_components"))
 
 DOMAIN = "pc_parental"
-CARTES = ("vision-etiquettes-card.js", "vision-planning-card.js", "vision-processus-card.js",
+CARTES = ("vision-choix.js", "vision-etiquettes-card.js", "vision-planning-card.js", "vision-processus-card.js",
           "vision-maison-card.js", "vision-veille-card.js", "vision-dashboards-card.js", "vision-widgets-card.js", "vision-apparence-card.js",
-          "vision-messages-card.js")
+          "vision-messages-card.js", "vision-personne-card.js",
+          "vision-reglages-card.js",  # lots 3 et 5 : fiche d'une personne, réglages réservés
+          "vision-canaux-card.js")  # 2.5.6 : Réglages › Mes notifications
 
 
 @pytest.fixture(autouse=True)

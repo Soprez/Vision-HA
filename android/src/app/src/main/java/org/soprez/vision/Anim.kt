@@ -34,9 +34,13 @@ object Anim {
     const val GLISSEMENT_DP = 16f
     const val ECHELLE_DEPART = 0.96f
 
-    /** Courbes de Bézier cubiques (x1, y1, x2, y2) : entrée « ease-out » standard, sortie « ease-in ». */
+    /**
+     * Courbes de Bézier cubiques (x1, y1, x2, y2), toutes deux « ease-out ». 1.93.05 (l'auteur, règles d'Emil Kowalski) : jamais
+     * d'« ease-in » — une sortie lente au départ paraît en retard sur l'appui ; elle part vite et se pose (courbe forte
+     * 0.23, 1, 0.32, 1), en 160 ms, plus vite que l'entrée.
+     */
     val COURBE_ENTREE = floatArrayOf(0f, 0f, 0.2f, 1f)
-    val COURBE_SORTIE = floatArrayOf(0.4f, 0f, 1f, 1f)
+    val COURBE_SORTIE = floatArrayOf(0.23f, 1f, 0.32f, 1f)
 
     /** L'état de départ (et d'arrivée de la sortie) : décalage en px, échelle, alpha. */
     data class Depart(val dx: Float, val dy: Float, val echelle: Float, val alpha: Float = 0f)

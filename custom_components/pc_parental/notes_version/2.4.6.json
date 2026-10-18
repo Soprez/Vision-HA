@@ -1,0 +1,76 @@
+{
+  "version": "2.4.6",
+  "date": "2026-10-12",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Party : les pochettes du titre en cours et des suivants sont préparées à l'avance.",
+        "en": "Party: artwork for the current and next tracks is prepared in advance.",
+        "de": "Party: Cover des aktuellen und der nächsten Titel werden vorab vorbereitet.",
+        "es": "Fiesta: las carátulas del tema actual y de los siguientes se preparan de antemano.",
+        "it": "Festa: le copertine del brano in corso e dei successivi sono preparate in anticipo.",
+        "nl": "Feest: hoezen van het huidige en de volgende nummers worden vooraf klaargezet."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Lecteur Sendspin : l'appairage automatique attend que Music Assistant connaisse le lecteur.",
+        "en": "Sendspin player: automatic pairing waits until Music Assistant knows the player.",
+        "de": "Sendspin-Player: Die automatische Kopplung wartet, bis Music Assistant den Player kennt.",
+        "es": "Reproductor Sendspin: el emparejamiento automático espera a que Music Assistant conozca el reproductor.",
+        "it": "Lettore Sendspin: l'associazione automatica attende che Music Assistant conosca il lettore.",
+        "nl": "Sendspin-speler: automatisch koppelen wacht tot Music Assistant de speler kent."
+      }
+    },
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "Lecteur Sendspin : appairage automatique muet, le code n'apparaît jamais (à la main : Réglages › Décideurs).",
+        "en": "Sendspin player: silent automatic pairing, the code never shows (by hand: Settings › Deciders).",
+        "de": "Sendspin-Player: stumme automatische Kopplung, nie ein Code (von Hand: Einstellungen › Entscheider).",
+        "es": "Reproductor Sendspin: vinculación automática silenciosa, sin código (a mano: Ajustes › Responsables).",
+        "it": "Lettore Sendspin: associazione automatica silenziosa, mai un codice (a mano: Impostazioni › Decisori).",
+        "nl": "Sendspin-speler: stil automatisch koppelen, nooit een code (met de hand: Instellingen › Beslissers)."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Musique : l'Autoplay est coupé sur les lecteurs Vision ; Play sur une file finie n'ajoute plus de titres.",
+        "en": "Music: Autoplay is off on Vision players; Play on a finished queue no longer adds tracks.",
+        "de": "Musik: Autoplay ist auf Vision-Playern aus; Play auf einer beendeten Warteschlange fügt keine Titel mehr hinzu.",
+        "es": "Música: Autoplay desactivado en los reproductores Vision; Play en una cola terminada ya no añade temas.",
+        "it": "Musica: Autoplay disattivato sui lettori Vision; Play su una coda finita non aggiunge più brani.",
+        "nl": "Muziek: Autoplay staat uit op Vision-spelers; Play op een afgelopen wachtrij voegt geen nummers meer toe."
+      }
+    },
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "Télé : les messages sonnent au volume de la télé ; la musique de Vision n'est plus coupée au retour sur l'accueil.",
+        "en": "TV: messages ring at the TV volume; Vision's music is no longer paused when you come back to Vision.",
+        "de": "Fernseher: Nachrichten klingeln in TV-Lautstärke; die Musik von Vision pausiert nicht mehr bei der Rückkehr.",
+        "es": "Tele: los mensajes suenan al volumen de la tele; la música de Vision ya no se pausa al volver a Vision.",
+        "it": "TV: i messaggi suonano al volume della TV; la musica di Vision non va più in pausa tornando a Vision.",
+        "nl": "Tv: berichten klinken op het tv-volume; de muziek van Vision pauzeert niet meer bij terugkeer naar Vision."
+      }
+    }
+  ]
+}

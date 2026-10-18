@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 3 : fiche d'une personne (espace Décideur) ; apparence, veille et son à un seul endroit. -->
+<resources>
+    <string name="fiche_de">Scheda di %1$s</string>
+    <string name="fiche_voir">Vedi la scheda</string>
+    <string name="fiche_precedente">Persona precedente</string>
+    <string name="fiche_suivante">Persona successiva</string>
+    <string name="fiche_resume">Riepilogo</string>
+    <string name="fiche_temps_aujourdhui">Oggi: %1$s</string>
+    <string name="fiche_horaires">Orari</string>
+    <string name="fiche_prochain_changement">Prossimo cambiamento</string>
+    <string name="fiche_aucun_horaire">Nessun orario</string>
+    <string name="fiche_voir_appareils">Vedi i dispositivi</string>
+    <string name="fiche_contenus">Contenuti</string>
+    <string name="fiche_selon_lieu">In base al luogo</string>
+    <string name="fiche_regle_lieu">%1$s: %2$s</string>
+    <string name="fiche_aucune_regle_lieu">Nessuna regola in base al luogo</string>
+    <string name="fiche_reveils">Sveglie</string>
+    <string name="fiche_reveil_active">Attiva</string>
+    <string name="fiche_reveil_desactive">Disattivata</string>
+    <string name="fiche_reveil_prochain">Prossima: %1$s</string>
+    <string name="fiche_aucun_reveil">Nessuna sveglia</string>
+    <string name="fiche_recompenses">Ricompense</string>
+    <string name="fiche_recompense">%1$d min per attività di «%2$s», al massimo %3$d min al giorno; %4$d min guadagnati oggi</string>
+    <string name="fiche_pas_recompense">Nessuna ricompensa impostata</string>
+    <string name="fiche_ecrans">Sui suoi schermi</string>
+    <string name="fiche_role">Ruolo</string>
+    <string name="fiche_note">Queste impostazioni si modificano in Home Assistant (scheda di %1$s).</string>
+    <string name="lot3_apparence_veille_son">Aspetto, salvaschermo e suono</string>
+    <string name="lot3_apparence_veille_son_detail">Tema, colori, suoni</string>
+    <string name="lot3_son">Suono</string>
+    <plurals name="fiche_n_widgets">
+        <item quantity="one">%1$d widget di Home Assistant</item>
+        <item quantity="many">%1$d widget di Home Assistant</item>
+        <item quantity="other">%1$d widget di Home Assistant</item>
+    </plurals>
+</resources>

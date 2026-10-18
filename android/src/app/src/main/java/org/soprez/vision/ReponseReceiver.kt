@@ -60,7 +60,7 @@ class ReponseReceiver : BroadcastReceiver() {
                     Geste.messageEchec(e.code)
                 } catch (_: Exception) { ctx.getString(R.string.commun_ha_injoignable_rien) }
                 principal.post {
-                    Toast.makeText(ctx, texte, Toast.LENGTH_LONG).show()
+                    Ui.toast(ctx, texte)
                     apres?.invoke(Geste.Resultat(ok, texte))
                 }
             }.start()

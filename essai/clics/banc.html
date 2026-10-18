@@ -24,14 +24,17 @@
   window.__appels = [];
   const attendre = (genre, chemin, corps) => new Promise((ok, ko) => window.__appels.push({ genre, chemin, corps, ok, ko }));
   const hass = {
-    states: donnees.__etats || {}, user: { is_admin: true, name: "Robin" }, language: "fr", themes: { darkMode: false },
+    states: donnees.__etats || {}, user: { is_admin: true, name: "Nolan" }, language: "fr", themes: { darkMode: false },
     callApi: async (methode, chemin, corps) => {
       if (methode === "GET") return JSON.parse(JSON.stringify(donnees[chemin.split("?")[0]] || {}));
+      // 2.5.1 : les lectures de l'écran par élément (catégorie, recherche, blocages récents) ne sont pas des gestes.
+      if (corps && ["categorie", "recherche", "recents"].includes(corps.action)) return JSON.parse(JSON.stringify(donnees["__lecture_" + corps.action] || {}));
       return attendre("api", chemin, corps);
     },
     callService: async (domaine, service, corps) => attendre("service", domaine + "." + service, corps),
     callWS: async () => ({}),
   };
+  await import("./vision-choix.js");  // 15-10 : le sélecteur partagé des cartes, chargé avant elles comme dans HA
   await import("./" + carte + ".js");
   const el = document.createElement(carte);
   const config = JSON.parse(params.get("config") || "{}");

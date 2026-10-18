@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time as _horloge  # « time » seul serait écrasé par la plateforme time.py du paquet
 from datetime import timedelta
 
 import voluptuous as vol
@@ -236,12 +237,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await store.async_load()
     # 1.82.0 : le préréglage choisi à l'ajout de l'intégration, appliqué une fois.
     initiaux = (entry.data or {}).get("modules_initiaux")
-    if initiaux and not store.modules:
+    if (initiaux or isinstance(initiaux, list)) and not store.modules:
         from . import modules as _modules
 
-        if initiaux in _modules.PRESETS:
+        if isinstance(initiaux, str) and initiaux in _modules.PRESETS:
             store.modules = {m: (m in _modules.PRESETS[initiaux]) for m in _modules.TOUS}
             await store.async_save()
+        elif isinstance(initiaux, list):  # refonte UX lot 4 : les modules des objectifs de l'assistant
+            store.modules = {m: (m in initiaux) for m in _modules.TOUS}
+            await store.async_save()
+    # Refonte UX lot 4 : le lieu et les mots choisis dans l'assistant, une fois, avant les rôles (leurs noms).
+    from . import assistant as _assistant
+
+    if _assistant.avant_roles(hass, entry, store):
+        await store.async_save()
     if store.cle_changee:
         # 1.61.0 : la clé d'inscription d'avant était lisible par tout compte.
         # Elle est enregistrée juste en dessous, avec le reste du magasin.
@@ -313,12 +322,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         nouveau = event.data.get("new_state")
         if nouveau is None or not str(event.data.get("entity_id") or "").startswith("media_player."):
             return
+        if not str(nouveau.attributes.get("friendly_name") or "").endswith(_mus.SUFFIXE_VISION):
+            return
         vol = nouveau.attributes.get("volume_level")
-        if isinstance(vol, (int, float)) and vol < _mus.VOLUME_VISION - 0.005 and \
-                str(nouveau.attributes.get("friendly_name") or "").endswith(_mus.SUFFIXE_VISION):
+        if isinstance(vol, (int, float)) and vol < _mus.VOLUME_VISION - 0.005:
             hass.async_create_task(_mus.tenir_volume(hass, nouveau.entity_id))
+        # 2.4.6 (l'auteur : « Play a ajouté 28 titres ») : nouveau lecteur « · Vision » (ou nouvelle file) : l'ajout
+        # automatique de Music Assistant y est coupé dès sa création, comme le volume à 100 %.
+        ancien = event.data.get("old_state")
+        # Banc Musique (2026-10-12) : le lecteur de la Party revenu après une coupure en pleine lecture repart.
+        from . import party as _party
+        if _party.reprise_apres_coupure(hass, nouveau.entity_id, ancien.state if ancien else None, nouveau.state, _horloge.time()):
+            hass.async_create_task(_party.reprendre_apres_coupure(hass, nouveau.entity_id))
+        file = nouveau.attributes.get("active_queue")
+        if file and (ancien is None or ancien.attributes.get("active_queue") != file):
+            hass.async_create_task(_mus.couper_ajout_auto(hass, nouveau.entity_id))
 
     entry.async_on_unload(hass.bus.async_listen(EVENT_STATE_CHANGED, _volume_vision))
+
+    # Lot 2 (« À décider ») : réponses depuis les notifications de l'appli Compagnon.
+    from . import a_decider as _adec
+    entry.async_on_unload(_adec.installer(hass))
 
     # 2.4.0 (retour d'essai) : arrêt automatique de la lecture après inactivité (Configurer › Musique).
     from . import musique_arret as _arret
@@ -326,6 +350,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def _arret_auto(_maintenant=None) -> None:
         try:
             await _arret.tour(hass, coordinator)
+            # 2.4.8 : une musique de veille sans nouvelles de son appareil s'arrête.
+            from . import veille_musique as _veille_mus
+            await _veille_mus.tour(hass)
         except Exception:  # noqa: BLE001 - la musique ne doit jamais faire tomber Vision
             _LOGGER.exception("Musique : arrêt automatique")
 
@@ -379,6 +406,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if _cle is not None and _cle.biometrie:
             _cle.biometrie = False
             await _cle.async_save()
+    # Refonte UX lot 4 : les Décideurs choisis dans l'assistant, une fois les rôles créés.
+    if _assistant.apres_roles(hass, entry, store):
+        await store.async_save()
     from . import deverrouillage_ecran
 
     deverrouillage_ecran.enregistrer(hass)
@@ -457,13 +487,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # lorsqu'une nouvelle version change ce qu'elle génère.
     from homeassistant.helpers.start import async_at_started
 
+    # 2.5.10 (l'auteur, retour 28 : l'onglet renommé « Utilisateur » était revenu à « Aujourd'hui » après la 2.5.9) : les
+    # tableaux de bord sont créés à l'installation, puis appartiennent à l'utilisateur. Au démarrage (et donc après
+    # une mise à jour), Vision ne remplit le tableau que s'il ne contient encore aucun de ses onglets ; il ne le
+    # réécrit plus quand son empreinte change. Pour revenir au modèle : le bouton « Régénérer le tableau de bord » (il sauvegarde l'ancien).
     async def _tableau_au_demarrage(_hass: HomeAssistant) -> None:
-        from .dashboard import signature
+        from .dashboard import async_remplir_si_vide, signature
 
         c = hass.data.get(DOMAIN, {}).get(entry.entry_id)
-        if c is None or signature(c) == c.store.signature_tableau:
+        if c is None:
             return
-        if await c.async_maj_tableau(force=True):
+        if await async_remplir_si_vide(hass, c):
             c.store.signature_tableau = signature(c)
             await c.store.async_save()
 
@@ -539,6 +573,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "pause_generale",
                 "fin_pause_generale",
                 "musique_vider_suite",
+                "son_regler",
             ):
                 hass.services.async_remove(DOMAIN, service)
             from . import reveil_services
@@ -843,6 +878,49 @@ def _async_register_services(hass: HomeAssistant) -> None:
         vol.Optional("source", default=""): cv.string,
     }))
 
+    # 2.5.0 : la réponse à une demande depuis la notification du téléphone d'un Décideur.
+    from . import notifs_mobiles as _notifs_m
+
+    _debrancher_notifs = _notifs_m.ecouter(hass, lambda: next(iter((hass.data.get(DOMAIN) or {}).values()), None)
+                                           if hass.data.get(DOMAIN) else None)
+    hass.data.setdefault(f"{DOMAIN}_debranchements", []).append(_debrancher_notifs)
+
+    # Refonte des autorisations, lot 2 : la reprise (simuler, appliquer après validation, annuler).
+    async def _reprise(call: ServiceCall) -> ServiceResponse:
+        from . import reprise_autorisations as _reprise_a
+        from homeassistant.components import persistent_notification
+
+        coord = _coordinator()
+        langue = textes.ha(hass)
+        par = "Home Assistant"
+        if call.context.user_id:
+            utilisateur = await hass.auth.async_get_user(call.context.user_id)
+            par = utilisateur.name if utilisateur is not None and utilisateur.name else par
+        action = call.data["action"]
+        try:
+            if action == "simuler":
+                rapport = _reprise_a.simuler(coord.store, hass)
+                message = _reprise_a.texte(rapport, langue)
+            elif action == "appliquer":
+                rapport = _reprise_a.appliquer(coord.store, par, hass)
+                message = textes.t("reprise.appliquee", langue, par=par)
+                logging.getLogger(__name__).warning("Vision : reprise des autorisations appliquée (par %s).", par)
+            else:
+                _reprise_a.annuler(coord.store, par)
+                rapport = {}
+                message = textes.t("reprise.annulee", langue, par=par)
+                logging.getLogger(__name__).warning("Vision : reprise des autorisations annulée (par %s).", par)
+        except textes.Erreur as err:
+            raise HomeAssistantError(err.texte(langue)) from err
+        persistent_notification.async_create(hass, message, title="Vision", notification_id=f"{DOMAIN}_reprise_autorisations")
+        if action != "simuler":
+            await coord.async_ecrire()
+        return {"action": action, "nouveau_moteur": coord.store.autorisations_v2, "rapport": rapport, "texte": message}
+
+    service_admin(hass, "reprise_autorisations", _reprise, schema=vol.Schema({
+        vol.Required("action"): vol.In(["simuler", "appliquer", "annuler"]),
+    }), supports_response=SupportsResponse.OPTIONAL)
+
     def _appareils(coord: PcParentalCoordinator, personne: str, noms: list[str]) -> list[dict]:
         """Les appareils nommés, ou tous ceux de la personne quand rien n'est précisé."""
         siens = coord.store.appareils_de(personne)
@@ -865,6 +943,14 @@ def _async_register_services(hass: HomeAssistant) -> None:
         minutes = int(call.data["minutes"])
         for pc in cibles:
             fin = coord.store.ajouter_temps(pc, minutes)
+            # Lot 2 : du temps donné par le service répond aussi à la demande en attente (comme dans l'appli).
+            _d = pc.pop("demande", None)
+            if _d is not None:
+                from homeassistant.components import persistent_notification
+                from . import a_decider as _adec_t
+                persistent_notification.async_dismiss(hass, f"{DOMAIN}_temps_{pc['id']}")
+                if isinstance(_d, dict) and _d.get("id"):
+                    hass.async_create_task(_adec_t.effacer(hass, coord, "temps", str(_d["id"])))
             from . import modules as _mods_t
 
             if _mods_t.coupe(coord.store, "messages"):
@@ -1065,6 +1151,72 @@ def _async_register_services(hass: HomeAssistant) -> None:
     service_admin(hass, "musique_vider_suite", _musique_vider_suite, schema=vol.Schema({
         vol.Required("entity_id"): cv.entity_ids,
     }))
+
+    async def _ecran_regler(call: ServiceCall) -> dict:
+        """17-10 (retour d'essai) : l'écran d'un appareil — veille de Vision permise, écran gardé allumé (administrateurs et automatisations)."""
+        from . import ecran as _ecran
+
+        coord = _coordinator()
+        pc = _pc(coord, call.data["pc"])
+        reglages = _ecran.regler(pc, {k: v for k, v in call.data.items() if k != "pc"})
+        await coord.store.async_save()
+        coord.async_update_listeners()
+        return {"pc": pc["id"], "reglages": reglages}
+
+    service_admin(hass, "ecran_regler", _ecran_regler, schema=vol.Schema({
+        vol.Required("pc"): cv.string,
+        vol.Optional("veille_vision"): cv.boolean,
+        vol.Optional("garder_allume"): cv.boolean,
+    }), supports_response=SupportsResponse.OPTIONAL)
+
+    async def _veille_regler(call: ServiceCall) -> dict:
+        """1.93.05 (l'auteur, retours 36 et 39) : la veille d'un appareil — bandeau « Lecteur musique », coins du QR et du logo."""
+        from . import veille_options as _vo
+
+        coord = _coordinator()
+        pc = _pc(coord, call.data["pc"])
+        try:
+            reglages = _vo.regler(pc, {k: v for k, v in call.data.items() if k != "pc"})
+        except _vo.CoinPris as exc:
+            # 1.93.05 (retour 39) : deux éléments dans un même coin — refusé, rien ne change.
+            raise HomeAssistantError(textes.t("veille.coin_pris", textes.ha(hass))) from exc
+        await coord.store.async_save()
+        coord.async_update_listeners()
+        return {"pc": pc["id"], "reglages": reglages}
+
+    async def _son_regler(call: ServiceCall) -> dict:
+        """Niveau sonore : les réglages d'un appareil (administrateurs et automatisations). Module coupé : erreur."""
+        from . import son as _son
+
+        coord = _coordinator()
+        lg = textes.ha(hass)
+        if not _son.actif_module(coord.store):
+            raise HomeAssistantError(textes.t("son.module_coupe", lg))
+        pc = _pc(coord, call.data["pc"])
+        changements = {k: v for k, v in call.data.items() if k != "pc"}
+        reglages = _son.regler(pc, changements)
+        await coord.store.async_save()
+        coord.async_update_listeners()
+        return {"pc": pc["id"], "reglages": reglages}
+
+    service_admin(hass, "veille_regler", _veille_regler, schema=vol.Schema({
+        vol.Required("pc"): cv.string,
+        vol.Optional("lecteur"): cv.boolean,
+        vol.Optional("qr"): vol.In(["haut_gauche", "haut_droite", "bas_gauche", "bas_droite", "cache"]),
+        vol.Optional("logo"): vol.In(["haut_gauche", "haut_droite", "bas_gauche", "bas_droite", "cache"]),
+    }), supports_response=SupportsResponse.OPTIONAL)
+
+    service_admin(hass, "son_regler", _son_regler, schema=vol.Schema({
+        vol.Required("pc"): cv.string,
+        vol.Optional("actif"): cv.boolean,
+        vol.Optional("seuil_db"): vol.All(vol.Coerce(int), vol.Range(min=30, max=100)),
+        vol.Optional("sensibilite_s"): vol.All(vol.Coerce(int), vol.Range(min=1, max=120)),
+        vol.Optional("alertes_avant_coupure"): vol.All(vol.Coerce(int), vol.Range(min=0, max=10)),
+        vol.Optional("coupure_min"): vol.All(vol.Coerce(int), vol.Range(min=1, max=240)),
+        vol.Optional("calme_min"): vol.All(vol.Coerce(int), vol.Range(min=1, max=240)),
+        vol.Optional("calibration_db"): vol.All(vol.Coerce(int), vol.Range(min=-30, max=30)),
+        vol.Optional("plages"): [vol.Schema({vol.Required("debut"): cv.string, vol.Required("fin"): cv.string})],
+    }), supports_response=SupportsResponse.OPTIONAL)
 
     # Module Réveil — services pc_parental.reveil_* (droits du Réveil, pas « administrateurs seulement »).
     from . import reveil_services

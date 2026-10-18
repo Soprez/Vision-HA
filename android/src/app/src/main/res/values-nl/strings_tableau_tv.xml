@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.2 : le tableau de bord de la zone du haut de la télé (widgets partagés par Home Assistant). -->
+<resources>
+    <string name="zonehaut_tableau_defaut">Standaarddashboard</string>
+</resources>

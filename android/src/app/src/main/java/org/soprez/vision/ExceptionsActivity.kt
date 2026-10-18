@@ -59,6 +59,7 @@ class ExceptionsActivity : Activity() {
         if (android.os.Build.VERSION.SDK_INT >= 21) { window.statusBarColor = Ui.FOND; window.navigationBarColor = Ui.FOND }
         val scroll = ScrollView(this).apply { setBackgroundColor(Ui.FOND); isFillViewport = true }
         val racine = Ui.colonne(this, Ui.dp(this, 20f))
+        Ui.largeurLecture(racine)
         scroll.addView(racine); setContentView(scroll)
         racine.addView(Ui.marque(this))
         val prenom = a.optString("prenom").ifEmpty { a.optString("nom") }
@@ -106,12 +107,12 @@ class ExceptionsActivity : Activity() {
         val cd = Ui.carte(this)
         // Le téléphone et les appels d'urgence : toujours, et on ne peut pas les retirer.
         cd.addView(ligne(Element("apps", "", getString(R.string.exceptions_telephone_urgence)), getString(R.string.exceptions_ne_peut_pas_retirer)) {
-            Toast.makeText(this, getString(R.string.exceptions_telephone_toast), Toast.LENGTH_LONG).show()
+            Ui.toast(this, getString(R.string.exceptions_telephone_toast))
         })
         disponibles.sortedBy { it.libelle.lowercase() }.forEach { e ->
             cd.addView(Ui.separateur(this))
             cd.addView(ligne(e, if (e.maison) getString(R.string.exceptions_pour_tout_le_monde) else "") {
-                if (e.maison) Toast.makeText(this, getString(R.string.exceptions_pour_tout_le_monde_toast), Toast.LENGTH_LONG).show()
+                if (e.maison) Ui.toast(this, getString(R.string.exceptions_pour_tout_le_monde_toast))
                 else Ui.dialogue(this).setTitle(e.libelle)
                     .setItems(arrayOf(getString(R.string.exceptions_suit_agenda_plutot), getString(R.string.exceptions_retirer_autorisation))) { _, k ->
                         if (k == 0) decider(e, "indisponible") else { decider(e, "indisponible"); decider(e, "oublier") }
@@ -186,7 +187,8 @@ class ExceptionsActivity : Activity() {
     }
 
     /** Envoie la décision, et met la liste à jour dès que Home Assistant l'a acceptée. */
-    private fun decider(e: Element, decision: String) = Garde.exiger(this, ParentsActivity.RAISON) { deciderVraiment(e, decision) }
+    private fun decider(e: Element, decision: String) = Garde.exigerPour(this, ParentsActivity.RAISON, "/api/pc_parental/parent",
+        JSONObject().put("action", "autoriser").put("decision", decision)) { deciderVraiment(e, decision) }
 
     private fun deciderVraiment(e: Element, decision: String) {
         Geste.enCours()
@@ -204,7 +206,7 @@ class ExceptionsActivity : Activity() {
                 when (x.code) { 404 -> { x404 = true; getString(R.string.exceptions_plus_dans_liste) }; else -> Geste.messageEchec(x.code) }
             } catch (_: Exception) { getString(R.string.commun_lot2_injoignable) }
             runOnUiThread {
-                Toast.makeText(this, texte, Toast.LENGTH_SHORT).show()
+                Ui.toast(this, texte, court = true, genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)
                 if (!ok && !x404) Geste.relacher()
                 if (ok || x404) {
                     when (decision) {

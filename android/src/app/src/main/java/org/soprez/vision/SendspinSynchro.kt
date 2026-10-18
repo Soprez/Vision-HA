@@ -40,6 +40,25 @@ object SendspinSynchro {
     }
 
     /**
+     * Banc Musique (2026-10-12, l'auteur : « par moments le son ne sort plus alors que la progression avance ») : le silence à
+     * écrire en une fois est borné à une demi-seconde ; le bloc est ensuite réévalué. Avant, un horodatage absurde (horloge
+     * pas encore synchronisée : +1921 s mesurés) faisait écrire des dizaines de minutes de silence d'un coup.
+     */
+    fun silenceParPas(silence: Int, debitHz: Int): Int = min(silence, maxOf(1, debitHz / 2))
+
+    /** Au-delà de ce retard, on ne jette plus : on se recale (voir [reancrage]). */
+    const val REANCRAGE_US = 500_000L
+
+    /**
+     * Banc Musique (2026-10-12, mesuré contre MA 2.10.6) : au démarrage d'un titre YouTube, MA envoie des morceaux déjà
+     * en retard de 3 à 5 s (horodatés au début de son flux, livrés après le chargement), et le retard grandit pendant le
+     * chargement. Les jeter laissait la télé muette pendant que la progression avançait. Au-delà de [REANCRAGE_US], le
+     * flux est recalé de ce retard (joué un peu plus tard que prévu) ; rend le décalage à ajouter (µs), 0 sinon.
+     * (Essayé et écarté : recaler dès 80 ms en début de flux s'emballe — 202 recalages, 211 sous-alimentations.)
+     */
+    fun reancrage(ecartUs: Long): Long = if (ecartUs > REANCRAGE_US) ecartUs else 0L
+
+    /**
      * Applique retraits et doublons sur un bloc PCM entrelacé (16 bits, [canaux] canaux), répartis régulièrement :
      * une trame retirée ou doublée de-ci de-là ne s'entend pas.
      */

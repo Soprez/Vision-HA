@@ -47,7 +47,10 @@
   const hass = {
     states: donnees.__etats || {}, user: { is_admin: true, name: "Bartholomäus" }, language: langue,
     locale: { language: langue }, themes: { darkMode: params.get("theme") === "sombre" },
-    callApi: async (methode, chemin) => {
+    callApi: async (methode, chemin, corps) => {
+      // 2.5.1 : les lectures de l'écran par élément (catégorie, recherche, blocages récents) sont servies.
+      const lecture = methode === "POST" && corps && donnees["__lecture_" + corps.action];
+      if (lecture) return JSON.parse(JSON.stringify(lecture));
       if (methode !== "GET") return new Promise(() => {});  // une écriture n'aboutit jamais ici : rien ne bouge
       window.__lectures.en_cours++;
       try { return JSON.parse(JSON.stringify(donnees[chemin.split("?")[0]] || {})); }
@@ -56,6 +59,7 @@
     callService: async () => new Promise(() => {}),
     callWS: async () => ({}),
   };
+  for (const f of (params.get("avec") || "").split(",").filter(Boolean)) await import("./" + f + ".js");
   await import("./" + params.get("fichier") + ".js");
   const el = document.createElement(carte);
   const config = JSON.parse(params.get("config") || "{}");

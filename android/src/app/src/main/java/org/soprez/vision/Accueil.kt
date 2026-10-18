@@ -340,6 +340,8 @@ object Accueil {
     /** L'accueil défile (une longue grille) ou se feuillette (des pages). */
     const val MODE_DEFILEMENT = "defilement"
     const val MODE_PAGES = "pages"
+    /** l'auteur (13 octobre) : toutes les applis autorisées en liste alphabétique, avec un index sur le côté (DispositionAccueil). */
+    const val MODE_ALPHA = "alpha"
     fun mode(ctx: Context): String = prefs(ctx).getString("mode", MODE_DEFILEMENT) ?: MODE_DEFILEMENT
     fun poserMode(ctx: Context, m: String) { prefs(ctx).edit().putString("mode", m).apply() }
 
@@ -359,6 +361,8 @@ object Accueil {
     class Widget(val code: String, val nom: String, val w: Int, val h: Int, val publics: Set<String> = emptySet())
     val WIDGETS: List<Widget> get() = listOf(
         Widget("horloge", Tr.s(R.string.accueil_widget_horloge), 4, 2),
+        // 1.90.5 (retour d'essai) : l'horloge stylisée de Vision, aussi posable dans la grille (mêmes réglages que dans la zone du haut).
+        Widget(ZoneHaut.HORLOGE, Tr.s(R.string.zonehaut_widget_horloge), 2, 2),
         Widget("infos", Tr.s(R.string.accueil_widget_infos), 4, 1, setOf("enfant")),
         Widget("devoirs", Tr.s(R.string.accueil_widget_devoirs), 4, 2, setOf("enfant")),
         Widget("temps", Tr.s(R.string.accueil_widget_temps), 4, 1, setOf("enfant")),
@@ -372,6 +376,29 @@ object Accueil {
         Widget("maison", Tr.s(R.string.accueil_widget_presents), 4, 1),
     )
     fun widget(code: String): Widget? = WIDGETS.firstOrNull { it.code == code }
+
+    // ------------------------------------------------------------------ 15-10 : widgets selon les données du lieu
+
+    /**
+     * Les widgets intégrés qui montrent des données de Home Assistant (météo, chauffage, école, caméra, batteries,
+     * personnes…) : proposés seulement si le lieu a ces données (l'auteur : Vision va dans d'autres foyers, rien en dur).
+     * Les autres (horloge stylisée, temps d'écran, demandes) suivent seulement les modules.
+     */
+    val DEPENDANTS = setOf("horloge", "chauffage", "fioul", "ecole", "infos", "devoirs", "camera", "batteries", "enfants", "maison")
+
+    /** Retient « widgets_disponibles » du dernier relevé /veille (absent : un ancien Home Assistant, rien ne change). */
+    fun noterDisponibles(ctx: Context, r: JSONObject) {
+        val a = r.optJSONArray("widgets_disponibles") ?: return
+        val l = (0 until a.length()).map { a.optString(it) }.filter { it.isNotEmpty() }
+        prefs(ctx).edit().putString("widgets_disponibles", JSONArray(l).toString()).apply()
+    }
+
+    /** La liste retenue, ou null si Home Assistant n'en a jamais envoyé. */
+    fun disponibles(ctx: Context): Set<String>? = prefs(ctx).getString("widgets_disponibles", null)
+        ?.let { s -> try { JSONArray(s).let { a -> (0 until a.length()).map { a.getString(it) }.toSet() } } catch (_: Exception) { null } }
+
+    /** Le widget [code] peut-il être proposé, d'après la liste [disponibles] de Home Assistant (null : on ne sait pas, oui). Pur. */
+    fun disponible(code: String, disponibles: Set<String>?): Boolean = disponibles == null || code !in DEPENDANTS || code in disponibles
 
     fun disposition(ctx: Context): MutableList<Place> {
         val brut = prefs(ctx).getString("disposition", null)

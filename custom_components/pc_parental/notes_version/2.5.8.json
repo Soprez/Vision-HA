@@ -1,0 +1,46 @@
+{
+  "version": "2.5.8",
+  "date": "2026-10-17",
+  "points": [
+    {
+      "cibles": [
+        "pc"
+      ],
+      "texte": {
+        "fr": "Agent PC beaucoup plus léger : il ne refait plus son blocage à chaque relevé, les jeux restent fluides.",
+        "en": "Much lighter PC agent: it no longer rebuilds its blocking at every check, games stay smooth.",
+        "de": "Viel leichterer PC-Agent: Er baut seine Sperre nicht mehr bei jeder Abfrage neu auf, Spiele bleiben flüssig.",
+        "es": "Agente de PC mucho más ligero: ya no rehace su bloqueo en cada consulta, los juegos siguen fluidos.",
+        "it": "Agente PC molto più leggero: non rifà più il blocco a ogni controllo, i giochi restano fluidi.",
+        "nl": "Veel lichtere pc-agent: hij bouwt zijn blokkering niet meer bij elke controle opnieuw op, games blijven vloeiend."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "pc"
+      ],
+      "texte": {
+        "fr": "Home Assistant indique à l'agent PC quand sa liste a changé, et affiche ce que l'agent consomme.",
+        "en": "Home Assistant tells the PC agent when its list has changed, and shows what the agent uses.",
+        "de": "Home Assistant meldet dem PC-Agenten, wenn sich seine Liste geändert hat, und zeigt, was der Agent verbraucht.",
+        "es": "Home Assistant avisa al agente de PC cuando su lista cambia y muestra lo que consume el agente.",
+        "it": "Home Assistant avvisa l'agente PC quando il suo elenco cambia e mostra quanto consuma l'agente.",
+        "nl": "Home Assistant laat de pc-agent weten wanneer zijn lijst is gewijzigd en toont wat de agent verbruikt."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Panneau Vision : ouvrir une catégorie ne fait plus remonter la page tout en haut.",
+        "en": "Vision panel: opening a category no longer jumps the page back to the top.",
+        "de": "Vision-Panel: Das Öffnen einer Kategorie springt nicht mehr an den Seitenanfang.",
+        "es": "Panel de Vision: abrir una categoría ya no hace subir la página hasta arriba.",
+        "it": "Pannello Vision: aprire una categoria non riporta più la pagina in cima.",
+        "nl": "Vision-paneel: een categorie openen springt niet meer terug naar boven."
+      }
+    }
+  ]
+}

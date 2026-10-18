@@ -14,7 +14,18 @@
     <string name="party_volume_plus_de">Monter le volume de %1$s</string>
     <!-- L'appairage avec Music Assistant (PIN à l'écran). -->
     <string name="appairage_titre">Appairer avec Music Assistant</string>
-    <string name="appairage_pin_phrase">Saisissez ce code dans Music Assistant pour appairer cette télé.</string>
+    <string name="appairage_pin_phrase">Saisis ce code dans Music Assistant pour appairer cette télé.</string>
     <string name="appairage_geste_phrase">Music Assistant demande à appairer cette télé. L\'autoriser ?</string>
     <string name="appairage_autoriser">Autoriser</string>
+    <!-- 1.90.2 (l'auteur : « jamais le code à l'écran ») : appairage à la main seulement, depuis Décideurs. -->
+    <string name="appairage_connexion">Connexion à la musique…</string>
+    <string name="appairage_manuel_phrase">Lance l\'appairage de « %1$s » dans Music Assistant : le code s\'affichera ici.</string>
+    <string name="appairage_reussi">Cette télé est appairée avec Music Assistant.</string>
+    <string name="appairage_echec">L\'appairage n\'a pas abouti. Relance-le dans Music Assistant.</string>
+    <string name="appairage_fermer">Fermer</string>
+    <string name="reglagestv_appairage_musique">Appairage musique</string>
+    <string name="reglagestv_appairage_ok">Appairée</string>
+    <string name="reglagestv_appairage_echec">Non appairée</string>
+    <string name="reglagestv_appairage_echec_note">L\'appairage automatique n\'a pas abouti. Tu peux appairer à la main.</string>
+    <string name="reglagestv_appairer_main">Appairer à la main</string>
 </resources>

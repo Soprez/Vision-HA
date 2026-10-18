@@ -46,7 +46,7 @@ import java.util.Locale
 /**
  * L'accueil Vision.
  *
- * Télé : la marque au milieu en haut, l'heure, la météo et la pluie, un mot
+ * Télé (sans en-tête « VISION » depuis le 14 octobre, comme le téléphone) : l'heure, la météo et la pluie, un mot
  * de la maison, la rangée d'applications (anneau d'or au focus, « + » en bout
  * de rangée pour en ajouter) et une roue de réglages en bas à droite. Appui
  * long sur une appli : ouvrir, déplacer (gauche et droite déplacent, OK
@@ -108,8 +108,15 @@ class LanceurActivity : Activity() {
 
     companion object {
         private const val PREFS = "lanceur"
+        /** 1.90.1 : en paysage, la part de la largeur pour l'en-tête (heure, date, météo, lecteur). */
+        private const val PART_TETE_PAYSAGE = 0.36f
+        /** 1.90.1 : en paysage, la taille utile d'une case (dp) : au-delà, la grille se centre. */
+        private const val LARGEUR_CASE_MAX = 112f
+        private const val HAUTEUR_CASE_MAX = 128f
         /** 1.80.0 : appelé par le service quand une demande arrive ; posé seulement pendant que l'accueil est affiché. */
         @Volatile var rafraichirMaintenant: (() -> Unit)? = null
+        /** Veille-lot : l'accueil de Vision est à l'écran (il a sa propre minuterie de veille : l'agent ne double pas). */
+        @Volatile var devant = false
         fun masquees(ctx: android.content.Context) = Accueil.masquees(ctx)
         fun cacher(ctx: android.content.Context, pkg: String, cachee: Boolean) = Accueil.cacher(ctx, pkg, cachee)
         fun applicationsInstallees(ctx: android.content.Context) = Accueil.applicationsInstallees(ctx)
@@ -126,6 +133,22 @@ class LanceurActivity : Activity() {
         profilConnu = getSharedPreferences(PREFS, MODE_PRIVATE).getString("profil", "") ?: ""
         barres()
         racine = FrameLayout(this)
+        // 1.90.1 (l'auteur, Pixel en paysage) : Android 15+ dessine l'appli sous les barres du système (bord à bord imposé).
+        // La barre de navigation à gauche ou à droite en paysage et l'encoche sont laissées libres ; l'accueil se
+        // rebâtit quand elles changent (rotation).
+        // La marge elle-même est posée par VisionApp (Bords) ; ici on lit seulement la largeur prise sur les côtés,
+        // pour calculer la grille sur la largeur qui reste.
+        if (!tele) racine.setOnApplyWindowInsetsListener { v, ins ->
+            // Avant Android 15, la fenêtre s'arrête déjà aux barres latérales : rien à retirer de la largeur.
+            val (g, d) = if (Build.VERSION.SDK_INT >= 35) Marges.cotesSysteme(ins) else 0 to 0
+            // 16-10 (recette, téléphone à caméra « poinçon ») : la hauteur prise en haut (heure, encoche), pour l'index alphabétique.
+            val h = if (Build.VERSION.SDK_INT >= 35) ins.getInsets(android.view.WindowInsets.Type.systemBars() or android.view.WindowInsets.Type.displayCutout()).top else 0
+            if (g != insetG || d != insetD || h != insetH) {
+                insetG = g; insetD = d; insetH = h
+                if (constructions > 0) v.post { construire() }
+            }
+            ins
+        }
         // Filet de sécurité : la racine reçoit la fin de TOUT glisser (dépôt, hors de la grille, annulation, zone de
         // retrait), même quand la case glissée a été reconstruite ou n'a rien reçu.
         racine.setOnDragListener { _, e ->
@@ -257,7 +280,14 @@ class LanceurActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        auPremierPlan = true
+        Garde.exigerCodeDecideur(this)  // faille du 16-10 : un Décideur a toujours un code
+        NiveauSonore.assurer(this)  // le micro ne se lance qu'au premier plan (Android)
+        auPremierPlan = true; devant = true
+        // 17-10 (retour d'essai) : « garder l'écran allumé » réglé dans Home Assistant pour cet appareil — l'accueil empêche la mise en
+        // veille de l'écran Android tant qu'il est devant ; sinon, comme avant (rien d'imposé).
+        if (EcranAppareil.garderAllume(this)) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        ToucheMedia.maintenir(this)  // 1.93.05 (retour 37) : touches média vers la musique de cet appareil
         rafraichirMaintenant = { main.post { if (!isFinishing) demarrerDonnees() } }
         // 1.83.1 : un seul minuteur (avant : un de plus à chaque retour sur l'accueil).
         main.removeCallbacks(tic)
@@ -305,13 +335,13 @@ class LanceurActivity : Activity() {
         try {
             if (isFinishing || !hasWindowFocus()) return
             val am = getSystemService(AUDIO_SERVICE) as android.media.AudioManager
-            if (!am.isMusicActive || Musique.enCours || Veille.ouverte || pkg in Local.fond(this)) return
+            if (!am.isMusicActive || Musique.nous || Veille.ouverte || pkg in Local.fond(this)) return
             for (code in intArrayOf(KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP)) {
                 am.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, code)); am.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_UP, code))
             }
             main.postDelayed({
                 try {
-                    if (!isFinishing && hasWindowFocus() && am.isMusicActive && !Musique.enCours && !Veille.ouverte)
+                    if (!isFinishing && hasWindowFocus() && am.isMusicActive && !Musique.nous && !Veille.ouverte)
                         (getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager).killBackgroundProcesses(pkg)
                 } catch (_: Exception) {}
             }, 1500)
@@ -340,7 +370,8 @@ class LanceurActivity : Activity() {
 
     override fun onPause() {
         super.onPause()
-        auPremierPlan = false
+        auPremierPlan = false; devant = false
+        ToucheMedia.maintenir(this)
         rafraichirMaintenant = null
         main.removeCallbacks(tic)
         main.removeCallbacks(veilleAuto)
@@ -365,7 +396,9 @@ class LanceurActivity : Activity() {
     private fun armerVeille() {
         main.removeCallbacks(veilleAuto)
         if (!tele || !Modules.actif(this, Modules.VEILLE)) return
-        val min = ReglesVeille.delaiAccueil(Local.delaiVeille(this), EconomiseurTv.estVision(this), Local.delaiRepli(this))
+        // Veille-lot : « Vision » ne compte que si la télé lance vraiment son économiseur (choisi ET activé).
+        val vision = EconomiseurTv.planRecent(this).chemin == ReglesVeille.Chemin.DEJA_VISION
+        val min = ReglesVeille.delaiAccueil(Local.delaiVeille(this), vision, Local.delaiRepli(this))
         if (min > 0) main.postDelayed(veilleAuto, min * 60_000L)
     }
 
@@ -382,13 +415,17 @@ class LanceurActivity : Activity() {
         val d = deplacement
         if (d != null) {
             when (keyCode) {
-                KeyEvent.KEYCODE_DPAD_LEFT -> { glisserTele(d, -1); return true }
-                KeyEvent.KEYCODE_DPAD_RIGHT -> { glisserTele(d, +1); return true }
+                // Disposition « Vertical » : la colonne se parcourt en haut et en bas.
+                KeyEvent.KEYCODE_DPAD_LEFT -> { if (!teleVerticale()) glisserTele(d, -1); return true }
+                KeyEvent.KEYCODE_DPAD_RIGHT -> { if (!teleVerticale()) glisserTele(d, +1); return true }
                 KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BACK -> { deplacement = null; construire(); return true }
-                KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> return true
+                KeyEvent.KEYCODE_DPAD_UP -> { if (teleVerticale()) glisserTele(d, -1); return true }
+                KeyEvent.KEYCODE_DPAD_DOWN -> { if (teleVerticale()) glisserTele(d, +1); return true }
             }
         }
         if (keyCode == KeyEvent.KEYCODE_BACK) { dossierOuvert?.dismiss(); cacherPanneau(); return true }
+        // 1.93.05 (l'auteur, retour 37) : les touches média pilotent la musique de Music Assistant qui joue sur cet appareil.
+        if (event != null && ToucheMedia.touche(this, event)) return true
         return super.onKeyDown(keyCode, event)
     }
 
@@ -415,8 +452,13 @@ class LanceurActivity : Activity() {
     // ------------------------------------------------------------------ outils
 
     private fun px(dp: Float) = Ui.dp(this, dp)
+    // Les marges du système sur les côtés (px), gauche et droite. Voir onCreate (1.90.1).
+    private var insetG = 0
+    private var insetD = 0
+    // La hauteur prise en haut par la barre d'état et l'encoche (px, Android 15+ : l'accueil est dessiné dessous).
+    private var insetH = 0
     private val dm get() = resources.displayMetrics
-    private fun empreinte(): String = "g" + Paquets.generation + "|" + cfg.inscrit + "|" + Accueil.masquees(this).sorted().joinToString(",") + "|" + Accueil.ordre(this).joinToString(",") + "|" + theme.nom + theme.fond + "|" + Accueil.dossiers(this).joinToString { it.cle + it.nom + it.pkgs.size } + "|" + profilConnu + "|" + Modules.signature(Modules.actifs(this)) + "|" + WidgetsHaStock.generation + "|" + Etat.verrouilleEffectif() + Etat.apps.hashCode() + Etat.toujours.hashCode() + "|" + (if (tele) "" else Accueil.disposition(this).joinToString { it.cle + it.col + "," + it.row + "," + it.w + "x" + it.h } + "|" + Accueil.dock(this).joinToString(",") + "|" + Accueil.mode(this))
+    private fun empreinte(): String = "g" + Paquets.generation + "|" + cfg.inscrit + "|" + Accueil.masquees(this).sorted().joinToString(",") + "|" + Accueil.ordre(this).joinToString(",") + "|" + theme.nom + theme.fond + "|" + Accueil.dossiers(this).joinToString { it.cle + it.nom + it.pkgs.size } + "|" + profilConnu + "|" + Modules.signature(Modules.actifs(this)) + "|" + WidgetsHaStock.generation + "|" + Etat.verrouilleEffectif() + Etat.apps.hashCode() + Etat.toujours.hashCode() + "|" + (if (tele) "" else Accueil.disposition(this).joinToString { it.cle + it.col + "," + it.row + "," + it.w + "x" + it.h } + "|" + Accueil.dock(this).joinToString(",") + "|" + Accueil.mode(this)) + "|" + DispositionAccueil.empreinte(this)
 
     /** Ouvre une appli ; fermée par les règles, elle montre pourquoi (et comment demander) au lieu de s'ouvrir. */
     private fun ouvrir(pkg: String) {
@@ -515,14 +557,6 @@ class LanceurActivity : Activity() {
         return if (tele) "affichage" else if (Etat.parent) "parent" else if (cfg.personne.isNotEmpty()) "enfant" else "affichage"
     }
 
-    /** La marque, au milieu en haut, partout. */
-    private fun marque(tailleLogoDp: Float, tailleTexte: Float): View {
-        val m = LinearLayout(this).apply { gravity = Gravity.CENTER }
-        m.addView(icone(R.drawable.ic_vision, tailleLogoDp, theme.or))
-        m.addView(texte("VISION", tailleTexte, theme.or, Polices.gras(this), 0.28f).apply { setPadding(px(8f), 0, 0, 0) })
-        return m
-    }
-
     /** La roue des réglages, en bas à droite. */
     private fun roueReglages(tailleDp: Float): View {
         val b = FrameLayout(this).apply { background = fondCarte(999f); isClickable = true; isFocusable = true; contentDescription = getString(R.string.lanceur_reglages_vision); tag = "roue" }
@@ -537,6 +571,154 @@ class LanceurActivity : Activity() {
      * reliée à Vision — [Relier] »), qui reste tant que l'appareil n'est pas inscrit ; sur TV, le premier focus y est
      * posé. « Relier » ouvre l'écran Bienvenue (QR en premier, APP-02).
      */
+    /**
+     * 1.90.5 (retour d'essai) : la zone du haut de la télé, une liste de widgets (ZoneHaut). L'accueil d'avant (« classique ») reste
+     * tel quel ; sinon l'heure et la météo laissent la place aux widgets choisis, côte à côte. Les demandes en attente
+     * (colonne de droite) restent visibles dans tous les cas. L'invite « Personnaliser cette zone » (code des Décideurs)
+     * est discrète sous la bande.
+     */
+    private fun appliquerZoneHaut(entete: LinearLayout, blocHeure: View, droite: LinearLayout, tailleTexte: Float, coteOeil: Int) {
+        val l = ZoneHaut.widgets(this)
+        if (l == listOf(ZoneHaut.CLASSIQUE)) return
+        entete.removeView(blocHeure)
+        for (t in listOf("icone_meteo", "temp", "cond", "pluie")) droite.findViewWithTag<View>(t)?.let { v ->
+            // L'icône et la température sont dans une même ligne : la ligne entière part.
+            val ligne = if (v.parent !== droite) v.parent as? View else v
+            ligne?.let { droite.removeView(it) }
+        }
+        val zone = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; tag = ZoneHaut.TAG }
+        val rangee = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; clipChildren = false; clipToPadding = false }
+        // 1.91.2 (tableau de bord) : avec des widgets Home Assistant, la bande défile de côté (télécommande gauche / droite).
+        val tableau = l.any { ZoneHaut.estHa(it) }
+        for (code in l) {
+            val v = widgetZone(code, tele = true, tailleTexte = tailleTexte, coteOeil = coteOeil) ?: continue
+            val poids = if (!tableau && (code == ZoneHaut.REMERCIEMENT || code == ZoneHaut.MESSAGE)) 1f else 0f
+            val lp = if (ZoneHaut.estHa(code)) (v.layoutParams as? LinearLayout.LayoutParams ?: LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+                else LinearLayout.LayoutParams(if (poids > 0f) 0 else ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, poids)
+            rangee.addView(v, lp.apply { marginEnd = px(tv(32f)) })
+        }
+        if (tableau) {
+            val defile = HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; clipChildren = false; clipToPadding = false; tag = "zone_haut_tableau" }
+            rangee.setPadding(px(6f), px(10f), px(6f), px(10f))
+            defile.addView(rangee)
+            zone.addView(defile)
+        } else zone.addView(rangee)
+        // 1.91.2 (retour d'essai) : plus d'invite visible en permanence ; la zone se personnalise dans Réglages › Accueil › Zone du haut.
+        entete.addView(zone, 0, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+    }
+
+    /**
+     * Un widget de la zone du haut (télé et téléphone) : l'horloge stylisée (avec ses réglages : taille, 12 / 24 h,
+     * date), la météo, le remerciement ou le message. Null pour l'accueil d'avant (il garde ses propres vues).
+     */
+    private fun widgetZone(code: String, tele: Boolean, tailleTexte: Float, coteOeil: Int, paysage: Boolean = false, lierDate: Boolean = true,
+                           /** 16-10 : une rangée du haut ou du bas de la télé — horloge et date plus petites, pour tenir. */
+                           rangee: Boolean = false,
+                           /** 1.93.05 : une zone de côté de la télé — le lecteur prend la largeur de la zone. */
+                           souple: Boolean = false): View? = when (code) {
+        ZoneHaut.HORLOGE -> {
+            val r = ZoneHaut.reglagesHorloge(this)
+            val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; tag = "zone_horloge" }
+            val base = if (tele && rangee) tv(120f) else if (tele) tv(220f) else if (paysage) 118f else 148f
+            val cote = px(base * r.taille.facteur)
+            // 1.91.2 : le style choisi pour cet appareil (StylesHorloge) ; l'anneau reste carré, les autres plus larges.
+            col.addView(StylesHorloge.vue(this, theme, r.style, ZoneHaut.format24(this, r)), LinearLayout.LayoutParams(StylesHorloge.largeur(r.style, cote), cote))
+            // La date du tic de l'appli (1.83.1) : montrée sous l'horloge si le réglage le veut.
+            val d = texte(dateFmt.format(Date()), if (tele && rangee) tv(20f) else if (tele) tv(26f) else 14f, theme.encre2, Polices.moyen(this)).apply { gravity = Gravity.CENTER }
+            if (lierDate) date = d
+            if (r.date) col.addView(d, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(2f) })
+            col
+        }
+        ZoneHaut.METEO -> {
+            val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; tag = "zone_meteo" }
+            val cote = px(if (tele) tv(56f) else 22f)
+            // 16-10 (recette) : la ligne garde la hauteur de l'icône même sans température (avant l'arrivée des données).
+            val ligne = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL; minimumHeight = cote }
+            ligne.addView(IconeMeteo(this, theme.encre2).apply { tag = "icone_meteo" }, LinearLayout.LayoutParams(cote, cote))
+            ligne.addView(texte("", if (tele) tv(60f) else 20f, theme.encre, Polices.outfitLeger(this)).apply { tag = "temp"; setPadding(px(6f), 0, 0, 0); includeFontPadding = false })
+            col.addView(ligne)
+            col.addView(texte("", if (tele) tv(22f) else 12f, theme.encre2).apply { tag = "cond"; gravity = Gravity.CENTER })
+            col
+        }
+        ZoneHaut.REMERCIEMENT, ZoneHaut.MESSAGE -> ZoneHaut.vueRemerciement(this, code, theme, tailleTexte, coteOeil)
+        // 1.93.05 (l'auteur, retour 34) : le widget « Lecteur musique » (pochette, titre, lecture/pause, suivant) ; visible même
+        // quand rien ne joue (« Rien ne joue »), puisqu'on l'a ajouté. Dans une zone de côté, il prend la largeur de la zone.
+        ZoneHaut.LECTEUR -> MiniLecteur(this, theme, tele, fondPochetteAccueil, souple = souple, toujours = true).apply {
+            tag = "mini_lecteur"
+            if (souple) layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+        else -> if (tele && ZoneHaut.estHa(code)) widgetHaZone(code) else null
+    }
+
+    /** La pochette floutée en fond de l'accueil (option de Musique), que suit le widget « Lecteur musique ». */
+    private var fondPochetteAccueil: ImageView? = null
+
+    /** Un widget dans une zone de la colonne de la télé (gauche, droite, rangée du haut ou du bas). */
+    private fun widgetZoneTele(z: String, code: String, tailleTexte: Float, coteOeil: Int, lierDate: Boolean): View? = when {
+        ZoneHaut.estHa(code) -> widgetHaZone(code, z)
+        // 16-10 (parité) : un widget de Vision du téléphone (chauffage, école…), à sa taille, agrandi pour la télé.
+        DispositionAccueil.estWidgetVision(code) -> Accueil.widget(DispositionAccueil.codeWidgetVision(code))?.let { w ->
+            widgetIntegreTele(w.code, w.w, w.h) { DispositionAccueil.poserWidgetsZone(this, z, DispositionAccueil.widgetsZone(this, z) - code); construire() }
+                .apply { layoutParams = LinearLayout.LayoutParams(px(tv(200f)) * w.w, px(tv(124f)) * w.h) }
+        }
+        else -> widgetZone(code, tele = true, tailleTexte = tailleTexte, coteOeil = coteOeil, lierDate = lierDate, rangee = z in DispositionAccueil.RANGEES,
+            souple = z !in DispositionAccueil.RANGEES)
+    }
+
+    /**
+     * 1.91.2 (l'auteur, tableau de bord de la télé) : un widget Home Assistant partagé, dans la zone du haut. Lecture seule ;
+     * haut / bas font défiler son contenu (selon son option « Défilement »), OK ouvre son menu (détail, modifier, retirer).
+     * Réglage propre à la zone (« zone-<entité> »), créé à la première modification ; avant, celui de Home Assistant.
+     */
+    private fun widgetHaZone(code: String, zoneTele: String? = null): View? {
+        val eid = ZoneHaut.entiteHa(code)
+        val ent = WidgetsHaStock.entite(this, eid) ?: return null
+        val id = "zone-$eid"
+        // 17-10 (l'auteur, point 20 : « le widget consigne ne se règle pas à la télécommande ») : le style de départ est le premier
+        // que propose Home Assistant (réglage pour une consigne), comme sur le téléphone ; avant, toujours une tuile, sans − ni +.
+        val r = WidgetsHaStock.reglage(this, id) ?: WidgetsHa.Reglage(id, listOf(eid), WidgetsHa.stylesProposes(ent).first(), 2, 2)
+        val v = widgetHaTele(Accueil.Place(code, 0, 0, r.w, r.h), r,
+            modifier = { WidgetsHaStock.ecrire(this, r); ouvrirEditeurHa(id) },
+            retirer = {
+                if (zoneTele != null) DispositionAccueil.poserWidgetsZone(this, zoneTele, DispositionAccueil.widgetsZone(this, zoneTele) - code)
+                else ZoneHaut.poser(this, ZoneHaut.widgets(this) - code)
+                construire()
+            })
+        // 17-10 (l'auteur, retour 20, recette télé) : une rangée de zone fait 62 dp ; un réglage (nom, valeur, − et +) n'y tient
+        // pas — en 1 × 1 et 2 × 1, − et + étaient coupés sous le bord (le focus s'y posait, invisible). Deux rangées au moins.
+        // l'auteur (17-10) : « le même widget que sur le mobile » — avec la ligne de HA, la hauteur d'une case du téléphone
+        // (environ 160 dp en 2 × 2), pour montrer nom, valeur, − / + ET la ligne, comme sur le mobile.
+        val rangees = if (r.style == WidgetsHa.REGLAGE) maxOf(r.h.toFloat(), if (ent.texte.isNullOrBlank()) 2f else 2.6f) else r.h.toFloat()
+        v.layoutParams = LinearLayout.LayoutParams(px(tv(200f)) * r.w, (px(tv(124f)) * rangees).toInt())
+        // 16-10 (retour d'essai) : sans cadre des widgets, la tuile Home Assistant n'a plus sa carte (dans une zone de la colonne).
+        if (zoneTele != null && !DispositionAccueil.cadreWidgets(this)) (v as? ViewGroup)?.getChildAt(0)?.background = null
+        return v
+    }
+
+    /**
+     * 1.90.5 (l'auteur, accueil du téléphone) : la zone du haut du téléphone, centrée, une liste de widgets (ZoneHaut) dans
+     * l'ordre choisi par le Décideur. Par défaut, l'horloge stylisée de Vision (celle de la veille) ; la météo, le
+     * remerciement ou un message en option. L'ancien gros bloc heure, date et météo et l'en-tête « VISION » ont disparu.
+     * Rien sous la date (l'auteur, 1.91.2) : le mode du Décideur se voit dans les Réglages ; la zone se personnalise par un
+     * appui long (Décideur) ou dans Réglages › Accueil › Zone du haut.
+     */
+    private fun enteteTelephone(profil: String, paysage: Boolean): View {
+        val entete = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; setPadding(px(4f), px(8f), px(4f), px(4f)); tag = "entete_telephone" }
+        // L'heure et la date du tic de l'appli (1.83.1) : hors de l'écran sauf si l'horloge montre la date.
+        heure = texte(heureFmt.format(Date()), 64f, theme.encre, Polices.outfitFin(this), -0.02f).apply { includeFontPadding = false }
+        date = texte(dateFmt.format(Date()), 14f, theme.encre2, Polices.moyen(this))
+        for (code in ZoneHaut.widgets(this)) {
+            val v = widgetZone(code, tele = false, tailleTexte = 20f, coteOeil = px(64f), paysage = paysage) ?: continue
+            val large = code == ZoneHaut.REMERCIEMENT || code == ZoneHaut.MESSAGE
+            entete.addView(v, LinearLayout.LayoutParams(if (large) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(4f) })
+        }
+        // 1.91.2 (retour d'essai) : rien sous la date. Plus de pastille « Gestion » (le mode se voit dans les Réglages) ni de lien
+        // « Personnaliser cette zone » : le Décideur personnalise la zone par un appui long (retour haptique), ou dans
+        // Réglages › Accueil › Zone du haut.
+        if (profil == "parent") ZoneHaut.appuiLongPourPersonnaliser(this, entete) { recreate() }
+        return entete
+    }
+
     private fun bandeauNonRelie(colonne: LinearLayout, taille: Float) {
         if (cfg.inscrit) return
         val b = carte(rayonDp = 18f, padDp = 14f, orientation = LinearLayout.HORIZONTAL, bordOr = true).apply { gravity = Gravity.CENTER_VERTICAL; tag = "non_relie" }
@@ -577,8 +759,15 @@ class LanceurActivity : Activity() {
         vuesHa.clear(); cadreRedim = null
         racine.removeAllViews()
         racine.setBackgroundColor(theme.fond)
-        racine.addView(FondAnime(this) { theme }, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        if (tele) construireTele() else { construireTelephone(); poserTiroir() }
+        // 1.91.x (retour d'essai) : l'arrière-plan choisi pour cet appareil (FondAccueil), avec son voile de lisibilité.
+        racine.addView(FondAccueil.vue(this, theme, tele), FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        // l'auteur (13 octobre) : télé en rangées ou en colonne (« Vertical ») ; téléphone en grille, pages ou liste alphabétique.
+        heure = null; date = null  // reposées par la disposition (zone du haut, horloge) ; sinon d'anciennes vues
+        when {
+            tele -> if (teleVerticale()) construireTeleVertical() else construireTele()
+            Accueil.mode(this) == Accueil.MODE_ALPHA -> { indexAlpha = null; construireAlpha() }
+            else -> { construireTelephone(); poserTiroir() }
+        }
         appsVues = try { appsAffichees() } catch (_: Exception) { "" }
         Ui.laisserDeborder(racine)
         appliquerDonnees()
@@ -600,7 +789,8 @@ class LanceurActivity : Activity() {
 
     private fun construireTele() {
         Accueil.initialiserTele(this)
-        val margeX = (dm.widthPixels * 0.05f).toInt(); val margeY = (dm.heightPixels * 0.04f).toInt()
+        // 17-10 (l'auteur, points 10, 21) : 5 % en haut et en bas aussi (4 % : la roue sortait de la zone sûre) ; ZoneSure.
+        val margeX = ZoneSure.x(this@LanceurActivity, 0.05f); val margeY = ZoneSure.y(this@LanceurActivity, 0.05f)
         val colonne = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(margeX, margeY, margeX, margeY) }
         // Recette lot 1 (TV 720p, grande police, bandeau « non reliée ») : quand tout ne tient pas en hauteur, l'accueil
         // défile (le focus de la télécommande l'emmène) au lieu d'écraser la rangée d'applis et la roue sous le bas de l'écran.
@@ -608,7 +798,7 @@ class LanceurActivity : Activity() {
         defileAccueil.addView(colonne, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         racine.addView(defileAccueil, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
 
-        colonne.addView(marque(tv(40f), tv(22f)), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        // l'auteur (14 octobre) : plus d'en-tête « VISION » sur l'accueil de la télé, comme sur le téléphone.
         bandeauNonRelie(colonne, tv(34f))
 
         // L'heure et la date à gauche ; la météo et la pluie à droite.
@@ -639,45 +829,65 @@ class LanceurActivity : Activity() {
         droite.addView(demandes, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(12f) })
         entete.addView(droite)
         colonne.addView(entete)
+        // 1.90.5 (retour d'essai) : la zone du haut (ZoneHaut) — l'heure et la météo, ou le remerciement avec l'œil joyeux.
+        appliquerZoneHaut(entete, blocHeure, droite, tv(52f), px(tv(132f)))
         // 1.86.5 (retour d'essai) : le mini-lecteur quand de la musique joue (et, en option, la pochette floutée en fond).
         val fondPochette = ImageView(this).apply {
             scaleType = ImageView.ScaleType.CENTER_CROP; alpha = 0.32f; visibility = View.GONE
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
         racine.addView(fondPochette, 1, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        colonne.addView(MiniLecteur(this, theme, true, fondPochette).apply { tag = "mini_lecteur" },
-            LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(14f) })
+        // 1.93.05 (l'auteur, retour 34) : plus de mini-lecteur posé d'office en haut de l'accueil de la télé ; c'est le widget
+        // « Lecteur musique » de la zone du haut, seulement si on l'a ajouté (la pochette floutée le suit).
+        colonne.findViewWithTag<MiniLecteur>("mini_lecteur")?.fond = fondPochette
         // Les messages de Home Assistant pas encore lus : on les rouvre d'ici.
-        val messages = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, px(14f), 0, 0) }
+        // 1.91.0 : les messages en rangée bord à bord, comme les applications (plusieurs messages ne sont jamais coupés).
+        val messages = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, px(14f), 0, px(6f)); clipToPadding = false; clipChildren = false }
         rangeeMessages = messages
-        colonne.addView(messages)
+        val defileMessages = HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; clipChildren = false; clipToPadding = false }
+        defileMessages.addView(messages)
+        colonne.addView(defileMessages)
+        BordABord.poser(defileMessages, messages, margeX, margeX, 0)
         remplirMessagesTele()
 
         colonne.addView(View(this), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
 
         // Les applications, en rangée (qui défile si elle déborde), et le « + » au bout.
         colonne.addView(etiquetteSection(getString(R.string.lanceur_applications), tv(20f)))
-        val rangee = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(px(6f), px(10f), px(6f), px(6f)); clipToPadding = false; clipChildren = false }
+        // 1.91.0 (photos de l'auteur : icônes coupées net au bord de la marge) : la rangée défile d'un bord de l'écran à l'autre ;
+        // au repos, la première appli est sur la zone sûre ; ce qui passe dans l'overscan s'efface en fondu. La marge haute
+        // et basse laisse la place à l'appli agrandie au focus (×1,12), puisque la rangée garde son propre cadre.
+        val rangee = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(px(6f), px(16f), px(6f), px(14f)); clipToPadding = false; clipChildren = false }
         rangeeApps = rangee
         val defile = HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; clipChildren = false; clipToPadding = false }
         defile.addView(rangee)
         colonne.addView(defile)
+        BordABord.poser(defile, rangee, margeX, margeX, px(6f))
         remplirRangeeTele()
 
-        // Les widgets Home Assistant posés sur la télé (lecture seule) ; masqués quand le module « entites » est coupé.
-        if (Modules.actif(this, Modules.ENTITES)) {
-            val has = Accueil.disposition(this).filter { it.estWidget && WidgetsHa.estHa(it.code) }.sortedWith(compareBy({ it.row }, { it.col }))
-                .mapNotNull { pl -> WidgetsHaStock.reglage(this, WidgetsHa.id(pl.code))?.let { pl to it } }
-            if (has.isNotEmpty()) {
-                colonne.addView(etiquetteSection("Home Assistant", tv(20f)))
-                val rangeeW = LinearLayout(this).apply { setPadding(px(6f), px(10f), px(6f), px(6f)); clipToPadding = false; clipChildren = false }
+        // Les widgets posés sur la télé : 16-10 (l'auteur, parité) ceux de Vision (chauffage, école…) comme sur le téléphone, et
+        // ceux de Home Assistant, qui agissent (avant : lecture seule) ; ceux de HA masqués quand le module « entites » est coupé.
+        val poses = Accueil.disposition(this).filter { it.estWidget && !WidgetsAndroid.estAndroid(it.code) }.sortedWith(compareBy({ it.row }, { it.col }))
+        val integres = poses.filter { !WidgetsHa.estHa(it.code) && Accueil.widget(it.code) != null }
+        val has = if (!Modules.actif(this, Modules.ENTITES)) emptyList() else poses.filter { WidgetsHa.estHa(it.code) }
+            .mapNotNull { pl -> WidgetsHaStock.reglage(this, WidgetsHa.id(pl.code))?.let { pl to it } }
+        run {
+            if (has.isNotEmpty() || integres.isNotEmpty()) {
+                colonne.addView(etiquetteSection(getString(R.string.lanceur_widgets_tele), tv(20f)))
+                val rangeeW = LinearLayout(this).apply { setPadding(px(6f), px(14f), px(6f), px(12f)); clipToPadding = false; clipChildren = false }
                 val defileW = HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; clipChildren = false; clipToPadding = false }
                 defileW.addView(rangeeW)
+                integres.forEach { pl ->
+                    val lp = LinearLayout.LayoutParams(px(tv(200f)) * pl.w, px(tv(124f)) * pl.h).apply { rightMargin = px(12f) }
+                    rangeeW.addView(widgetIntegreTele(pl.code, pl.w, pl.h) { Accueil.retirerDeLaGrille(this, pl.cle); construire() }, lp)
+                }
                 has.forEach { (pl, r) ->
                     val lp = LinearLayout.LayoutParams(px(tv(200f)) * pl.w, px(tv(124f)) * pl.h).apply { rightMargin = px(12f) }
                     rangeeW.addView(widgetHaTele(pl, r), lp)
                 }
                 colonne.addView(defileW)
+                // 1.91.0 : bord à bord, comme la rangée des applications.
+                BordABord.poser(defileW, rangeeW, margeX, margeX, px(6f))
             }
         }
 
@@ -709,6 +919,7 @@ class LanceurActivity : Activity() {
     }
 
     private fun remplirRangeeTele() {
+        if (teleVerticale()) { remplirColonneTele(); return }
         val rangee = rangeeApps ?: return
         rangee.removeAllViews()
         val cases = Accueil.cases(this)
@@ -770,10 +981,7 @@ class LanceurActivity : Activity() {
         contenu.addView(texte(getString(R.string.exceptions_ajouter), tv(22f), theme.encre2, Polices.moyen(this)).apply { gravity = Gravity.CENTER; setPadding(0, px(8f), 0, 0) })
         contenu.isFocusable = true; contenu.isClickable = true
         contenu.setOnFocusChangeListener { v, a -> rond.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(if (a) theme.carte else 0); setStroke(px(if (a) 2f else 1.5f), if (a) theme.or else theme.encre2, px(10f).toFloat(), px(8f).toFloat()) }; v.animate().scaleX(if (a) 1.12f else 1f).scaleY(if (a) 1.12f else 1f).setDuration(140).start() }
-        contenu.setOnClickListener {
-            if (!Modules.actif(this, Modules.ENTITES)) { choisirApplis(); return@setOnClickListener }
-            Ui.dialogue(this).setTitle(getString(R.string.exceptions_ajouter)).setItems(arrayOf(getString(R.string.lanceur_des_applications), getString(R.string.lanceur_un_widget_ha))) { _, k -> if (k == 0) choisirApplis() else ajouterWidgetHa() }.show()
-        }
+        contenu.setOnClickListener { ajouterTele() }
         return contenu
     }
 
@@ -873,7 +1081,24 @@ class LanceurActivity : Activity() {
         val pages = Accueil.mode(this) == Accueil.MODE_PAGES
         // Le bas de l'écran (poignée du tiroir et dock) est fixe ; le reste défile ou se feuillette au-dessus.
         val hauteurBas = px(110f)
+        // 1.90.1 : la largeur et la hauteur utiles (sans les barres du système), et le paysage.
+        val largeurUtile = dm.widthPixels - insetG - insetD
+        val hauteurUtile = dm.heightPixels
+        val paysage = largeurUtile > hauteurUtile
         val colonne = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(px(16f), px(40f), px(16f), if (pages) 0 else px(12f)); clipChildren = false; clipToPadding = false }
+        // En paysage, l'en-tête (marque, heure, météo, lecteur) occupe une colonne à gauche et la grille la droite :
+        // la grille garde toute la hauteur au lieu de se serrer sous l'heure.
+        val tete: LinearLayout
+        val zoneGrille: LinearLayout
+        if (paysage) {
+            colonne.orientation = LinearLayout.HORIZONTAL
+            tete = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false; clipToPadding = false }
+            zoneGrille = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false; clipToPadding = false }
+            colonne.addView(tete, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, PART_TETE_PAYSAGE))
+            // Pages : la colonne prend toute la hauteur (les pages s'y partagent la place) ; défilement : sa hauteur
+            // réelle, sinon elle serait coupée à celle de l'heure.
+            colonne.addView(zoneGrille, LinearLayout.LayoutParams(0, if (pages) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT, 1f - PART_TETE_PAYSAGE).apply { leftMargin = px(16f) })
+        } else { tete = colonne; zoneGrille = colonne }
         val defile: View = if (pages) colonne else ScrollView(this).apply {
             isVerticalScrollBarEnabled = false; isFillViewport = true; clipToPadding = false; clipChildren = false; addView(colonne) }
         defileAccueil = defile as? ScrollView
@@ -896,51 +1121,58 @@ class LanceurActivity : Activity() {
         }.apply { orientation = LinearLayout.VERTICAL; setPadding(px(16f), 0, px(16f), px(8f)) }
         racine.addView(bas, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, hauteurBas, Gravity.BOTTOM))
 
-        colonne.addView(marque(24f, 13f), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-        bandeauNonRelie(colonne, 15f)
-
-        // L'en-tête : heure et date à gauche, météo à droite.
-        val entete = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.BOTTOM; setPadding(px(4f), px(6f), px(4f), 0) }
-        val blocHeure = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        // 1.83.1 : l'heure et la date écrites dès la création (avant : vides jusqu'au tic suivant, d'où le clignotement).
-        heure = texte(heureFmt.format(Date()), 64f, theme.encre, Polices.outfitFin(this), -0.02f).apply { includeFontPadding = false }
-        val ligneDate = LinearLayout(this)
-        date = texte(dateFmt.format(Date()), 14f, theme.encre2, Polices.moyen(this))
-        ligneDate.addView(date)
-        val prenom = donnees?.optJSONObject("moi")?.optString("prenom").orEmpty()
-        val qui = when (profil) { "parent" -> getString(R.string.lanceur_gestion); "enfant" -> prenom; else -> "" }
-        if (qui.isNotEmpty()) ligneDate.addView(texte(" · $qui", 14f, theme.or, Polices.gras(this)))
-        blocHeure.addView(heure); blocHeure.addView(ligneDate)
-        entete.addView(blocHeure, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        val droite = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.END }
-        val ligneMeteo = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        ligneMeteo.addView(IconeMeteo(this, theme.encre2).apply { tag = "icone_meteo"; layoutParams = ViewGroup.LayoutParams(px(24f), px(24f)) })
-        ligneMeteo.addView(texte("", 28f, theme.encre, Polices.outfitLeger(this)).apply { tag = "temp"; setPadding(px(8f), 0, 0, 0); includeFontPadding = false })
-        droite.addView(ligneMeteo)
-        droite.addView(texte("", 12f, theme.encre2).apply { tag = "cond"; gravity = Gravity.END })
-        entete.addView(droite)
-        colonne.addView(entete)
+        // 1.90.5 (l'auteur, accueil du téléphone, 12 octobre 23 h 17) : plus d'en-tête « VISION » collé à la caméra.
+        // En paysage, le bandeau « non relié » prend la largeur de la grille (la colonne de l'heure est étroite).
+        bandeauNonRelie(if (paysage) zoneGrille else tete, 15f)
+        // l'auteur (13 octobre) : sans aucun widget, la zone du haut ne prend aucune place (les icônes remontent en haut de
+        // l'écran) ; avec « En dessous des icônes » (Réglages › Accueil), elle passe après la grille (portrait).
+        val enteteZone = if (ZoneHaut.widgets(this).isNotEmpty()) enteteTelephone(profil, paysage) else null
+        val zoneDessous = !paysage && DispositionAccueil.positionZone(this) == DispositionAccueil.ZONE_DESSOUS
+        if (enteteZone != null && !zoneDessous) tete.addView(enteteZone)
+        // Zone posée sous la grille (mode Grille) : la grille ne garde que ses lignes occupées, la zone suit les icônes
+        // (maquette validée en essai le 14 octobre) ; une ligne libre revient pendant un glisser, pour y déposer.
+        grilleCourte = !pages && enteteZone != null && zoneDessous
         // 1.86.5 (retour d'essai) : le mini-lecteur quand de la musique joue (et, en option, la pochette floutée en fond).
         val fondPochette = ImageView(this).apply {
             scaleType = ImageView.ScaleType.CENTER_CROP; alpha = 0.32f; visibility = View.GONE
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
         racine.addView(fondPochette, 1, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        colonne.addView(MiniLecteur(this, theme, false, fondPochette).apply { tag = "mini_lecteur" },
+        // 1.93.05 (retour 34) : le widget « Lecteur musique » dans la zone du haut remplace le mini-lecteur (pas de doublon).
+        // (La zone peut être posée sous la grille, plus bas : on regarde la liste, pas les vues déjà posées.)
+        if (ZoneHaut.LECTEUR in ZoneHaut.widgets(this)) { fondPochetteAccueil = fondPochette; tete.findViewWithTag<MiniLecteur>("mini_lecteur")?.fond = fondPochette }
+        else tete.addView(MiniLecteur(this, theme, false, fondPochette).apply { tag = "mini_lecteur" },
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(10f) })
 
         // La grille, comme Android : tout est posé où on l'a mis. Une longue grille qui défile, ou des pages.
-        val lc = ((dm.widthPixels - px(32f)) / Accueil.COLONNES)
-        val hc = (lc * 1.14f).toInt()
+        // 1.90.1 : la largeur de la grille est celle qui lui revient (toute la colonne en portrait, la partie droite en
+        // paysage), sans les barres du système. Toujours 4 colonnes : les places enregistrées restent valables.
+        val largeurGrille = if (paysage) ((largeurUtile - px(32f)) * (1f - PART_TETE_PAYSAGE)).toInt() - px(16f) else largeurUtile - px(32f)
+        var lc = largeurGrille / Accueil.COLONNES
+        var hc = (lc * 1.14f).toInt()
+        // 1.90.5 (recette en français : « Appareil photo » sur deux lignes, 291 px pour une case de 280 px ; 315 px à
+        // 130 %) : en portrait aussi, une case est au moins aussi haute que son contenu (icône et deux lignes de nom).
+        if (!paysage) hc = maxOf(hc, hauteurMinCase())
         // 1.72.0 : la hauteur réelle du haut (marque, heure, date, météo : elle grandit avec la taille du texte),
-        // mesurée plutôt qu'estimée ; sinon la dernière rangée d'une page passait sous le dock.
-        val largeurColonne = View.MeasureSpec.makeMeasureSpec(dm.widthPixels - px(32f), View.MeasureSpec.EXACTLY)
+        // mesurée plutôt qu'estimée ; sinon la dernière rangée d'une page passait sous le dock. En paysage, le haut
+        // est à côté de la grille : il ne lui prend pas de hauteur.
+        val largeurColonne = View.MeasureSpec.makeMeasureSpec(largeurUtile - px(32f), View.MeasureSpec.EXACTLY)
         val libre = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         var hautMesure = 0
-        for (i in 0 until colonne.childCount) { val v = colonne.getChildAt(i); v.measure(largeurColonne, libre); hautMesure += v.measuredHeight }
+        if (!paysage) for (i in 0 until colonne.childCount) { val v = colonne.getChildAt(i); v.measure(largeurColonne, libre); hautMesure += v.measuredHeight }
+        // La zone posée sous la grille compte aussi dans la hauteur prise (elle partage l'écran avec les pages).
+        if (enteteZone != null && zoneDessous) { enteteZone.measure(largeurColonne, libre); hautMesure += enteteZone.measuredHeight }
         // Ce qui reste sous le haut : marge du haut (elle couvre la barre d'état), grille (son retrait), points des pages, et une petite marge.
-        val dispo = dm.heightPixels - px(40f) - hautMesure - px(14f) - (if (pages) px(24f) else 0) - hauteurBas - px(8f)
-        val lignesVisibles = (dispo / hc).coerceAtLeast(3)
+        val dispo = hauteurUtile - px(40f) - hautMesure - px(14f) - (if (pages) px(24f) else 0) - hauteurBas - px(8f)
+        val lignesVisibles: Int
+        if (paysage) {
+            // 1.90.1 : une case n'est jamais plus basse que son contenu (icône et deux lignes de nom) : c'est ce qui
+            // empilait trois icônes par case. Les cases restent à leur taille utile, la grille se centre.
+            val mini = hauteurMinCase()
+            hc = hc.coerceIn(mini, maxOf(mini, px(HAUTEUR_CASE_MAX)))
+            lc = minOf(lc, maxOf(px(LARGEUR_CASE_MAX), (hc / 1.14f).toInt()))
+            lignesVisibles = (dispo / hc).coerceAtLeast(1)
+        } else lignesVisibles = (dispo / hc).coerceAtLeast(3)
         Accueil.lignesParPage = if (pages) lignesVisibles else 0
         // Les widgets d'un module coupé dans Home Assistant ne s'affichent plus ; ils restent rangés pour la réactivation.
         val actifs = Modules.actifs(this)
@@ -948,9 +1180,17 @@ class LanceurActivity : Activity() {
         celluleL = lc; celluleH = hc
         WidgetsAndroid.nettoyer(this)
         // Accueil vide (nouvel appareil) : on dit comment le remplir.
-        if (places.isEmpty()) colonne.addView(texte(getString(R.string.lanceur_accueil_vide),
+        // 1.90.1 : en paysage, le bandeau « non relié » passe avant l'aide (la hauteur ne suffit pas aux deux) ;
+        // l'aide revient une fois l'appareil relié.
+        if (places.isEmpty() && !(paysage && !cfg.inscrit)) zoneGrille.addView(texte(getString(R.string.lanceur_accueil_vide),
             14f, theme.encre2).apply { setPadding(px(6f), px(18f), px(6f), 0) })
-        fun grilleNeuve(page: Int) = GrilleAccueil(this).apply { setPadding(0, px(14f), 0, 0); couleurCible = theme.or; hauteurCellule = hc; lignesMin = lignesVisibles; hauteurFixe = pages; decalageLignes = page * lignesVisibles }
+        fun grilleNeuve(page: Int) = GrilleAccueil(this).apply {
+            setPadding(0, px(14f), 0, 0); couleurCible = theme.or; hauteurCellule = hc; lignesMin = if (grilleCourte) 1 else lignesVisibles; hauteurFixe = pages; decalageLignes = page * lignesVisibles
+            // 1.90.1 : en paysage, des cases à leur taille (jamais tassées sous leur contenu), la grille centrée.
+            if (paysage) { largeurCelluleFixe = lc; hauteurMinCellule = hc }
+            // En mode pages (hauteur fixe), la case n'est jamais tassée sous son contenu non plus.
+            else hauteurMinCellule = hauteurMinCase()
+        }
         if (pages) {
             val maxRow = places.maxOfOrNull { it.row + it.h } ?: 0
             val n = ((maxRow + lignesVisibles - 1) / lignesVisibles).coerceAtLeast(1)
@@ -964,11 +1204,12 @@ class LanceurActivity : Activity() {
                 pg.ajouterPage(g)
             }
             grille = pg.rangee.getChildAt(0) as GrilleAccueil
-            colonne.addView(pg, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+            zoneGrille.addView(pg, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
             val pts = LinearLayout(this).apply { gravity = Gravity.CENTER; setPadding(0, px(4f), 0, 0) }
             points = pts
             pg.surPage = { pageMemo = it; peindrePoints() }
-            colonne.addView(pts)
+            zoneGrille.addView(pts)
+            if (enteteZone != null && zoneDessous) zoneGrille.addView(enteteZone)
             pg.post { pg.aller(pageMemo.coerceAtMost(n - 1), false); peindrePoints() }
             brancherGestes(pg)
         } else {
@@ -977,8 +1218,9 @@ class LanceurActivity : Activity() {
             grille = g
             places.forEach { pl -> g.addView(vuePlace(pl)) }
             brancherGrille(g, 0)
-            colonne.addView(g, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-            colonne.addView(View(this), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+            zoneGrille.addView(g, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            if (enteteZone != null && zoneDessous) zoneGrille.addView(enteteZone, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(12f) })
+            zoneGrille.addView(View(this), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
             // La grille défile : glisser vers le haut sert à ça, le tiroir s'ouvre depuis la poignée ou le dock.
             // Mais arrivé en bas de la grille (ou si elle tient dans l'écran), le même geste ouvre le tiroir.
             brancherGestes(defile, si = { !defile.canScrollVertically(1) })
@@ -1077,7 +1319,7 @@ class LanceurActivity : Activity() {
                 else -> Accueil.Place(appli!!, 0, 0, 1, 1)
             }
             when (e.action) {
-                DragEvent.ACTION_DRAG_STARTED -> true
+                DragEvent.ACTION_DRAG_STARTED -> { if (grilleCourte) { g.lignesMin = g.lignes() + pl.h; g.requestLayout() }; true }
                 DragEvent.ACTION_DRAG_LOCATION -> {
                     val (c, r) = g.cellule(e.x, e.y)
                     if (source != null && prise == null && pl.couvre(c, r)) prise = Glisser.prise(c, r, pl.col, pl.row, pl.w, pl.h)
@@ -1124,6 +1366,7 @@ class LanceurActivity : Activity() {
                     }
                     if (enDragNouveau != null) { enDragNouveau = null; zoneRetrait?.visibility = View.GONE }
                     if (enDragAppli != null) { enDragAppli = null; zoneRetrait?.visibility = View.GONE }
+                    if (grilleCourte) { g.lignesMin = 1; g.requestLayout() }
                     pageur?.let { pg -> pg.pagesVisibles = pagesUtiles; if (pg.page >= pagesUtiles) pg.aller(pagesUtiles - 1); peindrePoints() }
                     true
                 }
@@ -1173,7 +1416,7 @@ class LanceurActivity : Activity() {
     }
 
     private fun surLeCentre(g: GrilleAccueil, pl: Accueil.Place, x: Float, y: Float): Boolean {
-        val lc = g.largeurCellule; val cx = g.paddingLeft + (pl.col + 0.5f) * lc; val cy = g.paddingTop + pl.row * g.hauteurCellule + lc * 0.45f
+        val lc = g.largeurCellule; val cx = g.retrait + (pl.col + 0.5f) * lc; val cy = g.paddingTop + pl.row * g.hauteurCellule + lc * 0.45f
         return Math.hypot((x - cx).toDouble(), (y - cy).toDouble()) < lc * 0.33
     }
 
@@ -1205,8 +1448,13 @@ class LanceurActivity : Activity() {
             raccourcis.addView(c, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         }
         raccourci(R.drawable.ic_couleurs, getString(R.string.manifeste_couleurs)) { startActivity(Intent(this, CouleursActivity::class.java)) }
-        raccourci(R.drawable.ic_reglages, getString(R.string.lanceur_reglages)) { startActivity(Intent(this, ReglagesTvActivity::class.java)) }
-        raccourci(R.drawable.ic_grille, if (pages) getString(R.string.lanceur_mode_defilement) else getString(R.string.lanceur_mode_pages)) { Accueil.poserMode(this, if (pages) Accueil.MODE_DEFILEMENT else Accueil.MODE_PAGES); construire() }
+        // 15-10 (retour d'essai) : hors télé, « Réglages » mène aux réglages de l'appli (« Réglages de l'appareil » a été réparti).
+        raccourci(R.drawable.ic_reglages, getString(R.string.lanceur_reglages)) {
+            if (tele) startActivity(Intent(this, ReglagesTvActivity::class.java)) else SetupActivity.ouvrir(this, Espaces.REGLAGES)
+        }
+        // l'auteur (13 octobre) : trois dispositions (grille, pages, liste alphabétique) ; 15-10 : le menu Disposition entier
+        // (disposition, index et favoris de la liste, zone du haut et sa place, applications visibles).
+        raccourci(R.drawable.ic_grille, getString(R.string.reglagestv_disposition)) { ReglagesPartages.menuDisposition(this) { construire() } }
         raccourci(R.drawable.ic_widgets, getString(R.string.lanceur_applications)) { tiroirApplis() }
         if (pages && pageur != null) raccourci(R.drawable.ic_retirer, getString(R.string.lanceur_supprimer_page)) { supprimerPage() }
         feuille.addView(raccourcis)
@@ -1227,7 +1475,9 @@ class LanceurActivity : Activity() {
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = px(8f) })
         val profil = profil()
         val poses = Accueil.disposition(this).map { it.cle }.toSet()
-        val dispo = Accueil.WIDGETS.filter { (it.publics.isEmpty() || profil in it.publics) && Modules.widgetVisible(actifs, it.code) }
+        // 15-10 (retour d'essai) : seulement les widgets dont le lieu a les données (liste envoyée par Home Assistant) ; ceux déjà posés restent.
+        val donneesDuLieu = Accueil.disponibles(this)
+        val dispo = Accueil.WIDGETS.filter { (it.publics.isEmpty() || profil in it.publics) && Modules.widgetVisible(actifs, it.code) && Accueil.disponible(it.code, donneesDuLieu) }
         val defilant = ScrollView(this).apply { isVerticalScrollBarEnabled = false }
         val liste = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false }
         defilant.addView(liste)
@@ -1364,6 +1614,13 @@ class LanceurActivity : Activity() {
         if (ouvrirMenu) main.post { menu() }
     }
 
+    /** 1.90.1 : la hauteur que demande une case d'appli (caseTelephone), police du système comprise. */
+    private fun hauteurMinCase(): Int {
+        val p = android.text.TextPaint().apply { textSize = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP, 11.5f, dm); typeface = Polices.moyen(this@LanceurActivity) }
+        val ligne = p.fontMetricsInt.let { it.descent - it.ascent }
+        return px(6f) + px(56f) + px(5f) + 2 * ligne + px(2f) + px(4f)
+    }
+
     private fun caseTelephone(c: Accueil.Case): View {
         val taille = 56f
         val contenu = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; setPadding(px(2f), px(6f), px(2f), px(2f)); clipChildren = false }
@@ -1462,7 +1719,7 @@ class LanceurActivity : Activity() {
         Ui.dialogue(this).setTitle(getString(R.string.biometrie_code_gestion)).setMessage(getString(R.string.lanceur_pour_poser_widget)).setView(cadre)
             .setPositiveButton(getString(R.string.commun_lot2_valider)) { _, _ ->
                 if (cfg.verifierCode(champ.text.toString())) ok()
-                else Toast.makeText(this, getString(R.string.lanceur_code_incorrect), Toast.LENGTH_SHORT).show()
+                else Ui.toast(this, getString(R.string.lanceur_code_incorrect), court = true, genre = OeilModele.Genre.ERREUR)
             }.setNegativeButton(getString(R.string.commun_lot2_annuler), null).show()
     }
 
@@ -1536,7 +1793,7 @@ class LanceurActivity : Activity() {
 
     private fun ouvrirEditeurHa(id: String?) = EditeurWidgetHaActivity.ouvrir(this, id, if (tele) 0 else celluleL, if (tele) 0 else celluleH)
 
-    private fun ajouterWidgetHa() = autoriserAccueil { ouvrirEditeurHa(null) }
+    private fun ajouterWidgetHa() = autoriserWidget { ouvrirEditeurHa(null) }
 
     private fun vueWidgetHa(pl: Accueil.Place): View {
         val cadre = FrameLayout(this).apply { setPadding(px(4f), px(4f), px(4f), px(4f)); clipChildren = false }
@@ -1616,35 +1873,156 @@ class LanceurActivity : Activity() {
 
     /** Le relevé a annoncé une autre « widgets.version » (ou rien n'est encore chargé) : la liste des entités se recharge. */
     private fun verifierCatalogueHa() {
-        if (catalogueEnCours || vuesHa.isEmpty() || !Modules.actif(this, Modules.ENTITES)) return
+        if (catalogueEnCours || (vuesHa.isEmpty() && !ZoneHaut.attendCatalogueHa(this)) || !Modules.actif(this, Modules.ENTITES)) return
         val maintenant = SystemClock.elapsedRealtime()
         if (maintenant - dernierEssaiCatalogue < 60_000L || !WidgetsHaStock.catalogueAPerime(this)) return
         dernierEssaiCatalogue = maintenant; catalogueEnCours = true
         Thread {
-            try { WidgetsHaStock.recharger(this); main.post { vuesHa.forEach { it.maj() } } } catch (_: Exception) {}
+            try {
+                val avant = if (tele) ZoneHaut.widgets(this) else emptyList()
+                WidgetsHaStock.recharger(this)
+                main.post {
+                    vuesHa.forEach { it.maj() }
+                    // 1.91.2 : le tableau de bord de la télé suit le partage de Home Assistant.
+                    if (tele && ZoneHaut.widgets(this) != avant) construire()
+                }
+            } catch (_: Exception) {}
             catalogueEnCours = false
         }.also { it.isDaemon = true }.start()
     }
 
     /** Télé : les widgets Home Assistant posés, en lecture seule ; OK ouvre leur menu. */
-    private fun widgetHaTele(pl: Accueil.Place, r: WidgetsHa.Reglage): View {
+    /**
+     * Un widget Home Assistant sur la télé (rangée des widgets, zones de la disposition « Vertical », zone du haut).
+     * 16-10 (l'auteur : parité avec le téléphone) : il AGIT comme sur le téléphone (avant : lecture seule) — interrupteur et
+     * bouton : OK ; réglage : le focus de la télécommande va sur − et + (anneau d'or) ; liste : OK ouvre les choix.
+     * La touche Menu (ou un appui long) ouvre le menu : détail, modifier, retirer. Ce que la télé peut piloter, c'est
+     * Home Assistant qui le dit (actions de l'entité, rôle de l'appareil), comme pour le téléphone.
+     */
+    private fun widgetHaTele(pl: Accueil.Place, r: WidgetsHa.Reglage, modifier: (() -> Unit)? = null, retirer: (() -> Unit)? = null): View {
         val cadre = FrameLayout(this).apply { setPadding(px(6f), px(6f), px(6f), px(6f)); isFocusable = true; isClickable = true; tag = pl.cle; clipChildren = false }
-        val v = VueWidgetHa(this, theme, r.copy(w = pl.w, h = pl.h), lectureSeule = true, details = { t, m -> detailsHa(t, m) }).also { vuesHa.add(it) }
+        var menuWidget: () -> Unit = {}
+        val v = VueWidgetHa(this, theme, r.copy(w = pl.w, h = pl.h), lectureSeule = false, agir = { e, s -> agirHa(e, s) }, details = { t, m -> detailsHa(t, m) },
+            agirAvec = { e, s, d -> agirHa(e, s, d) }, menu = { menuWidget() }).also { vuesHa.add(it) }
         cadre.addView(v, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         cadre.contentDescription = v.contentDescription
         cadre.setOnFocusChangeListener { x, a ->
+            // Un réglage (− / +) : le focus passe tout de suite sur ses commandes.
+            if (a) v.commandes().firstOrNull()?.let { it.requestFocus(); return@setOnFocusChangeListener }
             x.background = if (a) fondCarte(28f, couleur = 0, bord = theme.or, epaisseurDp = 2f) else null
             x.animate().scaleX(if (a) 1.05f else 1f).scaleY(if (a) 1.05f else 1f).setDuration(140).start()
         }
         val menu = {
             val choix = arrayOf(getString(R.string.lanceur_voir_detail), getString(R.string.lanceur_modifier_points), getString(R.string.lanceur_retirer_accueil))
             Ui.dialogue(this).setTitle(titreHa(r)).setItems(choix) { _, k ->
-                when (k) { 0 -> v.performClick(); 1 -> autoriserAccueil { ouvrirEditeurHa(r.id) }; else -> autoriserAccueil { Accueil.retirerDeLaGrille(this, pl.cle); construire() } }
+                when (k) {
+                    0 -> v.voirDetails()
+                    1 -> autoriserWidget { (modifier ?: { ouvrirEditeurHa(r.id) })() }
+                    else -> autoriserWidget { (retirer ?: { Accueil.retirerDeLaGrille(this, pl.cle); construire() })() }
+                }
             }.show()
         }
-        cadre.setOnClickListener { menu() }
+        menuWidget = { menu() }
+        // OK : le widget agit s'il le peut (comme un toucher sur le téléphone), sinon le menu.
+        cadre.setOnClickListener { if (v.pilote) v.performClick() else menu() }
         cadre.setOnLongClickListener { menu(); true }
+        // 1.91.2 : le focus est sur le cadre ; haut / bas vont au widget (son contenu défile), puis le focus repart.
+        cadre.setOnKeyListener { _, code, ev ->
+            if (code == KeyEvent.KEYCODE_MENU) { if (ev.action == KeyEvent.ACTION_UP) menu(); return@setOnKeyListener true }
+            (code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN) && v.dispatchKeyEvent(ev)
+        }
         return cadre
+    }
+
+    /**
+     * 16-10 (l'auteur : « le code gestion pour installer des widgets, c'est nul ») : sur la télé, poser, modifier ou retirer un
+     * widget ne demande plus de code — on n'y met que des widgets de Vision ou des entités que Home Assistant partage
+     * déjà avec cet appareil. Le téléphone garde la règle d'avant (droit « accueil » ou code).
+     */
+    private fun autoriserWidget(ok: () -> Unit) = if (tele) ok() else autoriserAccueil(ok)
+
+    /**
+     * 16-10 (l'auteur : parité des widgets) : un widget de Vision (chauffage, fioul, école, caméra, batteries, personnes,
+     * demandes…) sur la télé, dessiné EXACTEMENT comme sur le téléphone (même contenu, mêmes styles), agrandi pour la
+     * télé ; [lp] sa place. OK : son action (caméra : la vue en direct), sinon le menu ; Menu ou appui long : retirer.
+     */
+    private fun widgetIntegreTele(code: String, w: Int, h: Int, retirer: () -> Unit): View {
+        val base = Agrandi(this, px(92f) * w, px(84f) * h).apply { tag = "widget_tele:$code"; addView(contenuWidget(code)) }
+        val cadre = FrameLayout(this).apply {
+            setPadding(px(6f), px(6f), px(6f), px(6f)); isFocusable = true; isClickable = true; clipChildren = false
+            contentDescription = Accueil.widget(code)?.nom ?: code; tag = "carte_widget_$code"
+        }
+        cadre.addView(base, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        cadre.setOnFocusChangeListener { x, a ->
+            x.background = if (a) fondCarte(28f, couleur = 0, bord = theme.or, epaisseurDp = 2f) else null
+            x.animate().scaleX(if (a) 1.05f else 1f).scaleY(if (a) 1.05f else 1f).setDuration(140).start()
+        }
+        val menu = {
+            Ui.dialogue(this).setTitle(Accueil.widget(code)?.nom ?: code).setItems(arrayOf(getString(R.string.lanceur_retirer_accueil))) { _, _ -> autoriserWidget(retirer) }.show()
+        }
+        cadre.setOnClickListener { val c = base.getChildAt(0); if (c != null && c.hasOnClickListeners()) c.performClick() else menu() }
+        cadre.setOnLongClickListener { menu(); true }
+        cadre.setOnKeyListener { _, code2, ev -> if (code2 == KeyEvent.KEYCODE_MENU) { if (ev.action == KeyEvent.ACTION_UP) menu(); true } else false }
+        return cadre
+    }
+
+    /**
+     * Un contenu dessiné à la taille du téléphone ([largeur] × [hauteur] px), agrandi d'un bloc pour remplir sa place
+     * (sans déformer : même facteur en largeur et en hauteur, centré) — les widgets de Vision gardent leurs proportions.
+     */
+    private class Agrandi(ctx: android.content.Context, private val largeur: Int, private val hauteur: Int) : FrameLayout(ctx) {
+        override fun onMeasure(l: Int, h: Int) {
+            getChildAt(0)?.measure(MeasureSpec.makeMeasureSpec(largeur, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(hauteur, MeasureSpec.EXACTLY))
+            val w = if (MeasureSpec.getMode(l) == MeasureSpec.UNSPECIFIED) largeur else MeasureSpec.getSize(l)
+            val ht = if (MeasureSpec.getMode(h) == MeasureSpec.UNSPECIFIED) hauteur else MeasureSpec.getSize(h)
+            setMeasuredDimension(w, ht)
+        }
+        override fun onLayout(changed: Boolean, g: Int, t: Int, d: Int, b: Int) {
+            val c = getChildAt(0) ?: return
+            c.layout(0, 0, largeur, hauteur)
+            val f = minOf((d - g).toFloat() / largeur, (b - t).toFloat() / hauteur).coerceAtLeast(0.1f)
+            c.pivotX = 0f; c.pivotY = 0f; c.scaleX = f; c.scaleY = f
+            c.translationX = ((d - g) - largeur * f) / 2f; c.translationY = ((b - t) - hauteur * f) / 2f
+        }
+    }
+
+    /** 16-10 : les widgets de Vision qu'on peut poser ici (publics, modules, données du lieu), comme le panneau du téléphone. */
+    private fun widgetsVisionPosables(): List<Accueil.Widget> {
+        val actifs = Modules.actifs(this)
+        val profil = profil()
+        val donneesDuLieu = Accueil.disponibles(this)
+        return Accueil.WIDGETS.filter { (it.publics.isEmpty() || profil in it.publics) && Modules.widgetVisible(actifs, it.code) && Accueil.disponible(it.code, donneesDuLieu) }
+    }
+
+    /** 16-10 (télé, disposition « Rangées ») : « + › Un widget de Vision » — le choix, puis le widget dans la rangée des widgets. */
+    private fun ajouterWidgetVisionTele() {
+        val poses = Accueil.disposition(this).map { it.cle }.toSet()
+        val l = widgetsVisionPosables().filter { Accueil.PREFIXE_WIDGET + it.code !in poses }
+        if (l.isEmpty()) { Ui.toast(this, getString(R.string.lanceur_widgets_tous_poses)); return }
+        Ui.dialogue(this).setTitle(getString(R.string.lanceur_un_widget_vision)).setItems(l.map { it.nom }.toTypedArray()) { _, k ->
+            autoriserWidget { Accueil.ajouterALaGrille(this, Accueil.PREFIXE_WIDGET + l[k].code, l[k].w, l[k].h); construire() }
+        }.setNegativeButton(getString(R.string.commun_lot2_annuler), null).show()
+    }
+
+    /** Le « + » de la télé : des applications, un widget de Vision, un widget Home Assistant (module « entites »). */
+    private fun ajouterTele() {
+        val choix = ArrayList<Pair<String, () -> Unit>>()
+        choix += getString(R.string.lanceur_des_applications) to { choisirApplis() }
+        // Disposition « Vertical » : les widgets vont dans les zones autour de la colonne.
+        if (teleVerticale()) choix += getString(R.string.lanceur_un_widget) to { choisirZoneTele() }
+        else {
+            choix += getString(R.string.lanceur_un_widget_vision) to { ajouterWidgetVisionTele() }
+            if (Modules.actif(this, Modules.ENTITES)) choix += getString(R.string.lanceur_un_widget_ha) to { ajouterWidgetHa() }
+        }
+        Ui.dialogue(this).setTitle(getString(R.string.exceptions_ajouter)).setItems(choix.map { it.first }.toTypedArray()) { _, k -> choix[k].second() }.show()
+    }
+
+    /** Disposition « Vertical » : dans quelle zone poser un widget (les côtés libres, les rangées du haut et du bas). */
+    private fun choisirZoneTele() {
+        val zones = DispositionAccueil.zonesTele(DispositionAccueil.colonne(this))
+        Ui.dialogue(this).setTitle(getString(R.string.lanceur_un_widget)).setItems(zones.map { DispositionAccueil.nomZone(this, it) }.toTypedArray()) { _, k ->
+            DispositionAccueil.personnaliserZone(this, zones[k]) { construire() }
+        }.setNegativeButton(getString(R.string.commun_lot2_annuler), null).show()
     }
 
     // ------------------------------------------------------------------ redimensionnement (appui long → cadre à poignées)
@@ -1669,7 +2047,7 @@ class LanceurActivity : Activity() {
         val grilleW = g ?: return
         val bornes = bornesDe(pl)
         val posG = IntArray(2); grilleW.getLocationInWindow(posG); val posR = IntArray(2); racine.getLocationInWindow(posR)
-        val ox = (posG[0] - posR[0] + grilleW.paddingLeft).toFloat(); val oy = (posG[1] - posR[1] + grilleW.paddingTop).toFloat()
+        val ox = (posG[0] - posR[0] + grilleW.retrait).toFloat(); val oy = (posG[1] - posR[1] + grilleW.paddingTop).toFloat()
         val lc = grilleW.largeurCellule.toFloat(); val hc = grilleW.hauteurCellule.toFloat(); val dec = grilleW.decalageLignes
         fun versPx(r: Redim.Rect) = RectF(ox + r.col * lc + px(2f), oy + (r.row - dec) * hc + px(2f), ox + (r.col + r.w) * lc - px(2f), oy + (r.row - dec + r.h) * hc - px(2f))
         val depart = Redim.Rect(pl.col, pl.row, pl.w, pl.h)
@@ -1721,7 +2099,7 @@ class LanceurActivity : Activity() {
     }
 
     private fun renommer(d: Accueil.Dossier) {
-        val champ = EditText(this).apply { setText(d.nom); setSelectAllOnFocus(true) }
+        val champ = EditText(this).also { ClavierTele.brancher(it) }.apply { setText(d.nom); setSelectAllOnFocus(true) }
         Ui.dialogue(this).setTitle(getString(R.string.lanceur_nom_dossier)).setView(champ)
             .setPositiveButton(getString(R.string.commun_lot2_garder)) { _, _ -> Accueil.renommerDossier(this, d.cle, champ.text.toString()); dossierOuvert?.dismiss(); construire() }
             .setNegativeButton(getString(R.string.commun_lot2_annuler), null).show()
@@ -1734,9 +2112,10 @@ class LanceurActivity : Activity() {
         val boite = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; background = fondCarte(30f); setPadding(px(18f), px(20f), px(18f), px(16f)) }
         val tete = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         tete.addView(texte(d.nom, if (tele) tv(34f) else 22f, theme.encre, Polices.gras(this)), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        val crayon = FrameLayout(this).apply { background = fondCarte(22f, couleur = 0); isClickable = true; isFocusable = true; setOnClickListener { renommer(d) } }
+        // Lot 6 (APP-21, APP-22) : le crayon se lit « Renommer » et fait 48 dp.
+        val crayon = FrameLayout(this).apply { background = fondCarte(22f, couleur = 0); isClickable = true; isFocusable = true; setOnClickListener { renommer(d) }; contentDescription = getString(R.string.tableauediteur_renommer) }
         crayon.addView(icone(R.drawable.ic_crayon, 22f, theme.or), FrameLayout.LayoutParams(px(22f), px(22f), Gravity.CENTER))
-        tete.addView(crayon, LinearLayout.LayoutParams(px(44f), px(44f)))
+        tete.addView(crayon, LinearLayout.LayoutParams(px(Ui.CIBLE_MIN), px(Ui.CIBLE_MIN)))
         boite.addView(tete)
         val grilleD = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(0, px(14f), 0, 0) }
         val parLigne = if (tele) 6 else 3
@@ -1971,8 +2350,23 @@ class LanceurActivity : Activity() {
         if (WidgetsHa.estHa(pl.code)) return vueWidgetHa(pl)
         val d = donnees
         val cadre = FrameLayout(this).apply { setPadding(px(4f), px(4f), px(4f), px(4f)); clipChildren = false }
-        val c: View = when (pl.code) {
+        val c = contenuWidget(pl.code)
+        cadre.addView(c, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        cadre.isClickable = true
+        cadre.setOnLongClickListener { v -> soulever(v, c, pl.cle) }
+        // Un widget qui réagit au toucher (caméra, demandes…) garde l'appui pour lui : sans ceci, l'appui long
+        // n'arrivait jamais au cadre et le widget ne pouvait plus être déplacé ni retiré.
+        c.setOnLongClickListener { soulever(cadre, c, pl.cle) }
+        cadre.setOnDragListener { v, e -> if (e.action == DragEvent.ACTION_DRAG_ENDED && enDrag == pl.cle) finDrag(v, e) { ouvrirRedim(pl.cle) }; false }
+        if (d == null && pl.code != "horloge" && pl.code != ZoneHaut.HORLOGE) c.alpha = 0.6f
+        return cadre
+    }
+
+    /** Le contenu d'un widget de Vision (le même sur le téléphone, la tablette et la télé — 16-10, parité). */
+    private fun contenuWidget(code: String): View {
+        val c: View = when (code) {
             "horloge" -> widgetHorloge()
+            ZoneHaut.HORLOGE -> carte().also { c -> c.gravity = Gravity.CENTER; widgetZone(ZoneHaut.HORLOGE, tele = false, tailleTexte = 14f, coteOeil = 0, lierDate = false)?.let { c.addView(it) } }
             "infos" -> widgetInfos()
             "devoirs" -> widgetDevoirs()
             "temps" -> widgetTemps()
@@ -1984,17 +2378,10 @@ class LanceurActivity : Activity() {
             "camera" -> widgetCamera()
             "batteries" -> widgetBatteries()
             "maison" -> widgetMaison()
-            else -> carte().also { it.addView(texte(pl.code, 13f, theme.encre3)) }
+            else -> carte().also { it.addView(texte(code, 13f, theme.encre3)) }
         }
-        cadre.addView(c, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        cadre.isClickable = true
-        cadre.setOnLongClickListener { v -> soulever(v, c, pl.cle) }
-        // Un widget qui réagit au toucher (caméra, demandes…) garde l'appui pour lui : sans ceci, l'appui long
-        // n'arrivait jamais au cadre et le widget ne pouvait plus être déplacé ni retiré.
-        c.setOnLongClickListener { soulever(cadre, c, pl.cle) }
-        cadre.setOnDragListener { v, e -> if (e.action == DragEvent.ACTION_DRAG_ENDED && enDrag == pl.cle) finDrag(v, e) { ouvrirRedim(pl.cle) }; false }
-        if (d == null && pl.code != "horloge") c.alpha = 0.6f
-        return cadre
+        if (donnees == null && code != "horloge" && code != ZoneHaut.HORLOGE) c.alpha = 0.6f
+        return c
     }
 
     private fun w(titre: String?, orientation: Int = LinearLayout.VERTICAL, bordOr: Boolean = false): LinearLayout = carte(24f, 14f, orientation, bordOr).also { c ->
@@ -2107,10 +2494,11 @@ class LanceurActivity : Activity() {
     }
 
     private fun demanderTemps() {
-        val choix = arrayOf(resources.getQuantityString(R.plurals.commun_lot2_minutes, 15, 15), resources.getQuantityString(R.plurals.commun_lot2_minutes, 30, 30), resources.getQuantityString(R.plurals.commun_lot2_heures, 1, 1))
+        // Lot 6 (APP-08) : les mêmes durées que l'écran de blocage et l'espace Moi.
+        val choix = Durees.libelles(Durees.DEMANDE).toTypedArray()
         Ui.dialogue(this).setTitle(getString(R.string.block_demander_du_temps)).setItems(choix) { _, k ->
-            cfg.demandeTemps = listOf(15, 30, 60)[k]
-            android.widget.Toast.makeText(this, this.getString(R.string.acces_demande_envoyee), android.widget.Toast.LENGTH_LONG).show()
+            cfg.demandeTemps = Durees.DEMANDE[k]
+            Ui.toast(this, this.getString(R.string.acces_demande_envoyee), genre = OeilModele.Genre.SUCCES)
         }.setNegativeButton(getString(R.string.commun_lot2_annuler), null).show()
     }
 
@@ -2124,7 +2512,9 @@ class LanceurActivity : Activity() {
     private fun repondreDemande(dem: JSONObject, accepter: Boolean) {
         if (demandeEnCours.isNotEmpty()) return
         val pc = dem.optString("pc"); val id = dem.optString("id"); val temps = dem.optString("genre") == "temps"
-        Garde.exiger(this, ParentsActivity.RAISON) {
+        // FAILLE (l'auteur, 16-10) : accepter = empreinte ou code à chaque fois ; refuser garde la garde ordinaire.
+        val garde: (() -> Unit) -> Unit = { f -> if (accepter) Garde.exigerOctroi(this, ParentsActivity.RAISON, ok = f) else Garde.exiger(this, ParentsActivity.RAISON, ok = f) }
+        garde {
             demandeEnCours = id
             Geste.enCours()
             racine.findViewWithTag<View>("demandes_boutons")?.let { r -> for (i in 0 until (r as ViewGroup).childCount) r.getChildAt(i).isEnabled = false }
@@ -2162,10 +2552,18 @@ class LanceurActivity : Activity() {
     }
 
     private fun widgetDemandes(): View {
-        val demandes = donnees?.optJSONArray("demandes")
+        val d = donnees
+        // 15-10 (l'auteur : « Aucune demande en attente » alors qu'une demande attendait) : sans nouvelles de Home Assistant,
+        // on ne dit pas « aucune » ; et ce qui se décide par lots (appareil à valider…) compte aussi.
+        if (d == null) return w(getString(R.string.lanceur_demandes)).also { it.addView(texte(getString(R.string.lanceur_demandes_inconnues), 13f, theme.encre3).apply { setPadding(0, px(4f), 0, 0) }) }
+        val demandes = d.optJSONArray("demandes")
+        val lots = Demandes.lots(d)
+        if ((demandes == null || demandes.length() == 0) && lots.isNotEmpty()) return widgetLots(lots)
         if (demandes == null || demandes.length() == 0) return w(getString(R.string.lanceur_demandes)).also { noteDemandesVue(it); it.addView(texte(getString(R.string.lanceur_aucune_demande), 13f, theme.encre3).apply { setPadding(0, px(6f), 0, 0) }) }
         val dem = demandes.getJSONObject(0)
-        val c = w(if (demandes.length() > 1) getString(R.string.lanceur_demande_attente_n, demandes.length()) else getString(R.string.lanceur_demande_attente), bordOr = true)
+        // Le nombre total (la liste reçue est coupée à quatre), plus ce qui se décide par lots.
+        val n = Demandes.total(d)
+        val c = w(if (n > 1) getString(R.string.lanceur_demande_attente_n, n) else getString(R.string.lanceur_demande_attente), bordOr = true)
         noteDemandesVue(c)
         c.addView(texte(getString(R.string.lanceur_demande_quoi, dem.optString("prenom"), Demandes.quoi(dem)), 16f, theme.encre, Polices.demiGras(this)).apply { setPadding(0, px(4f), 0, px(if (dem.optString("genre") == "sites") 2f else 8f)) })
         if (dem.optString("genre") == "sites") c.addView(texte(Demandes.description(dem), 12f, theme.encre2).apply { setPadding(0, 0, 0, px(8f)) })
@@ -2174,6 +2572,17 @@ class LanceurActivity : Activity() {
         boutons.addView(bouton(getString(R.string.lanceur_refuser), false) { repondreDemande(dem, false) }.apply { isEnabled = !enCours }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { rightMargin = px(8f) })
         boutons.addView(bouton(if (enCours) Geste.EN_COURS else getString(R.string.lanceur_accepter), true) { repondreDemande(dem, true) }.apply { isEnabled = !enCours }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         c.addView(boutons)
+        return c
+    }
+
+    /** 15-10 : rien à trancher une à une, mais des choses à décider par lots (appareil à valider, à classer, logiciels).
+     *  16-10 (retour d'essai) : le titre est « À décider » — « 229 éléments à classer » n'est pas « une demande en attente ». */
+    private fun widgetLots(lots: List<Pair<String, Int>>): View {
+        val c = w(getString(R.string.adec_titre), bordOr = true)
+        noteDemandesVue(c)
+        lots.forEach { (libelle, _) -> c.addView(texte(libelle, 15f, theme.encre, Polices.demiGras(this)).apply { setPadding(0, px(4f), 0, 0) }) }
+        c.addView(bouton(getString(R.string.lanceur_voir_a_decider), true) { startActivity(Intent(this, ParentsActivity::class.java)) }.apply { tag = "demandes_lots" },
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(10f) })
         return c
     }
 
@@ -2336,12 +2745,13 @@ class LanceurActivity : Activity() {
                 try {
                     val r = Net.post(this, cfg, "/api/pc_parental/veille", JSONObject().put("id", cfg.id).put("secret", cfg.secret).put("ecran", if (tele) "tele" else "telephone").put("locaux", Local.locaux(this)), 20_000)
                     Local.amorcer(this, r.optJSONObject("reglages"))
+                    Accueil.noterDisponibles(this, r)
                     donnees = r
                     val p = r.optJSONObject("moi")?.optString("public").orEmpty()
                     val profilChange = p.isNotEmpty() && p != profilConnu
                     if (profilChange) { profilConnu = p; getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString("profil", p).apply() }
                     main.post { if (profilChange && !tele) demanderReconstruction() else appliquerDonnees() }
-                } catch (_: Exception) {}
+                } catch (e: Exception) { android.util.Log.w("Vision", "Accueil : relevé /veille raté (${e.javaClass.simpleName})") }
                 try { Thread.sleep(60_000) } catch (_: InterruptedException) { break }
             }
         }.also { it.isDaemon = true; it.start() }
@@ -2351,18 +2761,27 @@ class LanceurActivity : Activity() {
     @Volatile var constructions = 0
     @Volatile var remplacementsWidgets = 0
 
+    /** Toutes les vues d'un tag (findViewWithTag n'en rend que la première). */
+    private fun vuesParTag(v: View, tag: String, out: MutableList<View> = ArrayList()): List<View> {
+        if (v.tag == tag) out += v
+        if (v is ViewGroup) for (i in 0 until v.childCount) vuesParTag(v.getChildAt(i), tag, out)
+        return out
+    }
+
     private fun appliquerDonnees() {
         if (empreinteApps != empreinte() && enDrag == null && enDragNouveau == null && enDragAppli == null && !tiroirOuvert) { construire(); return }
         val d = donnees ?: return
         val m = d.optJSONObject("meteo")
-        racine.findViewWithTag<TextView>("temp")?.text = if (m == null || m.isNull("temperature")) "" else String.format(Locale.getDefault(), "%.0f°", m.optDouble("temperature"))
+        // Lanceur (l'auteur, 14 octobre) : la météo peut être dans les deux zones de la télé « Vertical » : toutes les vues.
+        val temp = if (m == null || m.isNull("temperature")) "" else String.format(Locale.getDefault(), "%.0f°", m.optDouble("temperature"))
+        vuesParTag(racine, "temp").forEach { (it as? TextView)?.text = temp }
         val cond = ArrayList<String>()
         m?.optString("etat")?.takeIf { it.isNotEmpty() }?.let { cond.add(Meteo.libelle(it)) }
         // L'icône suit l'état réel (avant : toujours la pluie).
-        racine.findViewWithTag<IconeMeteo>("icone_meteo")?.etat = m?.optString("etat").orEmpty()
+        vuesParTag(racine, "icone_meteo").forEach { (it as? IconeMeteo)?.etat = m?.optString("etat").orEmpty() }
         val vig = d.optJSONObject("vigilance")
         if (vig != null && vig.optInt("rang", 0) >= 2) cond.add(getString(R.string.lanceur_vigilance, vig.optString("niveau")))
-        racine.findViewWithTag<TextView>("cond")?.text = cond.joinToString(" · ")
+        vuesParTag(racine, "cond").forEach { (it as? TextView)?.text = cond.joinToString(" · ") }
         racine.findViewWithTag<TextView>("salut")?.let { val s = salutation(); it.text = s; it.contentDescription = s }
         // La pluie dans l'heure.
         val pl = d.optJSONObject("pluie")
@@ -2387,9 +2806,12 @@ class LanceurActivity : Activity() {
         }
         val dem = d.optJSONArray("demandes")
         racine.findViewWithTag<View>("demandes")?.let { v ->
-            val n = if (Modules.actif(this, Modules.DEMANDES)) dem?.length() ?: 0 else 0
+            val n = if (Modules.actif(this, Modules.DEMANDES)) Demandes.total(d) else 0
             v.visibility = if (n > 0) View.VISIBLE else View.GONE
-            racine.findViewWithTag<TextView>("demandes_texte")?.text = if (n == 1) getString(R.string.lanceur_demande_quoi, dem!!.getJSONObject(0).optString("prenom"), Demandes.quoi(dem.getJSONObject(0))) else resources.getQuantityString(R.plurals.lanceur_demandes_attente, n, n)
+            // 16-10 : un seul appareil à valider et aucune demande une à une (liste vide) : le compte, pas la première
+            // demande (avant : dem!!.getJSONObject(0) sur une liste vide arrêtait l'accueil).
+            val premiere = dem?.optJSONObject(0)
+            racine.findViewWithTag<TextView>("demandes_texte")?.text = if (n == 1 && premiere != null) getString(R.string.lanceur_demande_quoi, premiere.optString("prenom"), Demandes.quoi(premiere)) else resources.getQuantityString(R.plurals.lanceur_demandes_attente, n, n)
         }
         // Sur le téléphone, les widgets portent des données : on les rafraîchit sans toucher au reste.
         // 1.80.1 : sur TOUTES les pages (avant : la première seulement ; un widget « Demandes » posé en page 2
@@ -2414,5 +2836,429 @@ class LanceurActivity : Activity() {
                 }
             }
         }
+        // 16-10 (parité) : sur la télé, les widgets de Vision (rangée des widgets, zones) suivent les données de même,
+        // sans clignoter : remplacés seulement si leur contenu a changé.
+        if (tele) for (v in vuesParPrefixe(racine, "widget_tele:")) {
+            val hote = v as? ViewGroup ?: continue
+            val code = (v.tag as String).removePrefix("widget_tele:")
+            val ancien = hote.getChildAt(0)
+            val n = contenuWidget(code)
+            if (ancien != null && Ui.empreinteVue(n) == Ui.empreinteVue(ancien)) continue
+            remplacementsWidgets++
+            hote.removeAllViews(); hote.addView(n)
+        }
     }
+
+    /** Les vues dont le tag commence par [prefixe]. */
+    private fun vuesParPrefixe(v: View, prefixe: String, out: MutableList<View> = ArrayList()): List<View> {
+        if ((v.tag as? String)?.startsWith(prefixe) == true) out += v
+        if (v is ViewGroup) for (i in 0 until v.childCount) vuesParPrefixe(v.getChildAt(i), prefixe, out)
+        return out
+    }
+
+    // ================================================================== DISPOSITIONS (l'auteur, 13 octobre)
+    //
+    // Téléphone : « Liste alphabétique » (en plus de Grille et Pages). Télé : « Vertical » (en plus des Rangées).
+    // Réglages : DispositionAccueil (préférences « lanceur ») ; la zone du haut et ses widgets restent ceux de ZoneHaut.
+
+    /** La grille ne garde que ses lignes occupées (zone du haut posée en dessous, mode Grille). */
+    private var grilleCourte = false
+    private var indexAlpha: IndexAlpha? = null
+
+    /**
+     * Téléphone, mode « Liste alphabétique » (inspiré de Niagara Launcher) : toutes les applis autorisées en une liste
+     * qui défile, par lettre ; l'index sur le côté (droite par défaut, gauche pour les gauchers) ; en glissant dessus,
+     * la liste saute aux applis de la lettre visée et une bulle la montre en grand. Les favoris (les applis du dock),
+     * en option, sont épinglés en haut. La zone du haut garde sa place (au-dessus ou en dessous) ; vide, rien.
+     */
+    private fun construireAlpha() {
+        val profil = profil()
+        grille = null; pageur = null; points = null; zoneRetrait = null
+        val gaucher = DispositionAccueil.coteIndex(this) == DispositionAccueil.INDEX_GAUCHE
+        val largeurIndex = px(36f)
+        val bordIndex = px(8f)  // recette : un contrôle reste à 8 dp au moins du bord de l'écran
+        val haut = px(40f)
+        val colonne = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; clipToPadding = false
+            setPadding(insetG + if (gaucher) bordIndex + largeurIndex + px(6f) else px(14f), haut, insetD + if (gaucher) px(14f) else bordIndex + largeurIndex + px(6f), px(28f))
+        }
+        val defile = ScrollView(this).apply { isVerticalScrollBarEnabled = false; isFillViewport = true; clipToPadding = false; tag = "liste_alpha"; addView(colonne) }
+        defileAccueil = defile
+        racine.addView(defile, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+
+        bandeauNonRelie(colonne, 15f)
+        val dessous = DispositionAccueil.positionZone(this) == DispositionAccueil.ZONE_DESSOUS
+        val entete = if (ZoneHaut.widgets(this).isNotEmpty()) enteteTelephone(profil, paysage = false) else null
+        if (entete != null && !dessous) colonne.addView(entete)
+        val fondPochette = ImageView(this).apply { scaleType = ImageView.ScaleType.CENTER_CROP; alpha = 0.32f; visibility = View.GONE; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }
+        racine.addView(fondPochette, 1, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        if (ZoneHaut.LECTEUR in ZoneHaut.widgets(this)) colonne.findViewWithTag<MiniLecteur>("mini_lecteur")?.fond = fondPochette
+        else colonne.addView(MiniLecteur(this, theme, false, fondPochette).apply { tag = "mini_lecteur" },
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(8f) })
+
+        // Toutes les applis autorisées (celles de l'accueil : sans les applis masquées).
+        val masquees = Accueil.masquees(this)
+        val infos = Accueil.applicationsInstallees(this).associateBy { it.activityInfo.packageName }
+        val applis = infos.keys.filter { it !in masquees }
+        val pm = packageManager
+        fun nom(p: String) = nomsTiroir[p] ?: (Accueil.etiquette(this, p).also { nomsTiroir[p] = it })
+
+        // Les favoris : les applis du dock, épinglées en haut (option, activée par défaut).
+        val favoris = if (DispositionAccueil.favorisEnHaut(this)) Accueil.dock(this).filter { it in applis } else emptyList()
+        if (favoris.isNotEmpty()) {
+            colonne.addView(etiquetteSection(getString(R.string.lanceur_favoris), 11f).apply { setPadding(px(6f), px(14f), 0, px(6f)) })
+            val rangee = LinearLayout(this).apply { gravity = Gravity.TOP; tag = "alpha_favoris" }
+            favoris.forEach { p -> rangee.addView(caseFavori(p, nom(p)), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)) }
+            // Moins de quatre favoris : des places vides gardent leur largeur (les noms ne s'étalent pas).
+            repeat((4 - favoris.size).coerceAtLeast(0)) { rangee.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f)) }
+            colonne.addView(rangee)
+            colonne.addView(View(this).apply { setBackgroundColor(theme.carteBord) }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, px(1f)).apply { topMargin = px(10f) })
+        }
+
+        val entrees = ListeAlpha.trier(applis.map { it to nom(it) }, Tr.locale())
+        val debuts = HashMap<Char, View>()
+        val icones = HashMap<String, ImageView>()
+        var derniere: Char? = null
+        for (e in entrees) {
+            if (e.lettre != derniere) {
+                val t = texte(e.lettre.toString(), 13f, theme.or, Polices.gras(this)).apply {
+                    tag = "alpha_lettre_${e.lettre}"; setPadding(px(6f), px(14f), 0, px(4f))
+                    if (android.os.Build.VERSION.SDK_INT >= 28) isAccessibilityHeading = true
+                }
+                colonne.addView(t)
+                debuts[e.lettre] = t; derniere = e.lettre
+            }
+            colonne.addView(ligneAlpha(e.cle, e.nom, icones))
+        }
+        if (entrees.isEmpty()) colonne.addView(texte(getString(R.string.lanceur_accueil_vide), 14f, theme.encre2).apply { setPadding(px(6f), px(18f), px(6f), 0) })
+        if (entete != null && dessous) colonne.addView(entete, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(18f) })
+        // L'appui long ailleurs que sur une appli : le panneau (réglages, disposition, widgets), comme sur la grille.
+        colonne.isLongClickable = true
+        colonne.setOnLongClickListener { montrerPanneau(); true }
+
+        // Les icônes : celles déjà connues (tiroir) tout de suite, les autres chargées hors du fil principal.
+        val manquantes = icones.keys.filter { !iconesTiroir.containsKey(it) }
+        icones.forEach { (p, v) -> iconesTiroir[p]?.let { v.setImageDrawable(it) } }
+        if (manquantes.isNotEmpty()) Thread {
+            manquantes.forEach { p -> try { Accueil.icone(this, p)?.let { iconesTiroir[p] = it } } catch (_: Exception) {} }
+            main.post { if (!isFinishing) icones.forEach { (p, v) -> if (v.drawable == null) iconesTiroir[p]?.let { v.setImageDrawable(it) } } }
+        }.also { it.isDaemon = true }.start()
+
+        // La bulle de la lettre visée, à côté du doigt.
+        val bulle = texte("", 30f, theme.fond, Polices.gras(this)).apply {
+            gravity = Gravity.CENTER; visibility = View.GONE; tag = "alpha_bulle"; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(theme.or) }; elevation = px(6f).toFloat()
+        }
+        val presentes = ListeAlpha.presentes(entrees)
+        val index = IndexAlpha(this, theme, gaucher, surLettre = { l, y ->
+            ListeAlpha.cible(l, presentes)?.let { c -> debuts[c]?.let { v -> defile.scrollTo(0, v.top) } }
+            bulle.text = l.toString(); bulle.alpha = 1f; bulle.visibility = View.VISIBLE
+            bulle.translationY = y - px(32f)
+        }, surFin = { bulle.animate().alpha(0f).setDuration(180).withEndAction { bulle.visibility = View.GONE }.start() }).apply {
+            this.presentes = presentes; tag = "index_alpha"
+        }
+        indexAlpha = index
+        val cote = if (gaucher) Gravity.START else Gravity.END
+        racine.addView(index, FrameLayout.LayoutParams(largeurIndex, ViewGroup.LayoutParams.MATCH_PARENT, cote).apply {
+            // 16-10 (recette 360 dp, caméra « poinçon » en haut à gauche) : l'index commence sous l'encoche, pas dessous.
+            topMargin = maxOf(haut, insetH) + px(8f); bottomMargin = px(28f); if (gaucher) leftMargin = insetG + bordIndex else rightMargin = insetD + bordIndex
+        })
+        racine.addView(bulle, FrameLayout.LayoutParams(px(64f), px(64f), Gravity.TOP or cote).apply {
+            if (gaucher) leftMargin = insetG + bordIndex + largeurIndex + px(18f) else rightMargin = insetD + bordIndex + largeurIndex + px(18f)
+        })
+    }
+
+    /** Une ligne de la liste alphabétique : l'icône, le nom ; une appli fermée par les règles reste grisée. */
+    private fun ligneAlpha(pkg: String, nom: String, icones: MutableMap<String, ImageView>): View {
+        val l = LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL; minimumHeight = px(Ui.CIBLE_MIN + 4f); setPadding(px(6f), px(4f), px(6f), px(4f))
+            isClickable = true; isFocusable = true; contentDescription = nom; tag = "alpha:$pkg"
+            background = android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(Palette.melanger(theme.fond, theme.or, 0.25f)), null, GradientDrawable().apply { cornerRadius = px(12f).toFloat(); setColor(0xFFFFFFFF.toInt()) })
+        }
+        val cadre = disque(null, 40f)
+        (cadre.getChildAt(0) as? ImageView)?.let { icones[pkg] = it }
+        l.addView(cadre, LinearLayout.LayoutParams(px(40f), px(40f)))
+        l.addView(texte(nom, 17f, theme.encre, Polices.moyen(this)).apply { setPadding(px(14f), 0, 0, 0); importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO },
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        griser(l, pkg)
+        l.setOnClickListener { ouvrir(pkg) }
+        l.setOnLongClickListener { menuAlpha(pkg, nom); true }
+        return l
+    }
+
+    /** Un favori épinglé en haut de la liste : l'icône et le nom, comme sur la grille. */
+    private fun caseFavori(pkg: String, nom: String): View {
+        val c = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; setPadding(px(2f), px(4f), px(2f), px(4f)); isClickable = true; isFocusable = true; contentDescription = nom; tag = "favori:$pkg" }
+        c.addView(disque(iconesTiroir[pkg] ?: Accueil.icone(this, pkg), 52f), LinearLayout.LayoutParams(px(52f), px(52f)))
+        // 16-10 (recette 360 dp, 130 %) : comme les cases de la grille, le nom ne se coupe jamais au milieu d'un mot (« Téléphon / e »).
+        c.addView(texte(nom, 12f, theme.encre2, Polices.moyen(this)).apply { gravity = Gravity.CENTER; setPadding(0, px(6f), 0, 0); importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO; Ui.motsEntiers(this, 12f, 8f) })
+        griser(c, pkg)
+        c.setOnClickListener { ouvrir(pkg) }
+        c.setOnLongClickListener { menuAlpha(pkg, nom); true }
+        return c
+    }
+
+    /** L'appui long sur une appli de la liste : l'ouvrir, l'épingler en favori (ou l'en retirer), voir ses infos. */
+    private fun menuAlpha(pkg: String, nom: String) {
+        val dock = Accueil.dock(this).toMutableList()
+        val favori = pkg in dock
+        val choix = ArrayList<Pair<String, () -> Unit>>()
+        choix.add(getString(R.string.lanceur_ouvrir) to { ouvrir(pkg) })
+        if (favori) choix.add(getString(R.string.lanceur_retirer_favori) to { dock.remove(pkg); Accueil.ecrireDock(this, dock); construire() })
+        else if (dock.size < Accueil.DOCK_MAX) choix.add(getString(R.string.lanceur_epingler_favori) to { dock.add(pkg); Accueil.ecrireDock(this, dock); construire() })
+        choix.add(getString(R.string.lanceur_infos_appli) to {
+            try { startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:$pkg"))) } catch (_: Exception) {}
+        })
+        Ui.dialogue(this).setTitle(nom).setItems(choix.map { it.first }.toTypedArray()) { _, k -> choix[k].second() }.show()
+    }
+
+    // ------------------------------------------------------------------ télé, disposition « Vertical »
+
+    private var derniereLigneTele: View? = null
+    private val dernieresCartes = HashMap<String, View>()
+    private var zonesTele: Map<String, LinearLayout> = emptyMap()
+    private fun teleVerticale() = tele && DispositionAccueil.disposTele(this) == DispositionAccueil.TELE_VERTICAL
+
+    /**
+     * Télé, disposition « Vertical » : les applis en colonne (à gauche, au centre ou à droite) ; les espaces de part et
+     * d'autre sont des zones de widgets (ZoneHaut : horloge stylisée, météo, remerciement, message), qui n'existent
+     * que si le Décideur y a mis des widgets ET les a activées. À la télécommande : haut et bas dans la colonne ;
+     * gauche ou droite passe dans la zone voisine (sur la carte quittée en dernier), et revient sur l'appli quittée.
+     */
+    private fun construireTeleVertical() {
+        Accueil.initialiserTele(this)
+        // 17-10 (l'auteur, points 10, 21) : 5 % sur les côtés (4,5 % : les rangées de widgets et la colonne sortaient de la zone sûre).
+        val margeX = ZoneSure.x(this@LanceurActivity, 0.05f); val margeY = ZoneSure.y(this@LanceurActivity, 0.05f)
+        val pos = DispositionAccueil.colonne(this)
+        // 16-10 (retour d'essai) : une rangée de widgets en haut et / ou en bas, sur toute la largeur, en plus des côtés.
+        val cadreTele = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(margeX, margeY, margeX, margeY); clipChildren = false; clipToPadding = false; tag = "tele_vertical" }
+        racine.addView(cadreTele, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        val ligne = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; clipChildren = false; clipToPadding = false; tag = "tele_ligne" }
+
+        // La colonne : le bandeau « non reliée », les demandes et les messages, puis les applis, la roue.
+        val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false; clipToPadding = false; tag = "colonne_tele" }
+        bandeauNonRelie(col, tv(26f))
+        val demandes = LinearLayout(this).apply { tag = "demandes"; gravity = Gravity.CENTER_VERTICAL; visibility = View.GONE; background = fondCarte(999f); setPadding(px(14f), px(6f), px(16f), px(6f)) }
+        demandes.addView(pastille(theme.pourpre), LinearLayout.LayoutParams(px(8f), px(8f)).apply { rightMargin = px(10f) })
+        demandes.addView(texte("", tv(20f), theme.encre, Polices.demiGras(this)).apply { tag = "demandes_texte" })
+        col.addView(demandes, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(8f) })
+        val fondPochette = ImageView(this).apply { scaleType = ImageView.ScaleType.CENTER_CROP; alpha = 0.32f; visibility = View.GONE; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }
+        racine.addView(fondPochette, 1, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        // 1.93.05 (l'auteur, retour 34) : plus de mini-lecteur posé d'office ; le widget « Lecteur musique », s'il est dans une zone.
+        fondPochetteAccueil = fondPochette
+        val messages = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(0, px(6f), 0, px(4f)); clipChildren = false; clipToPadding = false }
+        rangeeMessages = messages
+        col.addView(messages)
+        remplirMessagesTele()
+        val liste = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false; clipToPadding = false; setPadding(px(16f), px(10f), px(16f), px(10f)); tag = "colonne_applis" }
+        rangeeApps = liste
+        // 16-10 (recette, rangée du bas) : la liste défile DANS son cadre (avant : clipChildren = false, elle se dessinait
+        // sous la rangée de widgets du bas) ; le zoom au focus tient dans la marge de la liste.
+        val defile = ScrollView(this).apply {
+            isVerticalScrollBarEnabled = false; clipChildren = true; clipToPadding = true; addView(liste)
+            // Le cadre de la colonne (clipChildren de son parent est faux, pour l'anneau du mini-lecteur) : on coupe au contour.
+            outlineProvider = android.view.ViewOutlineProvider.BOUNDS; clipToOutline = true
+        }
+        col.addView(defile, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+        val pied = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL or Gravity.END; setPadding(0, px(8f), 0, 0) }
+        pied.addView(texte(if (deplacement != null) getString(R.string.lanceur_aide_deplacement_vertical) else "", tv(18f), theme.encre2).apply { tag = "aide" }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        val roue = maxOf(tv(84f), Ui.CIBLE_MIN)
+        pied.addView(roueReglages(roue), LinearLayout.LayoutParams(px(roue), px(roue)))
+        col.addView(pied)
+
+        // Les zones de widgets possibles, selon la place de la colonne ; une zone vide ou non activée ne montre rien.
+        val zones = HashMap<String, LinearLayout>()
+        var dateLiee = false
+        fun zone(z: String): View {
+            val w = DispositionAccueil.widgetsZone(this, z)
+            // 1.93.02 (télé du salon de l'auteur, 17-10) : une rangée du haut ou du bas vide doit être GONE. Une simple View en
+            // WRAP_CONTENT prend toute la hauteur offerte : la ligne (colonne des applis et zones de côté) tombait à 0 px
+            // et l'accueil ne montrait que le fond. Une zone de côté vide garde sa place (poids 1) pour centrer la colonne.
+            if (!DispositionAccueil.zoneVisible(w, DispositionAccueil.zoneActivee(this, z)))
+                return View(this).apply { tag = "zone_tele_$z"; if (z in DispositionAccueil.RANGEES) visibility = View.GONE }
+            val rangee = z in DispositionAccueil.RANGEES
+            val conteneur = LinearLayout(this).apply {
+                orientation = if (rangee) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL; gravity = Gravity.CENTER
+                clipChildren = false; clipToPadding = false; tag = "zone_tele_$z"; setPadding(px(18f), px(10f), px(18f), px(10f))
+            }
+            w.forEach { code ->
+                // 16-10 (recette télé, 130 %) : dans une rangée du haut ou du bas, l'horloge et le texte sont plus petits
+                // (avant : la date de l'horloge du bas sortait de l'écran).
+                val v = widgetZoneTele(z, code, tailleTexte = tv(if (rangee) 26f else 40f), coteOeil = px(tv(if (rangee) 64f else 110f)), lierDate = code == ZoneHaut.HORLOGE && !dateLiee) ?: return@forEach
+                if (code == ZoneHaut.HORLOGE) dateLiee = true
+                conteneur.addView(carteZoneTele(z, code, v),
+                    if (rangee) LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { leftMargin = px(10f); rightMargin = px(10f) }
+                    else LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(10f); bottomMargin = px(10f) })
+            }
+            zones[z] = conteneur
+            if (rangee) return conteneur
+            // 16-10 (recette télé) : une zone de côté trop pleine pour sa hauteur défile (le focus de la télécommande
+            // l'emmène) au lieu d'écraser sa dernière carte ; moins pleine, elle reste centrée.
+            return ScrollView(this).apply { isVerticalScrollBarEnabled = false; isFillViewport = true; clipChildren = true; addView(conteneur, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)) }
+        }
+        val haut = zone(DispositionAccueil.ZONE_H)
+        val largeurCol = (dm.widthPixels * if (pos == DispositionAccueil.COLONNE_CENTRE) 0.30f else 0.32f).toInt()
+        val lpZone = { LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f) }
+        when (pos) {
+            DispositionAccueil.COLONNE_GAUCHE -> { ligne.addView(col, LinearLayout.LayoutParams(largeurCol, ViewGroup.LayoutParams.MATCH_PARENT)); ligne.addView(zone(DispositionAccueil.ZONE_D), lpZone()) }
+            DispositionAccueil.COLONNE_DROITE -> { ligne.addView(zone(DispositionAccueil.ZONE_G), lpZone()); ligne.addView(col, LinearLayout.LayoutParams(largeurCol, ViewGroup.LayoutParams.MATCH_PARENT)) }
+            else -> { ligne.addView(zone(DispositionAccueil.ZONE_G), lpZone()); ligne.addView(col, LinearLayout.LayoutParams(largeurCol, ViewGroup.LayoutParams.MATCH_PARENT)); ligne.addView(zone(DispositionAccueil.ZONE_D), lpZone()) }
+        }
+        val bas = zone(DispositionAccueil.ZONE_B)
+        val lpRangee = { LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
+        cadreTele.addView(haut, lpRangee())
+        cadreTele.addView(ligne, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+        cadreTele.addView(bas, lpRangee())
+        zonesTele = zones
+        dernieresCartes.clear()
+        remplirColonneTele()
+    }
+
+    /** Les applis de la colonne (et « Ajouter » au bout). */
+    private fun remplirColonneTele() {
+        val liste = rangeeApps ?: return
+        liste.removeAllViews()
+        val cases = Accueil.cases(this)
+        val cles = cases.map { it.cle }
+        cases.forEach { c -> liste.addView(ligneTele(c, cles), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = px(8f) }) }
+        val plus = ligneTele(null, cles)
+        liste.addView(plus, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        if (cases.isEmpty()) {
+            liste.addView(texte(getString(R.string.lanceur_accueil_vide_tele), tv(22f), theme.encre2, Polices.moyen(this)).apply { setPadding(px(8f), px(10f), px(8f), 0) })
+            plus.post { if (currentFocus == null || currentFocus?.tag == "plus") plus.requestFocus() }
+        }
+    }
+
+    /**
+     * Une ligne de la colonne : le disque et le nom, sur une carte qui s'éclaire et grossit un peu au focus (anneau
+     * d'or). c = null : « Ajouter » (choisir d'autres applications, ou un widget Home Assistant). Mêmes gestes que les
+     * cases des rangées : OK ouvre, appui long ou Menu ouvre le menu, déplacement en haut et en bas.
+     */
+    private fun ligneTele(c: Accueil.Case?, cles: List<String>): View {
+        val taille = tv(64f)
+        val nom = when { c == null -> getString(R.string.exceptions_ajouter); c.dossier != null -> c.dossier.nom; else -> Accueil.etiquette(this, c.pkg!!) }
+        val enDeplacement = c != null && deplacement == c.cle
+        val l = LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL; setPadding(px(12f), px(8f), px(14f), px(8f)); tag = c?.cle ?: "plus"
+            isFocusable = true; isClickable = true; contentDescription = nom; minimumHeight = px(Ui.CIBLE_MIN)
+            background = fondLigneTele(focus = false, enDeplacement = enDeplacement)
+        }
+        val icone: View = when {
+            c == null -> FrameLayout(this).apply {
+                background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(0); setStroke(px(1.5f), theme.encre2, px(8f).toFloat(), px(6f).toFloat()) }
+                addView(icone(R.drawable.ic_plus, taille * 0.4f, theme.encre2), FrameLayout.LayoutParams(px(taille * 0.4f), px(taille * 0.4f), Gravity.CENTER))
+            }
+            c.dossier != null -> disqueDossier(c.dossier, taille)
+            else -> disque(Accueil.icone(this, c.pkg!!), taille)
+        }
+        l.addView(icone, LinearLayout.LayoutParams(px(taille), px(taille)))
+        val libelle = texte(nom, tv(28f), theme.encre2, Polices.moyen(this)).apply { setPadding(px(14f), 0, 0, 0); importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO; Ui.motsEntiers(this, tv(28f), tv(28f) * 0.6f) }
+        l.addView(libelle, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        if (c?.pkg != null) griser(l, c.pkg)
+        l.setOnFocusChangeListener { v, a ->
+            if (a) derniereLigneTele = v
+            // 17-10 (l'auteur, point 11) : l'appli prise ne reste plus collée au bord coupé de la liste (elle paraissait rognée,
+            // et l'overscan la mangeait) : une marge autour d'elle, comme pour les autres commandes (Ui.garderVisible).
+            if (a) v.post { Ui.garderVisible(v, px(14f)) }
+            if (deplacement != null) return@setOnFocusChangeListener
+            v.background = fondLigneTele(focus = a, enDeplacement = false)
+            libelle.setTextColor(if (a) theme.encre else theme.encre2); libelle.typeface = if (a) Polices.gras(this) else Polices.moyen(this)
+            v.animate().scaleX(if (a) 1.04f else 1f).scaleY(if (a) 1.04f else 1f).setDuration(140).start()
+        }
+        l.setOnClickListener {
+            when {
+                deplacement != null -> { deplacement = null; construire() }
+                c == null -> ajouterTele()
+                c.dossier != null -> ouvrirDossier(c.dossier, cles)
+                else -> ouvrir(c.pkg!!)
+            }
+        }
+        if (c != null) l.setOnLongClickListener { if (deplacement == null) menuTele(c, cles); true }
+        l.setOnKeyListener { _, code, ev ->
+            // La touche Menu ouvre le même menu que l'appui long ; gauche et droite passent dans la zone voisine.
+            if (c != null && code == KeyEvent.KEYCODE_MENU) {
+                if (ev.action == KeyEvent.ACTION_UP && deplacement == null) menuTele(c, cles)
+                return@setOnKeyListener true
+            }
+            if (ev.action != KeyEvent.ACTION_DOWN || deplacement != null) return@setOnKeyListener false
+            when (code) {
+                KeyEvent.KEYCODE_DPAD_LEFT -> versZone(DispositionAccueil.ZONE_G)
+                KeyEvent.KEYCODE_DPAD_RIGHT -> versZone(DispositionAccueil.ZONE_D)
+                else -> false
+            }
+        }
+        return l
+    }
+
+    /**
+     * 16-10 (l'auteur, télé du salon : « juste le logo et le nom, sans fond ») : le fond d'une ligne de la colonne selon
+     * « Fond des applis » ; sans fond, rien au repos, l'anneau d'or au focus (on voit toujours où l'on est).
+     */
+    private fun fondLigneTele(focus: Boolean, enDeplacement: Boolean): android.graphics.drawable.Drawable? = when {
+        enDeplacement -> fondCarte(18f, couleur = if (DispositionAccueil.fondApplis(this)) theme.carte else 0, bord = theme.pourpre, epaisseurDp = 3f)
+        DispositionAccueil.fondApplis(this) -> fondCarte(18f, bord = if (focus) theme.or else theme.carteBord, epaisseurDp = if (focus) 3f else 1f)
+        focus -> fondCarte(18f, couleur = 0, bord = theme.or, epaisseurDp = 3f)
+        else -> null
+    }
+
+    /** Le cadre d'un widget de zone selon « Cadre des widgets » : sans cadre, rien au repos, l'anneau d'or au focus. */
+    private fun fondCarteZone(focus: Boolean): android.graphics.drawable.Drawable? = when {
+        DispositionAccueil.cadreWidgets(this) -> fondCarte(24f, bord = if (focus) theme.or else theme.carteBord, epaisseurDp = if (focus) 3f else 1f)
+        focus -> fondCarte(24f, couleur = 0, bord = theme.or, epaisseurDp = 3f)
+        else -> null
+    }
+
+    private fun estDans(v: View, groupe: ViewGroup): Boolean { var p = v.parent; while (p != null) { if (p === groupe) return true; p = p.parent }; return false }
+
+    private fun premierFocusable(v: View): View? {
+        if (v.isFocusable && v.visibility == View.VISIBLE) return v
+        if (v is ViewGroup) for (i in 0 until v.childCount) premierFocusable(v.getChildAt(i))?.let { return it }
+        return null
+    }
+
+    /** La télécommande quitte la colonne pour une zone de widgets : sur la carte quittée en dernier, sinon la première. */
+    private fun versZone(z: String): Boolean {
+        val zone = zonesTele[z] ?: return false
+        val cible = dernieresCartes[z]?.takeIf { it.isAttachedToWindow && estDans(it, zone) } ?: premierFocusable(zone)
+        return cible?.requestFocus() ?: false
+    }
+
+    /**
+     * Une carte de widget dans une zone de la télé : focalisable (anneau d'or) ; vers la colonne, la télécommande
+     * revient sur l'appli quittée ; OK ouvre l'éditeur de la zone (code des Décideurs).
+     */
+    private fun carteZoneTele(z: String, code: String, contenu: View): View {
+        // 16-10 : un widget qui a son propre focus (Home Assistant, widget de Vision du téléphone) le garde : la carte ne
+        // le prend pas (sinon deux focus l'un dans l'autre) ; sa taille est celle qu'il demande.
+        val propre = contenu.isFocusable
+        val carte = FrameLayout(this).apply {
+            isFocusable = !propre; isClickable = !propre; tag = "carte_zone_${z}_$code"; contentDescription = ZoneHaut.nom(this@LanceurActivity, code)
+            background = fondCarteZone(focus = false); setPadding(px(18f), px(16f), px(18f), px(16f)); clipChildren = false
+        }
+        val lpC = contenu.layoutParams
+        carte.addView(contenu, FrameLayout.LayoutParams(lpC?.width ?: ViewGroup.LayoutParams.WRAP_CONTENT, lpC?.height ?: ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
+        if (propre) {
+            contenu.onFocusChangeListener.let { avant ->
+                contenu.setOnFocusChangeListener { v, a -> avant?.onFocusChange(v, a); if (a) dernieresCartes[z] = v; carte.background = fondCarteZone(focus = a) }
+            }
+            return carte
+        }
+        carte.setOnFocusChangeListener { v, a ->
+            if (a) dernieresCartes[z] = v
+            v.background = fondCarteZone(focus = a)
+            v.animate().scaleX(if (a) 1.03f else 1f).scaleY(if (a) 1.03f else 1f).setDuration(140).start()
+        }
+        // La colonne est à gauche de la zone de droite, et à droite de la zone de gauche.
+        // Les rangées du haut et du bas : la recherche de focus d'Android (haut / bas) suffit.
+        val versColonne = when (z) { DispositionAccueil.ZONE_D -> KeyEvent.KEYCODE_DPAD_LEFT; DispositionAccueil.ZONE_G -> KeyEvent.KEYCODE_DPAD_RIGHT; else -> -1 }
+        carte.setOnKeyListener { _, k, ev ->
+            if (ev.action == KeyEvent.ACTION_DOWN && k == versColonne) (derniereLigneTele?.takeIf { it.isAttachedToWindow } ?: rangeeApps?.getChildAt(0))?.requestFocus() ?: false
+            else false
+        }
+        carte.setOnClickListener { personnaliserZoneTele(z) }
+        return carte
+    }
+
+    /** L'éditeur d'une zone de widgets de la télé (code des Décideurs) : les widgets, leur ordre, et l'activation. */
+    private fun personnaliserZoneTele(z: String) = DispositionAccueil.personnaliserZone(this, z) { construire() }
 }

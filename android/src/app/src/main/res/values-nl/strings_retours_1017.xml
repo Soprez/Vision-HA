@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 17-10 (l'auteur, point 18b) : « Vider la file » dans le menu d'un titre de la file (télé). -->
+<resources>
+    <string name="partyecran_vider_file">Wachtrij legen</string>
+    <string name="partyecran_vider_titre">Wachtrij legen?</string>
+    <string name="partyecran_vider_texte">De %1$d volgende nummers worden verwijderd. Het huidige nummer speelt door.</string>
+    <string name="partyecran_vider_bouton">Legen</string>
+    <!-- 17-10 (l'auteur, point 8) : le mode soirée (invités par QR code), ouvert ou fermé depuis le lecteur. -->
+    <string name="musrech_soiree_mode">Feestmodus (gasten): %1$s</string>
+    <string name="partyecran_soiree_fermer">Feestmodus sluiten</string>
+    <string name="partyecran_soiree_ouvrir">Openen voor gasten</string>
+    <string name="partyecran_soiree_fermee">Feestmodus uit: geen QR-code, de link voor gasten werkt niet meer.</string>
+    <!-- 1.93.05 (l'auteur, retour 33) : la mise à jour depuis les réglages de la télé. -->
+    <string name="reglagestv_maj_rechercher">Zoeken naar een update</string>
+    <string name="reglagestv_maj_recherche_en_cours">Bezig bij Home Assistant…</string>
+    <string name="reglagestv_maj_aucune">Nog geen informatie over updates.</string>
+    <string name="reglagestv_st_demandes">Verzoeken</string>
+    <string name="jauge_volume">Volume %1$d %%</string>
+    <string name="zonehaut_widget_lecteur">Muziekspeler</string>
+    <string name="veille_option_lecteur">Muziekspeler in de schermbeveiliging</string>
+    <string name="veille_qr_ajoute">Voeg je muziek toe</string>
+    <string name="veille_option_qr">QR-code voor gasten</string>
+    <string name="veille_option_logo">Vision-logo</string>
+    <string name="veille_coin_haut_gauche">Linksboven</string>
+    <string name="veille_coin_haut_droite">Rechtsboven</string>
+    <string name="veille_coin_bas_gauche">Linksonder</string>
+    <string name="veille_coin_bas_droite">Rechtsonder</string>
+    <string name="veille_coin_cache">Verborgen</string>
+    <string name="veille_coin_pris">Deze hoek is al bezet: %1$s</string>
+</resources>

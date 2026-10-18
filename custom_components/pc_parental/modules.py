@@ -56,6 +56,8 @@ _DEPENDANCES: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
     "bilan": (("temps",), ()),
     # Réveil (coupé par défaut, INACTIFS_PAR_DEFAUT).
     "reveil": ((), ()),
+    # Niveau sonore (coupé par défaut, INACTIFS_PAR_DEFAUT) : le micro de l'appareil, seul un nombre remonte.
+    "son": ((), ()),
 }
 
 
@@ -76,7 +78,7 @@ CATALOGUE: dict[str, tuple[str, str, tuple[str, ...], tuple[str, ...]]] = {
 }
 TOUS = tuple(CATALOGUE)
 # Coupés tant que l'administrateur ne les a pas activés (absents des préréglages).
-INACTIFS_PAR_DEFAUT = frozenset({"reveil"})
+INACTIFS_PAR_DEFAUT = frozenset({"reveil", "son"})
 
 PRESETS: dict[str, tuple[str, ...]] = {
     "simple": ("plages", "temps", "demandes", "messages", "preavis"),
@@ -232,6 +234,10 @@ GESTES: dict[str, tuple[str, ...]] = {
 def geste_coupe(store, action: str, corps: dict[str, Any] | None = None) -> str | None:
     """Le module (coupé) qui interdit ce geste de l'espace gestion, ou None."""
     corps = corps or {}
+    if action in ("accorder", "retirer_autorisation"):
+        mods = ("blocage",) if str(corps.get("genre") or "") == "apps" or str(corps.get("nom") or "").lower().startswith(
+            "app:") else ("filtrage",)
+        return mods[0] if coupe(store, *mods) else None
     if action == "autoriser":
         decision = str(corps.get("decision") or "temporaire")
         if decision in ("disponible", "indisponible"):
@@ -321,7 +327,7 @@ def appliquer_entites(hass: HomeAssistant, store) -> int:
     """Désactive les entités des modules coupés, réactive celles des modules revenus. Rend le nombre de changements."""
     from homeassistant.helpers import entity_registry as er
 
-    from . import matrice
+    from . import entites_reduites, matrice
 
     registre = er.async_get(hass)
     changements = 0
@@ -338,7 +344,7 @@ def appliquer_entites(hass: HomeAssistant, store) -> int:
                 _LOGGER.warning("%s : %s désactivée (module « %s » coupé ; historique et réglages gardés).",
                                 PRODUIT, entree.entity_id, CATALOGUE[mods[0]][0])
         elif entree.disabled_by is er.RegistryEntryDisabler.INTEGRATION and not matrice.sans_objet(
-                store, entree.domain, entree.unique_id):
+                store, entree.domain, entree.unique_id) and not entites_reduites.desactivee_par_uid(store, entree.unique_id):
             registre.async_update_entity(entree.entity_id, disabled_by=None)
             changements += 1
             _LOGGER.warning("%s : %s réactivée (module « %s » actif).", PRODUIT, entree.entity_id,

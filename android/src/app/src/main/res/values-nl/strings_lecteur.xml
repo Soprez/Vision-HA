@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.0 : écran Musique — saut dans le titre (curseur) et fond animé (styles, intensité, couleurs). -->
+<resources>
+    <string name="lecture_position">Positie in nummer</string>
+    <string name="lecture_position_valeur">%1$s van %2$s</string>
+    <string name="fond_titre">Bewegende achtergrond</string>
+    <string name="fond_bouton">Bewegende achtergrond: %1$s</string>
+    <string name="fond_style_aucun">Geen</string>
+    <string name="fond_style_ondes">Zachte golven</string>
+    <string name="fond_style_particules">Deeltjes</string>
+    <string name="fond_style_aurore">Noorderlicht</string>
+    <string name="fond_style_degrade">Levend verloop</string>
+    <string name="fond_intensite_douce">zacht</string>
+    <string name="fond_intensite_moyenne">gemiddeld</string>
+    <string name="fond_intensite_vive">levendig</string>
+    <string name="fond_intensite">Intensiteit: %1$s</string>
+    <string name="fond_pochette">Hoeskleuren</string>
+    <string name="fond_pochette_valeur">Hoeskleuren: %1$s</string>
+    <string name="fond_son">Reageert op het geluid</string>
+    <string name="fond_son_valeur">Reageert op het geluid: %1$s</string>
+    <string name="fond_son_aide">De achtergrond volgt het geluid als dit apparaat de muziek zelf afspeelt (Sendspin-speler).</string>
+    <string name="fond_reduit">Animaties zijn op dit apparaat beperkt: de achtergrond staat stil.</string>
+</resources>

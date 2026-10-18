@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le cœur « favori » de Music Assistant et le choix de la playlist de veille (l'auteur, 15/10). -->
+<resources>
+    <string name="coeur_ajouter">Ajouter aux favoris de Music Assistant</string>
+    <string name="coeur_retirer">Retirer des favoris de Music Assistant</string>
+    <string name="choixplaylist_chercher_indice">Chercher une playlist (YouTube Music…)</string>
+    <string name="choixplaylist_chercher">Chercher</string>
+    <string name="choixplaylist_chercher_action">Chercher une playlist</string>
+    <string name="choixplaylist_autres">Autres playlists</string>
+    <string name="choixplaylist_chargement">Chargement des playlists…</string>
+    <string name="choixplaylist_recherche_en_cours">Recherche…</string>
+    <string name="choixplaylist_rien_trouve">Aucune playlist trouvée pour « %1$s ».</string>
+</resources>

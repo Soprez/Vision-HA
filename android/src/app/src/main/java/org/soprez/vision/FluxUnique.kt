@@ -38,6 +38,8 @@ class FluxUnique(private val url: String, dossier: File, private val ouvrir: (St
     private val verrou = Object()
     @Volatile private var recus = 0L
     @Volatile private var fini = false
+    /** Le flux est entièrement reçu (le « décodeur prêt » de SlimProto : Music Assistant peut préparer la suite). */
+    val telecharge: Boolean get() = fini
     @Volatile private var ferme = false
     @Volatile var connexions = 0; private set
     private val fil = Thread({ telecharger() }, "VisionFlux").apply { isDaemon = true; start() }

@@ -13,7 +13,9 @@ import kotlin.math.abs
  * couche par-dessus une appli, activité) :
  *  - gauche / droite (télécommande) ou glisser (doigt) : tableau précédent, suivant ;
  *  - OK ou toucher : figer le tableau, puis reprendre le défilement ;
- *  - les touches lecture (pause, suivant…) vont à l'appli qui joue dessous ;
+ *  - les touches lecture (pause, suivant…) pilotent la musique de Music Assistant de cet appareil quand elle joue
+ *    (1.93.05, retour 37 : [ToucheMedia]) ; sinon elles vont à l'appli qui joue dessous ;
+ *  - le volume reste au système (il règle le son et montre sa jauge) ;
  *  - tout le reste (Retour, glisser vers le haut…) referme la veille.
  */
 class GestesVeille(private val ctx: Context, private val vue: () -> VeilleView?, private val fermer: () -> Unit) {
@@ -31,10 +33,11 @@ class GestesVeille(private val ctx: Context, private val vue: () -> VeilleView?,
 
     fun toucher(e: MotionEvent): Boolean { detecteur.onTouchEvent(e); return true }
 
-    /** Toujours consommée ; déclenche la fermeture quand la touche n'a pas de sens ici. */
+    /** Consommée (sauf le volume) ; déclenche la fermeture quand la touche n'a pas de sens ici. */
     fun touche(e: KeyEvent): Boolean {
+        if (e.keyCode in VOLUME) return false
         if (e.keyCode in MEDIA) {
-            Flux.touche(ctx, e)
+            if (!ToucheMedia.touche(ctx, e)) Flux.touche(ctx, e)
             vue()?.signaler()
             return true
         }
@@ -50,6 +53,7 @@ class GestesVeille(private val ctx: Context, private val vue: () -> VeilleView?,
     }
 
     companion object {
+        private val VOLUME = setOf(KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_MUTE)
         private val MEDIA = setOf(
             KeyEvent.KEYCODE_MEDIA_PLAY, KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP,
             KeyEvent.KEYCODE_MEDIA_NEXT, KeyEvent.KEYCODE_MEDIA_PREVIOUS, KeyEvent.KEYCODE_MEDIA_FAST_FORWARD, KeyEvent.KEYCODE_MEDIA_REWIND,

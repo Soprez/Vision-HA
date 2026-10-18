@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.x (retour d'essai) : l'arrière-plan de l'accueil (FondAccueil). -->
+<resources>
+    <string name="fondacc_titre">Sfondo della schermata iniziale</string>
+    <string name="fondacc_sorte_defaut">Attuale (animazione discreta)</string>
+    <string name="fondacc_sorte_uni">Tinta unita</string>
+    <string name="fondacc_sorte_degrade">Sfumatura</string>
+    <string name="fondacc_sorte_photo">Foto</string>
+    <string name="fondacc_sorte_anime">Sfondo animato</string>
+    <string name="fondacc_teinte_fond">Sfondo del tema</string>
+    <string name="fondacc_teinte_n">Tonalità %1$d</string>
+    <string name="fondacc_voile">Velo di leggibilità</string>
+    <string name="fondacc_voile_auto">Automatico</string>
+    <string name="fondacc_voile_plus">Rinforzato</string>
+    <string name="fondacc_voile_max">Molto rinforzato</string>
+    <string name="fondacc_demandeur">Sfondo modificabile da %1$s</string>
+    <string name="fondacc_raison">Cambiare lo sfondo della schermata iniziale</string>
+    <string name="fondacc_photo_echec">Impossibile leggere la foto.</string>
+    <string name="fondacc_note">Un velo mantiene leggibili l’ora e le schede; le schede mantengono il proprio sfondo.</string>
+    <string name="fondacc_style">Stile</string>
+</resources>

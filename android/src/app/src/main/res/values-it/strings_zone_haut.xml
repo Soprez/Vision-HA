@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.5 (retour d'essai) : la zone du haut de l'accueil (ZoneHaut) : remerciement et œil joyeux. -->
+<resources>
+    <string name="zonehaut_merci">Grazie per aver installato Vision.</string>
+    <string name="zonehaut_mode_heure_meteo">Ora e meteo</string>
+    <string name="zonehaut_mode_remerciement">Messaggio di ringraziamento</string>
+    <string name="zonehaut_mode_message">Messaggio personalizzato</string>
+    <string name="zonehaut_mode_vide">Vuota</string>
+    <string name="zonehaut_personnaliser">Personalizza questa zona</string>
+    <string name="zonehaut_raison">Cambiare la parte alta della schermata iniziale</string>
+    <string name="zonehaut_titre">Zona superiore</string>
+    <string name="zonehaut_enregistrer">Salva</string>
+    <string name="zonehaut_mode_horloge">Orologio</string>
+    <string name="zonehaut_mode_horloge_meteo">Orologio e meteo</string>
+    <string name="zonehaut_widget_horloge">Orologio stilizzato</string>
+    <string name="zonehaut_widget_meteo">Meteo</string>
+    <string name="zonehaut_widget_classique">Ora e meteo (classico)</string>
+    <string name="zonehaut_monter">Su: %1$s</string>
+    <string name="zonehaut_descendre">Giù: %1$s</string>
+    <string name="zonehaut_reglages">Impostazioni</string>
+    <string name="horloge_taille">Dimensione</string>
+    <string name="horloge_petite">Piccola</string>
+    <string name="horloge_moyenne">Media</string>
+    <string name="horloge_grande">Grande</string>
+    <string name="horloge_format">Formato</string>
+    <string name="horloge_format_appareil">Come il dispositivo</string>
+    <string name="horloge_12h">12 ore</string>
+    <string name="horloge_24h">24 ore</string>
+    <string name="horloge_date">Mostra la data</string>
+    <string name="horloge_oui">Sì</string>
+    <string name="horloge_non">No</string>
+    <string name="modeappareil_titre">Modalità di questo dispositivo</string>
+    <string name="modeappareil_affichage">Visualizzazione</string>
+</resources>

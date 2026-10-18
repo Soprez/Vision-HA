@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 6 : frictions restantes (écran de blocage, durées, accessibilité, focus TV, pluriels, erreurs). -->
+<resources>
+    <string name="lot6_ferme_par_appareil">Gesloten door</string>
+    <string name="lot6_ferme_par_appli">Geblokkeerd door</string>
+    <string name="lot6_jusqua">Tot</string>
+    <string name="lot6_resume">%1$s: %2$s</string>
+    <string name="lot6_resume_jusqua">%1$s: %2$s, tot %3$s</string>
+    <string name="lot6_heure_aujourdhui">%1$s</string>
+    <string name="lot6_heure_demain">morgen %1$s</string>
+    <string name="lot6_heure_date">%1$s, %2$s</string>
+    <string name="lot6_source_plage">Het schema</string>
+    <string name="lot6_source_temps">De tijdslimiet van vandaag</string>
+    <string name="lot6_source_moyenne">Het schoolgemiddelde</string>
+    <string name="lot6_source_regle">Een %1$s</string>
+    <string name="lot6_source_age">De aanbevolen leeftijd (PEGI)</string>
+    <string name="lot6_source_categorie">De categorie</string>
+    <string name="lot6_source_maison">‘%1$s’, voor alle apparaten</string>
+    <string name="lot6_source_securite">De veiligheid van het apparaat</string>
+    <string name="lot6_source_concentration">De focusmodus</string>
+    <string name="lot6_source_lieu">Deze plek</string>
+    <string name="lot6_deplie">%1$s, uitgeklapt</string>
+    <string name="lot6_replie">%1$s, ingeklapt</string>
+    <string name="lot6_contraste_titre">Kleur aangepast zodat alles leesbaar blijft</string>
+    <string name="lot6_contraste_texte_ajuste">Met deze kleuren zou de tekst slecht leesbaar zijn: hij is net genoeg donkerder of lichter gemaakt voor een contrast van minstens 4,5:1 met de achtergrond en de kaarten (nu %1$s:1).</string>
+    <string name="lot6_contraste_accent_ajuste">De accentkleur zou nauwelijks opvallen tegen de achtergrond: hij is aangepast tot een contrast van minstens 3:1 (nu %1$s:1).</string>
+    <string name="lot6_contraste_impossible">De achtergrond en de kaarten verschillen te veel om één tekstkleur op allebei goed leesbaar te maken: kies ze meer gelijk.</string>
+    <string name="lot6_contraste_annuler">Annuleren: terug naar de vorige kleuren.</string>
+    <string name="lot6_couleur_noir">zwart</string>
+    <string name="lot6_couleur_blanc">wit</string>
+    <string name="lot6_couleur_gris">grijs</string>
+    <string name="lot6_couleur_beige">beige</string>
+    <string name="lot6_couleur_rouge">rood</string>
+    <string name="lot6_couleur_orange">oranje</string>
+    <string name="lot6_couleur_marron">bruin</string>
+    <string name="lot6_couleur_jaune">geel</string>
+    <string name="lot6_couleur_vert">groen</string>
+    <string name="lot6_couleur_turquoise">turquoise</string>
+    <string name="lot6_couleur_bleu">blauw</string>
+    <string name="lot6_couleur_violet">paars</string>
+    <string name="lot6_couleur_rose">roze</string>
+    <string name="lot6_couleur_foncee">donker%1$s</string>
+    <string name="lot6_couleur_claire">licht%1$s</string>
+    <string name="lot6_err_demande_refusee">Home Assistant heeft het verzoek niet aangenomen. Probeer het zo opnieuw; gebeurt het weer, controleer dan in Instellingen of dit apparaat nog gekoppeld is.</string>
+    <string name="lot6_err_code_refuse">Deze code is niet geaccepteerd. Controleer de 6 cijfers of vraag een nieuwe code.</string>
+    <string name="lot6_err_vision_ne_repond_pas">Home Assistant gevonden, maar de Vision-integratie antwoordt niet: controleer in Home Assistant of die geïnstalleerd en bijgewerkt is en probeer het dan opnieuw.</string>
+    <string name="lot6_err_injoignable">Home Assistant gevonden, maar niet bereikbaar: controleer of dit apparaat op hetzelfde netwerk zit en probeer het dan opnieuw.</string>
+    <string name="lot6_err_widget">Home Assistant kon deze actie niet uitvoeren. Probeer het later opnieuw; blijft het gebeuren, controleer dan het apparaat in Home Assistant.</string>
+    <string name="lot6_veille_injoignable">Home Assistant niet bereikbaar: controleer het netwerk. Nieuwe poging over een minuut.</string>
+    <plurals name="lot6_nom_cartes">
+        <item quantity="one">"%1$s  · %2$d/%3$d kaart"</item>
+        <item quantity="other">"%1$s  · %2$d/%3$d kaarten"</item>
+    </plurals>
+    <plurals name="lot6_n_sur_m_accordees">
+        <item quantity="one">%1$d van %2$d verleend</item>
+        <item quantity="other">%1$d van %2$d verleend</item>
+    </plurals>
+</resources>

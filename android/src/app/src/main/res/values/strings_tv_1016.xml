@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 16-10 (l'auteur, télé du salon) : rangées de widgets, fond des applis, cadre des widgets, clavier de Vision. -->
+<resources>
+    <string name="lanceur_zone_haut">Widget row at the top</string>
+    <string name="lanceur_zone_bas">Widget row at the bottom</string>
+    <string name="lanceur_fond_applis">App background</string>
+    <string name="lanceur_cadre_widgets">Widget frames</string>
+    <string name="lanceur_avec">With</string>
+    <string name="lanceur_sans">Without</string>
+    <string name="clavier_saisie">Type with the remote</string>
+    <string name="lanceur_widgets_tele">Widgets</string>
+    <string name="lanceur_un_widget_vision">A Vision widget</string>
+    <string name="lanceur_un_widget">A widget</string>
+    <string name="lanceur_widgets_tous_poses">All available widgets are already on the home screen.</string>
+</resources>

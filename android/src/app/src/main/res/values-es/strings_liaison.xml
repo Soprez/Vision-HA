@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.90.4 (decision de l'auteur) : liaison sans code ; Nouvel appareil chez un Decideur. -->
+<resources>
+    <string name="liaison_sans_code_attente">Esperando aprobación…</string>
+    <string name="liaison_sans_code_explication">Un %1$s recibe la solicitud en su teléfono y la acepta con un toque.</string>
+    <string name="liaison_sans_code_aucun">Ningún teléfono de %1$s recibió la solicitud: usa «Otro método».</string>
+    <string name="liaison_sans_code_valable">Solicitud válida %1$d:%2$02d más</string>
+    <string name="liaison_sans_code_autre_methode">Otro método</string>
+    <string name="liaison_sans_code_expiree">La solicitud ha caducado.</string>
+    <string name="liaison_sans_code_remplacee">Una nueva solicitud ha sustituido a esta.</string>
+    <string name="liaison_sans_code_redemander">Volver a pedir</string>
+    <string name="nouvel_appareil_titre">Nuevo dispositivo</string>
+    <string name="nouvel_appareil_pas_de_droits">Solo el dispositivo de un %1$s puede aceptar un nuevo dispositivo.</string>
+    <string name="nouvel_appareil_aucune">Ninguna solicitud pendiente.</string>
+    <string name="nouvel_appareil_demande">Solicitud recibida a las %1$s</string>
+    <string name="nouvel_appareil_reprise">Retoma «%1$s».</string>
+    <string name="nouvel_appareil_a_qui">¿De quién es este dispositivo?</string>
+    <string name="nouvel_appareil_partage">Pantalla compartida — %1$s</string>
+    <string name="nouvel_appareil_accepter">Aceptar</string>
+    <string name="nouvel_appareil_refuser">Rechazar</string>
+    <string name="nouvel_appareil_choisir">Elige de quién es este dispositivo.</string>
+    <string name="nouvel_appareil_accepte">«%1$s» está vinculado.</string>
+    <string name="nouvel_appareil_refuse">Solicitud rechazada.</string>
+    <string name="nouvel_appareil_deja">Esta solicitud ya se ha tratado o ha caducado.</string>
+    <string name="nouvel_appareil_notif">«%1$s» pide vincularse. Toca para aceptar o rechazar.</string>
+    <string name="manifeste_nouvel_appareil">Nuevo dispositivo</string>
+</resources>

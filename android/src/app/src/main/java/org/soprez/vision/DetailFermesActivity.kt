@@ -153,7 +153,7 @@ class DetailFermesActivity : Activity() {
         val choix = if (x.code == "maison") arrayOf(min(30), h(1), h(2))
                     else arrayOf(min(30), h(1), h(2), getString(R.string.detailfermes_autorisee_agenda, a.optString("prenom").ifEmpty { getString(R.string.detailfermes_cette_personne) }))
         Ui.dialogue(this).setTitle(getString(R.string.detailfermes_ouvrir_question, x.libelle))
-            .setItems(choix) { _, k -> Garde.exiger(this, ParentsActivity.RAISON) {
+            .setItems(choix) { _, k -> Garde.exigerOctroi(this, ParentsActivity.RAISON) {  // FAILLE (l'auteur, 16-10) : ouvrir = à chaque fois
                 val (decision, minutes) = when (k) { 0 -> "temporaire" to 30; 1 -> "temporaire" to 60; 2 -> "temporaire" to 120; else -> "toujours" to 0 }
                 // 1.77.0 : « En cours… » sur la ligne ; ouverte, elle quitte la liste ; refusée, elle revient et le refus s'explique.
                 Geste.enCours()
@@ -171,7 +171,7 @@ class DetailFermesActivity : Activity() {
                     catch (_: Exception) { getString(R.string.commun_lot2_injoignable) }
                     runOnUiThread {
                         if (ok) { retirer(x); remplir() } else Geste.relacher()
-                        Toast.makeText(this, texte, Toast.LENGTH_LONG).show()
+                        Ui.toast(this, texte, genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)
                     }
                 }.start()
             } }.setNegativeButton(getString(R.string.commun_lot2_annuler), null).show()

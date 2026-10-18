@@ -536,6 +536,9 @@ def recevoir(hass: HomeAssistant, store, pc: dict[str, Any], corps: Any, quand: 
             f"reporte:{plus.get('nombre')}" if type_ == "reporte" else f"echec:{plus.get('raison')}:{pc.get('id')}")
         if not _deja_vu(r, occurrence, cle_dedup):
             hass.bus.async_fire(EVENEMENTS[type_], donnees)
+            # Lot 10 (V1) : une source Music Assistant joue sur son enceinte, pilotée par HA (l'appareil garde sa sonnerie).
+            if type_ in ("sonne", "reporte", "arrete"):
+                hass.async_create_task(async_musique(hass, r, {"sonne": "jouer", "reporte": "pause", "arrete": "arreter"}[type_]))
         change = True
         if type_ == "sonne":
             fin = quand + timedelta(minutes=int(reg["arret_auto_min"]))
@@ -559,6 +562,43 @@ def recevoir(hass: HomeAssistant, store, pc: dict[str, Any], corps: Any, quand: 
         elif type_ == "echec":
             _vivant(r, "echec", quand + timedelta(hours=12), occurrence=occurrence, raison=plus.get("raison", ""))
     return change
+
+
+# ----------------------------------------------------------------------------- Music Assistant (lot 10, V1)
+
+TYPES_MA = ("playlist", "radio", "album", "artist", "track", "podcast", "podcast_episode", "audiobook")
+
+
+def type_media(uri: str) -> str:
+    """« library://playlist/10 » → playlist ; type inconnu → track."""
+    try:
+        segment = str(uri).split("://", 1)[1].split("/", 1)[0]
+    except IndexError:
+        return "track"
+    return segment if segment in TYPES_MA else "track"
+
+
+async def async_musique(hass: HomeAssistant, r: dict[str, Any], action: str) -> None:
+    """Source « ma » avec une enceinte : jouer à la sonnerie, mettre en pause au report, arrêter à l'arrêt.
+    Sans enceinte, ou si Music Assistant échoue, rien de plus : la sonnerie de l'appareil reste le filet."""
+    from homeassistant.core import Context
+
+    s = r.get("source") or {}
+    lecteur = str(s.get("lecteur") or "")
+    if s.get("type") != "ma" or not lecteur.startswith("media_player.") or not s.get("uri"):
+        return
+    try:
+        if action == "jouer":
+            await hass.services.async_call("music_assistant", "play_media",
+                                           {"media_id": s["uri"], "media_type": type_media(s["uri"]), "enqueue": "replace"},
+                                           target={"entity_id": lecteur}, blocking=True, context=Context())
+        else:
+            await hass.services.async_call("media_player", "media_pause" if action == "pause" else "media_stop", {},
+                                           target={"entity_id": lecteur}, blocking=True, context=Context())
+    except Exception as err:  # noqa: BLE001 - la sonnerie de l'appareil continue de toute façon
+        _LOGGER.warning("%s : réveil « %s », Music Assistant (%s sur %s) : %s", PRODUIT, r.get("nom"), action, lecteur, err)
+        if action == "jouer":
+            hass.bus.async_fire(EV_ECHEC, _donnees(None, r, None, raison="source", detail="music_assistant", repli_joue=True))
 
 
 # ----------------------------------------------------------------------------- Le moteur (Home Assistant)

@@ -56,8 +56,59 @@ import java.net.Socket
  */
 class AntiDebordementTest : InstrumentationTestCase() {
     companion object {
+        /** HA 2.5.1 : une catégorie détaillée aux noms longs (logiciel déplié, services, sites liés et en attente). */
+        const val DETAIL_CATEGORIE = """{"ok":true,"etiquette":"Réseaux sociaux","fermee":true,"autres":197,
+            "logiciels":[
+              {"genre":"apps","nom":"com.discord.application.extraordinaire","libelle":"Discord : discussions vocales et communautés de joueurs","ouvert":true,"mode":"temps","fin":1893456000,
+               "services":[{"nom":"com.discord.service.notifications.arriere.plan","suit":true,"ouvert":true},{"nom":"discordupdater-automatique","suit":true,"ouvert":true}],
+               "sites":[{"genre":"sites","nom":"discord.com","ouvert":true,"suit":true,"par_logiciel":true},
+                        {"genre":"sites","nom":"discordcdn-medias-utilisateurs.com","ouvert":true,"mode":"exception","auto":true},
+                        {"genre":"sites","nom":"discord-activites-integrees-tierces.gg","ouvert":false,"ferme_par":"categorie","auto":true,"attente":true,"raison":"Fermé par la catégorie Réseaux sociaux, sur tous ses appareils."}]},
+              {"genre":"apps","nom":"com.instagram.android","libelle":"Instagram","ouvert":false,"ferme_par":"plage","raison":"Fermé par la plage « Devoirs et temps d'étude du soir » jusqu'à 20:00.","services":[],"sites":[]}],
+            "sites":[{"genre":"sites","nom":"reseau-social-des-collegiens-et-lyceens-europeens.eu","ouvert":false,"ferme_par":"nomme","mode":"bloquer"},
+                     {"genre":"sites","nom":"mastodon.social","ouvert":false,"ferme_par":"categorie","logiciel":"mastodon"},
+                     {"genre":"sites","nom":"exemple-adulte.org","ouvert":false,"ferme_par":"securite"},
+                     {"genre":"sites","nom":"pixelfed.social","ouvert":true,"mode":"toujours"}]}"""
+        const val RESULTATS_RECHERCHE = """[
+            {"genre":"categorie","nom":"Réseaux sociaux","fermee":true},
+            {"genre":"apps","nom":"com.discord.application.extraordinaire","libelle":"Discord : discussions vocales et communautés de joueurs","ouvert":false,"ferme_par":"categorie","service":"discordupdater-automatique","categories":["Réseaux sociaux","Jeux"],"raison":"Fermé par la catégorie Réseaux sociaux."},
+            {"genre":"sites","nom":"discordcdn-medias-utilisateurs.com","ouvert":false,"ferme_par":"temps","logiciel":"discord","categories":["Réseaux sociaux"],"raison":"Le temps du jour est épuisé (2 h 30)."}]"""
+        const val RECENTS = """[
+            {"nom":"roblox-contenus-telechargeables-de-la-communaute.com","quand":1760450000,"fois":12,"appareil":"w1","appareil_nom":"PC de la chambre de Maximilian-Alexander","logiciel":"com.roblox.client","ouvert":false,"ferme_par":"categorie","raison":"Fermé par la catégorie Jeux.","demandable":true},
+            {"nom":"rbxcdn.com","quand":1760449000,"fois":1,"appareil":"t1","appareil_nom":"Téléphone","ouvert":false,"ferme_par":"plage","demandable":true}]"""
+
         /** 1.88.0 : des entités Home Assistant d'essai (noms longs, détail de 25 éléments, réglage, liste, confirmation). */
         val CATALOGUE_WIDGETS = """{"version": 1, "entites": [
+          {"entity_id": "sensor.liste_longue", "nom": "Liste longue d'exemple (attribut liste, toutes les lignes)", "domaine": "sensor",
+           "etat": "27", "attributs_utiles": {}, "actions": [], "styles": ["tuile"], "role": "lecture", "affichage": "detail",
+           "detail": [
+                      {"texte": "Élément 1 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 2 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 3 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 4 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 5 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 6 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 7 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 8 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 9 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 10 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 11 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 12 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 13 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 14 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 15 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 16 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 17 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 18 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 19 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 20 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 21 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 22 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 23 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 24 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 25 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 26 d'une longue liste, avec une précision qui peut être longue", "valeur": ""},
+                      {"texte": "Élément 27 d'une longue liste, avec une précision qui peut être longue", "valeur": ""}], "detail_total": 27},
           {"entity_id": "todo.devoirs", "nom": "Devoirs de la semaine (mathématiques, français, histoire-géographie)", "domaine": "todo",
            "icone": "mdi:school", "etat": "25", "attributs_utiles": {}, "actions": [], "styles": ["tuile"], "role": "lecture", "affichage": "valeur_detail", "ouvrir": true,
            "detail": [{"texte": "Exercices 12 à 18 page 154 du manuel de mathématiques", "valeur": "2026-10-13"},
@@ -180,8 +231,16 @@ class AntiDebordementTest : InstrumentationTestCase() {
         Unit
     }
 
+    /** La veille de Vision, coupée pendant la recette puis remise (16-10 : sur une machine lente, la veille de repli de
+     *  la télé — 10 min sans touche sur l'accueil — recouvrait les écrans et bloquait la passe). */
+    private var repliAvant = ReglesVeille.REPLI_DEFAUT
+    private var veilleAvant = 0
+
     override fun setUp() {
         super.setUp()
+        CodeEssai.poser(instrumentation.targetContext)  // faille du 16-10 : un Décideur a toujours un code
+        repliAvant = Local.delaiRepli(ctx); veilleAvant = Local.delaiVeille(ctx)
+        Local.poserDelaiRepli(ctx, 0); Local.poserDelaiVeille(ctx, 0)
         serveur = ServerSocket(0, 10, java.net.InetAddress.getByName("127.0.0.1"))
         Thread {
             while (!serveur.isClosed) {
@@ -202,12 +261,14 @@ class AntiDebordementTest : InstrumentationTestCase() {
 
     override fun tearDown() {
         try { serveur.close() } catch (_: Exception) {}
+        Local.poserDelaiRepli(ctx, repliAvant); Local.poserDelaiVeille(ctx, veilleAvant)
         etatSauve()
         SetupActivity.resumeGestion = null; SetupActivity.resumeA = 0L
         Decouverte.trouve = null
         for ((n, v) in sauves) ctx.getSharedPreferences(n, 0).edit().clear().apply { v.forEach { (k, x) -> remettre(this, k, x) } }.commit()
         shell("settings put system font_scale 1.0")
         if (!args.getString("langue").isNullOrBlank()) shell("cmd locale set-app-locales org.soprez.vision --locales \"\"")
+        CodeEssai.rendre(instrumentation.targetContext)
         super.tearDown()
     }
 
@@ -234,6 +295,24 @@ class AntiDebordementTest : InstrumentationTestCase() {
         "focus":"org.exemple","focus_libelle":"Application de dessin extraordinaire","inactif_s":900,
         "derogation":{"mode":"locked","fin":0}
     }""")
+    /** Refonte lot 3 : une réponse /parent d'essai pour la fiche d'une personne (noms longs, 3 appareils, 2 réveils). */
+    private val FICHE_ESSAI = """{"ok":true,"categories":[],
+        "appareils":[
+          {"id":"f1","nom":"Tablette de Maximilian-Alexander (salle de séjour, étage)","en_ligne":true,"verrouille":false,"prochain_verrou":"2030-01-01T21:30:00+01:00"},
+          {"id":"f2","nom":"Téléphone portable de Maximilian-Alexander","en_ligne":true,"verrouille":true},
+          {"id":"f3","nom":"Ordinateur de bureau de Maximilian-Alexander (bibliothèque)","en_ligne":false}],
+        "personnes":[
+          {"entite":"person.maximilian","prenom":"Maximilian-Alexander von Hohenzollern","role":"Demandeur","appareils":["f1","f2","f3"],"temps":{"actif":135},
+           "fiche":{"modules":{"plages":true,"reveil":true,"temps_gagne":true,"regles_lieu":true,"entites":true},
+             "role_nom":"Demandeur (accès encadré, demandes soumises à validation)",
+             "reveils":[{"nom":"École primaire Jean-Baptiste-Poquelin (lundi au vendredi)","actif":true,"prochain":"2030-01-07T07:00:00+01:00"},
+                        {"nom":"Entraînement de natation du samedi matin","actif":false,"prochain":"2030-01-05T08:30:00+01:00"}],
+             "recompenses":{"liste":"Tâches ménagères hebdomadaires de Maximilian-Alexander","minutes":15,"max":60,"accorde":30},
+             "regles_lieu":[{"zone":"Collège international Sainte-Geneviève-des-Bois","categories":["Jeux","Réseaux sociaux","Vidéo"]},
+                            {"zone":"Bibliothèque","categories":["Jeux"]}],
+             "widgets":3}},
+          {"entite":"person.lou","prenom":"Lou","appareils":[]}]}"""
+
     private val categories = JSONArray("""[
         {"id":"jeux","nom":"Jeux vidéo et divertissement en ligne","apps":[{"libelle":"Jeu de construction"}],"sites":["jeux.exemple"],"coupe":true,"raison":"Fermé par le planning du soir"},
         {"id":"pub","nom":"Pub & traçage","apps":[],"sites":["pub.exemple","trace.exemple"],"maison":true},
@@ -312,26 +391,156 @@ class AntiDebordementTest : InstrumentationTestCase() {
 
     /** La taille demandée est-elle bien celle de l'écran (une rotation non appliquée faussait toute la série) ? */
     private fun orientation() {
+        // 1.90.1 : la taille courante de la fenêtre (les ressources de l'appli peuvent garder l'orientation de son
+        // démarrage) ; avant Android 11, les métriques de l'écran.
         val d = ctx.resources.displayMetrics
-        val paysage = d.widthPixels > d.heightPixels
+        // La rotation demandée par le script peut finir de s'appliquer après le lancement : jusqu'à 10 s d'attente.
+        val attendu = taille.contains("paysage") || taille.startsWith("tv-")
+        val wm = ctx.getSystemService(android.view.WindowManager::class.java)
+        if (android.os.Build.VERSION.SDK_INT >= 30) for (i in 0 until 20) {
+            val b = wm.maximumWindowMetrics.bounds
+            if ((b.width() > b.height()) == attendu) break
+            SystemClock.sleep(500)
+        }
+        val (largeur, hauteur) = if (android.os.Build.VERSION.SDK_INT >= 30)
+            (ctx.getSystemService(android.view.WindowManager::class.java)).maximumWindowMetrics.bounds.let { it.width() to it.height() }
+        else d.widthPixels to d.heightPixels
+        val paysage = largeur > hauteur
         val voulu = when {
             taille.contains("paysage") || taille.startsWith("tv-") -> true
             taille.contains("portrait") || taille.endsWith("dp") -> false
             else -> return
         }
         if (paysage != voulu) defauts += "Taille « $taille » : l'écran est en ${if (paysage) "paysage" else "portrait"} " +
-            "(${d.widthPixels}x${d.heightPixels}) — rotation non appliquée, résultats à refaire"
+            "(${largeur}x${hauteur}) — rotation non appliquée, résultats à refaire"
     }
 
     private fun voulu(nom: String) = filtre.isEmpty() || filtre.any { nom.startsWith(it) }
 
     /** 1.88.0 : la planche des widgets interactifs, à la taille des cases de l'accueil (lecture seule sur la télé). */
+    /** 1.90.1 : le widget d'écran d'accueil à liste défilante, monté comme le fait le lanceur (4 × 3 et 2 × 2). */
+    private fun plancheListe(a: Activity): View {
+        val th = Local.themeEffectif(a, Palette.LANCEUR)
+        val d = a.resources.displayMetrics.density
+        val col = android.widget.LinearLayout(a).apply { orientation = android.widget.LinearLayout.VERTICAL; setBackgroundColor(th.fond); setPadding(Ui.dp(a, 16f), Ui.dp(a, 16f), Ui.dp(a, 16f), Ui.dp(a, 16f)) }
+        val largeur = ((a.resources.displayMetrics.widthPixels - 2 * Ui.dp(a, 16f)) / d).toInt()
+        for ((wDp, hDp) in listOf(largeur to 330, (largeur / 2).coerceAtLeast(150) to 180)) {
+            val r = WidgetsHa.Reglage("liste-$wDp", listOf("sensor.liste_longue"), WidgetsHa.TUILE, 4, 3, affichage = WidgetsHa.AFF_DETAIL)
+            val (image, y) = WidgetsSysteme.imageSansDetail(a, r, wDp, hDp, exemple = false) ?: continue
+            val bloc = android.widget.LinearLayout(a).apply { orientation = android.widget.LinearLayout.VERTICAL }
+            bloc.addView(android.widget.ImageView(a).apply { setImageBitmap(android.graphics.Bitmap.createBitmap(image, 0, 0, image.width, y)); scaleType = android.widget.ImageView.ScaleType.FIT_XY },
+                android.widget.LinearLayout.LayoutParams(image.width, y))
+            val bas = android.widget.FrameLayout(a)
+            bas.addView(android.widget.ImageView(a).apply { setImageBitmap(android.graphics.Bitmap.createBitmap(image, 0, y, image.width, image.height - y)); scaleType = android.widget.ImageView.ScaleType.FIT_XY })
+            val lignes = WidgetsHa.detail(WidgetsHaStock.entite(a, "sensor.liste_longue")!!, WidgetsHa.EtatEntite("27")).first
+            // Comme le lanceur : une ListView (elle défile), chaque ligne tirée de la vraie mise en page du widget.
+            val liste = android.widget.ListView(a).apply {
+                setPadding(Ui.dp(a, 12f), 0, Ui.dp(a, 12f), Ui.dp(a, 10f)); clipToPadding = true; divider = null; dividerHeight = 0
+                adapter = object : android.widget.BaseAdapter() {
+                    override fun getCount() = lignes.size
+                    override fun getItem(i: Int) = lignes[i]
+                    override fun getItemId(i: Int) = i.toLong()
+                    override fun getView(i: Int, convertView: View?, parent: android.view.ViewGroup): View {
+                        val rv = android.widget.RemoteViews(a.packageName, R.layout.widget_ha_ligne)
+                        rv.setTextViewText(R.id.widget_ligne, "• " + WidgetsHa.texteLigne(lignes[i])); rv.setTextColor(R.id.widget_ligne, th.encre2)
+                        return rv.apply(a, parent)
+                    }
+                }
+            }
+            bas.addView(liste)
+            bloc.addView(bas, android.widget.LinearLayout.LayoutParams(image.width, image.height - y))
+            col.addView(bloc, android.widget.LinearLayout.LayoutParams(image.width, image.height).apply { bottomMargin = Ui.dp(a, 12f) })
+        }
+        // 1.90.5 (recette 412 dp paysage) : la planche (330 dp + 180 dp) défile, comme la grille de l'accueil, au lieu de passer
+        // sous le bas de l'écran.
+        return android.widget.ScrollView(a).apply { setBackgroundColor(th.fond); addView(col) }
+    }
+
+    /** 16-10 (retour d'essai) : les tailles d'accueil de la recette des widgets chauffage, de 1 × 1 à 4 × 2. */
+    private val TAILLES_CHAUFFAGE = listOf(1 to 1, 2 to 1, 3 to 1, 4 to 1, 2 to 2, 4 to 2)
+
+    /**
+     * 16-10 (l'auteur, finitions) : le thermostat avec son libellé « Consigne » activé, et la courbe de température dont
+     * l'historique ne couvre que la fin de la période (capteur qui n'envoie qu'aux changements), à chaque taille, à la
+     * taille des cases de l'accueil ; ils agissent sur la télé aussi (parité).
+     */
+    private fun plancheChauffage(a: Activity): View {
+        val th = Local.themeEffectif(a, Palette.LANCEUR)
+        val dm = a.resources.displayMetrics
+        val marge = Ui.dp(a, 16f)
+        val l = ((dm.widthPixels - 2 * marge) / Accueil.COLONNES).let { if (dm.widthPixels > dm.heightPixels) minOf(it, Ui.dp(a, 112f)) else it }
+        val h = (l * 1.14f).toInt()
+        val sv = android.widget.ScrollView(a).apply { setBackgroundColor(th.fond) }
+        val col = android.widget.LinearLayout(a).apply { orientation = android.widget.LinearLayout.VERTICAL; setPadding(marge, marge, marge, marge) }
+        sv.addView(col)
+        val fin = System.currentTimeMillis()
+        // Les 9 dernières heures seulement, une mesure toutes les 30 min, la dernière il y a 2 h.
+        val points = (0 until 14).map { k -> WidgetsHa.Point(fin - 9 * 3_600_000L + k * 1_800_000L, 19.0 + (k % 5) * 0.4) }
+        for ((w, hh) in TAILLES_CHAUFFAGE) {
+            val consigne = WidgetsHa.Reglage("ch-$w-$hh", listOf("input_number.consigne"), WidgetsHa.REGLAGE, w, hh, libelle = "Consigne")
+            col.addView(VueWidgetHa(a, th, consigne, lectureSeule = false, agir = { _, _ -> }, details = { _, _ -> }, agirAvec = { _, _, _ -> }).apply { tag = "essai_consigne_${w}x$hh" },
+                android.widget.LinearLayout.LayoutParams(l * w, h * hh).apply { bottomMargin = Ui.dp(a, 10f) })
+            val courbe = WidgetsHa.Reglage("co-$w-$hh", listOf("input_number.consigne"), WidgetsHa.GRAPHIQUE, w, hh, libelle = "Température ambiante")
+            col.addView(VueWidgetHa(a, th, courbe, lectureSeule = false, historiqueInitial = WidgetsHa.Historique.Nombres("°C", points)).apply { tag = "essai_courbe_${w}x$hh" },
+                android.widget.LinearLayout.LayoutParams(l * w, h * hh).apply { bottomMargin = Ui.dp(a, 10f) })
+        }
+        return sv
+    }
+
+    /** Les vérifications de la planche chauffage : le libellé « Consigne » se voit en entier, la courbe va d'un bord à l'autre. */
+    private fun verifierChauffage(a: Activity) {
+        val th = Local.themeEffectif(a, Palette.LANCEUR)
+        fun vues(v: View, l: ArrayList<View> = ArrayList()): ArrayList<View> { l.add(v); if (v is android.view.ViewGroup) for (i in 0 until v.childCount) vues(v.getChildAt(i), l); return l }
+        for ((w, hh) in TAILLES_CHAUFFAGE) {
+            val t = a.window.decorView.findViewWithTag<View>("essai_consigne_${w}x$hh") ?: continue
+            val lib = vues(t).filterIsInstance<android.widget.TextView>().firstOrNull { it.text.toString() == "Consigne" }
+            if (lib == null || lib.width <= 0 || lib.visibility != View.VISIBLE) defauts += "chauffage ${w}×$hh : le libellé « Consigne » ne s'affiche pas"
+            else if ((0 until (lib.layout?.lineCount ?: 0)).any { lib.layout!!.getEllipsisCount(it) > 0 }) defauts += "chauffage ${w}×$hh : « Consigne » coupé"
+            // 16-10 (recette 360 dp) : les boutons − / + entiers (ils sortaient par le bas en 2 × 1) et ronds (« + » écrasé en 1 × 1).
+            for (b in listOf("widget_moins", "widget_plus")) t.findViewWithTag<View>(b)?.let { bt ->
+                // Dans chacun de ses parents jusqu'au widget (marges intérieures comprises) : sinon il est rogné.
+                var v: View = bt; var x = 0; var y = 0; var coupe = false
+                while (v !== t) {
+                    x += v.left; y += v.top
+                    val p = v.parent as? android.view.ViewGroup ?: break
+                    if (x < p.paddingLeft - 1 || y < p.paddingTop - 1 || x + bt.width > p.width - p.paddingRight + 1 || y + bt.height > p.height - p.paddingBottom + 1) coupe = true
+                    v = p
+                }
+                if (coupe) defauts += "chauffage ${w}×$hh : bouton $b coupé"
+                if (Math.abs(bt.width - bt.height) > 2) defauts += "chauffage ${w}×$hh : bouton $b déformé (${bt.width}×${bt.height} px)"
+            }
+            val c = a.window.decorView.findViewWithTag<View>("essai_courbe_${w}x$hh") ?: continue
+            // Le titre de la courbe : en entier (rapetissé s'il le faut), jamais « … » pour « Température ambiante » en 2 × 1 et plus.
+            if (w >= 2) vues(c).filterIsInstance<android.widget.TextView>().firstOrNull { it.text.toString() == "Température ambiante" }?.let { tt ->
+                if ((0 until (tt.layout?.lineCount ?: 0)).any { tt.layout!!.getEllipsisCount(it) > 0 }) defauts += "courbe ${w}×$hh : « Température ambiante » coupé" }
+            val dessin = vues(c).firstOrNull { it.javaClass.simpleName == "Courbe" }
+            if (dessin == null) { defauts += "courbe ${w}×$hh : pas de courbe"; continue }
+            val parent = dessin.parent as View
+            val utile = parent.width - parent.paddingLeft - parent.paddingRight
+            if (dessin.width < utile * 0.95f) defauts += "courbe ${w}×$hh : ${dessin.width} px sur $utile de large"
+            if (dessin.width <= 0 || dessin.height <= 0) continue
+            val img = android.graphics.Bitmap.createBitmap(dessin.width, dessin.height, android.graphics.Bitmap.Config.ARGB_8888)
+            dessin.draw(android.graphics.Canvas(img))
+            fun encre(x: Int) = (0 until img.height).any { y -> val p = img.getPixel(x, y); android.graphics.Color.alpha(p) > 200 &&
+                Math.abs(android.graphics.Color.red(p) - android.graphics.Color.red(th.or)) < 30 && Math.abs(android.graphics.Color.green(p) - android.graphics.Color.green(th.or)) < 30 &&
+                Math.abs(android.graphics.Color.blue(p) - android.graphics.Color.blue(th.or)) < 30 }
+            val bord = (img.width * 0.04f).toInt().coerceAtLeast(2)
+            if (!(0 until bord).any { encre(it) }) defauts += "courbe ${w}×$hh : rien de tracé au bord gauche"
+            if (!((img.width - bord) until img.width).any { encre(it) }) defauts += "courbe ${w}×$hh : rien de tracé au bord droit"
+        }
+    }
+
     private fun plancheWidgets(a: Activity): View {
         val tele = ReglagesTvActivity.estTele(a)
         val th = Local.themeEffectif(a, Palette.LANCEUR)
         val dm = a.resources.displayMetrics
         val marge = Ui.dp(a, 16f)
-        val l = (dm.widthPixels - 2 * marge) / Accueil.COLONNES
+        // 1.90.1 : comme l'accueil — la largeur sans les barres du système sur les côtés (Android 15+), et en paysage
+        // des cases à leur taille utile (112 dp au plus) plutôt qu'un quart de la largeur.
+        val cotes = if (android.os.Build.VERSION.SDK_INT >= 35) a.window.decorView.rootWindowInsets?.let { Marges.cotesSysteme(it) } else null
+        val largeur = dm.widthPixels - (cotes?.first ?: 0) - (cotes?.second ?: 0)
+        val paysage = largeur > dm.heightPixels
+        val l = ((largeur - 2 * marge) / Accueil.COLONNES).let { if (paysage) minOf(it, Ui.dp(a, 112f)) else it }
         val h = (l * 1.14f).toInt()
         val sv = android.widget.ScrollView(a).apply { setBackgroundColor(th.fond) }
         val col = android.widget.LinearLayout(a).apply { orientation = android.widget.LinearLayout.VERTICAL; setPadding(marge, marge, marge, marge) }
@@ -342,8 +551,11 @@ class AntiDebordementTest : InstrumentationTestCase() {
             WidgetsHa.Reglage("p3", listOf("input_number.consigne"), WidgetsHa.REGLAGE, 2, 1),
             WidgetsHa.Reglage("p4", listOf("select.mode"), WidgetsHa.REGLAGE, 2, 1),
             WidgetsHa.Reglage("p5", listOf("script.nuit"), WidgetsHa.BOUTON, 1, 1),
+            // 1.90.1 : une longue liste — autant de lignes que la place réelle en permet, puis « +N ».
+            WidgetsHa.Reglage("p6", listOf("sensor.liste_longue"), WidgetsHa.TUILE, 2, 2, affichage = WidgetsHa.AFF_DETAIL),
+            WidgetsHa.Reglage("p7", listOf("sensor.liste_longue"), WidgetsHa.TUILE, 4, 3, affichage = WidgetsHa.AFF_VALEUR_DETAIL),
         ).forEach { r ->
-            val v = VueWidgetHa(a, th, r, lectureSeule = tele, agir = { _, _ -> }, details = { _, _ -> }, agirAvec = { _, _, _ -> })
+            val v = VueWidgetHa(a, th, r, lectureSeule = false, agir = { _, _ -> }, details = { _, _ -> }, agirAvec = { _, _, _ -> })  // 16-10 : la télé agit aussi
             col.addView(v, android.widget.LinearLayout.LayoutParams(l * r.w, h * r.h).apply { bottomMargin = Ui.dp(a, 10f) })
         }
         return sv
@@ -376,9 +588,89 @@ class AntiDebordementTest : InstrumentationTestCase() {
         // --- Relié : accueil (TV ou téléphone), tiroir, écran principal Décideur et Demandeur.
         relier()
         Etat.parent = false
+        // 1.90.1 : une grille remplie (une douzaine d'applis), pour que l'essai de chevauchement ait de quoi mordre ;
+        // la disposition de l'appareil est remise ensuite.
+        val dispositionAvant = if (estTele) null else Accueil.disposition(ctx).map { Accueil.Place(it.cle, it.col, it.row, it.w, it.h) }
+        if (!estTele) Accueil.applicationsInstallees(ctx).map { it.activityInfo.packageName }.distinct().take(12)
+            .forEach { pkg -> if (Accueil.disposition(ctx).none { it.cle == pkg }) Accueil.ajouterALaGrille(ctx, pkg) }
+        // 16-10 : la disposition par défaut, posée ici — une passe interrompue laissait la liste alphabétique (téléphone) ou
+        // « Vertical » sans fond (télé) sur l'émulateur, et l'accueil par défaut n'était plus jamais vérifié.
+        if (estTele) { DispositionAccueil.poserDisposTele(ctx, DispositionAccueil.TELE_RANGEES); DispositionAccueil.poserFondApplis(ctx, true); DispositionAccueil.poserCadreWidgets(ctx, true) }
+        else { Accueil.poserMode(ctx, Accueil.MODE_DEFILEMENT); DispositionAccueil.poserPositionZone(ctx, DispositionAccueil.ZONE_DESSUS); DispositionAccueil.poserCoteIndex(ctx, DispositionAccueil.INDEX_DROITE) }
         ecran(if (estTele) "accueil-tv" else "accueil-telephone", Intent(ctx, LanceurActivity::class.java))
+        // 1.90.5 (retour d'essai) : la zone du haut avec le remerciement et l'œil joyeux, puis les réactions de l'œil (info, erreur :
+        // l'œil et sa bulle de texte, posés dans un coin libre, hors des boutons et des textes).
+        val zoneAvant = ZoneHaut.widgets(ctx)
+        ZoneHaut.poser(ctx, listOf(ZoneHaut.REMERCIEMENT))
+        ecran("accueil-remerciement", Intent(ctx, LanceurActivity::class.java))
+        // 1.91.x (retour d'essai) : l'arrière-plan de l'accueil — une photo très claire (voile), le fond animé, un dégradé.
+        val fondAvant = FondAccueil.sorte(ctx)
+        FondAccueil.garderPhoto(ctx, FondAccueil.imageClaire(540, 960), 960)
+        FondAccueil.poser(ctx, FondAccueil.Sorte.PHOTO); ecran("accueil-fond-photo", Intent(ctx, LanceurActivity::class.java))
+        FondAccueil.poser(ctx, FondAccueil.Sorte.ANIME); ecran("accueil-fond-anime", Intent(ctx, LanceurActivity::class.java))
+        FondAccueil.poser(ctx, FondAccueil.Sorte.DEGRADE, 1); ecran("accueil-fond-degrade", Intent(ctx, LanceurActivity::class.java))
+        FondAccueil.poser(ctx, fondAvant)
+        if (!estTele) { ZoneHaut.poser(ctx, listOf(ZoneHaut.HORLOGE, ZoneHaut.METEO)); ecran("accueil-horloge-meteo", Intent(ctx, LanceurActivity::class.java)) }
+        ecran("reaction-info", Intent(ctx, LanceurActivity::class.java), preparer = { a ->
+            Ui.toast(a, ctx.getString(R.string.reglagestv_seulement_point, "Home Assistant"))
+        })
+        ecran("reaction-erreur", Intent(ctx, LanceurActivity::class.java), preparer = { a ->
+            Ui.toast(a, ctx.getString(R.string.tableauediteur_injoignable), genre = OeilModele.Genre.ERREUR)
+        })
+        // Lanceur (l'auteur, 13 octobre) : liste alphabétique (index à droite, puis à gauche, saut à « M »), icônes en haut
+        // quand la zone du haut est vide ou placée en dessous ; télé « Vertical », colonne à gauche, au centre, à droite,
+        // avec des zones de widgets activées. Les préférences du lanceur sont remises ensuite.
+        val lanceurAvant = ctx.getSharedPreferences("lanceur", android.content.Context.MODE_PRIVATE).all.toMap()
+        if (!estTele) {
+            ZoneHaut.poser(ctx, emptyList())
+            ecran("accueil-zone-vide", Intent(ctx, LanceurActivity::class.java))
+            ZoneHaut.poser(ctx, listOf(ZoneHaut.HORLOGE, ZoneHaut.METEO))
+            DispositionAccueil.poserPositionZone(ctx, DispositionAccueil.ZONE_DESSOUS)
+            ecran("accueil-zone-dessous", Intent(ctx, LanceurActivity::class.java))
+            DispositionAccueil.poserPositionZone(ctx, DispositionAccueil.ZONE_DESSUS)
+            Accueil.poserMode(ctx, Accueil.MODE_ALPHA)
+            ecran("accueil-alpha", Intent(ctx, LanceurActivity::class.java))
+            ecran("accueil-alpha-saut", Intent(ctx, LanceurActivity::class.java), preparer = { a ->
+                (a.window.decorView.findViewWithTag<View>("index_alpha") as? IndexAlpha)?.aller('M')
+            })
+            ZoneHaut.poser(ctx, emptyList())
+            DispositionAccueil.poserCoteIndex(ctx, DispositionAccueil.INDEX_GAUCHE)
+            ecran("accueil-alpha-gaucher", Intent(ctx, LanceurActivity::class.java))
+        } else {
+            DispositionAccueil.poserDisposTele(ctx, DispositionAccueil.TELE_VERTICAL)
+            DispositionAccueil.poserWidgetsZone(ctx, DispositionAccueil.ZONE_G, listOf(ZoneHaut.HORLOGE))
+            DispositionAccueil.poserWidgetsZone(ctx, DispositionAccueil.ZONE_D, listOf(ZoneHaut.HORLOGE, ZoneHaut.METEO))
+            DispositionAccueil.poserZoneActivee(ctx, DispositionAccueil.ZONE_G, true)
+            DispositionAccueil.poserZoneActivee(ctx, DispositionAccueil.ZONE_D, true)
+            for (c in listOf(DispositionAccueil.COLONNE_GAUCHE, DispositionAccueil.COLONNE_CENTRE, DispositionAccueil.COLONNE_DROITE)) {
+                DispositionAccueil.poserColonne(ctx, c)
+                ecran("accueil-tv-vertical-$c", Intent(ctx, LanceurActivity::class.java))
+            }
+            // 16-10 (l'auteur, télé du salon) : rangées de widgets en haut et en bas, applis sans fond, widgets sans cadre.
+            DispositionAccueil.poserColonne(ctx, DispositionAccueil.COLONNE_CENTRE)
+            DispositionAccueil.poserWidgetsZone(ctx, DispositionAccueil.ZONE_H, listOf(ZoneHaut.METEO, ZoneHaut.REMERCIEMENT))
+            DispositionAccueil.poserWidgetsZone(ctx, DispositionAccueil.ZONE_B, listOf(ZoneHaut.HORLOGE))
+            DispositionAccueil.poserZoneActivee(ctx, DispositionAccueil.ZONE_H, true)
+            DispositionAccueil.poserZoneActivee(ctx, DispositionAccueil.ZONE_B, true)
+            ecran("accueil-tv-vertical-rangees", Intent(ctx, LanceurActivity::class.java))
+            DispositionAccueil.poserFondApplis(ctx, false)
+            DispositionAccueil.poserCadreWidgets(ctx, false)
+            ecran("accueil-tv-vertical-sans-fond-ni-cadre", Intent(ctx, LanceurActivity::class.java))
+            // Le clavier de Vision à la place du clavier Android (fenêtre de saisie d'un champ).
+            ecran("clavier-tele", Intent(ctx, LanceurActivity::class.java), boite = { a -> ClavierTele.saisir(Ui.champ(a, a.getString(R.string.zonehaut_merci), "Merci")); null })
+        }
+        ctx.getSharedPreferences("lanceur", android.content.Context.MODE_PRIVATE).edit().apply {
+            clear()
+            for ((k, v) in lanceurAvant) when (v) {
+                is String -> putString(k, v); is Boolean -> putBoolean(k, v); is Int -> putInt(k, v)
+                is Long -> putLong(k, v); is Float -> putFloat(k, v)
+                is Set<*> -> putStringSet(k, v.filterIsInstance<String>().toSet())
+            }
+        }.commit()
+        ZoneHaut.poser(ctx, zoneAvant)
         ecran("accueil-tiroir", Intent(ctx, LanceurActivity::class.java), preparer = { a -> appeler(a, "tiroirApplis") })
         ecran("accueil-demande-temps", Intent(ctx, LanceurActivity::class.java), boite = { a -> appeler(a, "demanderTemps"); null })
+        if (dispositionAvant != null) Accueil.ecrireDisposition(ctx, dispositionAvant)
         for (decideur in listOf(true, false)) {
             Etat.parent = decideur
             ecran("principal-${if (decideur) "decideur" else "demandeur"}", Intent(ctx, SetupActivity::class.java), defiler = true, preparer = { a ->
@@ -387,23 +679,112 @@ class AntiDebordementTest : InstrumentationTestCase() {
         }
         Etat.parent = true
 
+        // --- Refonte lot 5 : les espaces de l'écran principal (barre en bas, rail, ou rail de la télé), avec un relevé
+        // de gestion d'essai (noms longs : personnes, appareils, demandes) ; Réglages : « Avancé » et l'espace gestion dépliés.
+        val resumeAvant = SetupActivity.resumeGestion
+        SetupActivity.resumeGestion = JSONObject(FICHE_ESSAI).put("demandes", demandes).apply { getJSONArray("appareils").put(appareil) }
+        SetupActivity.resumeA = System.currentTimeMillis() + 3600_000L
+        for (e in listOf(Espaces.AUJOURDHUI, Espaces.PERSONNES, Espaces.APPAREILS, Espaces.REGLAGES)) {
+            ecran("espace-$e", Intent(ctx, SetupActivity::class.java).putExtra(SetupActivity.EXTRA_ESPACE, e), defiler = true, preparer = { a ->
+                champ(a, "espace", e); champ(a, "avanceDeplie", true); champ(a, "autorisationsDepliees", true); champ(a, "gestionDepliee", true)
+                appeler(a, "dessiner")
+            })
+        }
+        Etat.parent = false
+        ecran("espace-${Espaces.MOI}", Intent(ctx, SetupActivity::class.java).putExtra(SetupActivity.EXTRA_ESPACE, Espaces.MOI), defiler = true, preparer = { a ->
+            champ(a, "espace", Espaces.MOI); champ(a, "tempsDeplie", true); appeler(a, "dessiner")
+        })
+        Etat.parent = true
+        SetupActivity.resumeGestion = resumeAvant
+
         // --- Gestion (ParentsActivity), Catégories, Autorisations, GestionAppareil.
         ecran("gestion", Intent(ctx, ParentsActivity::class.java), defiler = true, preparer = { a ->
             val conc = JSONObject(appareil.toString()).put("id", "essai_conc").put("nom", "Ordinateur portable de Maximilian-Alexander")
                 .put("concentration", JSONObject().put("fin", System.currentTimeMillis() / 1000 + 5400).put("apps", JSONArray().put("org.exemple")).put("proposees", JSONArray()))
             champ(a, "appareils", JSONArray().put(appareil).put(conc)); champ(a, "demandes", demandes); champ(a, "categories", categories)
+            // Refonte UX, lot 2 : les lots « À décider » (textes longs, comme les sert HA en allemand).
+            champ(a, "lots", JSONArray()
+                .put(JSONObject().put("genre", "appairage").put("nombre", 12).put("libelle", "12 Geräte warten auf Bestätigung durch einen Entscheider").put("ou", "/vision-appairage"))
+                .put(JSONObject().put("genre", "logiciels").put("nombre", 3).put("libelle", "3 Programme zu bestätigen").put("ou", "/lovelace-vision/logiciels")))
             champ(a, "deplies", hashSetOf("p:autres", "essai_tablette:plages")); champ(a, "erreur", ""); appeler(a, "dessiner")
         })
+        // HA 2.5.0 (autorisations_v2) : les réponses 15 min / 1 h / Refuser, puis Exception et Toujours disponible.
+        ecran("gestion-trois-modes", Intent(ctx, ParentsActivity::class.java), defiler = true, preparer = { a ->
+            champ(a, "appareils", JSONArray().put(appareil)); champ(a, "demandes", demandes); champ(a, "categories", categories)
+            champ(a, "troisModes", true); champ(a, "erreur", ""); appeler(a, "dessiner")
+        })
+        // HA 2.5.1 : une demande groupée (un logiciel et ses sites bloqués), éléments à cocher.
+        ecran("gestion-demande-groupee", Intent(ctx, ParentsActivity::class.java), defiler = true, preparer = { a ->
+            champ(a, "appareils", JSONArray().put(appareil)); champ(a, "categories", categories)
+            champ(a, "demandes", JSONArray().put(JSONObject().put("pc", "essai_tablette").put("id", "d9").put("prenom", "Maximilian-Alexander")
+                .put("genre", "apps").put("cle", "com.roblox.client").put("libelle", "Roblox : jeux de construction en ligne")
+                .put("sites", JSONArray().put("rbxcdn.com").put("roblox-contenus-telechargeables-de-la-communaute.com").put("rbxinfra.com"))))
+            champ(a, "troisModes", true); champ(a, "elements", true); champ(a, "erreur", ""); appeler(a, "dessiner")
+        })
+        // Lot 2 (A8) : « Tout fermer », la limite dite avant le choix de la durée.
+        ecran("gestion-tout-fermer", Intent(ctx, ParentsActivity::class.java), boite = { a -> appeler(a, "poserPauseGenerale"); null })
         CategoriesActivity.fiche = appareil; CategoriesActivity.cats = categories
         ecran("categories", Intent(ctx, CategoriesActivity::class.java), defiler = true)
+        // HA 2.5.1 : une catégorie élément par élément (accordéon déplié, sites en attente, sites sans logiciel), la
+        // recherche, le choix du mode et les blocages récents ; puis l'écran « Fermés » du Demandeur (demande groupée).
+        CategoriesActivity.elements = true
+        ecran("categories-elements", Intent(ctx, CategoriesActivity::class.java), defiler = true)
+        CategoriesActivity.elements = false
+        CategorieActivity.pc = "essai_tablette"; CategorieActivity.prenom = "Maximilian-Alexander"; CategorieActivity.horsLigne = true
+        CategorieActivity.etiquette = "Réseaux sociaux"
+        ecran("categorie-elements", Intent(ctx, CategorieActivity::class.java), defiler = true, preparer = { a ->
+            champ(a, "detail", JSONObject(DETAIL_CATEGORIE)); champ(a, "erreur", "")
+            (lire(a, "deplies") as java.util.HashSet<String>).add("com.discord.application.extraordinaire")
+            appeler(a, "dessiner")
+        })
+        ecran("categorie-recherche", Intent(ctx, CategorieActivity::class.java), defiler = true, preparer = { a ->
+            champ(a, "recherche", "discord"); champ(a, "resultats", JSONArray(RESULTATS_RECHERCHE)); champ(a, "erreur", "")
+            appeler(a, "dessiner")
+        })
+        ecran("categorie-choix", Intent(ctx, CategorieActivity::class.java), preparer = { a ->
+            champ(a, "detail", JSONObject(DETAIL_CATEGORIE)); champ(a, "erreur", ""); appeler(a, "dessiner")
+        }, boite = { a ->
+            val m = a.javaClass.declaredMethods.first { it.name == "choixMode" }
+            m.isAccessible = true
+            m.invoke(a, JSONObject().put("nom", "discordcdn-medias-utilisateurs.com").put("mode", "exception"), "sites", "discordcdn-medias-utilisateurs.com")
+            null
+        })
+        CategorieActivity.etiquette = ""
+        ecran("categorie-recents", Intent(ctx, CategorieActivity::class.java), defiler = true, preparer = { a ->
+            champ(a, "recents", JSONArray(RECENTS)); champ(a, "erreur", ""); appeler(a, "dessiner")
+        })
+        CategorieActivity.horsLigne = false
+        Acces.recents = JSONArray(RECENTS)
+        Acces.groupes = JSONArray("""[{"logiciel":"com.roblox.client","libelle":"Roblox : jeux de construction en ligne","ouvert":false,
+            "sites":["rbxcdn.com","rbxinfra.com","roblox-contenus-telechargeables-de-la-communaute.com"]}]""")
+        ecran("fermes-recents", Intent(ctx, FermesActivity::class.java), defiler = true)
+        Acces.recents = JSONArray(); Acces.groupes = JSONArray()
         ExceptionsActivity.fiche = appareil; ExceptionsActivity.cats = categories
         ecran("autorisations", Intent(ctx, ExceptionsActivity::class.java), defiler = true)
+        // Refonte lot 3 : la fiche d'une personne (réponse d'essai : le faux HA ne répond que {"ok":true} à /parent).
+        FichePersonneActivity.donneesEssai = FICHE_ESSAI
+        try {
+            ecran("fiche-personne", FichePersonneActivity.intention(ctx, "person.maximilian",
+                listOf("person.maximilian" to "Maximilian-Alexander von Hohenzollern", "person.lou" to "Lou")), defiler = true)
+        } finally { FichePersonneActivity.donneesEssai = null }
         ecran("gestion-appareil-menu", Intent(ctx, SetupActivity::class.java), boite = { a -> GestionAppareil.menu(a, appareil, JSONArray()) {}; null })
         ecran("gestion-appareil-plage", Intent(ctx, SetupActivity::class.java), boite = { a -> GestionAppareil.nouvellePlage(a, "essai_tablette") {}; null })
 
+        // --- Niveau sonore (module coupé par défaut) : allumé le temps de ces écrans — la tuile de l'appareil mesuré
+        // (téléphone), l'explication de vie privée, puis la ligne des Paramètres de la télé (reglages-tv ci-dessous).
+        val modulesAvantSon = Config(ctx).modules
+        Modules.memoriser(ctx, JSONObject().put("modules", JSONArray((Modules.effectifs(Modules.actifs(ctx)) + Modules.SON).toList())))
+        NiveauSonore.releve(ctx, JSONObject().put("actif", true).put("seuil_db", 75).put("sensibilite_s", 5).put("plages", JSONArray())
+            .put("calibration_db", 0).put("alertes", 0).put("alertes_avant_coupure", 3))
+        if (!estTele) {
+            Etat.parent = false
+            ecran("niveau-sonore-demandeur", Intent(ctx, SetupActivity::class.java), defiler = true)
+            Etat.parent = true
+        }
+        ecran("niveau-sonore-vie-privee", Intent(ctx, SetupActivity::class.java), boite = { a -> NiveauSonore.ouvrir(a); null })
         // --- Réglages TV et chacune de ses sections ; Couleurs.
         if (voulu("reglages-tv")) {
-            val a = ouvrir(Intent(ctx, ReglagesTvActivity::class.java))
+            val a = ouvrir(EcransReglages.reglages(ctx))
             verifierEtCapturer(a, "reglages-tv", null, defiler = true)
             val rail = try { lire(a, "rail") as? ViewGroup } catch (_: Throwable) { null }
             val sections = ArrayList<String>()
@@ -426,6 +807,10 @@ class AntiDebordementTest : InstrumentationTestCase() {
             }
             fermer(a)
         }
+        NiveauSonore.releve(ctx, JSONObject().put("actif", false))
+        Config(ctx).modules = modulesAvantSon
+        // Rien de lu avant (null : tout actif) : pas de champ « modules », jamais une liste vide (tout coupé).
+        Modules.memoriser(ctx, if (modulesAvantSon == null) JSONObject() else JSONObject().put("modules", JSONArray(modulesAvantSon.split(',').filter { it.isNotEmpty() })))
         ecran("couleurs", Intent(ctx, CouleursActivity::class.java), defiler = true)
         // Client Sendspin natif : l'appairage avec Music Assistant (PIN à l'écran ; autorisation à la télécommande).
         ecran("appairage-pin", Intent(ctx, AppairageSendspinActivity::class.java).putExtra("pin", "483920"))
@@ -435,6 +820,9 @@ class AntiDebordementTest : InstrumentationTestCase() {
         Etat.verrouille = true; Etat.message = "Fermé par le planning du soir : l'écran se rallume demain à sept heures"
         Etat.prochainChangement = System.currentTimeMillis() + 10 * 3600_000L
         ecran("blocage-appareil", Intent(ctx, BlockActivity::class.java).putExtra("raison", Etat.message).putExtra("pkg", ""))
+        // Lot 6 (APP-33) : le relevé ne dit rien, la raison passée à l'écran est gardée (« Fermé par : …, jusqu'à … »).
+        Etat.message = ""
+        ecran("blocage-raison", Intent(ctx, BlockActivity::class.java).putExtra("raison", "Fermé par le planning du soir : l'écran se rallume demain à sept heures").putExtra("pkg", ""))
         Etat.verrouille = false; Etat.prochainChangement = 0
         val pkg = "com.exemple.application.de.dessin.extraordinaire"
         Etat.apps = setOf(pkg); Etat.raisons = mapOf(pkg to "plage|Fermée en dehors des plages de l'agenda du soir")
@@ -472,12 +860,56 @@ class AntiDebordementTest : InstrumentationTestCase() {
         WidgetsHaStock.garderCatalogue(ctx, CATALOGUE_WIDGETS)
         if (WidgetsHaStock.catalogue(ctx).size < 4) defauts += "widgets : catalogue d'essai illisible (JSON)"
         ecran("widgets-ha", Intent(ctx, EditeurWidgetHaActivity::class.java), defiler = true, preparer = { a -> a.setContentView(plancheWidgets(a)) })
+        // 16-10 (l'auteur, finitions) : thermostat « Consigne » et courbe de température, de 1 × 1 à 4 × 2.
+        ecran("widgets-chauffage", Intent(ctx, EditeurWidgetHaActivity::class.java), defiler = true, preparer = { a -> a.setContentView(plancheChauffage(a)) },
+            boite = { a -> verifierChauffage(a); null })
+        // 1.90.1 : le widget d'écran d'accueil dont le détail défile (haut de tuile en image, lignes en liste).
+        // (pas sur la télé : Android TV n'a pas de widgets d'écran d'accueil)
+        if (!ReglagesTvActivity.estTele(ctx))
+            ecran("widget-accueil-liste", Intent(ctx, EditeurWidgetHaActivity::class.java), preparer = { a -> a.setContentView(plancheListe(a)) })
         WidgetsHaStock.ecrire(ctx, WidgetsHa.Reglage("essai-detail", listOf("todo.devoirs"), WidgetsHa.TUILE, 2, 2, affichage = WidgetsHa.AFF_VALEUR_DETAIL))
         ecran("editeur-widget", Intent(ctx, EditeurWidgetHaActivity::class.java).putExtra(EditeurWidgetHaActivity.EXTRA_ID, "essai-detail"), attente = 2500, defiler = true)
         // 1.90.0 : « Au toucher » › tableau de bord, avec un chemin long et la liste des vues.
         WidgetsHaStock.ecrire(ctx, WidgetsHa.Reglage("essai-vue", listOf("todo.devoirs"), WidgetsHa.TUILE, 2, 2, toucher = WidgetsHa.TOUCHER_VUE,
             chemin = "/tableau-maison/energie-et-chauffage-du-sejour"))
         ecran("editeur-widget-toucher", Intent(ctx, EditeurWidgetHaActivity::class.java).putExtra(EditeurWidgetHaActivity.EXTRA_ID, "essai-vue"), attente = 2500, defiler = true)
+        // Réveil (lots 4 et 5) : l'écran qui sonne, la liste « Réveils » (Décideur) et l'édition, noms longs.
+        ecran("reveil-sonnerie", Intent(ctx, ReveilActivity::class.java).putExtra("essai", true)
+            .putExtra("nom", "Schulwecker für $LOU (Montag bis Freitag)").putExtra("rep_min", 9).putExtra("repeter", true))
+        ReveilsActivity.essai = reveilsEssai()
+        try {
+            ecran("reveils", Intent(ctx, ReveilsActivity::class.java), defiler = true)
+            ReveilsActivity.forcerAlertes = true
+            try { ecran("reveils-alertes", Intent(ctx, ReveilsActivity::class.java), defiler = true) } finally { ReveilsActivity.forcerAlertes = false }
+            ecran("reveil-edition", Intent(ctx, ReveilsActivity::class.java), defiler = true, preparer = { a ->
+                champ(a, "edition", reveilsEssai().getJSONArray("reveils").getJSONObject(0)); appeler(a, "dessiner")
+            })
+            ecran("reveil-nouveau", Intent(ctx, ReveilsActivity::class.java), defiler = true, preparer = { a ->
+                champ(a, "edition", JSONObject()); appeler(a, "dessiner")
+            })
+        } finally { ReveilsActivity.essai = null }
+    }
+
+    /** La réponse « liste » d'essai de /api/pc_parental/reveils : deux réveils aux noms longs, droits de Décideur. */
+    private fun reveilsEssai(): JSONObject {
+        val peut = JSONObject().put("voir", true).put("modifier", true).put("activer", true).put("desactiver", true)
+            .put("sauter", true).put("reprendre", true).put("supprimer", true).put("sonner", true).put("reporter", true).put("arreter", true)
+        val appareils = JSONArray().put(JSONObject().put("id", "e1").put("nom", "TELEFON-MAXIMILIAN-KINDERZIMMER")).put(JSONObject().put("id", "t1").put("nom", TELE))
+        return JSONObject().put("ok", true).put("moi", "person.anne")
+            .put("droits", JSONObject().put("gerer", true).put("propres", false))
+            .put("noms", JSONObject().put("person.lou", LOU).put("person.anne", "Anne-Charlotte de Montmorency-Laval"))
+            .put("demandeurs", JSONArray().put(JSONObject().put("personne", "person.lou").put("appareils", appareils))
+                .put(JSONObject().put("personne", "person.anne").put("appareils", JSONArray())))
+            .put("reveils", JSONArray()
+                .put(JSONObject().put("id", "rv1").put("nom", "Schulwecker mit Radio für die ganze Woche").put("demandeur", "person.lou").put("actif", true)
+                    .put("prochain", "2026-10-12T06:55:00+02:00").put("sautees", JSONArray()).put("automatisation", true).put("impose", true)
+                    .put("declenchement", JSONObject().put("type", "hebdo").put("heure", "06:55").put("jours", JSONArray(listOf(0, 1, 2, 3, 4))))
+                    .put("source", JSONObject().put("type", "url").put("uri", "https://radio.example/ein-sehr-langer-stream-name.mp3"))
+                    .put("appareils_choisis", JSONArray().put("e1")).put("peut", peut))
+                .put(JSONObject().put("id", "rv2").put("nom", "Pronote").put("demandeur", "person.lou").put("actif", false)
+                    .put("prochain", JSONObject.NULL).put("sautees", JSONArray().put("2026-10-13")).put("automatisation", false)
+                    .put("declenchement", JSONObject().put("type", "entite")).put("source", JSONObject().put("type", "sonnerie"))
+                    .put("appareils_choisis", JSONArray()).put("peut", peut)))
     }
 
     // ------------------------------------------------------------------ Un écran
@@ -491,6 +923,7 @@ class AntiDebordementTest : InstrumentationTestCase() {
 
     private fun fermer(a: Activity) {
         instrumentation.runOnMainSync { a.finish() }
+        racinesCapture = emptyList()   // ne garde pas l'écran fermé (et ses images) en mémoire jusqu'au suivant
         instrumentation.waitForIdleSync(); SystemClock.sleep(400)
     }
 
@@ -514,7 +947,7 @@ class AntiDebordementTest : InstrumentationTestCase() {
             val m = a.resources.displayMetrics
             if ((m.widthPixels > m.heightPixels) != voulu) defauts += "$nom : capture dans le mauvais sens (${m.widthPixels}x${m.heightPixels}) — rotation non appliquée"
         }
-        instrumentation.runOnMainSync { racines(a, d).forEach { verifierFenetre(it, nom) } }
+        instrumentation.runOnMainSync { racines(a, d).forEach { verifierFenetre(it, nom); verifierChevauchements(it, nom) }; racinesCapture = racines(a, d) }
         capturer("$nom")
         if (!defiler) return
         for (page in 2..6) {
@@ -549,13 +982,46 @@ class AntiDebordementTest : InstrumentationTestCase() {
         return null
     }
 
+    /** Les fenêtres de l'écran en cours (pour le repli de [capturer]). */
+    private var racinesCapture: List<View> = emptyList()
+
+    /** Une image toute noire (l'émulateur ne compose plus l'affichage, par exemple quand l'écran du PC dort). */
+    private fun noire(b: Bitmap): Boolean {
+        for (y in 0 until b.height step maxOf(1, b.height / 24)) for (x in 0 until b.width step maxOf(1, b.width / 24))
+            if (b.getPixel(x, y) and 0x00FFFFFF != 0) return false
+        return true
+    }
+
+    /** 1.90.5 : repli — l'appli dessine elle-même ses fenêtres (rendu logiciel), à leur place sur l'écran. */
+    private fun dessinerFenetres(): Bitmap? {
+        val m = ctx.resources.displayMetrics
+        var b: Bitmap? = null
+        instrumentation.runOnMainSync {
+            if (racinesCapture.isEmpty()) return@runOnMainSync
+            val img = Bitmap.createBitmap(m.widthPixels, m.heightPixels, Bitmap.Config.ARGB_8888)
+            val c = android.graphics.Canvas(img)
+            c.drawColor(android.graphics.Color.BLACK)
+            for (r in racinesCapture) {
+                val pos = IntArray(2); r.getLocationOnScreen(pos)
+                c.save(); c.translate(pos[0].toFloat(), pos[1].toFloat()); r.draw(c); c.restore()
+            }
+            b = img
+        }
+        return b
+    }
+
     private fun capturer(nom: String) {
-        val b: Bitmap = instrumentation.uiAutomation.takeScreenshot() ?: return
+        var b: Bitmap = instrumentation.uiAutomation.takeScreenshot() ?: return
+        if (noire(b)) b = dessinerFenetres() ?: b
         // Au plus 1280 px au plus grand côté : lisible, et léger pour un disque presque plein.
         val k = 1280f / maxOf(b.width, b.height)
         val img = if (k < 1f) Bitmap.createScaledBitmap(b, (b.width * k).toInt(), (b.height * k).toInt(), true) else b
         File(dossier, "recette-lot1-android-$nom-$taille-$police.png".replace(' ', '_').replace("(", "").replace(")", ""))
             .outputStream().use { img.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        // 16-10 : en 1080p, une capture pèse 8 Mo ; sans les rendre tout de suite, une longue passe finissait par tuer
+        // le processus de l'appli (« Process crashed »).
+        if (img !== b) img.recycle()
+        b.recycle()
     }
 
     // ------------------------------------------------------------------ Vérification
@@ -615,10 +1081,41 @@ class AntiDebordementTest : InstrumentationTestCase() {
         (v.isClickable || v.isLongClickable || v is EditText || v is android.widget.CompoundButton || v is android.widget.SeekBar || v is android.widget.Spinner
             || (v.isFocusable && v !is ViewGroup)) && v.isEnabled
 
+    /**
+     * 1.90.1 (l'auteur, accueil d'un Pixel en paysage : trois icônes empilées par case) : dans chaque grille de l'accueil,
+     * deux cases ne se recouvrent jamais, et le contenu d'une case (icône, nom) tient dans sa hauteur. Une case
+     * plus basse que son contenu déborde sur la suivante : c'était l'empilement.
+     */
+    private fun verifierChevauchements(racine: View, ecran: String) {
+        val grilles = ArrayList<GrilleAccueil>()
+        fun chercher(v: View) { if (v is GrilleAccueil) grilles += v; if (v is ViewGroup) for (i in 0 until v.childCount) chercher(v.getChildAt(i)) }
+        chercher(racine)
+        for (g in grilles) {
+            val cases = (0 until g.childCount).map { g.getChildAt(it) }.filter { it.visibility == View.VISIBLE && it.width > 0 && it.height > 0 }
+            for (i in cases.indices) for (j in i + 1 until cases.size) {
+                val a = Rect(cases[i].left, cases[i].top, cases[i].right, cases[i].bottom)
+                val b = Rect(cases[j].left, cases[j].top, cases[j].right, cases[j].bottom)
+                if (Rect.intersects(a, b) && Rect(a).apply { intersect(b) }.let { it.width() > 2 && it.height() > 2 })
+                    defauts += "$ecran · ${decrire(cases[i])} et ${decrire(cases[j])} : cases qui se chevauchent"
+            }
+            for (c in cases) {
+                val contenu = c as? ViewGroup ?: continue
+                val bas = (0 until contenu.childCount).map { contenu.getChildAt(it) }.filter { it.visibility != View.GONE }.maxOfOrNull { it.bottom } ?: continue
+                c.measure(View.MeasureSpec.makeMeasureSpec(c.width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+                val voulu = c.measuredHeight
+                c.measure(View.MeasureSpec.makeMeasureSpec(c.width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(c.height, View.MeasureSpec.EXACTLY))
+                if (bas > c.height + 2 || voulu > c.height + 2)
+                    defauts += "$ecran · ${decrire(c)} : contenu plus haut que sa case (${maxOf(bas, voulu)} px pour ${c.height} px), il déborde sur la case suivante"
+            }
+        }
+    }
+
     private fun verifierFenetre(racine: View, ecran: String) {
         val cadre = Rect()
         racine.getWindowVisibleDisplayFrame(cadre)  // l'écran utile : sans les barres système
         if (cadre.isEmpty) cadre.set(0, 0, ctx.resources.displayMetrics.widthPixels, ctx.resources.displayMetrics.heightPixels)
+        // 1.90.5 (retour d'essai) : l'encoche de la caméra (« rien sous l'encoche ») ; vide sans encoche ou avant Android 9.
+        encoches = if (android.os.Build.VERSION.SDK_INT >= 28) racine.rootWindowInsets?.displayCutout?.boundingRects.orEmpty() else emptyList()
         verifier(racine, ecran, cadre)
     }
 
@@ -628,8 +1125,12 @@ class AntiDebordementTest : InstrumentationTestCase() {
         return "${v.javaClass.simpleName}$nom" + if (texte.isNotEmpty()) " « $texte »" else ""
     }
 
+    private var encoches: List<Rect> = emptyList()
+
     private fun verifier(v: View, ecran: String, cadre: Rect) {
         if (!v.isShown || v.alpha == 0f || v.width <= 0 || v.height <= 0) return
+        // Les fonds des barres du système (navigation à trois boutons) appartiennent à Android, pas à l'écran.
+        if (v.id == android.R.id.navigationBarBackground || v.id == android.R.id.statusBarBackground) return
         val ou = "$ecran · ${decrire(v)}"
         val pos = IntArray(2).also { v.getLocationOnScreen(it) }
         val r = Rect(pos[0], pos[1], pos[0] + v.width, pos[1] + v.height)
@@ -669,11 +1170,18 @@ class AntiDebordementTest : InstrumentationTestCase() {
         // 2. Hors du parent (sauf dans un parent qui défile dans ce sens ; vues posées en absolu : FrameLayout compris).
         val parent = v.parent as? ViewGroup
         if (parent != null && !plein) {
-            if (!enLargeur && (v.left < -2 || v.right > parent.width + 2))
+            // 1.91.0 : une rangée bord à bord (BordABord) sort exprès de sa colonne jusqu'aux bords de l'écran ; le point 3
+            // vérifie qu'elle reste dans l'écran.
+            if (!enLargeur && v.tag != BordABord.TAG && (v.left < -2 || v.right > parent.width + 2))
                 defauts += "$ou : sort de son parent ${parent.javaClass.simpleName} (${v.left}..${v.right} sur ${parent.width} px)"
             if (!enHauteur && (v.top < -2 || v.bottom > parent.height + 2))
                 defauts += "$ou : sort de son parent ${parent.javaClass.simpleName} en hauteur (${v.top}..${v.bottom} sur ${parent.height} px)"
         }
+        // 3 bis. Sous l'encoche de la caméra : un contenu (texte, image, contrôle), pas un fond ; à l'écran au repos (un
+        // contenu qui défile passe normalement sous le haut de l'écran).
+        val contenu = v !is ViewGroup || interactive(v)
+        val auRepos = !enHauteur && "(cran " !in ecran
+        if (!plein && contenu && auRepos && encoches.any { Rect.intersects(it, r) }) defauts += "$ou : sous l'encoche de la caméra ($r)"
         // 3. Hors de l'écran utile.
         if (!plein) {
             if (!enLargeur && (r.left < cadre.left - 1 || r.right > cadre.right + 1)) defauts += "$ou : sort de l'écran (${r.left}..${r.right}, écran ${cadre.left}..${cadre.right})"

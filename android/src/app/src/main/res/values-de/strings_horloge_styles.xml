@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.2 : les styles de l'horloge (HorlogesVeille), accueil et veille. -->
+<resources>
+    <string name="horloge_theme">Die des Designs</string>
+    <string name="horloge_anneau">Ring</string>
+    <string name="horloge_fine">Digital, schmal</string>
+    <string name="horloge_grasse">Digital, fett</string>
+    <string name="horloge_analogique">Analog, minimal</string>
+    <string name="horloge_classique">Analog, klassisch</string>
+    <string name="horloge_mots">In Worten</string>
+    <string name="horloge_flip">Klappzahlen</string>
+    <string name="horloge_empilee">Gestapelt</string>
+    <string name="horloge_style">Stil</string>
+    <string name="horloge_style_veille">Uhr des Bildschirmschoners</string>
+    <string name="horloge_comme_accueil">Wie der Startbildschirm</string>
+    <string name="horloge_comme_accueil_titre">Dem Startbildschirm folgen</string>
+    <string name="horloge_styles_vision">Vision-Stile</string>
+    <string name="horloge_horloges_themes">Uhren der Designs</string>
+    <string name="horloge_style_aide">Fernbedienung: links und rechts zeigen jeden Stil groß, OK übernimmt ihn. Berühren: einmal für die Vorschau, ein zweites Mal zum Übernehmen.</string>
+    <string name="horloge_vision_defaut">Vision (Standard)</string>
+    <string name="horloge_du_theme">Uhr %1$s</string>
+</resources>

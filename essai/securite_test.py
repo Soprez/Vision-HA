@@ -40,6 +40,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import label_registry as lr
 from homeassistant.setup import async_setup_component
+from octroi_banc import CODE_OCTROI, poser_code_octroi
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 racine = pathlib.Path(__file__).resolve().parent.parent
@@ -134,6 +135,7 @@ async def _enfant(hass: HomeAssistant):
 async def test_cle_tournee_et_absente_des_etats(hass, hass_storage, hass_client):
     await hass_client()  # monte http et l'API
     _, coord = await _monter(hass, hass_storage)
+    poser_code_octroi(hass)
     cle = coord.store.enroll_key
     assert cle and cle != ANCIENNE_CLE, "l'ancienne clé (lisible par tous) doit être remplacée"
     assert hass_storage[DOMAIN]["data"]["enroll_key"] == cle
@@ -157,6 +159,7 @@ async def test_cle_pas_retournee_deux_fois(hass, hass_storage):
 async def test_non_admin_ne_lit_la_cle_nulle_part(hass, hass_storage, hass_client, hass_ws_client):
     await hass_client()
     _, coord = await _monter(hass, hass_storage)
+    poser_code_octroi(hass)
     cle = coord.store.enroll_key
     jeton = await _jeton(hass, await _enfant(hass))
 
@@ -191,9 +194,9 @@ async def test_admin_lit_et_change_la_cle_dans_les_options(hass, hass_storage, h
     assert reponse.status == 200
     flux = await reponse.json()
     assert flux["type"] == "menu"
-    # La clé brute n'est plus qu'au fond : Configurer → Avancé → Clé d'inscription.
+    # La clé brute n'est plus qu'au fond : Configurer → Réparer, sauvegarder ou restaurer → Clé d'inscription.
     assert "cle" not in flux["menu_options"]
-    await admin.post(f"/api/config/config_entries/options/flow/{flux['flow_id']}", json={"next_step_id": "avance"})
+    await admin.post(f"/api/config/config_entries/options/flow/{flux['flow_id']}", json={"next_step_id": "reparer"})
     reponse = await admin.post(f"/api/config/config_entries/options/flow/{flux['flow_id']}", json={"next_step_id": "cle"})
     flux = await reponse.json()
     assert flux["description_placeholders"]["cle"] == cle
@@ -221,6 +224,7 @@ async def test_admin_lit_et_change_la_cle_dans_les_options(hass, hass_storage, h
 async def test_tableau_de_bord_sans_cle(hass, hass_storage, hass_client):
     await hass_client()
     _, coord = await _monter(hass, hass_storage)
+    poser_code_octroi(hass)
     from custom_components.pc_parental import dashboard
 
     section = json.dumps(dashboard._section_installation(hass, coord), ensure_ascii=False)
@@ -234,6 +238,7 @@ async def test_tableau_de_bord_sans_cle(hass, hass_storage, hass_client):
 async def test_non_admin_ne_change_rien(hass, hass_storage, hass_client):
     await hass_client()
     _, coord = await _monter(hass, hass_storage)
+    poser_code_octroi(hass)
     enfant = await _enfant(hass)
     ctx_enfant = Context(user_id=enfant.id)
     registre = er.async_get(hass)
@@ -272,6 +277,7 @@ async def test_toutes_les_ecritures_sont_gardees(hass, hass_storage, hass_client
     """Aucune entité de Vision n'échappe à la garde : chaque méthode d'écriture est enveloppée."""
     await hass_client()
     await _monter(hass, hass_storage, {"a1": _fiche("a1", "PC-ENFANT", "s" * 32)})
+    poser_code_octroi(hass)
     from custom_components.pc_parental.entity import ECRITURES
 
     composants = [hass.data[d] for d in ("switch", "select", "number", "text", "button", "time", "update", "notify") if d in hass.data]
@@ -297,6 +303,7 @@ async def test_inscription_ne_rend_jamais_un_secret_existant(hass, hass_storage,
     client = await hass_client()
     vieux = "a" * 32
     _, coord = await _monter(hass, hass_storage, {"a1": _fiche("a1", "PC-PARENT", vieux)})
+    poser_code_octroi(hass)
     cle = coord.store.enroll_key
 
     # Avec la clé, sous le nom d'un appareil connu : refusé, et rien n'a changé.
@@ -333,6 +340,7 @@ async def test_inscription_ne_rend_jamais_un_secret_existant(hass, hass_storage,
 async def test_la_personne_ne_vient_pas_de_l_appareil(hass, hass_storage, hass_client):
     client = await hass_client()
     _, coord = await _monter(hass, hass_storage, {"a1": _fiche("a1", "TEL-ENFANT", "b" * 32, person="person.enfant")})
+    poser_code_octroi(hass)
     reponse = await client.post("/api/pc_parental/poll", json={"id": "a1", "secret": "b" * 32, "person": "person.parent"})
     assert reponse.status == 200
     assert coord.store.pcs["a1"]["person"] == "person.enfant"
@@ -356,6 +364,7 @@ async def test_veille_sans_jeton_et_ancien_jeton_revoque(hass, hass_storage, has
     ancien = await _jeton(hass, affichage)
     assert hass.auth.async_validate_access_token(ancien) is not None
     await _monter(hass, hass_storage, {"a1": _fiche("a1", "TEL-ENFANT", "c" * 32)}, veille_jeton=ancien)
+    poser_code_octroi(hass)
     assert hass.auth.async_validate_access_token(ancien) is None, "le jeton remis aux appareils doit être révoqué"
     assert hass_storage["pc_parental.veille_acces"]["data"]["jeton"] == ""
 
@@ -416,6 +425,7 @@ async def _attendre(client, d):
 async def test_appairage_valide_par_un_admin(hass, hass_storage, hass_client):
     client = await hass_client()  # administrateur ; les vues de l'appareil ignorent l'authentification
     _, coord = await _monter(hass, hass_storage)
+    poser_code_octroi(hass)
     cle = coord.store.enroll_key
     coord.store.enroll_open = False  # l'appairage ne dépend pas des inscriptions par clé
 
@@ -435,6 +445,10 @@ async def test_appairage_valide_par_un_admin(hass, hass_storage, hass_client):
     assert d["attente"] not in json.dumps(liste)
     reponse = await client.post("/api/pc_parental/appairage",
                                 json={"code": d["code"].lower(), "action": "valider", "personne": "person.enfant"})
+    # Faille du 16/10 : valider exige le code d'octroi, à chaque fois.
+    assert reponse.status == 403 and (await reponse.json())["error"] == "code_octroi"
+    reponse = await client.post("/api/pc_parental/appairage", json={
+        "code_octroi": CODE_OCTROI, "code": d["code"].lower(), "action": "valider", "personne": "person.enfant"})
     assert reponse.status == 200 and (await reponse.json())["fait"]["created"] is True
 
     statut, r = await _attendre(client, d)
@@ -453,6 +467,7 @@ async def test_appairage_valide_par_un_admin(hass, hass_storage, hass_client):
 async def test_appairage_sans_personne_et_refus(hass, hass_storage, hass_client):
     client = await hass_client()
     await _monter(hass, hass_storage)
+    poser_code_octroi(hass)
     _, d = await _demander(client, user="Parent")
     await hass.services.async_call(DOMAIN, "valider_appairage", {"code": d["code"]}, blocking=True)
     _, r = await _attendre(client, d)
@@ -470,11 +485,12 @@ async def test_appairage_sans_personne_et_refus(hass, hass_storage, hass_client)
 async def test_appairage_refuse_aux_non_admins(hass, hass_storage, hass_client):
     client = await hass_client()
     _, coord = await _monter(hass, hass_storage)
+    poser_code_octroi(hass)
     _, d = await _demander(client)
     enfant = await _enfant(hass)
     client_enfant = await hass_client(await _jeton(hass, enfant))
     assert (await client_enfant.get("/api/pc_parental/appairage")).status == 403
-    reponse = await client_enfant.post("/api/pc_parental/appairage", json={"code": d["code"], "action": "valider"})
+    reponse = await client_enfant.post("/api/pc_parental/appairage", json={"code_octroi": CODE_OCTROI, "code": d["code"], "action": "valider"})
     assert reponse.status == 403
     with pytest.raises(Unauthorized):
         await hass.services.async_call(DOMAIN, "valider_appairage", {"code": d["code"]}, blocking=True,
@@ -486,11 +502,12 @@ async def test_appairage_refuse_aux_non_admins(hass, hass_storage, hass_client):
 async def test_appairage_expire(hass, hass_storage, hass_client, monkeypatch):
     client = await hass_client()
     await _monter(hass, hass_storage)
+    poser_code_octroi(hass)
     _, d = await _demander(client)
     from custom_components.pc_parental import appairage
 
     depart = time.time()
-    monkeypatch.setattr(appairage.time, "time", lambda: depart + appairage.APPAIRAGE_MINUTES * 60 + 1)
+    monkeypatch.setattr(appairage.time, "time", lambda: depart + appairage.DEMANDE_MINUTES * 60 + 1)
     assert (await _attendre(client, d))[1]["etat"] == "expiree"
     with pytest.raises(HomeAssistantError):
         await hass.services.async_call(DOMAIN, "valider_appairage", {"code": d["code"]}, blocking=True)
@@ -500,12 +517,13 @@ async def test_appairage_appareil_deja_inscrit(hass, hass_storage, hass_client):
     client = await hass_client()
     vieux = "f" * 32
     _, coord = await _monter(hass, hass_storage, {"a1": _fiche("a1", "TV-SALON", vieux, uid="u-tv")})
+    poser_code_octroi(hass)
     _, d = await _demander(client, uid="u-tv")
     liste = await (await client.get("/api/pc_parental/appairage")).json()
     assert liste["demandes"][0]["existant"] == "TV-SALON"
     # Tant qu'un administrateur n'a rien validé, la fiche existante ne bouge pas.
     assert coord.store.pcs["a1"]["secret"] == vieux
-    await client.post("/api/pc_parental/appairage", json={"code": d["code"], "action": "valider"})
+    await client.post("/api/pc_parental/appairage", json={"code_octroi": CODE_OCTROI, "code": d["code"], "action": "valider"})
     _, r = await _attendre(client, d)
     assert r["id"] == "a1" and r["created"] is False and r["secret"] != vieux
     assert coord.store.by_secret("a1", vieux) is None and len(coord.store.pcs) == 1
@@ -514,6 +532,7 @@ async def test_appairage_appareil_deja_inscrit(hass, hass_storage, hass_client):
 async def test_appairage_limite_les_demandes(hass, hass_storage, hass_client):
     client = await hass_client()
     await _monter(hass, hass_storage)
+    poser_code_octroi(hass)
     assert (await _demander(client, host="A"))[0] == 200
     assert (await _demander(client, host="B"))[0] == 200
     assert (await _demander(client, host="C"))[0] == 429
@@ -541,6 +560,7 @@ async def test_appairage_par_les_options(hass, hass_storage, hass_client):
 async def test_appairage_panneau_reserve_aux_admins(hass, hass_storage, hass_client):
     client = await hass_client()
     await _monter(hass, hass_storage)
+    poser_code_octroi(hass)
     from homeassistant.components.frontend import DATA_PANELS
 
     panneau = hass.data[DATA_PANELS]["vision-appairage"]
@@ -572,12 +592,13 @@ async def _scanner(client, jeton, **corps):
 async def test_qr_genere_par_un_admin(hass, hass_storage, hass_client):
     admin = await hass_client()
     _, coord = await _monter(hass, hass_storage)
-    await hass.config.async_update(external_url="https://ha.exemple.org", internal_url="http://192.168.1.10:8123")
-    reponse = await admin.post("/api/pc_parental/appairage/invitation", json={"personne": "person.enfant"})
+    poser_code_octroi(hass)
+    await hass.config.async_update(external_url="https://ha.exemple.org", internal_url="http://10.1.1.10:8123")
+    reponse = await admin.post("/api/pc_parental/appairage/invitation", json={"code_octroi": CODE_OCTROI, "personne": "person.enfant"})
     assert reponse.status == 200
     inv = await reponse.json()
     qr = _lire_qr(inv["qr"])
-    assert qr["v"] == "1" and qr["adresse"] == "https://ha.exemple.org" and qr["locale"] == "http://192.168.1.10:8123"
+    assert qr["v"] == "1" and qr["adresse"] == "https://ha.exemple.org" and qr["locale"] == "http://10.1.1.10:8123"
     assert len(qr["jeton"]) >= 32 and inv["expire_dans"] <= 300
     assert coord.store.enroll_key not in json.dumps(inv)
     assert inv["svg"].lstrip().startswith("<svg")
@@ -595,8 +616,9 @@ async def test_qr_genere_par_un_admin(hass, hass_storage, hass_client):
 async def test_qr_sans_personne_expire_et_limite(hass, hass_storage, hass_client, monkeypatch):
     admin = await hass_client()
     await _monter(hass, hass_storage)
-    invs = [await (await admin.post("/api/pc_parental/appairage/invitation", json={})).json() for _ in range(5)]
-    assert (await admin.post("/api/pc_parental/appairage/invitation", json={})).status == 400  # 5 au plus
+    poser_code_octroi(hass)
+    invs = [await (await admin.post("/api/pc_parental/appairage/invitation", json={"code_octroi": CODE_OCTROI, })).json() for _ in range(5)]
+    assert (await admin.post("/api/pc_parental/appairage/invitation", json={"code_octroi": CODE_OCTROI, })).status == 400  # 5 au plus
     _, r = await _scanner(admin, _lire_qr(invs[0]["qr"])["jeton"], user="Parent")
     await hass.async_block_till_done()
     pc = _actuel(hass).store.pcs[r["id"]]
@@ -613,9 +635,10 @@ async def test_qr_sans_personne_expire_et_limite(hass, hass_storage, hass_client
 async def test_qr_reserve_aux_admins(hass, hass_storage, hass_client, hass_client_no_auth):
     admin = await hass_client()
     await _monter(hass, hass_storage)
+    poser_code_octroi(hass)
     enfant = await hass_client(await _jeton(hass, await _enfant(hass)))
-    assert (await enfant.post("/api/pc_parental/appairage/invitation", json={})).status == 403
-    inv = await (await admin.post("/api/pc_parental/appairage/invitation", json={})).json()
+    assert (await enfant.post("/api/pc_parental/appairage/invitation", json={"code_octroi": CODE_OCTROI, })).status == 403
+    inv = await (await admin.post("/api/pc_parental/appairage/invitation", json={"code_octroi": CODE_OCTROI, })).json()
     from custom_components.pc_parental import appairage
 
     chemin = appairage.chemin_qr(inv["id"])
@@ -628,7 +651,8 @@ async def test_qr_ne_prend_pas_la_fiche_d_un_autre(hass, hass_storage, hass_clie
     admin = await hass_client()
     vieux = "9" * 32
     _, coord = await _monter(hass, hass_storage, {"a1": _fiche("a1", "PIXEL-PARENT", vieux, uid="u-parent")})
-    inv = await (await admin.post("/api/pc_parental/appairage/invitation", json={})).json()
+    poser_code_octroi(hass)
+    inv = await (await admin.post("/api/pc_parental/appairage/invitation", json={"code_octroi": CODE_OCTROI, })).json()
     jeton = _lire_qr(inv["qr"])["jeton"]
     # Un appareil déjà inscrit (même uid) : refusé, et sa fiche ne bouge pas ; le QR reste bon.
     assert (await _scanner(admin, jeton, host="PIXEL-PARENT", uid="u-parent"))[0] == 409
@@ -636,11 +660,11 @@ async def test_qr_ne_prend_pas_la_fiche_d_un_autre(hass, hass_storage, hass_clie
     assert (await _scanner(admin, jeton))[0] == 200
 
     # L'administrateur choisit de reprendre cet appareil : secret neuf, l'ancien ne vaut plus.
-    inv = await (await admin.post("/api/pc_parental/appairage/invitation", json={"appareil": "a1"})).json()
+    inv = await (await admin.post("/api/pc_parental/appairage/invitation", json={"code_octroi": CODE_OCTROI, "appareil": "a1"})).json()
     statut, r = await _scanner(admin, _lire_qr(inv["qr"])["jeton"], host="PIXEL-PARENT", uid="u-parent")
     assert statut == 200 and r["id"] == "a1" and r["created"] is False and r["secret"] != vieux
     assert _actuel(hass).store.by_secret("a1", vieux) is None
-    assert (await admin.post("/api/pc_parental/appairage/invitation", json={"appareil": "inconnu"})).status == 400
+    assert (await admin.post("/api/pc_parental/appairage/invitation", json={"code_octroi": CODE_OCTROI, "appareil": "inconnu"})).status == 400
 
 
 async def test_qr_par_les_options(hass, hass_storage, hass_client, hass_client_no_auth):
@@ -648,7 +672,7 @@ async def test_qr_par_les_options(hass, hass_storage, hass_client, hass_client_n
     entree, _ = await _monter(hass, hass_storage)
     flux = await (await admin.post("/api/config/config_entries/options/flow", json={"handler": entree.entry_id})).json()
     flux = await (await admin.post(f"/api/config/config_entries/options/flow/{flux['flow_id']}",
-                                   json={"next_step_id": "avance"})).json()
+                                   json={"next_step_id": "reparer"})).json()
     assert "qr" in flux["menu_options"]
     flux = await (await admin.post(f"/api/config/config_entries/options/flow/{flux['flow_id']}",
                                    json={"next_step_id": "qr"})).json()

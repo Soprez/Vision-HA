@@ -12,7 +12,7 @@ import android.widget.TextView
  * Essai du client Sendspin natif (debug seulement, absent de l'APK publié) : un lecteur nommé clairement pour l'essai,
  * relié à Music Assistant ; l'état et les mesures de synchro passent au journal (tag VisionSendspin) chaque seconde.
  *
- *   adb shell am start -n org.soprez.vision/.EssaiSendspinNatifActivity --es hote 192.168.1.x [--es port 8927]
+ *   adb shell am start -n org.soprez.vision/.EssaiSendspinNatifActivity --es hote 10.1.1.x [--es port 8927]
  *   adb shell am start -n org.soprez.vision/.EssaiSendspinNatifActivity --es commande pause|play|next
  */
 class EssaiSendspinNatifActivity : Activity() {

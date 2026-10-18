@@ -1,0 +1,76 @@
+{
+  "version": "2.5.6",
+  "date": "2026-10-15",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Notifications : chaque Décideur choisit ses canaux (appli Vision, Compagnon, Discord), sans doublon.",
+        "en": "Notifications: each Decider picks their channels (Vision app, Companion, Discord), with no duplicates.",
+        "de": "Benachrichtigungen: Jeder Entscheider wählt seine Kanäle (Vision-App, Companion, Discord), ohne Doppelte.",
+        "es": "Notificaciones: cada Responsable elige sus canales (app Vision, Companion, Discord), sin duplicados.",
+        "it": "Notifiche: ogni Decisore sceglie i suoi canali (app Vision, Companion, Discord), senza doppioni.",
+        "nl": "Meldingen: elke Beslisser kiest zijn kanalen (Vision-app, Companion, Discord), zonder dubbels."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Tableau de Vision plus simple : menu réduit, compteur de demandes juste, Activité résumée par appareil.",
+        "en": "Simpler Vision dashboard: shorter menu, accurate request count, Activity summarised per device.",
+        "de": "Einfacheres Vision-Dashboard: kürzeres Menü, korrekte Anfragenzahl, Aktivität je Gerät zusammengefasst.",
+        "es": "Panel de Vision más sencillo: menú reducido, recuento de solicitudes correcto, Actividad por dispositivo.",
+        "it": "Dashboard di Vision più semplice: menu ridotto, conteggio richieste esatto, Attività per dispositivo.",
+        "nl": "Eenvoudiger Vision-dashboard: korter menu, juist aantal verzoeken, Activiteit per apparaat samengevat."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Musique : recherche instantanée, voix, filtre, icône de la source, cœur pour les favoris.",
+        "en": "Music: instant search, voice, filter, source icon, heart for favourites.",
+        "de": "Musik: Sofortsuche, Sprache, Filter, Quellsymbol, Herz für Favoriten.",
+        "es": "Música: búsqueda instantánea, voz, filtro, icono de la fuente, corazón para favoritos.",
+        "it": "Musica: ricerca istantanea, voce, filtro, icona della fonte, cuore per i preferiti.",
+        "nl": "Muziek: direct zoeken, spraak, filter, bronpictogram, hartje voor favorieten."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Veille : une seule section de réglages, toutes les playlists, cartes typées et grille au pixel sur la télé.",
+        "en": "Screensaver: one settings section, all playlists, typed cards and a pixel-exact grid on the TV.",
+        "de": "Bildschirmschoner: ein Einstellungsbereich, alle Playlists, typisierte Karten und pixelgenaues Raster am TV.",
+        "es": "Salvapantallas: una sola sección de ajustes, todas las listas, tarjetas tipadas y cuadrícula exacta en la tele.",
+        "it": "Salvaschermo: una sola sezione di impostazioni, tutte le playlist, schede tipizzate e griglia precisa sulla TV.",
+        "nl": "Schermbeveiliging: één instellingensectie, alle afspeellijsten, getypeerde kaarten en exact raster op de tv."
+      }
+    },
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Réglages rangés par thème ; un choix s'affiche en étiquettes ou en liste selon la place.",
+        "en": "Settings grouped by theme; a choice shows as labels or as a list depending on the space.",
+        "de": "Einstellungen nach Thema geordnet; eine Auswahl erscheint je nach Platz als Etiketten oder Liste.",
+        "es": "Ajustes ordenados por tema; una opción se muestra como etiquetas o lista según el espacio.",
+        "it": "Impostazioni per tema; una scelta appare come etichette o elenco a seconda dello spazio.",
+        "nl": "Instellingen per thema; een keuze verschijnt als labels of als lijst, afhankelijk van de ruimte."
+      }
+    }
+  ]
+}

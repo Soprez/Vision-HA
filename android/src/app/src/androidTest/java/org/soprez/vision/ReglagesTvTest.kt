@@ -144,7 +144,7 @@ class ReglagesTvTest : InstrumentationTestCase() {
         assertFalse(p, p.contains("Nom, personne, connexion"))
         // 1.86.0 (retour d'essai) : les sections par ordre alphabétique (selon la langue de l'appareil).
         val ordre = vues.keys.toList()
-        assertEquals(listOf("r_accueil", "r_affichage", "r_decideurs", "r_veille", "r_parametres", "r_son").filter { it in ordre }, ordre)
+        assertEquals(listOf("r_accueil", "r_affichage", "r_decideurs", "r_musique", "r_parametres", "r_son", "r_veille").filter { it in ordre }, ordre)
         // Décideurs : fermé sans le code, rien de sensible n'est montré.
         val dec = vues["r_decideurs"]!!
         assertTrue(dec, dec.contains("Réservé aux décideurs") && dec.contains("Entrer le code"))

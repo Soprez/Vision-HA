@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 15-10 (retours d'essai) : recherche de musique instantanée, clavier, voix, filtre, réglages Musique. -->
+<resources>
+    <string name="musrech_section">Musique</string>
+    <string name="musrech_section_phrase">Le lecteur, son fond animé et la recherche.</string>
+    <string name="musrech_reglages_raccourci">Réglages de la musique ›</string>
+    <string name="musrech_reglages_raccourci_desc">Ouvrir la section Musique des paramètres Vision</string>
+    <string name="musrech_clavier">Clavier de la recherche</string>
+    <string name="musrech_voix">Recherche vocale</string>
+    <string name="musrech_voix_bouton">Chercher à la voix</string>
+    <string name="musrech_voix_invite">Dis un titre, un artiste ou un album</string>
+    <string name="musrech_voix_indisponible">La recherche vocale n\'est pas disponible sur cet appareil.</string>
+    <string name="musrech_recents">Effacer les recherches récentes</string>
+    <string name="musrech_recents_titre_confirmer">Effacer les recherches récentes ?</string>
+    <string name="musrech_recents_texte_confirmer">Les recherches récentes de cet appareil seront effacées.</string>
+    <string name="musrech_recents_effacer">Effacer</string>
+    <string name="musrech_recents_effaces">Recherches récentes effacées.</string>
+    <string name="musrech_espace">Espace</string>
+    <string name="musrech_effacer_lettre">Effacer une lettre</string>
+    <string name="musrech_page_lettres">Lettres</string>
+    <string name="musrech_page_signes">Chiffres et accents</string>
+    <string name="musrech_effacer_tout">Effacer</string>
+    <string name="musrech_filtre">Filtre</string>
+    <string name="musrech_filtre_n">Filtre · %1$d</string>
+    <string name="musrech_filtre_n_desc">Filtre, %1$d choisi(s)</string>
+    <string name="musrech_type">Type de résultat</string>
+    <string name="musrech_source">Source</string>
+    <string name="musrech_type_valeur">Type de résultat : %1$s</string>
+    <string name="musrech_source_valeur">Source : %1$s</string>
+    <string name="musrech_bibliotheque_valeur">Ma bibliothèque seulement : %1$s</string>
+    <string name="musrech_reinitialiser">Réinitialiser</string>
+    <string name="musrech_recherche_en_cours">Recherche…</string>
+    <string name="musrech_tout_voir">Tout voir ›</string>
+    <string name="musrech_tout_voir_desc">Tout voir : %1$s</string>
+    <string name="musrech_source_desc">Source : %1$s</string>
+    <string name="musrech_recents_aucune">Aucune</string>
+    <plurals name="musrech_recents_n">
+        <item quantity="one">%d gardée sur cet appareil</item>
+        <item quantity="other">%d gardées sur cet appareil</item>
+    </plurals>
+    <plurals name="musrech_titres_n">
+        <item quantity="one">%d titre</item>
+        <item quantity="other">%d titres</item>
+    </plurals>
+    <string name="musrech_indice_court">Titre, artiste, album</string>
+    <string name="musrech_reglages_soiree">⚙ Réglages</string>
+    <string name="musrech_reglages_soiree_desc">Réglages de la soirée et de la musique</string>
+    <string name="musrech_reglages_soiree_titre">Réglages</string>
+    <string name="musrech_soiree_similaires">Titres similaires à la fin : %1$s</string>
+    <string name="musrech_soiree_invites">Invités : %1$s</string>
+    <string name="musrech_lecteur_decideurs">Lecteur · réservé aux %1$s</string>
+    <string name="musrech_retour_lecteur">Retour au lecteur</string>
+    <string name="musrech_reglages_attente_desc">Réglages : %1$d proposition(s) d\'invités en attente</string>
+    <string name="musrech_section_ecoute">Écoute</string>
+    <string name="musrech_section_soiree">Soirée</string>
+    <string name="musrech_bibliotheque_seule">Ma bibliothèque seulement</string>
+    <!-- l'auteur (16/10) : lecteur vide → bibliothèque, playlists, recherche ; aucune enceinte disponible. -->
+    <string name="musrech_onglet_bibliotheque">Bibliothèque</string>
+    <string name="musrech_aucun_album">Aucun album dans la bibliothèque de Music Assistant pour l\'instant.</string>
+    <string name="musrech_entree_rechercher">Rechercher</string>
+    <string name="musrech_aucune_enceinte">Aucune enceinte disponible pour l\'instant.</string>
+    <!-- l'auteur (16/10) : sortie depuis le téléphone, lancement qui n'aboutit pas, modes des invités. -->
+    <string name="musrech_lancement_echec">La musique n\'a pas démarré sur %1$s. Vérifie qu\'il est allumé, ou choisis une autre sortie.</string>
+    <string name="musrech_sortie">🔊 Sortie : %1$s ›</string>
+    <string name="musrech_sortie_desc">Sortie : %1$s. Changer d\'enceinte ou de télé</string>
+    <string name="musrech_invites_titre">Titres des invités</string>
+    <string name="musrech_invites_valider">Valider avant</string>
+    <string name="musrech_invites_ensuite">Jouer après le titre en cours</string>
+    <string name="musrech_invites_fin">Ajouter en fin de file</string>
+</resources>

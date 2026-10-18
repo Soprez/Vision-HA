@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 15-10 : le sélecteur adaptatif (étiquettes ou liste déroulante), ChoixAdaptatif. -->
+<resources>
+    <string name="choix_aucun">None</string>
+    <string name="choix_valider">OK</string>
+</resources>

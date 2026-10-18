@@ -42,6 +42,8 @@ object Messages {
         a ?: return
         for (i in 0 until a.length()) {
             val m = a.optJSONObject(i) ?: continue
+            // 1.90.4 : « Nouvel appareil » (liaison sans code), chez un {décideur}.
+            if (m.optJSONObject("nouvel_appareil") != null) { notifierNouvelAppareil(ctx, m); continue }
             // Chaque notification relève d'un module (messages, demandes, déverrouillage) : coupé, elle ne s'affiche pas.
             if (!Modules.notificationPermise(Modules.actifs(ctx), m.optJSONObject("demande") != null,
                     m.optJSONObject("acces") != null, m.optJSONObject("deverrouillage") != null)) continue
@@ -107,6 +109,23 @@ object Messages {
         try { nm.notify(id, b.build()) } catch (_: Exception) {}
     }
 
+    /** 1.90.4 : un appareil demande à être relié (sans code) ; un toucher ouvre l'écran pour accepter ou refuser. */
+    private fun notifierNouvelAppareil(ctx: Context, m: JSONObject) {
+        val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= 26) creerCanaux(nm)
+        val d = m.optJSONObject("nouvel_appareil")!!
+        val texte = ctx.getString(R.string.nouvel_appareil_notif, d.optString("nom"))
+        val id = 4000 + (d.optString("demande").hashCode() and 0xFFF)
+        val pi = PendingIntent.getActivity(ctx, id, NouvelAppareilActivity.intention(ctx), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val b = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(ctx, CANAL_URGENT) else @Suppress("DEPRECATION") Notification.Builder(ctx).apply { setDefaults(Notification.DEFAULT_ALL); setPriority(Notification.PRIORITY_HIGH) }
+        b.setSmallIcon(R.drawable.ic_vision).setContentTitle(ctx.getString(R.string.nouvel_appareil_titre)).setContentText(texte)
+            .setStyle(Notification.BigTextStyle().bigText(texte)).setAutoCancel(true).setContentIntent(pi)
+            .setCategory(Notification.CATEGORY_MESSAGE)
+        // La notification disparaît avec la demande (10 min).
+        if (Build.VERSION.SDK_INT >= 26) b.setTimeoutAfter((d.optLong("expire") * 1000 - System.currentTimeMillis()).coerceAtLeast(60_000))
+        try { nm.notify(id, b.build()) } catch (_: Exception) {}
+    }
+
     private fun notifier(ctx: Context, id: Int, titre: String, texte: String, urgent: Boolean, demande: JSONObject?, acces: JSONObject? = null) {
         val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val canal = if (urgent) CANAL_URGENT else CANAL
@@ -131,9 +150,10 @@ object Messages {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
         if (urgent) b.setFullScreenIntent(pi, true)
         if (demande != null) {
-            // Les trois réponses, directement sous la notification.
+            // Les trois réponses, directement sous la notification : les mêmes que le plein écran et la gestion (lot 6, APP-08).
             var k = 0
-            for ((minutes, lbl) in listOf(30 to Tr.duree(30), -1 to ctx.getString(R.string.messagesnotif_autre), 0 to ctx.getString(R.string.messagesnotif_non))) {
+            val accordee = Durees.accordee(demande.optInt("minutes", 0))
+            for ((minutes, lbl) in listOf(accordee, -1, 0).zip(Durees.reponsesTemps(accordee))) {
                 val rep = Intent(ctx, GardeActivity::class.java).setAction(ReponseReceiver.ACTION)
                     .putExtra(ReponseReceiver.EXTRA_PC, demande.optString("pc"))
                     .putExtra(ReponseReceiver.EXTRA_DEMANDE, demande.optString("id"))
@@ -151,12 +171,12 @@ object Messages {
         }
         if (acces != null) {
             var k = 0
-            for ((decision, lbl) in listOf("temporaire" to Tr.duree(60), "toujours" to ctx.getString(R.string.messagesnotif_autoriser), "non" to ctx.getString(R.string.messagesnotif_non))) {
+            for ((decision, lbl) in listOf("temporaire", "toujours", "non").zip(Durees.reponsesAcces())) {
                 val rep = Intent(ctx, GardeActivity::class.java).setAction(ReponseReceiver.ACTION)
                     .putExtra(ReponseReceiver.EXTRA_PC, acces.optString("pc"))
                     .putExtra(ReponseReceiver.EXTRA_DEMANDE, acces.optString("id"))
                     .putExtra(ReponseReceiver.EXTRA_DECISION, decision)
-                    .putExtra(ReponseReceiver.EXTRA_MINUTES, 60)
+                    .putExtra(ReponseReceiver.EXTRA_MINUTES, Durees.ACCES_TEMPORAIRE)
                     .putExtra(ReponseReceiver.EXTRA_NOTIF, id)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
                 val pr = PendingIntent.getActivity(ctx, id * 10 + 5 + k++, rep,

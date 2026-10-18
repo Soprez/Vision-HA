@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.2 : les styles de l'horloge (HorlogesVeille), accueil et veille. -->
+<resources>
+    <string name="horloge_theme">Die van het thema</string>
+    <string name="horloge_anneau">Ring</string>
+    <string name="horloge_fine">Digitaal, dun</string>
+    <string name="horloge_grasse">Digitaal, vet</string>
+    <string name="horloge_analogique">Analoog, minimaal</string>
+    <string name="horloge_classique">Analoog, klassiek</string>
+    <string name="horloge_mots">In woorden</string>
+    <string name="horloge_flip">Klapcijfers</string>
+    <string name="horloge_empilee">Gestapeld</string>
+    <string name="horloge_style">Stijl</string>
+    <string name="horloge_style_veille">Klok van de schermbeveiliging</string>
+    <string name="horloge_comme_accueil">Zoals het startscherm</string>
+    <string name="horloge_comme_accueil_titre">Het startscherm volgen</string>
+    <string name="horloge_styles_vision">Vision-stijlen</string>
+    <string name="horloge_horloges_themes">Klokken van de thema\'s</string>
+    <string name="horloge_style_aide">Afstandsbediening: links en rechts tonen elke stijl groot, OK bewaart hem. Aanraken: één tik voor het voorbeeld, nog een om hem te bewaren.</string>
+    <string name="horloge_vision_defaut">Vision (standaard)</string>
+    <string name="horloge_du_theme">Klok %1$s</string>
+</resources>

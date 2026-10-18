@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lanceur : liste alphabétique (téléphone), place de la zone du haut, disposition Vertical (télé). -->
+<resources>
+    <string name="lanceur_liste_alpha">Liste alphabétique</string>
+    <string name="lanceur_index_alpha">Index alphabétique</string>
+    <string name="lanceur_index_cote">Côté de l\'index</string>
+    <string name="lanceur_index_droite">À droite</string>
+    <string name="lanceur_index_gauche">À gauche (gaucher)</string>
+    <string name="lanceur_favoris">Favoris</string>
+    <string name="lanceur_favoris_haut">Favoris épinglés en haut</string>
+    <string name="lanceur_epingler_favori">Épingler en favori</string>
+    <string name="lanceur_retirer_favori">Retirer des favoris</string>
+    <string name="lanceur_zone_position">Zone du haut</string>
+    <string name="lanceur_zone_dessus">Au-dessus des icônes</string>
+    <string name="lanceur_zone_dessous">En dessous des icônes</string>
+    <string name="lanceur_tele_rangees">Rangées</string>
+    <string name="lanceur_tele_vertical">Vertical</string>
+    <string name="lanceur_colonne">Colonne des applis</string>
+    <string name="lanceur_colonne_gauche">À gauche</string>
+    <string name="lanceur_colonne_centre">Au centre</string>
+    <string name="lanceur_colonne_droite">À droite</string>
+    <string name="lanceur_zone_gauche">Zone de widgets de gauche</string>
+    <string name="lanceur_zone_droite">Zone de widgets de droite</string>
+    <string name="lanceur_zone_activee">activée</string>
+    <string name="lanceur_zone_desactivee">désactivée</string>
+    <string name="lanceur_zone_widgets">Choisir les widgets</string>
+    <string name="lanceur_zone_activer">Activer cette zone</string>
+    <string name="lanceur_zone_desactiver">Désactiver cette zone</string>
+    <string name="lanceur_zones_note">Une zone ne s\'affiche que si elle a des widgets et qu\'elle est activée.</string>
+    <string name="lanceur_aide_deplacement_vertical">Haut et bas déplacent · OK pose</string>
+</resources>

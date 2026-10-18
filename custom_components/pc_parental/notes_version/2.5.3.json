@@ -1,0 +1,65 @@
+{
+  "version": "2.5.3",
+  "date": "2026-10-14",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Un réglage par appli, logiciel ou site d'une catégorie, avec « Suivre la catégorie » par défaut.",
+        "en": "One setting per app, program or website in a category, with “Follow the category” by default.",
+        "de": "Eine Einstellung je App, Programm oder Website einer Kategorie, standardmäßig „Kategorie folgen“.",
+        "es": "Un ajuste por app, programa o sitio de una categoría, con «Seguir la categoría» por defecto.",
+        "it": "Un'impostazione per app, programma o sito di una categoria, con «Segui la categoria» predefinito.",
+        "nl": "Eén instelling per app, programma of site in een categorie, standaard „Categorie volgen”."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Les sites d'un logiciel lui sont liés tout seuls ; ce qui était bloqué attend un geste du Décideur.",
+        "en": "A program's websites are linked to it automatically; what was blocked waits for a Decider's action.",
+        "de": "Websites eines Programms werden automatisch verknüpft; Gesperrtes wartet auf den Entscheider.",
+        "es": "Los sitios de un programa se vinculan solos; lo bloqueado espera una acción del Responsable.",
+        "it": "I siti di un programma vi si collegano da soli; ciò che era bloccato attende un gesto del Decisore.",
+        "nl": "Sites van een programma worden vanzelf gekoppeld; wat geblokkeerd was, wacht op de Beslisser."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Recherche : trouver une appli, un logiciel ou un site et voir pourquoi il est bloqué.",
+        "en": "Search: find an app, program or website and see why it is blocked.",
+        "de": "Suche: eine App, ein Programm oder eine Website finden und sehen, warum sie gesperrt ist.",
+        "es": "Búsqueda: encontrar una app, un programa o un sitio y ver por qué está bloqueado.",
+        "it": "Ricerca: trovare un'app, un programma o un sito e vedere perché è bloccato.",
+        "nl": "Zoeken: een app, programma of site vinden en zien waarom die geblokkeerd is."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "pc"
+      ],
+      "texte": {
+        "fr": "Bloqués récemment, et une seule demande par logiciel pour tous ses sites fermés (agent PC 1.93.0).",
+        "en": "Recently blocked, and a single request per program for all its closed websites (PC agent 1.93.0).",
+        "de": "Zuletzt gesperrt und eine einzige Anfrage je Programm für alle gesperrten Websites (PC-Agent 1.93.0).",
+        "es": "Bloqueados recientemente y una sola solicitud por programa para todos sus sitios cerrados (agente 1.93.0).",
+        "it": "Bloccati di recente e una sola richiesta per programma per tutti i suoi siti chiusi (agente PC 1.93.0).",
+        "nl": "Recent geblokkeerd, en één verzoek per programma voor al zijn gesloten sites (pc-agent 1.93.0)."
+      }
+    }
+  ]
+}

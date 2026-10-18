@@ -32,6 +32,7 @@ const TEXTES = /*i18n-json*/{
     "case_pause": "Mettre en pause la télé", "case_voix": "Lire à voix haute",
     "note_bloquant": "Ce type de message est bloquant : {bloquant}.",
     "note_son": "Le son est choisi par chaque personne sur son appareil (silencieux possible).",
+    "ajouter_destinataire": "Ajouter un destinataire…", "groupe_personnes": "Personnes", "groupe_appareils": "Appareils", "retirer_dest": "Retirer {nom}", "aucun_dest": "Aucun destinataire choisi.",
     "envoyer": "Envoyer maintenant", "suivi": "Suivi, en direct",
     "aucun_envoi": "Aucun message envoyé pour l'instant.",
     "types_messages": "Types de messages", "nouveau_type": "+ Nouveau type",
@@ -62,6 +63,7 @@ const TEXTES = /*i18n-json*/{
     "case_pause": "Pause the TV", "case_voix": "Read aloud",
     "note_bloquant": "This message type is blocking: {bloquant}.",
     "note_son": "Each person chooses the sound on their device (silent is possible).",
+    "ajouter_destinataire": "Add a recipient…", "groupe_personnes": "People", "groupe_appareils": "Devices", "retirer_dest": "Remove {nom}", "aucun_dest": "No recipient chosen.",
     "envoyer": "Send now", "suivi": "Live tracking",
     "aucun_envoi": "No message sent yet.",
     "types_messages": "Message types", "nouveau_type": "+ New type",
@@ -92,6 +94,7 @@ const TEXTES = /*i18n-json*/{
     "case_pause": "Fernseher pausieren", "case_voix": "Vorlesen",
     "note_bloquant": "Diese Nachrichtenart blockiert: {bloquant}.",
     "note_son": "Jede Person wählt den Ton auf ihrem Gerät (auch lautlos möglich).",
+    "ajouter_destinataire": "Empfänger hinzufügen…", "groupe_personnes": "Personen", "groupe_appareils": "Geräte", "retirer_dest": "{nom} entfernen", "aucun_dest": "Kein Empfänger gewählt.",
     "envoyer": "Jetzt senden", "suivi": "Live-Verfolgung",
     "aucun_envoi": "Noch keine Nachricht gesendet.",
     "types_messages": "Nachrichtenarten", "nouveau_type": "+ Neue Art",
@@ -122,6 +125,7 @@ const TEXTES = /*i18n-json*/{
     "case_pause": "Pausar la tele", "case_voix": "Leer en voz alta",
     "note_bloquant": "Este tipo de mensaje es bloqueante: {bloquant}.",
     "note_son": "Cada persona elige el sonido en su dispositivo (puede ser silencioso).",
+    "ajouter_destinataire": "Añadir un destinatario…", "groupe_personnes": "Personas", "groupe_appareils": "Dispositivos", "retirer_dest": "Quitar {nom}", "aucun_dest": "Ningún destinatario elegido.",
     "envoyer": "Enviar ahora", "suivi": "Seguimiento en directo",
     "aucun_envoi": "Aún no se ha enviado ningún mensaje.",
     "types_messages": "Tipos de mensajes", "nouveau_type": "+ Nuevo tipo",
@@ -152,6 +156,7 @@ const TEXTES = /*i18n-json*/{
     "case_pause": "Mettere in pausa la TV", "case_voix": "Leggere ad alta voce",
     "note_bloquant": "Questo tipo di messaggio è bloccante: {bloquant}.",
     "note_son": "Il suono lo sceglie ogni persona sul proprio dispositivo (anche silenzioso).",
+    "ajouter_destinataire": "Aggiungi un destinatario…", "groupe_personnes": "Persone", "groupe_appareils": "Dispositivi", "retirer_dest": "Rimuovi {nom}", "aucun_dest": "Nessun destinatario scelto.",
     "envoyer": "Inviare ora", "suivi": "Monitoraggio in diretta",
     "aucun_envoi": "Ancora nessun messaggio inviato.",
     "types_messages": "Tipi di messaggi", "nouveau_type": "+ Nuovo tipo",
@@ -182,6 +187,7 @@ const TEXTES = /*i18n-json*/{
     "case_pause": "De tv pauzeren", "case_voix": "Voorlezen",
     "note_bloquant": "Deze berichtsoort blokkeert: {bloquant}.",
     "note_son": "Iedereen kiest het geluid op zijn eigen apparaat (stil kan ook).",
+    "ajouter_destinataire": "Ontvanger toevoegen…", "groupe_personnes": "Personen", "groupe_appareils": "Apparaten", "retirer_dest": "{nom} verwijderen", "aucun_dest": "Geen ontvanger gekozen.",
     "envoyer": "Nu versturen", "suivi": "Live volgen",
     "aucun_envoi": "Nog geen bericht verstuurd.",
     "types_messages": "Berichtsoorten", "nouveau_type": "+ Nieuwe soort",
@@ -191,7 +197,7 @@ const TEXTES = /*i18n-json*/{
   }
 }/*i18n-json:fin*/;
 // Les catégories (étiquettes de la maison) : cette carte n'en affiche pas.
-const CATEGORIES_I18N = /*i18n-categories*/{}/*i18n-categories:fin*/;
+const CATEGORIES_I18N = /*i18n-categories*/{"jeux": {"fr": "Jeux", "en": "Games", "de": "Spiele", "es": "Juegos", "it": "Giochi", "nl": "Games"}, "videos": {"fr": "Vidéos", "en": "Videos", "de": "Videos", "es": "Vídeos", "it": "Video", "nl": "Video's"}, "reseaux_sociaux": {"fr": "Réseaux sociaux", "en": "Social media", "de": "Soziale Medien", "es": "Redes sociales", "it": "Social network", "nl": "Sociale media"}, "tv": {"fr": "TV", "en": "TV", "de": "TV", "es": "TV", "it": "TV", "nl": "tv"}, "vod": {"fr": "VOD", "en": "Streaming", "de": "Streaming", "es": "Streaming", "it": "Streaming", "nl": "Streaming"}, "musique": {"fr": "Musique", "en": "Music", "de": "Musik", "es": "Música", "it": "Musica", "nl": "Muziek"}, "ia": {"fr": "IA", "en": "AI", "de": "KI", "es": "IA", "it": "IA", "nl": "AI"}, "internet": {"fr": "Internet", "en": "Internet", "de": "Internet", "es": "Internet", "it": "Internet", "nl": "Internet"}, "travail": {"fr": "Travail", "en": "Work", "de": "Arbeit", "es": "Trabajo", "it": "Lavoro", "nl": "Werk"}, "creation": {"fr": "Création", "en": "Creativity", "de": "Kreativität", "es": "Creatividad", "it": "Creatività", "nl": "Creativiteit"}, "actu_medias": {"fr": "Actu & médias", "en": "News & media", "de": "Nachrichten & Medien", "es": "Noticias y medios", "it": "Notizie e media", "nl": "Nieuws & media"}, "pub_tracage": {"fr": "Pub & traçage", "en": "Ads & tracking", "de": "Werbung & Tracking", "es": "Anuncios y rastreo", "it": "Pubblicità e tracciamento", "nl": "Advertenties & tracking"}, "contournement": {"fr": "Contournement", "en": "Bypass tools", "de": "Umgehung", "es": "Elusión", "it": "Aggiramento", "nl": "Omzeiling"}, "dangereux": {"fr": "Dangereux", "en": "Dangerous", "de": "Gefährlich", "es": "Peligroso", "it": "Pericoloso", "nl": "Gevaarlijk"}, "adulte": {"fr": "Adulte", "en": "Adult", "de": "Erwachsene", "es": "Adultos", "it": "Adulti", "nl": "Volwassenen"}, "pegi_12": {"fr": "PEGI 12", "en": "PEGI 12", "de": "PEGI 12", "es": "PEGI 12", "it": "PEGI 12", "nl": "PEGI 12"}, "pegi_16": {"fr": "PEGI 16", "en": "PEGI 16", "de": "PEGI 16", "es": "PEGI 16", "it": "PEGI 16", "nl": "PEGI 16"}, "pegi_18": {"fr": "PEGI 18", "en": "PEGI 18", "de": "PEGI 18", "es": "PEGI 18", "it": "PEGI 18", "nl": "PEGI 18"}, "systeme": {"fr": "Système", "en": "System", "de": "System", "es": "Sistema", "it": "Sistema", "nl": "Systeem"}, "google": {"fr": "Google", "en": "Google", "de": "Google", "es": "Google", "it": "Google", "nl": "Google"}, "discord": {"fr": "Discord", "en": "Discord", "de": "Discord", "es": "Discord", "it": "Discord", "nl": "Discord"}, "annuaires_discord": {"fr": "Annuaires Discord", "en": "Discord directories", "de": "Discord-Verzeichnisse", "es": "Directorios de Discord", "it": "Directory Discord", "nl": "Discord-gidsen"}, "toujours_autorise": {"fr": "Toujours autorisé", "en": "Always allowed", "de": "Immer erlaubt", "es": "Siempre permitido", "it": "Sempre consentito", "nl": "Altijd toegestaan"}, "ecole": {"fr": "École", "en": "School", "de": "Schule", "es": "Escuela", "it": "Scuola", "nl": "School"}}/*i18n-categories:fin*/;
 // ---- i18n:code — le même dans toutes les cartes de Vision (essai/i18n_cartes_test.py le vérifie) ----
 // Langue : celle de l'utilisateur Home Assistant (hass.locale.language, sinon hass.language), sur deux lettres ;
 // une langue que Vision ne parle pas → l'anglais. Un texte absent → l'anglais, puis le français, puis la clé.
@@ -366,8 +372,38 @@ class VisionMessagesCard extends HTMLElement {
     if (actif) { const el = r.getElementById(actif); if (el) { el.focus(); try { el.setSelectionRange(pos, pos); } catch (_) {} } }
   }
 
+  // 15-10 (règle UX de l'auteur) : un groupe de choix → <vision-choix> (étiquettes si 3 au plus tiennent, sinon liste).
+  // `valeurs` : une chaîne (choix unique) ou une liste (choix multiple) ; `max` : 3 pour les réponses. Rien sans option.
+  _groupe(groupe, titre, options, valeurs, max) {
+    if (!options.length) return "";
+    const attrs = Array.isArray(valeurs) ? { multiple: "", valeurs: JSON.stringify(valeurs) } : { valeur: valeurs };
+    if (max) attrs["max-choix"] = max;
+    const choix = Object.entries(attrs).map(([k, v]) => `${k}="${esc(v)}"`).join(" ");
+    return `<vision-choix ${choix} data-groupe="${groupe}" titre="${esc(titre)}" options="${esc(JSON.stringify(options))}"></vision-choix>`;
+  }
+
   _puce(cle, texte, on, attr) {
     return `<button class="puce ${on ? "on" : ""}" ${attr}="${esc(cle)}" aria-pressed="${on}">${esc(texte)}</button>`;
+  }
+
+  // Retours de l'auteur (15/10) : les destinataires dans une liste déroulante (une puce par appareil prenait toute la
+  // carte) ; ceux qu'on a choisis restent visibles en puces, chacune avec sa croix pour la retirer.
+  _destinataires(dest) {
+    const nom = (k) => {
+      const p = dest.personnes.find((x) => x.id === k);
+      if (p) return tr("tous_ses_appareils", { nom: p.nom });
+      const a = dest.appareils.find((x) => x.id === k);
+      return a ? a.nom : k;
+    };
+    const option = (k, texte) => this._choix.has(k) ? "" : `<option value="${esc(k)}">${esc(texte)}</option>`;
+    const personnes = dest.personnes.map((p) => option(p.id, tr("tous_ses_appareils", { nom: p.nom }))).join("");
+    const appareils = dest.appareils.map((a) => option(a.id, a.nom)).join("");
+    const choisis = [...this._choix].map((k) => `<button class="puce on" data-retirer="${esc(k)}" aria-label="${esc(tr("retirer_dest", { nom: nom(k) }))}">${esc(nom(k))} <ha-icon icon="mdi:close"></ha-icon></button>`).join("");
+    return `<select id="dest_choix" aria-label="${esc(tr("ajouter_destinataire"))}" ${personnes || appareils ? "" : "disabled"}>
+        <option value="" selected>${esc(tr("ajouter_destinataire"))}</option>
+        ${personnes ? `<optgroup label="${esc(tr("groupe_personnes"))}">${personnes}</optgroup>` : ""}
+        ${appareils ? `<optgroup label="${esc(tr("groupe_appareils"))}">${appareils}</optgroup>` : ""}</select>
+      <div class="puces choisis">${choisis || `<span class="vide">${esc(tr("aucun_dest"))}</span>`}</div>`;
   }
 
   _contenu(d) {
@@ -393,23 +429,26 @@ class VisionMessagesCard extends HTMLElement {
     return `
       <div class="titre">${esc(tr("titre"))}</div>
       <div class="sous">${esc(tr("pour"))}</div>
-      <div class="puces">${dest.personnes.map((p) => this._puce(p.id, tr("tous_ses_appareils", { nom: p.nom }), this._choix.has(p.id), "data-dest")).join("")}
-        ${dest.appareils.map((a) => this._puce(a.id, a.nom, this._choix.has(a.id), "data-dest")).join("")}</div>
+      ${this._destinataires(dest)}
       <div class="sous">${esc(tr("type"))}</div>
-      <div class="puces">${(d.types || []).map((x) => this._puce(x.id, x.nom, x.id === this._type, "data-type")).join("")}</div>
+      ${(d.types || []).length > 3
+        ? `<select id="type_choix" aria-label="${esc(tr("type"))}">${(d.types || []).map((x) => `<option value="${esc(x.id)}" ${x.id === t.id ? "selected" : ""}>${esc(x.nom)}</option>`).join("")}</select>`
+        : `<div class="puces">${(d.types || []).map((x) => this._puce(x.id, x.nom, x.id === this._type, "data-type")).join("")}</div>`}
       <textarea id="texte" maxlength="1000" placeholder="${esc(tr("ton_message"))}" aria-label="${esc(tr("message"))}">${esc(this._texte)}</textarea>
       <div class="sous">${esc(tr("reponses_proposees"))}</div>
-      <div class="puces">${(d.reponses_proposees || []).map((x) => this._puce(x, x, this._reponses.includes(x), "data-rep")).join("")}
-        ${this._reponses.filter((x) => !(d.reponses_proposees || []).includes(x)).map((x) => this._puce(x, x, true, "data-rep")).join("")}
-        <input id="rep_libre" maxlength="30" placeholder="${esc(tr("ajouter"))}" aria-label="${esc(tr("ajouter_reponse"))}"></div>
+      ${this._groupe("rep", tr("reponses_proposees"), [
+        ...(d.reponses_proposees || []),
+        ...this._reponses.filter((x) => !(d.reponses_proposees || []).includes(x)),
+      ].map((x) => ({ cle: x, libelle: x })), this._reponses, 3)}
+      <div class="libre"><input id="rep_libre" maxlength="30" placeholder="${esc(tr("ajouter"))}" aria-label="${esc(tr("ajouter_reponse"))}"></div>
       <label class="case"><input type="checkbox" id="important" ${this._important || t.priorite === "importante" ? "checked" : ""} ${t.priorite === "importante" ? "disabled" : ""}> ${esc(tr("case_important"))}</label>
       <label class="case"><input type="checkbox" id="pause" ${this._pause ? "checked" : ""}> ${esc(tr("case_pause"))}</label>
       <label class="case"><input type="checkbox" id="voix" ${this._voix ? "checked" : ""}> ${esc(tr("case_voix"))}</label>
       <div class="note">${t.bloquant && t.bloquant !== "non" ? esc(tr("note_bloquant", { bloquant: BLOQUANTS[t.bloquant] ? tr(BLOQUANTS[t.bloquant]) : "" })) : esc(tr("note_son"))}</div>
       <button class="primaire" id="envoyer" ${pret ? "" : "disabled"}>${esc(tr(this._occupe === "envoyer" ? "geste_en_cours" : "envoyer"))}</button>
       <div class="statut ${this._ko ? "ko" : ""}" role="status">${esc(this._statut)}</div>
-      <div class="titre petit">${esc(tr("suivi"))}</div>
-      ${envois || `<div class="vide">${esc(tr("aucun_envoi"))}</div>`}
+      <details class="suivi" id="suivi" ${this._suiviOuvert ? "open" : ""}><summary>${esc(tr("suivi"))}${(d.envois || []).length ? ` <span class="nb">${esc(trNombre((d.envois || []).length))}</span>` : ""}</summary>
+        ${envois || `<div class="vide">${esc(tr("aucun_envoi"))}</div>`}</details>
       <details ${ed ? "open" : ""}><summary>${esc(tr("types_messages"))}</summary>${types}
         <button class="lien" id="nouveau_type">${esc(tr("nouveau_type"))}</button>${edition}</details>`;
   }
@@ -417,9 +456,25 @@ class VisionMessagesCard extends HTMLElement {
   _brancher() {
     const r = this.shadowRoot;
     const $ = (id) => r.getElementById(id);
-    r.querySelectorAll("[data-dest]").forEach((b) => b.addEventListener("click", () => {
-      const k = b.dataset.dest; this._choix.has(k) ? this._choix.delete(k) : this._choix.add(k); this._rendre();
-    }));
+    // Les groupes de choix (destinataires, type, réponses) : l'événement de <vision-choix> rend le nouvel état.
+    r.querySelectorAll("vision-choix[data-groupe]").forEach((c) => {
+      c.addEventListener("vision-choix", (ev) => {
+        const g = c.dataset.groupe;
+        if (g === "dest") this._choix = new Set(ev.detail.valeurs);
+        else if (g === "type") this._type = ev.detail.valeur;
+        else if (g === "rep") this._reponses = ev.detail.valeurs.slice(0, 3);
+        this._rendre();
+      });
+      // Une quatrième réponse : le même message qu'avant.
+      c.addEventListener("vision-choix-trop", () => { this._statut = tr("trois_reponses"); this._ko = true; this._rendre(); });
+    });
+    const dc = $("dest_choix");
+    if (dc) dc.addEventListener("change", () => { if (dc.value) { this._choix.add(dc.value); this._rendre(); } });
+    r.querySelectorAll("[data-retirer]").forEach((b) => b.addEventListener("click", () => { this._choix.delete(b.dataset.retirer); this._rendre(); }));
+    const tc = $("type_choix");
+    if (tc) tc.addEventListener("change", () => { this._type = tc.value; this._rendre(); });
+    const sv = $("suivi");
+    if (sv) sv.addEventListener("toggle", () => { this._suiviOuvert = sv.open; });
     r.querySelectorAll("[data-type]").forEach((b) => b.addEventListener("click", () => { this._type = b.dataset.type; this._rendre(); }));
     r.querySelectorAll("[data-rep]").forEach((b) => b.addEventListener("click", () => {
       const k = b.dataset.rep;
@@ -461,9 +516,7 @@ class VisionMessagesCard extends HTMLElement {
       input[type="checkbox"] { width:20px; height:20px; margin:2px 4px 2px 0; flex:none; }
       .titre { font-size: 20px; font-weight: 600; margin-bottom: 8px; } .titre.petit { font-size: 16px; margin-top: 18px; }
       .sous { color: var(--secondary-text-color); font-size: 13px; margin: 10px 0 6px; }
-      .puces { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-      .puce { border: 1px solid var(--divider-color); background: none; color: var(--primary-text-color); border-radius: 999px; padding: 8px 12px; min-height: 36px; font: inherit; cursor: pointer; }
-      .puce.on { border-color: var(--primary-color); background: color-mix(in srgb, var(--primary-color) 18%, transparent); font-weight: 600; }
+      .libre { margin-top: 6px; }
       textarea { width: 100%; box-sizing: border-box; min-height: 90px; margin-top: 10px; font: inherit; padding: 10px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); }
       input, select { font: inherit; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); }
       #rep_libre { width: 140px; }
@@ -478,7 +531,14 @@ class VisionMessagesCard extends HTMLElement {
       .imp { color: var(--warning-color); font-size: 12px; font-weight: 600; }
       .ligne { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; flex-wrap: wrap; }
       .etat { color: var(--secondary-text-color); overflow-wrap: anywhere; } .e-repondu { color: var(--success-color); font-weight: 600; } .e-lu { color: var(--primary-text-color); }
-      details { margin-top: 18px; } summary { cursor: pointer; font-weight: 600; }
+      details { margin-top: 18px; } summary { cursor: pointer; font-weight: 600; min-height: 32px; display: list-item; }
+      .suivi summary { font-size: 16px; } .nb { color: var(--secondary-text-color); font-weight: 400; }
+      .puces { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+      .puce { border: 1px solid var(--divider-color); background: none; color: var(--primary-text-color); border-radius: 999px; padding: 8px 12px; min-height: 36px; font: inherit; cursor: pointer; }
+      .puce.on { border-color: var(--primary-color); background: color-mix(in srgb, var(--primary-color) 18%, transparent); font-weight: 600; }
+      #dest_choix { width: 100%; max-width: 420px; box-sizing: border-box; min-height: 44px; }
+      #type_choix { min-height: 44px; max-width: 100%; }
+      .choisis { margin-top: 8px; } .choisis ha-icon { --mdc-icon-size: 16px; vertical-align: -3px; }
       .edition { display: grid; gap: 8px; margin-top: 8px; } .edition label { display: grid; gap: 4px; }
       .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
       .vide { color: var(--secondary-text-color); padding: 8px 0; }`;

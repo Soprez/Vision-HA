@@ -31,6 +31,16 @@ import java.io.File
  * files/captures/recette/<configuration>/ ; le rapport dans problemes.txt.
  */
 class RecetteVisuelleTest : InstrumentationTestCase() {
+    override fun setUp() {
+        super.setUp()
+        CodeEssai.poser(instrumentation.targetContext)  // faille du 16-10 : un Décideur a toujours un code
+    }
+
+    override fun tearDown() {
+        CodeEssai.rendre(instrumentation.targetContext)
+        super.tearDown()
+    }
+
     private val ctx get() = instrumentation.targetContext
     private val problemes = ArrayList<String>()
     private val config: String by lazy {
@@ -75,9 +85,13 @@ class RecetteVisuelleTest : InstrumentationTestCase() {
                         champ(a, "sectionTv", cle); champ(a, "sousPage", null); appeler(a, "majRail"); appeler(a, "construirePage")
                     })
                 }
-            } else ecran("reglages_appareil$badge", Intent(ctx, ReglagesTvActivity::class.java), defiler = true)
+            } else {
+                // 15-10 : la page est répartie ; les Réglages de l'appli (☕ en tête) et la page Musique.
+                ecran("reglages_appareil$badge", EcransReglages.reglages(ctx), defiler = true)
+                ecran("reglages_musique$badge", EcransReglages.hote(ctx), defiler = true)
+            }
         }
-        ecran("soutien_explication", Intent(ctx, ReglagesTvActivity::class.java), boite = { a -> Soutien.expliquer(a, tele); null })
+        ecran("soutien_explication", EcransReglages.hote(ctx), boite = { a -> Soutien.expliquer(a, tele); null })
         // Écran principal (décideur, tout déplié), gestion du lieu : vocabulaire, accueil d'origine, composants thémés.
         avecAppareilRelie {
             Etat.parent = true

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Niveau sonore (backlog n° 31) : mesure par le micro, des nombres seulement vers Home Assistant. -->
+<resources>
+    <string name="son_titre">Geluidsniveau</string>
+    <string name="son_alerte_titre">Te veel lawaai</string>
+    <string name="son_alerte_sur">Waarschuwing %1$d van %2$d: bij de laatste gaat het apparaat dicht.</string>
+    <string name="son_alerte">Het is te lawaaierig in de kamer.</string>
+    <string name="son_canal">Meting van het geluidsniveau</string>
+    <string name="son_canal_desc">Zichtbaar terwijl Vision het geluidsniveau meet (er wordt niets opgenomen).</string>
+    <string name="son_canal_alerte">Lawaaiwaarschuwingen</string>
+    <string name="son_canal_alerte_desc">Als de kamer boven de drempel blijft.</string>
+    <string name="son_notif_titre">Vision meet het geluidsniveau</string>
+    <string name="son_notif_texte">Alleen het niveau wordt gemeten, hier op het apparaat. Er wordt geen geluid opgenomen of verzonden.</string>
+    <string name="son_etat_sans_micro">Geen microfoon op dit apparaat</string>
+    <string name="son_etat_autoriser">Microfoon toestaan</string>
+    <string name="son_etat_en_cours">Meting bezig</string>
+    <string name="son_etat_attente">Start bij de volgende terugkeer naar Vision</string>
+    <string name="son_vie_privee">Vision meet met de microfoon van dit apparaat hoe lawaaierig het in de kamer is.\n\nWat gemeten wordt: alleen het geluidsniveau, hier op het apparaat.\nWat niet: er wordt geen geluid opgenomen, bewaard of verzonden.\nWat naar Home Assistant gaat: alleen getallen (niveau, hoogste niveau, tijdstip van een waarschuwing).\n\nDe systeemmelding ‘microfoon in gebruik’ blijft zichtbaar: dat is de bedoeling. Te lang boven de drempel verschijnt een waarschuwing; na meerdere waarschuwingen kan het apparaat een tijdje dichtgaan.</string>
+    <string name="son_vie_privee_sans_micro">Dit apparaat heeft geen microfoon: het geluidsniveau kan hier niet gemeten worden.</string>
+    <string name="son_autoriser">Microfoon toestaan</string>
+    <string name="son_plus_tard">Later</string>
+    <string name="son_ok">OK</string>
+</resources>

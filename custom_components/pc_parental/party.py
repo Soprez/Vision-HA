@@ -93,7 +93,9 @@ def etat(hass: HomeAssistant) -> dict[str, Any]:
                                        # 1.99.0 : invités (jeton de la Party, références de recherche, propositions).
                                        "jeton": None, "refs": {}, "propositions": [], "invites_mode": "direct",
                                        # 2.2.1 : « Continuer avec des titres similaires quand la file est vide » (non).
-                                       "similaires": False})
+                                       "similaires": False,
+                                       # 17-10 (l'auteur, point 8) : le mode soirée (invités par QR code), ouvert ou fermé.
+                                       "invites_ouverts": True})
 
 
 def peut_piloter(store, pc: dict[str, Any] | None) -> bool:
@@ -105,7 +107,7 @@ def peut_piloter(store, pc: dict[str, Any] | None) -> bool:
 # musique, met en pause, passe, règle le volume et retire un titre. Restent aux décideurs : lancer, arrêter, choisir
 # l'enceinte, les invités et l'interrupteur Mode Fête. Garde-fou : un appareil fermé par ses règles (la nuit, une
 # plage, une fermeture) ne participe pas — une Party ne rouvre pas un téléphone d'enfant à minuit.
-ACTIONS_TOUS = {"jouer", "retirer", "volume", "volume_membre", "lecture", "suivant", "precedent", "ensuite_element"}
+ACTIONS_TOUS = {"jouer", "retirer", "volume", "volume_membre", "lecture", "suivant", "precedent", "ensuite_element", "position"}
 
 
 def ferme_maintenant(store, pc: dict[str, Any] | None) -> bool:
@@ -161,21 +163,47 @@ def lecteurs(hass: HomeAssistant, store=None, langue: str | None = None) -> list
     # et les hors ligne masqués si l'option le demande.
     # 2.2.9 (l'auteur : « on doit rester toujours dans notre lecteur ») : le lecteur « · Vision » d'une télé (Vision joue le
     # son lui-même) remplace le lecteur Cast de cette même télé, qui est masqué : plus de récepteur qui prend l'écran.
-    jumeaux = {e["nom"][: -len(SUFFIXE_VISION)].strip().lower(): e for e in sortie if e["ma"] and e["nom"].endswith(SUFFIXE_VISION)}
-    remplaces = {e["entity_id"]: jumeaux[e["nom"].strip().lower()]["entity_id"] for e in sortie
-                 if e["ma"] and not e["nom"].endswith(SUFFIXE_VISION) and e["nom"].strip().lower() in jumeaux}
+    # 2.5.7 (l'auteur, 1.93.0 en production, 16/10 : « je choisis Télé du bureau, ça reste vide ») : une télé peut avoir
+    # DEUX lecteurs « · Vision » du même nom dans Music Assistant (l'ancien Classique, hors ligne, et le Sendspin). Avant,
+    # le dernier vu gagnait : le Cast coché était remplacé par le jumeau hors ligne, que « masquer hors ligne » retirait.
+    # On garde celui qui marche, et la case du Cast vaut pour tous ses jumeaux.
+    jumeaux: dict[str, dict[str, Any]] = {}
+    tous_jumeaux: dict[str, set[str]] = {}
+    for e in sortie:
+        if e["ma"] and e["nom"].endswith(SUFFIXE_VISION):
+            cle = e["nom"][: -len(SUFFIXE_VISION)].strip().lower()
+            tous_jumeaux.setdefault(cle, set()).add(e["entity_id"])
+            if cle not in jumeaux or (e["dispo"] and not jumeaux[cle]["dispo"]):
+                jumeaux[cle] = e
+    # Deux lecteurs Music Assistant du même nom, l'un disponible : le fantôme hors ligne n'est pas montré.
+    noms_dispo = {e["nom"].strip().lower() for e in sortie if e["ma"] and e["dispo"]}
+    sortie = [e for e in sortie if not (e["ma"] and not e["dispo"] and e["nom"].strip().lower() in noms_dispo)]
+    # Le Cast d'une télé → le nom de la télé, qui mène à ses lecteurs « · Vision ».
+    casts = {e["entity_id"]: e["nom"].strip().lower() for e in sortie
+             if e["ma"] and not e["nom"].endswith(SUFFIXE_VISION) and e["nom"].strip().lower() in jumeaux}
+    remplaces = {c: jumeaux[nom]["entity_id"] for c, nom in casts.items()}
     sortie = [e for e in sortie if e["entity_id"] not in remplaces]
     reglage = getattr(store, "musique", None) if store is not None else None
     if reglage is not None:
         coches = reglage.get("enceintes")
         if coches is not None:
             # Le lecteur Vision d'une télé hérite de la case de son lecteur Cast (ex. en essai : « Téléviseur du salon »).
-            coches = set(coches) | {v for c, v in remplaces.items() if c in coches}
+            coches = set(coches)
+            for c, nom in casts.items():
+                if c in coches:
+                    coches |= tous_jumeaux[nom]
+        avant = sortie
         # Sans Music Assistant du tout (autres installations), les media_player restent proposés comme avant.
         if any(e["ma"] for e in sortie):
             sortie = [e for e in sortie if e["ma"] and (coches is None or e["entity_id"] in coches)]
         if reglage.get("masquer_hors_ligne"):
             sortie = [e for e in sortie if e["dispo"]]
+        # 2.5.7 : des cases PÉRIMÉES (entités qui n'existent plus, renommées par Music Assistant, comme
+        # « televiseur_du_salon_4 » en essai) ne laissent jamais une liste vide : tous les lecteurs disponibles. Un choix
+        # voulu (rien de coché, ou seulement des enceintes éteintes) reste respecté : l'appareil dit où cocher.
+        perimees = coches is not None and any(hass.states.get(c) is None for c in reglage.get("enceintes") or [])
+        if perimees and not any(e["dispo"] for e in sortie):
+            sortie = [e for e in avant if e["dispo"] and (e["ma"] or not any(x["ma"] for x in avant))]
     return sorted(sortie, key=lambda e: (not e["dispo"], not e["ma"], e["nom"].lower()))
 
 
@@ -202,7 +230,7 @@ def est_l_ecran(hass: HomeAssistant, store, lecteur: str, ecran: str) -> bool:
 
 
 def lecteurs_pour(hass: HomeAssistant, store, pc: dict[str, Any] | None, langue: str | None = None) -> list[dict[str, Any]]:
-    """2.2.13 (l'auteur : « je clique sur Disney classique, il ne se passe rien » sur la télé des parents) : les enceintes
+    """2.2.13 (l'auteur : « je clique sur Disney classique, il ne se passe rien » sur la télé du bureau) : les enceintes
     cochées, plus, pour une télé, SON lecteur « · Vision » (la télé elle-même, sans Cast), même s'il n'est pas coché."""
     langue = langue or (textes.pour(hass, pc) if pc else None)
     l = lecteurs(hass, store, langue)
@@ -291,8 +319,59 @@ async def file_attente(hass: HomeAssistant, eid: str) -> list[dict[str, Any]]:
     """La suite : titres de Music Assistant, chacun avec son id (pour le retirer) et « invite » s'il a été proposé
     par un invité. Sans Music Assistant : rien, sans erreur."""
     l = await musique.file(hass, eid)
-    proposes = {p["uri"] for p in etat(hass).get("propositions", []) if p.get("etat") == "ajoute"}
-    return [{**x, "invite": bool(x.get("uri") and x["uri"] in proposes)} for x in l]
+    ajoutes = [p for p in etat(hass).get("propositions", []) if p.get("etat") == "ajoute"]
+    proposes = {p["uri"] for p in ajoutes}
+    noms = {_cle_titre(p.get("titre"), p.get("artiste")) for p in ajoutes} - {None}
+
+    def invite(x: dict[str, Any]) -> bool:
+        # 2.5.9 (point 16) : Music Assistant range dans la file l'élément de la bibliothèque quand le titre y est déjà
+        # (library://…), pas celui du fournisseur choisi par l'invité : l'adresse seule ne le retrouvait pas.
+        return bool(x.get("uri") and x["uri"] in proposes) or _cle_titre(x.get("titre"), x.get("artiste")) in noms
+
+    if proposes:
+        # 2.5.9 (l'auteur, point 16 : « les titres de l'invité n'apparaissent jamais dans la file, ni à la fin ») : en fin de
+        # file, derrière une playlist de 84 titres, le titre d'un invité était hors des 30 titres lus, donc jamais montré
+        # (et pas compté par la limite d'invités). Les titres d'invités plus loin s'ajoutent à la fin de la liste.
+        vus = {x.get("id") for x in l}
+        l = l + [x for x in await musique.file(hass, eid, depuis_fin=FIN_DE_FILE_N)
+                 if x.get("id") not in vus and invite(x)]
+    # 2.4.6 (l'auteur : « il faudrait les précharger ») : la pochette en cours et celles des titres suivants sont lues par
+    # Home Assistant dès que la file est connue ; quand l'appareil les demande, elles sont déjà là.
+    prechauffer(hass, [musique.image_en_cours(hass, eid)] + [str(x.get("image") or "") for x in l[:PRECHAUFFAGE_N]])
+    return [{**x, "invite": invite(x)} for x in l]
+
+
+def _cle_titre(titre: Any, artiste: Any) -> tuple[str, str] | None:
+    """Titre et artiste ramenés à une clé de comparaison (casse et espaces ignorés) ; None sans titre."""
+    t = " ".join(str(titre or "").split()).casefold()
+    return (t, " ".join(str(artiste or "").split()).casefold()) if t else None
+
+
+PRECHAUFFAGE_N = 6
+# 2.5.9 : les derniers titres de la file relus pour y retrouver ceux des invités (au-delà des 30 titres à suivre).
+FIN_DE_FILE_N = 40
+_EN_VOL: set[str] = set()
+
+
+def prechauffer(hass: HomeAssistant, urls: list[str]) -> int:
+    """Lit en arrière-plan les pochettes pas encore gardées (cache de party_invites). Rend le nombre lancé."""
+    from . import party_invites
+
+    n = 0
+    for u in dict.fromkeys(u for u in urls if u):
+        if not u.startswith(("http://", "https://")) or u in party_invites._images or u in _EN_VOL:
+            continue
+        _EN_VOL.add(u)
+
+        async def _un(url: str = u) -> None:
+            try:
+                await party_invites.telecharger_image(hass, url)
+            finally:
+                _EN_VOL.discard(url)
+
+        hass.async_create_background_task(_un(), name="vision_pochette")
+        n += 1
+    return n
 
 
 def pour_releve(hass: HomeAssistant, store, pc: dict[str, Any]) -> dict[str, Any]:
@@ -354,9 +433,14 @@ async def lancer(hass: HomeAssistant, store, ecran: str, lecteur: str, par: str,
     st = etat(hass)
     deja = bool(st["actif"])
     if not st["actif"] or not st.get("jeton"):
-        # 1.99.0 : un nouveau lien invité par Party ; l'ancien ne marche plus.
-        st.update({"jeton": party_invites.nouveau_jeton(), "jeton_ts": time.time(), "refs": {}, "propositions": []})
-    st.update({"actif": True, "ecran": ecran, "lecteur": lecteur, "par": par, "depuis": int(time.time())})
+        # 1.99.0 : un nouveau lien invité par Party ; l'ancien ne marche plus. 17-10 (l'auteur, point 8) : seulement si le mode
+        # soirée est ouvert ; fermé, il n'y a pas de lien du tout.
+        ouverts = st.get("invites_ouverts", True)
+        st.update({"jeton": party_invites.nouveau_jeton() if ouverts else None, "jeton_ts": time.time() if ouverts else 0,
+                   "refs": {}, "propositions": []})
+    st.update({"actif": True, "ecran": ecran, "lecteur": lecteur, "par": par, "depuis": int(time.time()),
+               # 2.5.9 (l'auteur, point 16) : le mode des invités choisi la dernière fois, même après un redémarrage de HA.
+               "invites_mode": mode_invites_garde(store)})
     await musique.sans_ajout_auto(hass, lecteur, bool(st.get("similaires")))
     if not deja:
         noms = {e["id"]: e["nom"] for e in ecrans(store)}
@@ -427,19 +511,90 @@ def _volume(v: Any) -> float:
     return round(n, 2)
 
 
+# 2.4.6 (l'auteur : « choisir le moment de la musique ») : un saut dans le titre en cours. Music Assistant ne publie aucune
+# position pour un lecteur « · Vision » en mode Classique : la télé recale son horloge sur le dernier saut, donné par
+# l'état de la Party pendant SAUT_S secondes (« il_y_a » : l'âge du saut, pour ne dépendre d'aucune horloge commune).
+SAUT_S = 30
+
+
+def _position(v: Any, duree: Any) -> float:
+    """La position demandée (s), bornée au titre ; ValueError si elle n'a pas de sens."""
+    p = float(v)
+    if p != p or p < 0:  # NaN ou négatif
+        raise ValueError("position")
+    if isinstance(duree, (int, float)) and duree > 0:
+        p = min(p, max(0.0, float(duree) - 1.0))
+    return round(p, 1)
+
+
+def saut_recent(hass: HomeAssistant, lecteur: str, maintenant_ts: float | None = None) -> dict[str, Any] | None:
+    """Le dernier saut demandé sur ce lecteur, s'il a moins de SAUT_S secondes : position et âge (s)."""
+    s = etat(hass).get("saut")
+    if not s or s.get("lecteur") != lecteur:
+        return None
+    age = (maintenant_ts if maintenant_ts is not None else time.time()) - float(s.get("ts") or 0)
+    if age < 0 or age > SAUT_S:
+        return None
+    return {"position": s["position"], "il_y_a": round(age, 2)}
+
+
 # La télé (sans être décideur) peut lancer la Party sur elle-même, choisir quoi jouer et piloter la lecture.
 # 2.2.1 (l'auteur, test réel) : la télé de la Party a aussi le volume, l'enceinte et la file (retirer, jouer, ensuite).
-ACTIONS_TELE = {"lancer_ici", "jouer", "lecture", "suivant", "precedent", "volume", "volume_membre", "enceinte", "retirer", "jouer_element", "ensuite_element",
+# 17-10 (l'auteur, point 18b) : et « vider la file » (le titre en cours continue), depuis le menu d'un titre de la file.
+# 17-10 (l'auteur, point 8) : la télé de la soirée ouvre et ferme aussi le mode soirée (invités), depuis son lecteur.
+ACTIONS_TELE = {"lancer_ici", "jouer", "lecture", "suivant", "precedent", "position", "volume", "volume_membre", "enceinte", "retirer", "vider", "invites_ouverts", "jouer_element", "ensuite_element",
                 "deplacer", "a_la_fin", "similaires", "enchainement"}
 
 
-async def proposer(hass: HomeAssistant, t: dict[str, Any], langue: str | None = None) -> str:
+MODES_INVITES = ("validation", "ensuite", "direct")
+
+
+def mode_invites_garde(store) -> str:
+    """Le mode des invités rangé dans les réglages (2.5.9), « direct » (en fin de file) par défaut."""
+    m = (getattr(store, "musique", None) or {}).get("invites_mode")
+    return m if m in MODES_INVITES else "direct"
+
+
+async def mes_titres(hass: HomeAssistant, appareil: str, langue: str | None = None) -> list[dict[str, str]]:
+    """2.5.8 (l'auteur : « un invité qui ajoute un titre ne le voit apparaître nulle part ») : les titres proposés par cet
+    appareil d'invité (les 10 derniers), chacun avec son état dit en clair dans sa langue."""
+    if not appareil:
+        return []
+    st = etat(hass)
+    miens = [p for p in st.get("propositions", []) if p.get("appareil") == appareil][-10:]
+    if not miens:
+        return []
+    suite = [x.get("uri") for x in await file_attente(hass, st.get("lecteur") or "")] if st.get("lecteur") else []
+    lect = hass.states.get(st.get("lecteur") or "") if st.get("lecteur") else None
+    joue = lect is not None and lect.state in ("playing", "paused", "buffering")
+    en_cours = str(lect.attributes.get("media_content_id") or "") if joue else ""
+    titre_en_cours = str(lect.attributes.get("media_title") or "").strip().lower() if joue else ""
+    sortie = []
+    for p in reversed(miens):
+        e = p.get("etat")
+        if e == "attente":
+            dit = textes.t("inv.mes_attente", langue)
+        elif e == "refuse":
+            dit = textes.t("inv.mes_refuse", langue)
+        elif (en_cours and p.get("uri") == en_cours) or (titre_en_cours and str(p.get("titre") or "").strip().lower() == titre_en_cours):
+            dit = textes.t("inv.mes_en_cours", langue)
+        elif p.get("uri") in suite:
+            rang = suite.index(p["uri"]) + 1
+            dit = textes.t("inv.mes_ensuite", langue) if rang == 1 else textes.t("inv.mes_position", langue, pos=rang)
+        else:
+            dit = textes.t("inv.mes_joue", langue)
+        sortie.append({"titre": p.get("titre", ""), "artiste": p.get("artiste", ""), "etat": dit, "attente": e == "attente"})
+    return sortie
+
+
+async def proposer(hass: HomeAssistant, t: dict[str, Any], langue: str | None = None, appareil: str = "") -> str:
     """Un titre proposé par un invité : ajouté à la file (ajout direct), ou mis en attente d'un décideur.
 
     La phrase rendue est dans la langue de l'invité (`langue`) ; sans langue, celle de Home Assistant."""
     st = etat(hass)
+    # 2.5.8 (retour d'essai) : l'appareil de l'invité (tiré par sa page) : il retrouve ses titres et leur état (« Vos titres »).
     p = {"id": secrets.token_urlsafe(8), "uri": t["uri"], "titre": t["titre"], "artiste": t["artiste"],
-         "ts": int(time.time()), "etat": "attente"}
+         "ts": int(time.time()), "etat": "attente", "appareil": str(appareil or "")[:32]}
     if st.get("invites_mode") == "validation":
         st.setdefault("propositions", []).append(p)
         st["propositions"] = st["propositions"][-200:]
@@ -448,11 +603,44 @@ async def proposer(hass: HomeAssistant, t: dict[str, Any], langue: str | None = 
     en_file = [x for x in await file_attente(hass, st["lecteur"]) if x.get("invite")]
     if len(en_file) >= party_invites.INVITES_EN_FILE_MAX:
         raise party_invites.Complet(textes.t("party.complet", langue))
-    await musique.jouer(hass, st["lecteur"], t["uri"], "track", "add")
+    # 2.5.8 (retour d'essai) : « jouer après » (juste après le titre en cours) ou « en fin de file ».
+    ensuite = st.get("invites_mode") == "ensuite"
+    await musique.jouer(hass, st["lecteur"], t["uri"], "track", "next" if ensuite else "add")
     p["etat"] = "ajoute"
     st.setdefault("propositions", []).append(p)
     st["propositions"] = st["propositions"][-200:]
-    return textes.t("party.merci_file", langue)
+    return textes.t("party.merci_ensuite" if ensuite else "party.merci_file", langue)
+
+
+async def suivre_jumeau(hass: HomeAssistant) -> str:
+    """2.5.8 (l'auteur, 16/10 : Sendspin choisi sur la télé → « Lancement… » sans fin, puis l'écran de recherche) : une
+    télé qui change de moteur (Classique ↔ Sendspin) a deux lecteurs « · Vision » du même nom ; l'ancien se déconnecte
+    et passe hors ligne. La soirée restait sur lui : Music Assistant jouait dans le vide. Elle passe sur le jumeau prêt,
+    et la file le suit. Rend le lecteur retenu (inchangé s'il n'y a rien à faire)."""
+    st = etat(hass)
+    ancien = st.get("lecteur") or ""
+    s = hass.states.get(ancien) if ancien else None
+    if s is None or s.state != "unavailable":
+        return ancien
+    nom = str(s.attributes.get("friendly_name") or "").strip()
+    if not nom.endswith(SUFFIXE_VISION):
+        return ancien
+    ma = musique.lecteurs_ma(hass)
+    prets = [x.entity_id for x in hass.states.async_all("media_player")
+             if x.entity_id != ancien and x.entity_id in ma and x.state != "unavailable"
+             and str(x.attributes.get("friendly_name") or "").strip() == nom]
+    if not prets:
+        return ancien
+    nouveau = prets[0]
+    st["lecteur"] = nouveau
+    _LOGGER.warning("%s : %s est hors ligne, la musique passe sur son jumeau %s (moteur changé sur la télé)", PRODUIT, ancien, nouveau)
+    if st["actif"]:
+        try:
+            await musique.sans_ajout_auto(hass, nouveau, bool(st.get("similaires")))
+            await musique.transferer(hass, ancien, nouveau)
+        except Exception as err:  # noqa: BLE001 - la soirée est déjà sur le bon lecteur ; la file suivra au prochain choix
+            _LOGGER.info("%s : file non transférée de %s vers %s : %s", PRODUIT, ancien, nouveau, err)
+    return nouveau
 
 
 async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[str, Any]) -> str:
@@ -462,6 +650,7 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
     action = str(corps.get("action") or "")
     par = str(pc.get("name") or pc.get("id"))
     st = etat(hass)
+    await suivre_jumeau(hass)
     from . import musique_arret
     if st.get("lecteur"):
         musique_arret.noter(st["lecteur"])  # 2.4.0 : une action sur la musique
@@ -514,6 +703,12 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
         # 2.2.6 (retour d'essai) : la soirée oubliée (redémarrage de HA) → le lecteur qui joue, comme l'écran l'affiche.
         await musique.retirer(hass, st["lecteur"] or lecteur_par_defaut(hass, store, pc), str(corps.get("element") or ""))
         return textes.t("party.retire", lg)
+    if action == "vider":
+        # 17-10 (l'auteur, point 18b) : tout ce qui suit le titre en cours est retiré ; le titre en cours continue. L'ajout
+        # automatique de Music Assistant est coupé (sinon la file se remplirait aussitôt) : l'option de la soirée suit.
+        n = await musique.vider_suite(hass, st["lecteur"] or lecteur_par_defaut(hass, store, pc))
+        st["similaires"] = False
+        return textes.t("party.file_videe", lg, n=n)
     if action == "enchainement":
         # 2.2.4 (retour d'essai) : « sans blanc » ou « fondu de X s », sur le lecteur de la soirée ; décideurs et télé de la soirée.
         fondu = str(corps.get("mode") or "") == "fondu"
@@ -543,6 +738,7 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
     if action in ("jouer_element", "ensuite_element"):
         if action == "jouer_element":
             await musique.jouer_element(hass, st["lecteur"], str(corps.get("element") or ""))
+            await _service(hass, "media_player", "media_next_track", st["lecteur"])
             return textes.t("party.cest_parti", lg)
         await musique.ensuite_element(hass, st["lecteur"], str(corps.get("element") or ""))
         return textes.t("party.joue_apres", lg)
@@ -551,12 +747,29 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
             raise textes.Erreur("party.est_arrete")
         st.update({"jeton": party_invites.nouveau_jeton(), "jeton_ts": time.time(), "refs": {}})
         return textes.t("party.nouveau_code", lg)
+    if action == "invites_ouverts":
+        # 17-10 (l'auteur, point 8 : « activer et désactiver facilement le mode soirée, sur la télé et le téléphone ; désactivé,
+        # le QR code disparaît et l'URL des invités ne donne plus accès à rien ») : fermer révoque le lien tout de suite
+        # (toute page ouverte ne peut plus rien) ; rouvrir en donne un NOUVEAU. Le choix vaut aussi pour la Party suivante.
+        ouvrir = bool(corps.get("actif"))
+        st["invites_ouverts"] = ouvrir
+        if not ouvrir:
+            st.update({"jeton": None, "jeton_ts": 0, "refs": {}})
+            return textes.t("party.invites_fermes", lg)
+        if st["actif"] and not st.get("jeton"):
+            st.update({"jeton": party_invites.nouveau_jeton(), "jeton_ts": time.time(), "refs": {}})
+        return textes.t("party.invites_ouverts", lg)
     if action == "invites":
         mode = str(corps.get("mode") or "")
-        if mode not in ("direct", "validation"):
+        # 2.5.8 (retour d'essai) : trois modes — valider avant (« validation »), jouer après (« ensuite »), en fin de file (« direct »).
+        if mode not in MODES_INVITES:
             raise textes.Erreur("commun.choix_inconnu")
         st["invites_mode"] = mode
-        return textes.t("party.invites_direct" if mode == "direct" else "party.invites_validation", lg)
+        if isinstance(getattr(store, "musique", None), dict):
+            store.musique["invites_mode"] = mode
+            await store.async_save()
+        return textes.t({"direct": "party.invites_direct", "validation": "party.invites_validation",
+                         "ensuite": "party.invites_ensuite"}[mode], lg)
     if action in ("accepter", "refuser"):
         p = next((x for x in st.get("propositions", []) if x["id"] == str(corps.get("proposition") or "") and x["etat"] == "attente"), None)
         if p is None:
@@ -587,8 +800,9 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
             raise textes.Erreur("party.enceinte_hors_ligne_nom", nom=nom) if nom else textes.Erreur("party.enceinte_hors_ligne")
         if st["actif"] and lecteur not in musique.lecteurs_ma(hass):
             raise textes.Erreur("party.enceinte_sans_ma")
-        coches = (getattr(store, "musique", None) or {}).get("enceintes")
-        if coches is not None and lecteur not in coches:
+        # 2.5.8 : la liste PROPOSÉE (le lecteur « · Vision » d'un Cast coché en fait partie), pas les cases brutes.
+        if (getattr(store, "musique", None) or {}).get("enceintes") is not None and \
+                lecteur not in {x["entity_id"] for x in lecteurs_pour(hass, store, pc)}:
             raise textes.Erreur("party.enceinte_pas_proposee")
         ancien = st["lecteur"]
         st["lecteur"] = lecteur
@@ -598,6 +812,18 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
             await musique.sans_ajout_auto(hass, lecteur, bool(st.get("similaires")))
             return textes.t("party.enceinte_continue", lg)
         return textes.t("party.enceinte_choisie", lg)
+    if action == "position":
+        cible = hass.states.get(lecteur)
+        try:
+            p = _position(corps.get("position"), cible.attributes.get("media_duration") if cible else None)
+        except (TypeError, ValueError) as e:
+            raise textes.Erreur("party.position") from e
+        t0 = time.monotonic()
+        _mesurer(hass, lecteur, action, t0)
+        await _service(hass, "media_player", "media_seek", lecteur, {"seek_position": p})
+        st["saut"] = {"lecteur": lecteur, "position": p, "ts": time.time()}
+        _LOGGER.info("%s : Musique saut à %.1f s — appel du service : %d ms", PRODUIT, p, (time.monotonic() - t0) * 1000)
+        return ""
     if action in ACTIONS_LECTURE:
         # 2.2.5 (retour d'essai) : l'appli dit ce qu'elle veut (« pause » ou « lecture ») : jamais une bascule à l'aveugle sur un
         # état périmé. Et on mesure le délai jusqu'au vrai changement d'état (journal), pour savoir d'où vient le retard.
@@ -623,6 +849,44 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
         await _service(hass, "media_player", "volume_set", lecteur, {"volume_level": v})
         return ""
     raise textes.Erreur("party.commande_inconnue")
+
+
+# Banc Musique (2026-10-12) : le lecteur « · Vision » de la Party qui perd le réseau en pleine lecture (Wi-Fi de la télé,
+# appli relancée) revient « off » (Classique) et la musique ne repartait jamais. S'il revient dans REPRISE_MAX_S, HA
+# relance la lecture (Sendspin se relance lui-même : rien n'est doublé, on attend REPRISE_DELAI_S et on vérifie).
+REPRISE_MAX_S = 120
+REPRISE_DELAI_S = 4
+_COUPURES: dict[str, float] = {}
+
+
+def reprise_apres_coupure(hass: HomeAssistant, eid: str, ancien: str | None, nouveau: str | None, maintenant_ts: float) -> bool:
+    """Vrai quand il faut relancer la lecture : le lecteur de la Party en cours, « · Vision », revenu dans REPRISE_MAX_S
+    après avoir disparu en pleine lecture. Note la coupure au passage."""
+    st = etat(hass)
+    if not st["actif"] or eid != st["lecteur"] or not musique.est_lecteur_vision(hass, eid):
+        _COUPURES.pop(eid, None)
+        return False
+    if nouveau == "unavailable":
+        if ancien == "playing":
+            _COUPURES[eid] = maintenant_ts
+        return False
+    if ancien == "unavailable" and eid in _COUPURES:
+        return maintenant_ts - _COUPURES.pop(eid) <= REPRISE_MAX_S
+    return False
+
+
+async def reprendre_apres_coupure(hass: HomeAssistant, eid: str) -> None:
+    await asyncio.sleep(REPRISE_DELAI_S)
+    s = hass.states.get(eid)
+    if s is None or s.state in ("playing", "unavailable") or etat(hass)["lecteur"] != eid or not etat(hass)["actif"]:
+        return
+    try:
+        if s.state == "off":
+            await _service(hass, "media_player", "turn_on", eid)
+        await _service(hass, "media_player", "media_play", eid)
+        _LOGGER.info("%s : Party — lecture relancée sur %s après une coupure", PRODUIT, eid)
+    except Exception as err:  # noqa: BLE001 - lecteur pas prêt : la Party reste comme elle est
+        _LOGGER.info("%s : Party — relance après coupure impossible sur %s : %s", PRODUIT, eid, err)
 
 
 async def pochette(hass: HomeAssistant, eid: str) -> tuple[bytes, str] | None:
@@ -685,6 +949,7 @@ class PcParentalPartyEtatView(_Porte):
         piloter = peut_piloter(store, pc)
         participer = peut_participer(self.hass, store, pc)
         st = etat(self.hass)
+        await suivre_jumeau(self.hass)
         ici = bool(st["actif"] and st["ecran"] == str(pc.get("id")))
         ma = musique.lecteurs_ma(self.hass)
         noms = {e["id"]: e["nom"] for e in ecrans(store)}
@@ -703,7 +968,12 @@ class PcParentalPartyEtatView(_Porte):
             "lecteur": vu,
             "lecteur_nom": str(lect.attributes.get("friendly_name") or vu) if lect else "",
             "maintenant": maintenant(self.hass, vu),
+            # 2.4.6 : le dernier saut sur ce lecteur (recalage de l'horloge locale d'un lecteur « · Vision »).
+            "saut": saut_recent(self.hass, vu),
             "file": (la_file := avec_refs(self.hass, await file_attente(self.hass, st["lecteur"])) if st["actif"] else []),
+            # 2.5.8 (l'auteur : « la file doit défiler et suivre le morceau en cours ») : les derniers titres joués, du plus
+            # ancien au plus récent ; l'appli les montre au-dessus du titre en cours.
+            "file_passes": avec_refs(self.hass, await musique.file_passes(self.hass, st["lecteur"])) if st["actif"] else [],
             # 2.2.1 (retour d'essai) : file vide et musique arrêtée → le numéro du clin d'œil (le même sur tous les écrans), sinon -1.
             "fin_clin": clins.indice(st, lect.state if lect else "unavailable", bool(la_file)),
             # 2.2.1 : le vrai nombre de titres à suivre (la liste affichée s'arrête à 30).
@@ -723,6 +993,7 @@ class PcParentalPartyEtatView(_Porte):
             "participer": participer,
             "ferme": "" if participer or piloter or not st["actif"] else textes.t("party.ferme_participer", textes.pour(self.hass, pc)),
             "invites_mode": st.get("invites_mode", "direct"),
+            "invites_ouverts": bool(st.get("invites_ouverts", True)),
         }
         if piloter or ici:
             # 2.2.1 : la télé de la Party choisit aussi l'enceinte (jamais elle-même).
@@ -827,6 +1098,9 @@ class PcParentalPartyPochetteView(_Porte):
                             headers={"Cache-Control": "private, max-age=300"})
 
 
+RECHERCHES_PAR_MINUTE = 90
+
+
 class PcParentalPartyMusiqueView(_Porte):
     """1.99.0 : choisir quoi jouer. Décideur, ou télé (pour la Party qu'elle affiche ou va lancer)."""
 
@@ -840,20 +1114,30 @@ class PcParentalPartyMusiqueView(_Porte):
         lg = textes.pour(self.hass, pc)
         if not peut_participer(self.hass, coord.store, pc) and not est_tele(pc):
             return self.json({"ok": False, "error": "party", "retour": textes.t("commun.reserve_decideurs", lg)}, status_code=403)
-        if widgets._trop_vite("musique:" + str(pc.get("id"))):
+        quoi = str(corps.get("quoi") or "")
+        # Recherche instantanée (l'appli cherche pendant qu'on tape, après une pause) : son propre compteur, plus large.
+        limite = ("recherche:", RECHERCHES_PAR_MINUTE) if quoi in ("chercher", "suggestions") else ("musique:", widgets.ACTIONS_PAR_MINUTE)
+        if widgets._trop_vite(limite[0] + str(pc.get("id")), limite[1]):
             return self.json({"ok": False, "error": "trop_vite", "retour": textes.t("commun.reessaie_instant", lg)},
                              status_code=429)
-        quoi = str(corps.get("quoi") or "")
         try:
+            if quoi == "suggestions":
+                return self.json({"ok": True, "suggestions": await musique.suggestions(self.hass)})
             if quoi == "chercher":
                 texte = str(corps.get("texte") or "")
-                # 2.2.8 (retour d'essai) : filtres type (Titres, Albums, Playlists, Artistes, Radios) et plateforme, cumulables.
+                # 2.2.8 (retour d'essai) : filtres type (Titres, Albums, Playlists, Artistes, Radios) et plateforme, cumulables ;
+                # « Ma bibliothèque seulement » est demandé tel quel à Music Assistant.
                 types, doms = musique.choix_filtres(corps)
-                res = musique.filtrer(await musique.chercher(self.hass, texte, tuple(types) or musique.TYPES_CHOIX), types, doms)
+                res = musique.filtrer(await musique.chercher(self.hass, texte, tuple(types) or musique.TYPES_CHOIX,
+                                                             bibliotheque_seule=bool(corps.get("bibliotheque"))), types, doms)
                 for liste in (res.values() if isinstance(res, dict) else []):
                     avec_refs(self.hass, liste)
                 return self.json({"ok": True, "resultats": res, "plateformes": musique.plateformes(self.hass, lg),
                                   **musique.bilan(self.hass, texte, res, lg)})
+            if quoi == "favori":
+                # l'auteur (15/10) : le cœur de l'appli Musique, le même appel que le choix de la veille (musique.basculer_favori).
+                favori = await musique.basculer_favori(self.hass, str(corps.get("uri") or ""), bool(corps.get("favori")))
+                return self.json({"ok": True, "favori": favori})
             return self.json({"ok": True, "items": avec_refs(self.hass, await musique.bibliotheque(self.hass, quoi))})
         except musique.MusiqueIndisponible as e:
             return self.json({"ok": False, "error": "musique", "retour": textes.erreur(e, lg)}, status_code=503)

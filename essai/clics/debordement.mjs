@@ -45,6 +45,18 @@ const CARTES = [
   { id: "dashboards", fichier: "vision-dashboards-card", el: "vision-dashboards-card", donnees: "dashboards", config: {} },
   { id: "widgets", fichier: "vision-widgets-card", el: "vision-widgets-card", donnees: "widgets", config: {} },
   { id: "veille", fichier: "vision-veille-card", el: "vision-veille-card", donnees: "veille", config: {} },
+  // Refonte lot 3 : la fiche d'une personne, un cas par onglet (les cartes intégrées viennent avec leurs données).
+  ...["resume", "horaires", "contenus", "reveils", "recompenses", "ecrans", "role"].map((o) => ({
+    id: `fiche-${o}`, fichier: "vision-personne-card", el: "vision-personne-card", donnees: "fiche",
+    config: { personne: "person.lou", chemin: "/vision-maison", onglet: o }, avec: ["vision-maison-card", "vision-planning-card", "vision-widgets-card"] })),
+  // Refonte lot 5 : Réglages › Réservé (les trois parties dépliées).
+  { id: "reglages", fichier: "vision-reglages-card", el: "vision-reglages-card", donnees: "reglages", config: { ouvertes: ["lieu", "fonctions", "droits"] } },
+  // 2.5.6 : Réglages › Mes notifications (un administrateur : la liste déroulante des Décideurs, trois sujets × trois cases).
+  { id: "canaux", fichier: "vision-canaux-card", el: "vision-canaux-card", donnees: "canaux", config: {} },
+  // Refonte lot 4 : les écrans de l'assistant (maquette du dialogue de Home Assistant avec les vrais textes).
+  ...["user", "personnes", "objectifs", "objectifs_erreur", "appareil", "pret", "menu", "reparer", "autres",
+      "r_user", "r_personnes", "r_objectifs", "r_pret"].map((e) => ({
+    id: `assistant-${e}`, fichier: "vision-flux-maquette", el: "vision-flux-maquette", donnees: "flux", config: { etape: e } })),
   { id: "appairage", fichier: "vision-appairage-panel", el: "vision-appairage-panel", donnees: "appairage", config: {}, panneau: true },
 ];
 // Les tailles en px CSS (= dp : densité 1, pour des captures légères ; le rendu ne dépend que des px CSS).
@@ -245,6 +257,22 @@ const OUTILS = String.raw`
     b.click();
     return true;
   };
+  // 2.5.1 : l'écran par élément : la première catégorie dépliée, son premier logiciel déplié, le choix du mode de
+  // sa première ligne ouvert ; puis la recherche.
+  window.__ouvrirElements = (etape) => {
+    const r = RACINE();
+    const sel = ["button.ouvrir[data-cat]", "button[data-el-deplier]", "button[data-el-mode]"][etape];
+    const b = sel && tousLesElements(r).find((x) => x.matches && x.matches(sel) && !x.disabled);
+    if (!b) return false;
+    b.click();
+    return true;
+  };
+  window.__chercherElements = () => {
+    const i = tousLesElements(RACINE()).find((x) => x.tagName === "INPUT" && x.hasAttribute("data-el-recherche"));
+    if (!i) return false;
+    i.value = "minecraft"; i.dispatchEvent(new Event("input", { bubbles: true }));
+    return true;
+  };
   window.__ouvrirDetails = () => { let n = 0; for (const d of tousLesElements(RACINE())) if (d.tagName === "DETAILS" && !d.open) { d.open = true; n++; } return n; };
   window.__onglets = () => tousLesElements(RACINE()).filter((b) => b.matches("button[data-vue], button[data-onglet], button.onglet, [role=tab]") && visible(b)).map((b) => nomDe(b));
   window.__cliquerOnglet = (i) => { const l = tousLesElements(RACINE()).filter((b) => b.matches("button[data-vue], button[data-onglet], button.onglet, [role=tab]") && visible(b)); if (l[i]) { l[i].click(); return nomDe(l[i]); } return null; };
@@ -298,7 +326,8 @@ async function main() {
         await cmd("Emulation.setDeviceMetricsOverride", { width: t.l, height: t.h, deviceScaleFactor: 1, mobile: t.mobile });
         const config = { ...c.config, ...(c.panneau ? { narrow: t.l < 870 } : {}) };
         const url = `http://127.0.0.1:${PORT_HTTP}/debordement.html?carte=${c.el}&fichier=${c.fichier}&donnees=${c.donnees}`
-          + `&langue=${langue}&theme=${theme}&config=${encodeURIComponent(JSON.stringify(config))}`;
+          + `&langue=${langue}&theme=${theme}&config=${encodeURIComponent(JSON.stringify(config))}`
+          + (c.avec ? `&avec=${c.avec.join(",")}` : "");
         await cmd("Page.navigate", { url });
         let pret = false;
         for (let i = 0; i < 80 && !pret; i++) {
@@ -337,6 +366,26 @@ async function main() {
         if (await evaluer(`window.__ouvrirListe()`)) { await stable(); await verifierEtat("suggestions"); }
         // 2.4.0 : le panneau « Régler » d'une entité (carte Widgets HA), ouvert.
         if (await evaluer(`window.__ouvrirReglage()`)) { await stable(); await evaluer(`window.__ouvrirDetails()`); await verifierEtat("reglage"); }
+        // 2.5.1 : l'écran par élément (carte d'une personne).
+        let elements = false;
+        for (let etape = 0; etape < 3; etape++) {
+          if (!(await evaluer(`window.__ouvrirElements(${etape})`))) break;
+          await pause(400); await stable(); elements = true;
+        }
+        if (elements) {
+          await verifierEtat("par élément");
+          // Capture de cet état aussi (recette de l'auteur : l'écran par élément se regarde, pas seulement se mesure).
+          if (CAPTURES && octets < BUDGET) {
+            const haut = Math.min(4000, await evaluer(`Math.ceil(document.documentElement.scrollHeight)`));
+            const r = await cmd("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width: t.l, height: haut, scale: 1 } });
+            if (r.result?.data) {
+              const b = Buffer.from(r.result.data, "base64");
+              writeFileSync(join(CAPTURES, `recette-lot1-ha-${c.id}-elements-${t.id}-${police}-${theme}${langue === LANGUE_PRINCIPALE ? "" : "-" + langue}.png`), b);
+              octets += b.length;
+            }
+          }
+        }
+        if (await evaluer(`window.__chercherElements()`)) { await pause(900); await stable(); await verifierEtat("recherche"); }
         const onglets = await evaluer(`window.__onglets()`);
         for (let i = 0; i < onglets.length && i < 8; i++) {
           const nom = await evaluer(`window.__cliquerOnglet(${i})`);

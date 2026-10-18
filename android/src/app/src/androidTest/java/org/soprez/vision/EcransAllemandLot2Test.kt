@@ -41,6 +41,7 @@ class EcransAllemandLot2Test : InstrumentationTestCase() {
 
     override fun setUp() {
         super.setUp()
+        CodeEssai.poser(instrumentation.targetContext)  // faille du 16-10 : un Décideur a toujours un code
         shell("cmd locale set-app-locales org.soprez.vision --locales de-DE")
         SystemClock.sleep(1500)
     }
@@ -48,6 +49,7 @@ class EcransAllemandLot2Test : InstrumentationTestCase() {
     override fun tearDown() {
         shell("settings put system font_scale 1.0")
         shell("cmd locale set-app-locales org.soprez.vision --locales \"\"")
+        CodeEssai.rendre(instrumentation.targetContext)
         super.tearDown()
     }
 
@@ -76,7 +78,7 @@ class EcransAllemandLot2Test : InstrumentationTestCase() {
         SystemClock.sleep(1500)
         val s = "${(echelle * 100).toInt()}"
         ecran("accueil_$s", Intent(ctx, LanceurActivity::class.java))
-        ecran("reglages_$s", Intent(ctx, ReglagesTvActivity::class.java), defiler = true)
+        ecran("reglages_$s", EcransReglages.reglages(ctx), defiler = true)
         ecran("couleurs_$s", Intent(ctx, CouleursActivity::class.java), defiler = true)
         ecran("musique_$s", Intent(ctx, PartyActivity::class.java), defiler = true)
         ecran("choix_musique_$s", Intent(ctx, ChoixMusiqueActivity::class.java).putExtra("lecteur_nom", "Lautsprecher im Wohnzimmer"))
@@ -88,7 +90,7 @@ class EcransAllemandLot2Test : InstrumentationTestCase() {
         ecran("scan_$s", Intent(ctx, ScanActivity::class.java))
         ecran("appairage_$s", Intent(ctx, AppairageActivity::class.java))  // sans adresse : l'erreur et ses boutons
         ecran("blocage_$s", Intent(ctx, BlockActivity::class.java).putExtra("raison", BlockActivity.RAISON_REGLAGE).putExtra("pkg", "com.android.settings"))
-        ecran("message_$s", Intent(ctx, MessageActivity::class.java).putExtra("titre", "Robin · wichtig").putExtra("texte", "Das Abendessen ist fertig, komm bitte runter."))
+        ecran("message_$s", Intent(ctx, MessageActivity::class.java).putExtra("titre", "Nolan · wichtig").putExtra("texte", "Das Abendessen ist fertig, komm bitte runter."))
         ecran("message_demande_$s", MessageActivity.intention(ctx, "Anfrage", "Maximilien-Alexandre fragt nach mehr Zeit", false,
             JSONObject().put("pc", "essai_tablette").put("id", "d1").put("nom", "Maximilien-Alexandre")))
         // Les boîtes du lot : demande d'accès, sélecteur de widgets, menus de l'accueil.

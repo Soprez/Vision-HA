@@ -4,7 +4,7 @@
 #
 # Usage :
 #   1. TV : Parametres > Options developpeur > Debogage USB (ou ADB reseau) = ON
-#   2. PC : ./install-tv.sh 192.168.1.12        (IP de la TV)
+#   2. PC : ./install-tv.sh <IP-de-la-TV>      (IP de la TV)
 #      ou   ./install-tv.sh                      (TV deja branchee en USB)
 #
 # Rejouable sans risque : reaccorde simplement les autorisations.

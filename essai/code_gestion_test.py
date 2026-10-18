@@ -339,6 +339,7 @@ async def test_options_reglent_le_code(hass, hass_storage):
 
     async def _etape():
         flux = await hass.config_entries.options.async_init(entree.entry_id)
+        flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "autres"})
         flux = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "securite"})
         assert "code_gestion" in flux["menu_options"]
         return await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "code_gestion"})

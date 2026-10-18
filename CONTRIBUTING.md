@@ -1,6 +1,6 @@
-# Contribuer à Vision · Contributing
+# Contribuer à Vision
 
-*English below.*
+[English](CONTRIBUTING.en.md) · **Français**
 
 Merci de votre intérêt ! Vision se compose de trois parties, toutes dans ce dépôt :
 
@@ -10,7 +10,28 @@ Merci de votre intérêt ! Vision se compose de trois parties, toutes dans ce d�
 | Application Android | `android/src/` | `gradle testDebugUnitTest` (Gradle 8.9, JDK 17+) |
 | Agent Windows | `custom_components/pc_parental/client/` | `pytest` dans `essai/`, `essai/desinstall_essai.ps1` |
 
-**Avant d'ouvrir une demande de fusion (pull request)**
+Site et documentation : https://soprez.org/vision
+
+## Lancer les essais
+
+Intégration et agent (Linux ou macOS, Python 3.14) :
+
+```sh
+python -m venv .venv && . .venv/bin/activate
+pip install -r essai/requirements.txt
+cd essai && python -m pytest -q -p no:cacheprovider -o asyncio_mode=auto
+```
+
+Sous Windows, le plus simple est l'image Docker du banc : `essai/banc/lancer.sh` (voir `essai/banc/Dockerfile`).
+Lisez toujours la **dernière** ligne en entier : « 1 failed, 8 passed » est un échec.
+
+Application Android : `gradle -p android/src testDebugUnitTest`. Les essais sur émulateur (`androidTest`) ne sont
+pas lancés par l'intégration continue.
+
+Chaque demande de fusion passe aussi par **hassfest** (validation officielle de Home Assistant) et par la
+**validation HACS** : voir `.github/workflows/`.
+
+## Avant d'ouvrir une demande de fusion (pull request)
 
 1. Une seule chose par demande, avec une phrase qui dit pourquoi.
 2. Les essais passent, et un essai couvre ce qui change.
@@ -21,18 +42,13 @@ Merci de votre intérêt ! Vision se compose de trois parties, toutes dans ce d�
 5. Aucune donnée réelle : ni nom, ni adresse, ni IP, ni jeton, ni clé. Exemples : `ha.exemple.org`,
    `192.0.2.10`, `person.demandeur_1`.
 6. Jamais de clé de signature ni d'APK signé : la signature des versions publiées se fait hors du dépôt.
+7. Les dépendances suivent Home Assistant : une exigence du `manifest.json` s'écrit avec un minimum
+   (`pyqrcode>=1.2.1`), jamais épinglée.
 
-**Failles de sécurité** : ne pas ouvrir d'issue publique, voir [SECURITY.md](SECURITY.md).
+## Failles de sécurité
 
----
+Ne pas ouvrir d'issue publique : voir [SECURITY.md](SECURITY.md).
 
-Thanks for your interest! Vision has three parts, all in this repository: the Home Assistant integration
-(`custom_components/pc_parental/`, tests with `pytest` in `essai/`), the Android app (`android/src/`,
-`gradle testDebugUnitTest` with Gradle 8.9 and JDK 17+) and the Windows agent (`custom_components/pc_parental/client/`).
+## Licence
 
-Before opening a pull request: one change per request with a sentence explaining why; tests pass and cover the
-change; displayed texts exist in the six languages (fr, en, de, es, it, nl), or say which are missing; neutral
-vocabulary (roles are **Decider** and **Requester**, see `docs/i18n/vocabulaire.md`); no real data (names,
-addresses, IPs, tokens, keys); never a signing key or a signed APK.
-
-Security issues: do not open a public issue, see [SECURITY.md](SECURITY.md).
+En contribuant, vous acceptez que votre contribution soit publiée sous la [licence MIT](LICENSE) du projet.

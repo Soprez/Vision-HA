@@ -20,21 +20,21 @@ from deverrouillage_test import (  # noqa: F401  (fixtures du banc)
 )
 
 MIA = {"id": "p2", "secret": "b" * 32}
-PAPA2 = {"id": "p3", "secret": "c" * 32}  # la tablette de Robin : même personne, autre appareil
+PAPA2 = {"id": "p3", "secret": "c" * 32}  # la tablette de Nolan : même personne, autre appareil
 
 
 async def _monter(hass, hass_storage, validation=None, avec_mia=True):
     pcs = {
         "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android"),
         "e2": _fiche("e2", "TEL-NOA", ENFANT2["secret"], person="person.noa", platform="android"),
-        "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
-        "p3": _fiche("p3", "TABLETTE-ROBIN", PAPA2["secret"], person="person.robin", platform="android", role="parent"),
+        "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
+        "p3": _fiche("p3", "TABLETTE-NOLAN", PAPA2["secret"], person="person.nolan", platform="android", role="parent"),
     }
     if avec_mia:
         pcs["p2"] = _fiche("p2", "PIXEL-MIA", MIA["secret"], person="person.mia", platform="android", role="parent")
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
         "enroll_key": "x" * 16, "enroll_key_v": 2, "pcs": pcs, "roles_migres": True}}
-    for p in ("lou", "noa", "robin", "mia"):
+    for p in ("lou", "noa", "nolan", "mia"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -70,19 +70,19 @@ async def test_deux_personnes_distinctes(hass, hass_storage, hass_client, caplog
     e = (await lou.appel("etat", demande=lou.demande))[1]
     assert e["etat"] == "partielle" and e["voix"] == 1 and e["requis"] == 2 and e["en_attente_de"] == ["Mia"]
     assert "approbation" not in e
-    # Robin revote depuis sa tablette : une personne = une voix.
+    # Nolan revote depuis sa tablette : une personne = une voix.
     assert (await _decide(client, PAPA2, lou.demande))[:1] == (409,)
     assert (await _decide(client, PAPA2, lou.demande))[1]["error"] == "deja_vote"
-    # Mia voit qu'il ne manque qu'elle ; Robin voit qu'il a déjà voté.
+    # Mia voit qu'il ne manque qu'elle ; Nolan voit qu'il a déjà voté.
     liste = (await Appareil(client, MIA).appel("liste"))[1]["demandes"][0]
-    assert liste["voix"] == 1 and liste["approuve_par"] == ["Robin"] and liste["deja_vote"] is False
+    assert liste["voix"] == 1 and liste["approuve_par"] == ["Nolan"] and liste["deja_vote"] is False
     assert (await Appareil(client, PAPA2).appel("liste"))[1]["demandes"][0]["deja_vote"] is True
     # Mia propose plus long et une remise directe : la durée la plus courte gagne.
     statut, r = await _decide(client, MIA, lou.demande, minutes=30, remise="directe")
     assert statut == 200 and r["etat"] == "approuvee" and r["minutes"] == 20 and r["remise"] == "directe"
     a = (await lou.appel("etat", demande=lou.demande))[1]["approbation"]
-    assert lou.appliquer(a) == "ok" and a["par"] == "Robin + Mia"
-    assert any("voix de Robin" in m and "(1/2)" in m for m in caplog.messages)
+    assert lou.appliquer(a) == "ok" and a["par"] == "Nolan + Mia"
+    assert any("voix de Nolan" in m and "(1/2)" in m for m in caplog.messages)
     # Rejeu de la décision une fois le quorum atteint.
     assert (await _decide(client, PAPA2, lou.demande))[0] == 404
 
@@ -136,7 +136,7 @@ async def test_toutes_fige_a_la_creation(hass, hass_storage, hass_client):
     coord = await _monter(hass, hass_storage, {"mode": "toutes"}, avec_mia=False)
     lou = Appareil(client, ENFANT)
     await lou.demander()
-    assert _demande(hass, lou.demande)["requis"] == 1  # seul Robin approuve : une règle impossible retombe
+    assert _demande(hass, lou.demande)["requis"] == 1  # seul Nolan approuve : une règle impossible retombe
     # Un nouveau parent arrive après la demande : il ne change rien à celle-ci.
     coord.store.pcs["e2"]["role"] = "parent"
     await lou.demander()
@@ -146,11 +146,11 @@ async def test_toutes_fige_a_la_creation(hass, hass_storage, hass_client):
 async def test_voix_d_un_administrateur_lie_a_une_personne(hass, hass_storage, hass_client, hass_admin_user):
     client = await hass_client()
     await _monter(hass, hass_storage, {"mode": "n", "n": 2})
-    hass.states.async_set("person.robin", "home", {"friendly_name": "Robin", "user_id": hass_admin_user.id})
+    hass.states.async_set("person.nolan", "home", {"friendly_name": "Nolan", "user_id": hass_admin_user.id})
     lou = Appareil(client, ENFANT)
     await lou.demander()
     assert (await _decide(client, PARENT, lou.demande))[1]["etat"] == "partielle"
-    # L'administrateur est Robin : sa voix depuis Home Assistant ne compte pas une seconde fois.
+    # L'administrateur est Nolan : sa voix depuis Home Assistant ne compte pas une seconde fois.
     import pytest
     from homeassistant.exceptions import HomeAssistantError
     with pytest.raises(HomeAssistantError):

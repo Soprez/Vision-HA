@@ -58,13 +58,18 @@ async def test_chaque_geste_se_voit_tout_de_suite(hass, hass_storage, hass_clien
     # Lot 1 (HA-02) : de quoi trancher dans l'onglet Autorisations (un logiciel au nom long, deux sites).
     lou["apps_vues"] = {"com.mojang.minecraftpe.un.nom.de.paquet.tres.long": {"premier": maintenant, "dernier": maintenant, "secondes": 60}}
     lou["sites_vus"] = {d: {"premier": maintenant, "dernier": maintenant, "n": 1} for d in ("wikipedia.org", "twitch.tv")}
+    # 2.5.0 : une appli « toujours disponible » sur la fiche (onglet Autorisations).
+    lou["autorises"] = ["minecraft"]
+    lou["toujours"] = ["minecraft"]
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True,
         "entites_personnes": {"person.lou": ["sensor.salon"]},
-        "pcs": {"e1": lou, "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent")},
+        "pcs": {"e1": lou, "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent")},
+        # 2.5.1 : une catégorie à détailler élément par élément.
+        "etiquettes": {"apps": {"com.mojang.minecraftpe.un.nom.de.paquet.tres.long": ["Jeux"]}, "sites": {"twitch.tv": ["Jeux"]}},
     }}
     hass.states.async_set("person.lou", "home", {"friendly_name": "Lou"})
-    hass.states.async_set("person.robin", "home", {"friendly_name": "Robin"})
+    hass.states.async_set("person.nolan", "home", {"friendly_name": "Nolan"})
     hass.states.async_set("sensor.salon", "21.5", {"friendly_name": "Température salon", "unit_of_measurement": "°C"})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -87,7 +92,15 @@ async def test_chaque_geste_se_voit_tout_de_suite(hass, hass_storage, hass_clien
     planning["__entite"] = plages.entity_id
     planning["__etats"] = {plages.entity_id: {"entity_id": plages.entity_id, "state": plages.state, "attributes": json.loads(json.dumps(dict(plages.attributes), default=str))}}
     (tmp_path / "donnees" / "planning.json").write_text(json.dumps(planning, ensure_ascii=False), encoding="utf-8")
-    m = json.loads((tmp_path / "donnees" / "maison.json").read_text(encoding="utf-8"))["pc_parental/maison"]
+    # 2.5.1 : les lectures de l'écran par élément, servies au banc (ce ne sont pas des gestes).
+    maison = json.loads((tmp_path / "donnees" / "maison.json").read_text(encoding="utf-8"))
+    for corps in ({"action": "categorie", "etiquette": "Jeux"}, {"action": "recherche", "texte": "twitch"}, {"action": "recents"}):
+        r = await client.post("/api/pc_parental/maison", json={"pc": "e1", **corps})
+        assert r.status == 200, (corps, await r.text())
+        maison["__lecture_" + corps["action"]] = await r.json()
+    assert maison["__lecture_categorie"]["sites"], maison["__lecture_categorie"]
+    (tmp_path / "donnees" / "maison.json").write_text(json.dumps(maison, ensure_ascii=False), encoding="utf-8")
+    m = maison["pc_parental/maison"]
     assert {d["genre"] for d in m["demandes"]} == {"apps", "temps"}
     shutil.copy(ICI / "clics" / "banc.html", tmp_path / "banc.html")
     for f in CARTES.glob("vision-*.js"):

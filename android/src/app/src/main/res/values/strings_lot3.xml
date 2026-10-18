@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 3 : fiche d'une personne (espace Décideur) ; apparence, veille et son à un seul endroit. -->
+<resources>
+    <string name="fiche_de">Profile of %1$s</string>
+    <string name="fiche_voir">View profile</string>
+    <string name="fiche_precedente">Previous person</string>
+    <string name="fiche_suivante">Next person</string>
+    <string name="fiche_resume">Summary</string>
+    <string name="fiche_temps_aujourdhui">Screen time today: %1$s</string>
+    <string name="fiche_horaires">Schedule</string>
+    <string name="fiche_prochain_changement">Next change</string>
+    <string name="fiche_aucun_horaire">No schedule</string>
+    <string name="fiche_voir_appareils">See devices</string>
+    <string name="fiche_contenus">Content</string>
+    <string name="fiche_selon_lieu">Depending on location</string>
+    <string name="fiche_regle_lieu">%1$s: %2$s</string>
+    <string name="fiche_aucune_regle_lieu">No location rules</string>
+    <string name="fiche_reveils">Alarms</string>
+    <string name="fiche_reveil_active">On</string>
+    <string name="fiche_reveil_desactive">Off</string>
+    <string name="fiche_reveil_prochain">Next: %1$s</string>
+    <string name="fiche_aucun_reveil">No alarms</string>
+    <string name="fiche_recompenses">Rewards</string>
+    <string name="fiche_recompense">%1$d min per task from “%2$s”, at most %3$d min per day; %4$d min earned today</string>
+    <string name="fiche_pas_recompense">No reward set</string>
+    <string name="fiche_ecrans">On their screens</string>
+    <string name="fiche_role">Role</string>
+    <string name="fiche_note">These settings are changed in Home Assistant (profile of %1$s).</string>
+    <string name="lot3_apparence_veille_son">Appearance, screensaver and sound</string>
+    <string name="lot3_apparence_veille_son_detail">Theme, colors, sounds</string>
+    <string name="lot3_son">Sound</string>
+    <plurals name="fiche_n_widgets">
+        <item quantity="one">%1$d Home Assistant widget</item>
+        <item quantity="other">%1$d Home Assistant widgets</item>
+    </plurals>
+</resources>

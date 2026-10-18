@@ -1,0 +1,48 @@
+{
+  "version": "2.4.4",
+  "date": "2026-10-12",
+  "points": [
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Widgets : un attribut en liste s'affiche élément par élément dans le détail.",
+        "en": "Widgets: a list attribute is shown item by item in the details.",
+        "de": "Widgets: Ein Listen-Attribut wird in den Details Eintrag für Eintrag gezeigt.",
+        "es": "Widgets: un atributo en lista se muestra elemento por elemento en el detalle.",
+        "it": "Widget: un attributo a elenco è mostrato voce per voce nel dettaglio.",
+        "nl": "Widgets: een lijstattribuut wordt in de details per item getoond."
+      }
+    },
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Chaque liste a son titre et son nombre d'éléments.",
+        "en": "Each list has its title and its number of items.",
+        "de": "Jede Liste hat ihren Titel und die Zahl ihrer Einträge.",
+        "es": "Cada lista tiene su título y su número de elementos.",
+        "it": "Ogni elenco ha il suo titolo e il numero di voci.",
+        "nl": "Elke lijst heeft een titel en het aantal items."
+      }
+    },
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Le détail d'un widget va jusqu'à 40 lignes.",
+        "en": "A widget's details go up to 40 lines.",
+        "de": "Die Details eines Widgets reichen bis zu 40 Zeilen.",
+        "es": "El detalle de un widget llega hasta 40 líneas.",
+        "it": "Il dettaglio di un widget arriva fino a 40 righe.",
+        "nl": "De details van een widget gaan tot 40 regels."
+      }
+    }
+  ]
+}

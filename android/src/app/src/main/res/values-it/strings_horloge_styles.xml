@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.2 : les styles de l'horloge (HorlogesVeille), accueil et veille. -->
+<resources>
+    <string name="horloge_theme">Quello del tema</string>
+    <string name="horloge_anneau">Anello</string>
+    <string name="horloge_fine">Digitale sottile</string>
+    <string name="horloge_grasse">Digitale marcato</string>
+    <string name="horloge_analogique">Analogico minimale</string>
+    <string name="horloge_classique">Analogico classico</string>
+    <string name="horloge_mots">In lettere</string>
+    <string name="horloge_flip">Palette</string>
+    <string name="horloge_empilee">Impilato</string>
+    <string name="horloge_style">Stile</string>
+    <string name="horloge_style_veille">Orologio del salvaschermo</string>
+    <string name="horloge_comme_accueil">Come la schermata iniziale</string>
+    <string name="horloge_comme_accueil_titre">Segui la schermata iniziale</string>
+    <string name="horloge_styles_vision">Stili di Vision</string>
+    <string name="horloge_horloges_themes">Orologi dei temi</string>
+    <string name="horloge_style_aide">Telecomando: sinistra e destra mostrano ogni stile in grande, OK lo conferma. Tocco: un tocco per l\'anteprima, un secondo per confermarlo.</string>
+    <string name="horloge_vision_defaut">Vision (predefinito)</string>
+    <string name="horloge_du_theme">Orologio %1$s</string>
+</resources>

@@ -23,7 +23,7 @@
     <string name="lieu_defaut">Luogo</string>
     <string name="soutien_titre">Sostieni il progetto</string>
     <string name="soutien_badge">♥ Sostenitore</string>
-    <string name="soutien_carte">☕ Offrici un caffè</string>
+    <string name="soutien_carte">☕ Offrimi un caffè</string>
     <string name="soutien_merci">Grazie! Questo luogo sostiene Vision.</string>
     <string name="soutien_explication">Il badge Sostenitore è puramente decorativo: non sblocca nulla, Vision fa esattamente lo stesso per tutti.</string>
     <string name="soutien_comment">Per attivarlo: in Home Assistant, Impostazioni → Dispositivi e servizi → Vision → Configura → Sostieni il progetto.</string>

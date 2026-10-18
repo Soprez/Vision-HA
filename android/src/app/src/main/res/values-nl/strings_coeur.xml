@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le cœur « favori » de Music Assistant et le choix de la playlist de veille (l'auteur, 15/10). -->
+<resources>
+    <string name="coeur_ajouter">Toevoegen aan favorieten van Music Assistant</string>
+    <string name="coeur_retirer">Verwijderen uit favorieten van Music Assistant</string>
+    <string name="choixplaylist_chercher_indice">Zoek een afspeellijst (YouTube Music…)</string>
+    <string name="choixplaylist_chercher">Zoeken</string>
+    <string name="choixplaylist_chercher_action">Zoek een afspeellijst</string>
+    <string name="choixplaylist_autres">Andere afspeellijsten</string>
+    <string name="choixplaylist_chargement">Afspeellijsten laden…</string>
+    <string name="choixplaylist_recherche_en_cours">Zoeken…</string>
+    <string name="choixplaylist_rien_trouve">Geen afspeellijst gevonden voor ‘%1$s’.</string>
+</resources>

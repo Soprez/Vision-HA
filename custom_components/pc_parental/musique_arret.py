@@ -112,8 +112,15 @@ async def tour(hass: HomeAssistant, coord, maintenant: float | None = None) -> l
     maintenant = maintenant if maintenant is not None else time.time()
     delai = delai_min(coord.store) * 60
     arretes = []
+    from . import veille_musique
+    pendant_veille = veille_musique.exemptes()
     for lecteur in sorted(musique.lecteurs_ma(hass)):
         s = hass.states.get(lecteur)
+        # 2.4.8 : personne n'interagit pendant une veille ; sa musique s'arrête de toute façon à la sortie.
+        if lecteur in pendant_veille:
+            _ACTIVITE.pop(lecteur, None)
+            _AVERTIS.pop(lecteur, None)
+            continue
         if s is None or s.state != "playing":
             _ACTIVITE.pop(lecteur, None)
             _AVERTIS.pop(lecteur, None)
@@ -147,6 +154,10 @@ async def ecran(hass: HomeAssistant, store, pc: dict[str, Any], etat_ecran: str)
     pc["ecran"] = etat_ecran
     if etat_ecran != "eteint" or avant == "eteint":
         return False
+    # 2.4.8 : écran éteint, la veille est finie ; la musique qu'elle a lancée s'arrête (pas une simple pause).
+    from . import veille_musique
+    if await veille_musique.fin(hass, pc):
+        return True
     nom = str(pc.get("name") or "").strip().lower()
     for lecteur in musique.lecteurs_ma(hass):
         s = hass.states.get(lecteur)

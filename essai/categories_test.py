@@ -191,13 +191,13 @@ sys.modules["homeassistant.core"] = types.SimpleNamespace(HomeAssistant=object)
 exec(compile(src_a, "android_maj.py", "exec"), module.__dict__)
 with tempfile.TemporaryDirectory() as d:
     module.DOSSIER = d
-    for nom, contenu in (("vision.apk", "x"), ("essai.apk", "y"),
-                         ("vision.json", json.dumps({"version": "1.48.0", "sha256": "AB"})),
-                         ("essai.json", json.dumps({"version": "1.49.0", "sha256": "cd", "appareils": ["Google Pixel 9"]}))):
+    for nom, contenu in (("installation.apk", "x"), ("essai.apk", "y"),
+                         ("installation.json", json.dumps({"version": "1.93.3", "sha256": "AB"})),
+                         ("essai.json", json.dumps({"version": "1.94.0", "sha256": "cd", "appareils": ["Google Pixel 9"]}))):
         pathlib.Path(d, nom).write_text(contenu, encoding="utf-8")
-    module._ETAT.update(module._lire_tout(os.path.join(d, "absent.json")))
-    verifier("android : version générale lue", module.infos(None)["version"] == "1.48.0")
-    verifier("android : l'appareil d'essai reçoit l'essai", module.infos_pour(None, "google pixel 9")["version"] == "1.49.0")
-    verifier("android : les autres reçoivent la générale", module.infos_pour(None, "Pixel 8a")["version"] == "1.48.0")
+    module._ETAT.update(module._lire_tout())
+    verifier("android : version générale lue", module.infos(None)["version"] == "1.93.3")
+    verifier("android : l'appareil d'essai reçoit l'essai", module.infos_pour(None, "google pixel 9")["version"] == "1.94.0")
+    verifier("android : les autres reçoivent la générale", module.infos_pour(None, "Pixel 8a")["version"] == "1.93.3")
     verifier("android : un nom hors liste n'est pas servi", module.fichier("../secret") is None)
 print(rates, "raté(s)")

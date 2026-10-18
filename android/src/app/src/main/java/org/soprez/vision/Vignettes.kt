@@ -10,6 +10,7 @@ import android.util.LruCache
 import android.widget.ImageView
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import org.json.JSONObject
 
@@ -20,57 +21,106 @@ import org.json.JSONObject
  * 1.87.1 : une image https publique est lue directement ; une pochette de Music Assistant (réseau local, http) est
  * relayée par Home Assistant, avec la référence qu'il a donnée (« relais:<ref> », voir Party.image) et l'identifiant
  * de l'appareil. Jamais d'adresse http lue par l'appareil.
+ * 1.90.2 (l'auteur : « il faudrait les précharger ») : les pochettes des titres suivants se chargent avant d'être montrées
+ * ([precharger]) ; un échec n'est plus retenu pour de bon (nouvel essai après [ATTENTES_MS]) ; gardées aussi sur
+ * disque ([CachePochettes]) et déchargées avec [vider].
  */
 object Vignettes {
     const val RELAIS = "relais:"
     private const val CHEMIN_RELAIS = "/api/pc_parental/party/image"
-    private val main = Handler(Looper.getMainLooper())
+    private val main by lazy { Handler(Looper.getMainLooper()) }
     private val pool = Executors.newFixedThreadPool(3)
     private val cache = object : LruCache<String, Bitmap>(6 * 1024 * 1024) {
         override fun sizeOf(key: String, value: Bitmap) = value.byteCount
     }
-    private val echecs = java.util.Collections.synchronizedSet(HashSet<String>())
+    /** Les échecs : (nombre, heure à partir de laquelle on peut réessayer). */
+    private val echecs = ConcurrentHashMap<String, Pair<Int, Long>>()
+    private val enCours = ConcurrentHashMap.newKeySet<String>()
+    /** Banc Musique (2026-10-12) : ceux qui attendent une image déjà en chargement (préchargement, autre vue). Avant, une
+     *  vue qui demandait une vignette en cours de préchargement n'était jamais rappelée : la ligne de la file restait vide
+     *  (1 à 3 vignettes sur 6 après 10 s, mesuré au banc), jusqu'à une reconstruction de l'écran. */
+    private val attentes = ConcurrentHashMap<String, MutableList<(Bitmap?) -> Unit>>()
+    val ATTENTES_MS = longArrayOf(3_000, 10_000, 30_000)
+
+    fun garde(url: String): Bitmap? = if (url.isEmpty()) null else cache.get(url)
+
+    private fun chargeable(url: String) = url.startsWith(RELAIS) || url.startsWith("https://")
+
+    private fun peutEssayer(url: String): Boolean {
+        val e = echecs[url] ?: return true
+        return e.first <= ATTENTES_MS.size && System.currentTimeMillis() >= e.second
+    }
 
     fun poser(vue: ImageView, url: String, cotePx: Int) {
         vue.tag = url
-        val relais = url.startsWith(RELAIS)
-        if (!relais && !url.startsWith("https://")) { vue.setImageDrawable(null); return }
+        if (!chargeable(url)) { vue.setImageDrawable(null); return }
         val app = vue.context.applicationContext
         cache.get(url)?.let { vue.setImageBitmap(it); return }
         vue.setImageDrawable(null)
-        if (url in echecs) return
+        echecs[url]?.let { e ->
+            val reste = e.second - System.currentTimeMillis()
+            if (reste > 0) { if (e.first <= ATTENTES_MS.size) main.postDelayed({ if (vue.tag == url) poser(vue, url, cotePx) }, reste); return }
+        }
+        charger(app, url, cotePx) { bmp ->
+            if (bmp != null) { if (vue.tag == url) vue.setImageBitmap(bmp); return@charger }
+            // Échec : un nouvel essai plus tard, si la vue montre encore cette image.
+            val delai = echecs[url]?.let { it.second - System.currentTimeMillis() } ?: return@charger
+            if (delai > 0) main.postDelayed({ if (vue.tag == url) poser(vue, url, cotePx) }, delai)
+        }
+    }
+
+    /** Charge à l'avance (sans vue) : la file de la Party, avant qu'elle soit montrée ou que le titre passe. */
+    fun precharger(ctx: Context, urls: List<String>, cotePx: Int) {
+        val app = ctx.applicationContext
+        urls.filter { chargeable(it) && cache.get(it) == null }.distinct().forEach { charger(app, it, cotePx) {} }
+    }
+
+    private fun charger(app: Context, url: String, cotePx: Int, fin: (Bitmap?) -> Unit) {
+        if (!peutEssayer(url)) return
+        synchronized(attentes) { attentes.getOrPut(url) { ArrayList() }.add(fin) }
+        if (!enCours.add(url)) return  // déjà en chargement : [fin] sera rappelé avec les autres
         pool.execute {
-            val bmp = try { if (relais) relayer(app, url.removePrefix(RELAIS), cotePx) else charger(url, cotePx) } catch (_: Exception) { null }
-            if (bmp == null) { echecs.add(url); return@execute }
-            cache.put(url, bmp)
-            main.post { if (vue.tag == url) vue.setImageBitmap(bmp) }
+            val bmp = try {
+                CachePochettes.lire(app, url)?.let { decoder(it, cotePx) } ?: run {
+                    val octets = if (url.startsWith(RELAIS)) relayer(app, url.removePrefix(RELAIS)) else lire(url)
+                    octets?.let { o -> decoder(o, cotePx)?.also { CachePochettes.ecrire(app, url, o) } }
+                }
+            } catch (_: Exception) { null }
+            if (bmp != null) {
+                echecs.remove(url); cache.put(url, bmp)
+            } else {
+                val n = (echecs[url]?.first ?: 0) + 1
+                echecs[url] = n to (System.currentTimeMillis() + (ATTENTES_MS.getOrNull(n - 1) ?: Long.MAX_VALUE / 2))
+            }
+            val fins = synchronized(attentes) { enCours.remove(url); attentes.remove(url).orEmpty() }
+            main.post { fins.forEach { it(bmp) } }
         }
     }
 
     /** La pochette lue par Home Assistant (référence qu'il a donnée) ; rien (pas d'image, ou Home Assistant trop ancien) : null. */
-    private fun relayer(ctx: Context, ref: String, cote: Int): Bitmap? {
+    private fun relayer(ctx: Context, ref: String): ByteArray? {
         val cfg = Config(ctx)
         val octets = Net.postBytes(ctx, cfg, CHEMIN_RELAIS, JSONObject().put("id", cfg.id).put("secret", cfg.secret).put("ref", ref), 10_000)
             ?: return null
         if (octets.isEmpty() || octets.size > 2 * 1024 * 1024) return null
-        return decoder(octets, cote)
+        return octets
     }
 
     private fun decoder(octets: ByteArray, cote: Int): Bitmap? {
         val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(octets, 0, octets.size, o)
+        if (o.outWidth <= 0 || o.outHeight <= 0) return null
         var ech = 1
         while (o.outWidth / (ech * 2) >= cote && o.outHeight / (ech * 2) >= cote) ech *= 2
         return BitmapFactory.decodeByteArray(octets, 0, octets.size, BitmapFactory.Options().apply { inSampleSize = ech })
     }
 
-    private fun charger(url: String, cote: Int): Bitmap? {
+    private fun lire(url: String): ByteArray? {
         val c = URL(url).openConnection() as HttpURLConnection
         c.connectTimeout = 5000; c.readTimeout = 6000; c.instanceFollowRedirects = true
         try {
             if (c.responseCode !in 200..299) return null
-            val octets = c.inputStream.use { it.readNBytesCompat(2 * 1024 * 1024) } ?: return null
-            return decoder(octets, cote)
+            return c.inputStream.use { it.readNBytesCompat(2 * 1024 * 1024) }
         } finally { c.disconnect() }
     }
 
@@ -84,5 +134,12 @@ object Vignettes {
             if (sortie.size() > max) return null
         }
         return sortie.toByteArray()
+    }
+
+    /** Fin de la Party, fermeture de l'écran Party : tout est déchargé (mémoire et disque). */
+    fun vider(ctx: Context) {
+        // Les vues qui attendent une image en cours de chargement restent prévenues (avant, elles ne l'étaient plus jamais).
+        cache.evictAll(); echecs.clear()
+        CachePochettes.vider(ctx)
     }
 }

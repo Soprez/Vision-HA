@@ -43,12 +43,11 @@ async def test_menu_dans_l_ordre(hass, hass_storage, hass_client):
     entree, _ = await _monter(hass, hass_storage)
     await _demander(admin)
     flux = await _ouvrir(admin, entree)
-    assert flux["menu_options"] == ["ajouter", "appairage", "roles", "appareils", "securite", "modules",
-                                   "entites", "general", "accueil", "vocabulaire", "musique", "journal_musique", "temps_gagne",
-                                   "regles_lieu", "avance", "soutien"]  # 1.89 / 1.91 / 2.2.5 / 2.2.11 ; messages d'accueil ; soutien
+    # Refonte UX lot 4 : Configurer réduit ; les autres réglages sous « Autres réglages » (assistant_test.py).
+    assert flux["menu_options"] == ["assistant", "ajouter", "appairage", "reparer", "autres", "soutien"]
     assert flux["description_placeholders"]["attente"] == "1"
-    avance = await _suite(admin, flux, {"next_step_id": "avance"})
-    assert avance["menu_options"] == ["installer", "qr", "cle", "sauvegarde", "appareils_essai"]  # EX-06
+    reparer = await _suite(admin, flux, {"next_step_id": "reparer"})
+    assert reparer["menu_options"] == ["appareils_relier", "sauvegarde", "installer", "qr", "cle"]
 
 
 async def test_telephone_par_qr(hass, hass_storage, hass_client, hass_client_no_auth):
@@ -192,7 +191,7 @@ async def test_relier_a_nouveau_depuis_appareils_existants(hass, hass_storage, h
     entree, _ = await _monter(hass, hass_storage, appareils={
         "p1": _fiche("p1", "PC-NOA", "a" * 32, person="person.enfant"),
     })
-    flux = await _suite(admin, await _ouvrir(admin, entree), {"next_step_id": "appareils"})
+    flux = await _suite(admin, await _ouvrir(admin, entree), {"next_step_id": "reparer"})
     flux = await _suite(admin, flux, {"next_step_id": "appareils_relier"})
     flux = await _suite(admin, flux, {"appareil": "p1"})
     assert flux["step_id"] == "ajouter_installer_pc"

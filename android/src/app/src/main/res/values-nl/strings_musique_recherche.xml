@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 15-10 (retours d'essai) : recherche de musique instantanée, clavier, voix, filtre, réglages Musique. -->
+<resources>
+    <string name="musrech_section">Muziek</string>
+    <string name="musrech_section_phrase">De speler, zijn bewegende achtergrond en het zoeken.</string>
+    <string name="musrech_reglages_raccourci">Muziekinstellingen ›</string>
+    <string name="musrech_reglages_raccourci_desc">Het onderdeel Muziek van de Vision-instellingen openen</string>
+    <string name="musrech_clavier">Toetsenbord voor zoeken</string>
+    <string name="musrech_voix">Spraakzoeken</string>
+    <string name="musrech_voix_bouton">Zoeken met je stem</string>
+    <string name="musrech_voix_invite">Zeg een titel, een artiest of een album</string>
+    <string name="musrech_voix_indisponible">Spraakzoeken is niet beschikbaar op dit apparaat.</string>
+    <string name="musrech_recents">Recente zoekopdrachten wissen</string>
+    <string name="musrech_recents_titre_confirmer">Recente zoekopdrachten wissen?</string>
+    <string name="musrech_recents_texte_confirmer">De recente zoekopdrachten op dit apparaat worden gewist.</string>
+    <string name="musrech_recents_effacer">Wissen</string>
+    <string name="musrech_recents_effaces">Recente zoekopdrachten gewist.</string>
+    <string name="musrech_espace">Spatie</string>
+    <string name="musrech_effacer_lettre">Een letter wissen</string>
+    <string name="musrech_page_lettres">Letters</string>
+    <string name="musrech_page_signes">Cijfers en accenten</string>
+    <string name="musrech_effacer_tout">Wissen</string>
+    <string name="musrech_filtre">Filter</string>
+    <string name="musrech_filtre_n">Filter · %1$d</string>
+    <string name="musrech_filtre_n_desc">Filter, %1$d gekozen</string>
+    <string name="musrech_type">Soort resultaat</string>
+    <string name="musrech_source">Bron</string>
+    <string name="musrech_type_valeur">Soort resultaat: %1$s</string>
+    <string name="musrech_source_valeur">Bron: %1$s</string>
+    <string name="musrech_bibliotheque_valeur">Alleen mijn bibliotheek: %1$s</string>
+    <string name="musrech_reinitialiser">Herstellen</string>
+    <string name="musrech_recherche_en_cours">Zoeken…</string>
+    <string name="musrech_tout_voir">Alles bekijken ›</string>
+    <string name="musrech_tout_voir_desc">Alles bekijken: %1$s</string>
+    <string name="musrech_source_desc">Bron: %1$s</string>
+    <string name="musrech_recents_aucune">Geen</string>
+    <plurals name="musrech_recents_n">
+        <item quantity="one">%d bewaard op dit apparaat</item>
+        <item quantity="other">%d bewaard op dit apparaat</item>
+    </plurals>
+    <plurals name="musrech_titres_n">
+        <item quantity="one">%d nummer</item>
+        <item quantity="other">%d nummers</item>
+    </plurals>
+    <string name="musrech_indice_court">Titel, artiest, album</string>
+    <string name="musrech_reglages_soiree">⚙ Instellingen</string>
+    <string name="musrech_reglages_soiree_desc">Instellingen van het feest en de muziek</string>
+    <string name="musrech_reglages_soiree_titre">Instellingen</string>
+    <string name="musrech_soiree_similaires">Vergelijkbare nummers aan het eind: %1$s</string>
+    <string name="musrech_soiree_invites">Gasten: %1$s</string>
+    <string name="musrech_lecteur_decideurs">Speler · alleen voor %1$s</string>
+    <string name="musrech_retour_lecteur">Terug naar de speler</string>
+    <string name="musrech_reglages_attente_desc">Instellingen: %1$d voorstel(len) van gasten wacht/wachten</string>
+    <string name="musrech_section_ecoute">Luisteren</string>
+    <string name="musrech_section_soiree">Feest</string>
+    <string name="musrech_bibliotheque_seule">Alleen mijn bibliotheek</string>
+    <!-- l'auteur (16/10) : lecteur vide → bibliothèque, playlists, recherche ; aucune enceinte disponible. -->
+    <string name="musrech_onglet_bibliotheque">Bibliotheek</string>
+    <string name="musrech_aucun_album">Nog geen albums in de bibliotheek van Music Assistant.</string>
+    <string name="musrech_entree_rechercher">Zoeken</string>
+    <string name="musrech_aucune_enceinte">Nu geen luidspreker beschikbaar.</string>
+    <!-- l'auteur (16/10) : sortie depuis le téléphone, lancement qui n'aboutit pas, modes des invités. -->
+    <string name="musrech_lancement_echec">De muziek is niet gestart op %1$s. Controleer of hij aan staat, of kies een andere uitvoer.</string>
+    <string name="musrech_sortie">🔊 Uitvoer: %1$s ›</string>
+    <string name="musrech_sortie_desc">Uitvoer: %1$s. Luidspreker of tv wijzigen</string>
+    <string name="musrech_invites_titre">Nummers van gasten</string>
+    <string name="musrech_invites_valider">Eerst goedkeuren</string>
+    <string name="musrech_invites_ensuite">Na het huidige nummer spelen</string>
+    <string name="musrech_invites_fin">Achteraan de wachtrij</string>
+</resources>

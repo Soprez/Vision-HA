@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Refonte UX, lot 6 : frictions restantes (écran de blocage, durées, accessibilité, focus TV, pluriels, erreurs). -->
+<resources>
+    <string name="lot6_ferme_par_appareil">Chiuso da</string>
+    <string name="lot6_ferme_par_appli">Bloccata da</string>
+    <string name="lot6_jusqua">Fino a</string>
+    <string name="lot6_resume">%1$s: %2$s</string>
+    <string name="lot6_resume_jusqua">%1$s: %2$s, fino a %3$s</string>
+    <string name="lot6_heure_aujourdhui">%1$s</string>
+    <string name="lot6_heure_demain">domani %1$s</string>
+    <string name="lot6_heure_date">%1$s, %2$s</string>
+    <string name="lot6_source_plage">Il calendario</string>
+    <string name="lot6_source_temps">Il limite di tempo del giorno</string>
+    <string name="lot6_source_moyenne">La media scolastica</string>
+    <string name="lot6_source_regle">Un %1$s</string>
+    <string name="lot6_source_age">L\'età consigliata (PEGI)</string>
+    <string name="lot6_source_categorie">La sua categoria</string>
+    <string name="lot6_source_maison">«%1$s», per tutti i dispositivi</string>
+    <string name="lot6_source_securite">La sicurezza del dispositivo</string>
+    <string name="lot6_source_concentration">La modalità concentrazione</string>
+    <string name="lot6_source_lieu">Questo luogo</string>
+    <string name="lot6_deplie">%1$s, espanso</string>
+    <string name="lot6_replie">%1$s, compresso</string>
+    <string name="lot6_contraste_titre">Colore regolato per restare leggibile</string>
+    <string name="lot6_contraste_texte_ajuste">Con questi colori il testo si leggerebbe male: è stato scurito o schiarito quanto basta per un contrasto di almeno 4,5:1 con lo sfondo e le schede (ora %1$s:1).</string>
+    <string name="lot6_contraste_accent_ajuste">Il colore d\'accento si distinguerebbe appena dallo sfondo: è stato regolato per un contrasto di almeno 3:1 (ora %1$s:1).</string>
+    <string name="lot6_contraste_impossible">Lo sfondo e le schede sono troppo diversi perché un solo colore di testo si legga bene su entrambi: sceglili più simili.</string>
+    <string name="lot6_contraste_annuler">Annulla: torna ai colori di prima.</string>
+    <string name="lot6_couleur_noir">nero</string>
+    <string name="lot6_couleur_blanc">bianco</string>
+    <string name="lot6_couleur_gris">grigio</string>
+    <string name="lot6_couleur_beige">beige</string>
+    <string name="lot6_couleur_rouge">rosso</string>
+    <string name="lot6_couleur_orange">arancione</string>
+    <string name="lot6_couleur_marron">marrone</string>
+    <string name="lot6_couleur_jaune">giallo</string>
+    <string name="lot6_couleur_vert">verde</string>
+    <string name="lot6_couleur_turquoise">turchese</string>
+    <string name="lot6_couleur_bleu">blu</string>
+    <string name="lot6_couleur_violet">viola</string>
+    <string name="lot6_couleur_rose">rosa</string>
+    <string name="lot6_couleur_foncee">%1$s scuro</string>
+    <string name="lot6_couleur_claire">%1$s chiaro</string>
+    <string name="lot6_err_demande_refusee">Home Assistant non ha accettato la richiesta. Riprova tra un momento; se succede ancora, controlla nelle Impostazioni che questo dispositivo sia ancora collegato.</string>
+    <string name="lot6_err_code_refuse">Questo codice non è stato accettato. Controlla le 6 cifre o chiedi un nuovo codice.</string>
+    <string name="lot6_err_vision_ne_repond_pas">Home Assistant trovato, ma la sua integrazione Vision non risponde: controlla in Home Assistant che sia installata e aggiornata, poi riprova.</string>
+    <string name="lot6_err_injoignable">Home Assistant trovato, ma non raggiungibile: controlla che questo dispositivo sia sulla stessa rete, poi riprova.</string>
+    <string name="lot6_err_widget">Home Assistant non è riuscito a eseguire questa azione. Riprova più tardi; se continua, controlla il dispositivo in Home Assistant.</string>
+    <string name="lot6_veille_injoignable">Home Assistant non raggiungibile: controlla la rete. Nuovo tentativo tra un minuto.</string>
+    <plurals name="lot6_nom_cartes">
+        <item quantity="one">"%1$s  · %2$d/%3$d scheda"</item>
+        <item quantity="other">"%1$s  · %2$d/%3$d schede"</item>
+    </plurals>
+    <plurals name="lot6_n_sur_m_accordees">
+        <item quantity="one">%1$d su %2$d concessa</item>
+        <item quantity="other">%1$d su %2$d concesse</item>
+    </plurals>
+</resources>

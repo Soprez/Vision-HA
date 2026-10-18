@@ -184,6 +184,14 @@
    "es": "Siempre permitido",
    "it": "Sempre consentito",
    "nl": "Altijd toegestaan"
+  },
+  "ecole": {
+   "fr": "École",
+   "en": "School",
+   "de": "Schule",
+   "es": "Escuela",
+   "it": "Scuola",
+   "nl": "School"
   }
  }
 }

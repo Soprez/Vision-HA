@@ -68,14 +68,15 @@ class DeverrouillageActivity : Activity() {
 
     private fun choisir() {
         titre(getString(R.string.deva_titre), getString(R.string.deva_pour, Deverrouillage.libelle(this, action), Vocabulaire.decideur(this)))
-        val motif = EditText(this).apply {
+        val motif = EditText(this).also { ClavierTele.brancher(it) }.apply {
             hint = getString(R.string.deva_pourquoi); inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
             setTextColor(Ui.TEXTE); setHintTextColor(Ui.TEXTE_2)
         }
         racine.addView(Ui.marge(this, motif, haut = 20f))
         racine.addView(Ui.marge(this, Ui.texte(this, getString(R.string.deva_combien), 14f, Ui.TEXTE_2, centre = true), haut = 16f))
         val r = Ui.rangeeBoutons(this).apply { gravity = Gravity.CENTER }
-        val durees = when (action) { "reglages" -> listOf(10, 30); "parent" -> listOf(15, 30, 60); else -> listOf(15, 30, 60) }
+        // Lot 6 (APP-08) : les durées de toute demande (Durees.DEMANDE) ; un réglage protégé ne s'ouvre que peu de temps.
+        val durees = if (action == "reglages") listOf(10, 30) else Durees.DEMANDE
         durees.forEachIndexed { k, m ->
             val b = Ui.boutonPrimaire(this, Tr.duree(m)) { envoyer(m, motif.text.toString()) }
             r.addView(Ui.marge(this, b, gauche = if (k == 0) 0f else 10f))
@@ -107,7 +108,7 @@ class DeverrouillageActivity : Activity() {
         etat.tag = "attente"
         etat.text = getString(R.string.deva_attente)
         racine.addView(Ui.marge(this, etat, haut = 18f))
-        val code = EditText(this).apply {
+        val code = EditText(this).also { ClavierTele.brancher(it) }.apply {
             hint = getString(R.string.deva_code_6); inputType = InputType.TYPE_CLASS_NUMBER
             setTextColor(Ui.TEXTE); setHintTextColor(Ui.TEXTE_2); textSize = 22f; gravity = Gravity.CENTER
         }

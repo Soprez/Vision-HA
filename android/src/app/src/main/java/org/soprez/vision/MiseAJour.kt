@@ -260,12 +260,12 @@ object MiseAJour {
      */
     fun peutInstallerSansDemander(ctx: Context): Boolean {
         if (Build.VERSION.SDK_INT < 31 || !peutInstaller(ctx) || confirmationRequise) return false
-        // 1.70.0 (Pixel 9, Android 17) : une installation sans confirmation a déjà été refusée par la
+        // 1.70.0 (Android 17) : une installation sans confirmation a déjà été refusée par la
         // vérification d'Android sur cet appareil ; on ne la retente plus, on demande confirmation.
         if (ctx.getSharedPreferences("maj", Context.MODE_PRIVATE).getBoolean("confirmer", false)) return false
         return try {
             val src = ctx.packageManager.getInstallSourceInfo(ctx.packageName)
-            // 1.67.0 (Pixel 9, Android 16) : une installation sans confirmation n'est acceptée par le
+            // 1.67.0 (Android 16) : une installation sans confirmation n'est acceptée par le
             // vérificateur d'Android que si Vision a elle-même installé la version en place. Posée par
             // le navigateur, Fichiers ou ADB, la première mise à jour doit donc être confirmée une fois
             // (par une session Vision : Vision devient ensuite l'installateur, et les suivantes passent seules).

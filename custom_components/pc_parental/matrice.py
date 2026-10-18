@@ -15,7 +15,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
-from . import modules
+from . import entites_reduites, modules
 from .const import DOMAIN, PRODUIT
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,7 +69,8 @@ def appliquer(hass: HomeAssistant, store) -> int:
                 _LOGGER.warning("%s : %s désactivée (sans objet sur un appareil de type « %s » ; historique gardé).",
                                 PRODUIT, entity_id, t)
             elif (t not in types and entree.disabled_by is er.RegistryEntryDisabler.INTEGRATION
-                  and not modules.entite_coupee(store, domaine, f"{debut}{pc_id}")):
+                  and not modules.entite_coupee(store, domaine, f"{debut}{pc_id}")
+                  and not entites_reduites.desactivee_par_uid(store, f"{debut}{pc_id}")):
                 # 1.82.0 : une entité d'un module coupé reste éteinte (modules.appliquer_entites).
                 registre.async_update_entity(entity_id, disabled_by=None)
                 changements += 1

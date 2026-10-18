@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Veille télé (lot repris pour la 1.92) : mise en place de l'économiseur, grille, cases typées. -->
+<resources>
+    <string name="eco_etat_vision">The TV already starts the Vision screensaver. Nothing to do.</string>
+    <string name="eco_etat_vision_eteint">Vision is selected, but the TV screensaver is turned off.</string>
+    <string name="eco_etat_autre">The TV screensaver is not Vision.</string>
+    <string name="eco_etat_inconnu">This TV does not say which screensaver it uses.</string>
+    <string name="eco_ecrire">Vision is allowed to set the screensaver itself: just press “Choose Vision”.</string>
+    <string name="eco_reglage">In the settings that open, with the remote: choose “Screen saver” (or “Daydream”), then “Vision”. Then come back with Back.</string>
+    <string name="eco_adb">This model does not offer Vision in its settings (Google TV, Chromecast…). A Decider can set it once from a computer, with ADB debugging on the TV (Settings → System → Developer options):</string>
+    <string name="eco_adb_apres">The first command is enough: Vision then sets the screensaver itself, and restores it after a TV update. The other two set it directly.</string>
+    <string name="eco_repli_accueils">Meanwhile, Vision starts its screensaver on the TV home screen after %1$d min without the remote, never over another app, and removes it on the first press.</string>
+    <string name="eco_repli_accueil_vision">Meanwhile, Vision starts its screensaver after %1$d min without the remote, only on its own home screen. For the TV home screen too, turn on Vision\'s accessibility service.</string>
+    <string name="eco_repli_aucun">Without a screensaver, the Vision screensaver can only start by itself if Vision is the TV home screen or its accessibility service is on.</string>
+    <string name="eco_repli_jamais">The Vision screensaver on the home screen is set to “Never”.</string>
+    <string name="eco_choisir_vision">Choose Vision</string>
+    <string name="eco_utiliser_repli">Use the Vision screensaver</string>
+    <string name="eco_plus_tard">Later</string>
+    <string name="eco_ok">OK</string>
+    <string name="eco_ecrit">Done: the TV will start the Vision screensaver.</string>
+    <string name="eco_ecrit_echec">The TV refused the setting. The Vision screensaver on the home screen takes over.</string>
+    <string name="eco_introuvable">This TV does not offer the screensaver setting. The Vision screensaver on the home screen takes over.</string>
+    <string name="eco_valeur_vision">Vision</string>
+    <string name="eco_valeur_ecrire">OK: choose Vision</string>
+    <string name="eco_valeur_reglage">Another one: OK to change it</string>
+    <string name="eco_valeur_adb">ADB command needed: OK to see it</string>
+    <string name="reg_pastille">Badge behind values</string>
+    <string name="oui">Yes</string>
+    <string name="non">No</string>
+    <string name="reg_direct">Live cameras</string>
+    <string name="direct_auto">Auto</string>
+    <string name="direct_aide">Auto: one live camera at a time (light stream), pictures if the TV struggles.</string>
+    <string name="direct_images">Pictures only</string>
+    <string name="ecart_instant">just now</string>
+    <string name="ecart_min">%1$d min ago</string>
+    <string name="ecart_h">%1$d h ago</string>
+    <string name="ecart_hier">yesterday</string>
+    <string name="ecart_j">%1$d d ago</string>
+    <string name="agenda_aujourdhui">Today</string>
+    <string name="agenda_demain">Tomorrow</string>
+    <string name="agenda_journee">All day</string>
+    <string name="agenda_vide">Nothing planned</string>
+    <string name="clips_vide">No activity</string>
+</resources>

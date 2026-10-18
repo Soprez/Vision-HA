@@ -18,6 +18,10 @@ object Profil {
         // Les fonctions du rôle de cet appareil (1.71.0) : l'appli s'en sert pour ce qu'elle permet sans le code.
         r.optJSONArray("fonctions")?.let { a -> p.putStringSet("fonctions", (0 until a.length()).map { a.optString(it) }.toSet()) }
         p.apply()
+        // Faille du 16-10 (proposition validée en essai) : devenu Décideur sans code → il le choisit tout de suite.
+        // 16-10 (retour d'essai) : un seul code par Décideur, gardé par HA ; l'empreinte locale y migre si HA n'a encore rien.
+        CodeDecideur.releve(ctx, r)
+        r.optJSONArray("fonctions")?.let { a -> Garde.noterRole(ctx, (0 until a.length()).map { a.optString(it) }.toSet()) }
     }
 
     /** Vide tant que Home Assistant ne les a pas envoyées (ancienne intégration, appareil pas encore relevé). */

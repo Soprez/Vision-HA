@@ -68,6 +68,7 @@ class GlitchsTest : InstrumentationTestCase() {
 
     override fun setUp() {
         super.setUp()
+        CodeEssai.poser(instrumentation.targetContext)  // faille du 16-10 : un Décideur a toujours un code
         serveur = ServerSocket(0, 10, java.net.InetAddress.getByName("127.0.0.1"))
         Thread {
             while (!serveur.isClosed) {
@@ -87,6 +88,7 @@ class GlitchsTest : InstrumentationTestCase() {
         for ((n, v) in sauves) ctx.getSharedPreferences(n, 0).edit().clear().apply {
             v.forEach { (k, x) -> when (x) { is String -> putString(k, x); is Boolean -> putBoolean(k, x); is Int -> putInt(k, x); is Long -> putLong(k, x); is Float -> putFloat(k, x); is Set<*> -> @Suppress("UNCHECKED_CAST") putStringSet(k, x as Set<String>) } }
         }.commit()
+        CodeEssai.rendre(instrumentation.targetContext)
         super.tearDown()
     }
 

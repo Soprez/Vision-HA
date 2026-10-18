@@ -2,21 +2,67 @@
   "config": {
     "step": {
       "user": {
-        "title": "Vision",
-        "description": "Home Assistant will look after your devices: computers, phones and TVs. Once the integration is added, each device enrolls itself when you install its agent from the Vision dashboard.\n\nPick a starting point; each module can then be turned on or off in Configure → Modules.",
+        "title": "Welcome to Vision (1/5): the place",
+        "description": "Vision helps you stay in charge of the screens in one place: phones, tablets, TVs and PCs. Five short steps; everything can be changed later in Configure.\n\nFirst the name of the place, shown in the apps, the dashboard and notifications. Then, if you like, the words for the two roles.",
         "data": {
-          "prereglage": "What you need"
+          "lieu": "Name of the place",
+          "mots": "Words for the roles (optional)"
+        },
+        "data_description": {
+          "lieu": "Examples: School, Office, Club."
+        },
+        "sections": {
+          "mots": {
+            "name": "Words for the roles (optional)",
+            "description": "Default: {defauts}. An empty field keeps the default word; {longueur} characters at most.",
+            "data": {
+              "decideur": "Who decides (one)",
+              "decideurs": "Who decides (several)",
+              "demandeur": "Who asks (one)",
+              "demandeurs": "Who asks (several)"
+            }
+          }
         }
+      },
+      "personnes": {
+        "title": "People (2/5)",
+        "description": "Who approves or refuses requests? These people will be {decideurs}. The others will be {demandeurs}: their devices are protected, and they can ask for time or access.\n\nThe list comes from the people in Home Assistant (Settings → People). Nobody in the list? Carry on: the role can be chosen later, on each person's page.",
+        "data": {
+          "decideurs": "Who decides"
+        }
+      },
+      "objectifs": {
+        "title": "Goals (3/5)",
+        "description": "{erreur}Tick what you want to do. Each goal turns on the useful modules; the module-by-module detail stays in Vision → Settings → Features.\n\nGood to know: \"Requests and remote answers\" needs schedules or content (there has to be something to ask for).",
+        "data": {
+          "objectifs": "Goals"
+        }
+      },
+      "appareil": {
+        "title": "The first device (4/5)",
+        "description": "Which device do you want to link first? Right after, \"Add a device\" (in Configure) guides you, with the install link and the QR code.",
+        "data": {
+          "appareil": "First device"
+        }
+      },
+      "pret": {
+        "title": "All set (5/5)",
+        "description": "Here is what will be set up:\n{resume}\n\nThe Vision dashboard ({tableau}) is created in the sidebar.\n\n**Next**: {suite}"
       }
     },
     "abort": {
-      "already_configured": "Vision is already installed."
+      "already_configured": "Vision is already installed.",
+      "single_instance_allowed": "Vision is already installed."
+    },
+    "error": {
+      "vocabulaire_trop_long": "A word is too long: 30 characters at most.",
+      "objectifs_dependances": "A goal is missing: see the message at the top."
     }
   },
   "options": {
     "step": {
       "cle": {
-        "title": "Enrollment key",
+        "title": "🗝️ Enrollment key",
         "description": "{changee}Administrators only: the key is no longer shown anywhere else.\n\n**Current key**: `{cle}`\n\nNew device enrollment: **{inscriptions}**.\n\n**PC** — in PowerShell, on the PC to set up:\n```\n{commande}\n```\n\n**Phone, tablet, TV** — block to paste into the app:\n```\n{android}\n```\n\nDo not leave the command or the block on a supervised device. Changing the key does not affect devices that are already enrolled.",
         "data": {
           "action": "What do you want to do?",
@@ -26,27 +72,17 @@
       "init": {
         "title": "Vision",
         "menu_options": {
+          "assistant": "🧭 Run the assistant again",
           "ajouter": "➕ Add a device",
-          "appairage": "Devices to approve ({attente})",
-          "roles": "People and roles",
-          "appareils": "Existing devices",
-          "securite": "Security",
-          "modules": "Modules",
-          "entites": "Home Assistant entities",
-          "general": "General settings",
-          "musique": "Music",
-          "journal_musique": "Music log",
-          "accueil": "Welcome messages",
-          "vocabulaire": "Vocabulary",
-          "avance": "Advanced",
-          "temps_gagne": "Earned time (tasks)",
-          "regles_lieu": "Rules by place",
-          "soutien": "♥ Support the project"
+          "appairage": "✅ Devices to approve ({attente})",
+          "reparer": "🛠️ Repair, back up or restore",
+          "autres": "🗂️ Other settings",
+          "soutien": "☕ Buy me a coffee"
         },
         "description": "What do you want to do?"
       },
       "appairage": {
-        "title": "Devices to approve",
+        "title": "✅ Devices to approve",
         "description": "The device to enroll shows a QR code and a code. Check the code, choose the person if you know who it is, then approve: the device gets its access by itself.\n\n{demandes}\n\nAccess, time and unlock requests are not here: you decide them in the Vision dashboard.",
         "data": {
           "code": "Code shown on the device",
@@ -55,18 +91,18 @@
         }
       },
       "installer": {
-        "title": "Install Vision on a device",
+        "title": "📦 Install Vision on a device",
         "description": "{installation}"
       },
       "inscriptions": {
-        "title": "New device enrollment",
+        "title": "📝 New device enrollment",
         "description": "New device enrollment: **{etat}**.\n\n“Allow for {minutes} min” opens enrollment and closes it again by itself, even if Home Assistant restarts in the meantime. For a device that is already enrolled (app reinstalled), use “Allow re-enrollment” on its page instead; QR pairing, approved by an administrator, does not need enrollment to be open.",
         "data": {
           "inscriptions": "What do you want to do?"
         }
       },
       "qr": {
-        "title": "Create a pairing QR code",
+        "title": "🔳 Create a pairing QR code",
         "description": "The device scans this QR code from the Vision app and pairs by itself. The QR code works only once and expires within a few minutes; it does not contain the enrollment key.\n\nPerson: choose now or later. Device: only to **take over** a device that is already enrolled (app reinstalled); otherwise an already enrolled device is refused.",
         "data": {
           "personne": "Person (optional)",
@@ -74,11 +110,11 @@
         }
       },
       "qr_affiche": {
-        "title": "Pairing QR code",
+        "title": "🔳 Pairing QR code",
         "description": "![Pairing QR code]({image})\n\nIn the Vision app on the device: **Scan the Home Assistant QR code**. Valid for {minutes} minutes, only once. Do not leave it where anyone can see it: it can enroll a device."
       },
       "deverrouillage": {
-        "title": "Unlock requests",
+        "title": "🔓 Unlock requests",
         "description": "{demandes} Pick one, then approve it (shortening the time if you like) or decline it.\n\n**Delivery**: “direct”, the device unlocks by itself; “code”, you read a 6-digit code to the person; “QR”, the person scans the screen.",
         "data": {
           "demande": "Request",
@@ -88,29 +124,29 @@
         }
       },
       "deverrouillage_resultat": {
-        "title": "Unlock",
+        "title": "🔓 Unlock",
         "description": "{resultat}"
       },
       "roles": {
-        "title": "People and roles",
+        "title": "👥 People and roles",
         "description": "A role is a set of functions; each person has one, and their devices follow it.\n\n{resume}",
         "menu_options": {
-          "roles_modifier": "Open a role: name and functions",
-          "roles_personnes": "Choose each person's role",
-          "roles_creer": "Create a role",
-          "roles_appareils": "Exception: a role for one device",
-          "roles_validation_appareil": "Exception: multi-person approval for one device"
+          "roles_modifier": "✏️ Open a role: name and functions",
+          "roles_personnes": "👤 Choose each person's role",
+          "roles_creer": "🆕 Create a role",
+          "roles_appareils": "📱 Exception: a role for one device",
+          "roles_validation_appareil": "🤝 Exception: multi-person approval for one device"
         }
       },
       "roles_modifier": {
-        "title": "Roles",
+        "title": "✏️ Roles",
         "description": "Choose a role to see and tick its functions.",
         "data": {
           "role": "Role"
         }
       },
       "roles_edition": {
-        "title": "Role",
+        "title": "✏️ Role",
         "description": "{erreur}People: {personnes}.\nDevices: {appareils}.\nUnlock: {deverrouillage}.\n\n★ = function reserved for an administrator. Every change is logged; there is always at least one device that can “Manage” and “Approve”.",
         "data": {
           "nom": "Name",
@@ -121,7 +157,7 @@
         }
       },
       "roles_creer": {
-        "title": "Create a role",
+        "title": "🆕 Create a role",
         "description": "{erreur}The new role starts with the functions of the template; you adjust them afterwards.",
         "data": {
           "nom": "Name (e.g. Teen, Teacher, Guest)",
@@ -129,14 +165,14 @@
         }
       },
       "roles_personnes": {
-        "title": "Each person's role",
+        "title": "👤 Each person's role",
         "description": "A person's role applies on all their devices. Choose a person to change their role.",
         "data": {
           "personne": "Person"
         }
       },
       "roles_appareils": {
-        "title": "Role for one device",
+        "title": "📱 Role for one device",
         "description": "{erreur}Usually a device follows its person's role. Here you set an exception for one device.\n\n{resume}",
         "data": {
           "appareil": "Device",
@@ -144,7 +180,7 @@
         }
       },
       "roles_validation_appareil": {
-        "title": "Approval rule for one device",
+        "title": "🤝 Approval rule for one device",
         "description": "How many different people must approve this device's unlock requests. “Follow the role” removes the override. The management code typed on the device always works on its own.\n\n{resume}",
         "data": {
           "appareil": "Device",
@@ -156,96 +192,78 @@
         }
       },
       "securite": {
-        "title": "Security",
+        "title": "🔒 Security",
         "menu_options": {
-          "deverrouillage": "Unlock requests",
-          "inscriptions": "New device enrollment (open, close, 5 min)",
-          "code_gestion": "PC management code (releases a blocking message)"
-        }
-      },
-      "avance": {
-        "title": "Advanced",
-        "description": "For special cases. The “Add a device” wizard is usually enough.",
-        "menu_options": {
-          "installer": "Install links and QR codes",
-          "qr": "Create a pairing QR code by hand",
-          "cle": "Enrollment key",
-          "sauvegarde": "Backup and restore",
-          "appareils_essai": "Android test devices"
-        }
-      },
-      "appareils": {
-        "title": "Existing devices",
-        "menu_options": {
-          "appareils_relier": "Pair a device again (app reinstalled, PC reset)",
-          "roles_appareils": "Change a device's role",
-          "roles_validation_appareil": "Multi-person approval for one device"
+          "deverrouillage": "🔓 Unlock requests",
+          "inscriptions": "📝 New device enrollment (open, close, 5 min)",
+          "code_gestion": "🔑 PC management code (releases a blocking message)",
+          "code_octroi": "🛡️ Deciders' unlock code"
         }
       },
       "appareils_relier": {
-        "title": "Pair a device again",
+        "title": "🔗 Pair a device again",
         "description": "It keeps its record, its rules and its person; it gets new access.",
         "data": {
           "appareil": "Device"
         }
       },
       "ajouter": {
-        "title": "Add a device (1/4)",
+        "title": "➕ Add a device (1/4)",
         "description": "Which device do you want to add?",
         "data": {
           "genre": "Device"
         }
       },
       "ajouter_qui": {
-        "title": "Who is it for? (2/4)",
+        "title": "➕ Who is it for? (2/4)",
         "description": "The device takes the role of the person you choose. For a living room TV: “shared screen”.",
         "data": {
           "personne": "Person"
         }
       },
       "ajouter_reprise": {
-        "title": "A new device? (2/4)",
+        "title": "➕ A new device? (2/4)",
         "description": "{personne} already has a device of this kind in Vision. Is this a new device, or the same one, reinstalled? If it is the same one, it keeps its rules.",
         "data": {
           "reprise": "Answer"
         }
       },
       "ajouter_installer_telephone": {
-        "title": "Install Vision (3/4)",
+        "title": "➕ Install Vision (3/4)",
         "description": "{qui}\n\nOn the phone or tablet, scan this QR code with the camera, then install Vision (version {version}). If Android asks, allow installing from the browser.\n\n![Install QR code]({qr})\n\nOr open this link on the device: {lien}\n\nThen open Vision and follow the steps. Tap **Next** once it is installed."
       },
       "ajouter_installer_tele": {
-        "title": "Install Vision (3/4)",
+        "title": "➕ Install Vision (3/4)",
         "description": "{qui}\n\nOn the TV, open the **Downloader** app (install it from the TV's store if needed) and type this address:\n\n## {court}\n\nInstall Vision (version {version}), open it and follow the steps until the screen shows **a code**. Tap **Next** at that point."
       },
       "ajouter_installer_pc": {
-        "title": "Install Vision (3/4)",
+        "title": "➕ Install Vision (3/4)",
         "description": "{qui}\n\nOn the PC, open **PowerShell** (Windows key, type “PowerShell”, Enter), paste the command below and press Enter. Accept the administrator prompt.\n\nThe command installs Vision **and** pairs the PC: nothing else to type. It works only once and for {minutes} minutes.\n\nTap **Next** when PowerShell says “enrolled”.",
         "data": {
           "commande": "Command to copy"
         }
       },
       "ajouter_relier_telephone": {
-        "title": "Pair (4/4)",
+        "title": "➕ Pair (4/4)",
         "description": "{qui}\n\nIn Vision, on the device, tap **Scan the Home Assistant QR code** and point it at this QR code:\n\n![Pairing QR code]({image})\n\nValid for {minutes} minutes, only once. Tap **Next** when the device says it is paired."
       },
       "ajouter_relier_tele": {
-        "title": "Pair (4/4)",
+        "title": "➕ Pair (4/4)",
         "description": "{qui}\n\nType the code shown on the TV.",
         "data": {
           "code": "Code shown on the TV"
         }
       },
       "ajouter_relier_pc": {
-        "title": "Pair (4/4)",
+        "title": "➕ Pair (4/4)",
         "description": "{qui}\n\nThe PC pairs by itself at the end of the installation. Tap **Next** to check."
       },
       "ajouter_fini": {
-        "title": "All done",
+        "title": "➕ All done",
         "description": "## ✅ {nom} is paired with {personne}\n\nRole: **{role}**.{reprise}\n\n{etat}"
       },
       "roles_edition_validation": {
-        "title": "Multi-person approval",
+        "title": "🤝 Multi-person approval",
         "description": "For the **{role}** role: how many people must approve an unlock.",
         "data": {
           "validation_mode": "How many people must approve",
@@ -256,25 +274,28 @@
         }
       },
       "roles_personne_role": {
-        "title": "Role of {personne}",
+        "title": "👤 Role of {personne}",
         "description": "{erreur}Their devices: {appareils}.",
         "data": {
           "role": "Role"
         }
       },
       "general": {
-        "title": "General settings",
-        "description": "The place name appears in the apps, the dashboard and notifications. Examples: School, Office, Club.",
+        "title": "⚙️ General settings",
+        "description": "Shared screens, and the place's Discord channel. Each Decider chooses how they get requests, alerts and the summary in Vision → Settings → My notifications (or in the Vision app). The place name is set in the dashboard: Vision → Settings.",
         "data": {
-          "lieu": "Place name",
-          "personnes_affichage": "“Shared screen” people"
+          "personnes_affichage": "“Shared screen” people",
+          "discord_service": "Discord: notification service",
+          "discord_cible": "Discord: channel"
         },
         "data_description": {
-          "personnes_affichage": "The Home Assistant people created for a TV or a shared screen, not for anyone in particular. Empty: the one named “Affichage”."
+          "personnes_affichage": "The Home Assistant people created for a TV or a shared screen, not for anyone in particular. Empty: the one named “Affichage”.",
+          "discord_service": "The notify service of Home Assistant's Discord integration. Empty: no Discord.",
+          "discord_cible": "The channel ID (several: separated by commas)."
         }
       },
       "accueil": {
-        "title": "Welcome messages",
+        "title": "👋 Welcome messages",
         "description": "{erreur}The message shown at the top of the app, on each device, in its language. Write one message per line; the variables below are filled in when the message is shown. Nothing written: “Hello!” (“Good evening!” from 6 pm).\n\n“Depending on the time of day” mode: start a line with `morning:`, `afternoon:`, `evening:` or `night:` (or `matin:`, `apres-midi:`, `soir:`, `nuit:`) to keep it for that time (morning 5 am–12 pm, afternoon 12–6 pm, evening 6–10 pm, night 10 pm–5 am); a line without a prefix is used at any time. “Random” mode: prefixes are ignored.\n\nFor experts (Advanced section): a Home Assistant Jinja template replaces the messages, with the same variables, for example `{exemple}`. If it fails, or renders an empty text or more than 200 characters, the normal message is shown.\n\n**Variables** (current value)\n{aide}\n\n**Preview** (what is saved)\n{apercu}",
         "data": {
           "messages": "Messages (one per line)",
@@ -297,53 +318,45 @@
           }
         }
       },
-      "modules": {
-        "title": "Modules",
-        "description": "{erreur}Tick what you need: everything else disappears everywhere (Home Assistant, apps, TVs, PCs). Its settings are kept for later; its entities are disabled without losing their history. The core (devices, people and roles, remote management, updates) always stays on.",
-        "data": {
-          "prereglage": "Preset",
-          "modules": "Modules"
-        }
-      },
       "modules_protections": {
-        "title": "Turn off the protections?",
+        "title": "⚙️ Turn off the protections?",
         "description": "⚠️ Without the anti-bypass protections, a supervised person can uninstall Vision, become an administrator of their PC or open the protected settings, and so lift all the rules. {concernes}: {appareils}.\n\nOnly turn them off if you trust everyone who uses these devices.",
         "data": {
           "je_comprends": "I understand, turn off the protections"
         }
       },
       "entites": {
-        "title": "Home Assistant entities",
+        "title": "🧩 Home Assistant entities",
         "description": "The Home Assistant widgets in the Vision app: each device only sees the entities given to its person (plus its exceptions) and can only use the actions ticked here. Read-only by default; locks and alarms can never be controlled from a device.\n\n{resume}",
         "menu_options": {
-          "entites_personnes": "Each person's entities",
-          "entites_appareils": "Exceptions per device",
-          "entites_actions": "Allowed actions"
+          "entites_personnes": "👤 Each person's entities",
+          "entites_appareils": "📱 Exceptions per device",
+          "entites_actions": "▶️ Allowed actions"
         }
       },
       "entites_personnes": {
-        "title": "Each person's entities",
+        "title": "👤 Each person's entities",
         "description": "Choose a person to change the list of entities they see on their devices.",
         "data": {
           "personne": "Person"
         }
       },
       "entites_personne_liste": {
-        "title": "Entities of {personne}",
+        "title": "👤 Entities of {personne}",
         "description": "The entities {personne} sees in the app (with the role function “See the Home Assistant entities on their list”). Nothing can be controlled without “Allowed actions”.",
         "data": {
           "entites": "Entities"
         }
       },
       "entites_appareils": {
-        "title": "Exceptions per device",
+        "title": "📱 Exceptions per device",
         "description": "Choose a device to add entities to it or remove entities from it, compared with its person's list.",
         "data": {
           "appareil": "Device"
         }
       },
       "entites_appareil_liste": {
-        "title": "Exceptions for “{appareil}”",
+        "title": "📱 Exceptions for “{appareil}”",
         "description": "Person: {personne}. Their list: {liste}.\n\n“Extra” is added to this list; “Removed” is taken out of it (and wins). A device without a person only sees “Extra”.",
         "data": {
           "plus": "Extra",
@@ -351,64 +364,31 @@
         }
       },
       "entites_actions": {
-        "title": "Allowed actions",
+        "title": "▶️ Allowed actions",
         "description": "{pilotables} Tick what the devices may do (the role function “Control allowed entities” is also needed); nothing ticked = read-only. Locks and alarms are never offered."
       },
       "sauvegarde": {
-        "title": "Backup and restore",
+        "title": "💾 Backup and restore",
         "description": "All of Vision's configuration: roles, people, devices and their rules, modules, place, widgets, screensaver. The files stay in Home Assistant (folder “vision_sauvegardes” in the configuration) and are included in its own backups. An automatic backup is made every night.\n\nAvailable backups:\n{liste}",
         "menu_options": {
-          "sauvegarde_creer": "Back up now",
-          "sauvegarde_restaurer": "Restore a backup"
+          "sauvegarde_creer": "📥 Back up now",
+          "sauvegarde_restaurer": "♻️ Restore a backup"
         }
       },
       "sauvegarde_creer": {
-        "title": "Back up now",
+        "title": "📥 Back up now",
         "description": "Saves Vision's current configuration. The last 20 backups made here are kept.\n\nAlready there:\n{liste}"
       },
       "sauvegarde_restaurer": {
-        "title": "Restore a backup",
+        "title": "♻️ Restore a backup",
         "description": "Replaces all of Vision's current configuration with the one from the chosen backup. The current state is backed up first, so you can go back. A device paired after the date of the backup will need to be paired again.",
         "data": {
           "sauvegarde": "Backup",
           "confirmer": "Replace the current configuration with this backup"
         }
       },
-      "temps_gagne": {
-        "title": "Earned time",
-        "description": "A task ticked in a Home Assistant to-do list gives extra time on the person's devices. Tasks already ticked when you set this up do not count, and a task unticked then ticked again only counts once. Leave the list empty to remove a person's setting.\n\nCurrent settings:\n{resume}",
-        "data": {
-          "personne": "Person",
-          "liste": "To-do list",
-          "minutes": "Minutes per ticked task",
-          "max": "At most, per day"
-        }
-      },
-      "regles_lieu": {
-        "title": "Rules by place",
-        "description": "While the person is in the chosen zone (based on their location in Home Assistant), the ticked categories are blocked on their devices. When they leave the zone, everything goes back to how it was. Tick no category to remove this person's rule for this zone.\n\nCurrent rules:\n{resume}",
-        "data": {
-          "personne": "Person",
-          "zone": "Zone",
-          "etiquettes": "Categories blocked in this zone"
-        }
-      },
-      "vocabulaire": {
-        "title": "Vocabulary",
-        "description": "The words Vision uses for roles (dashboard, notifications, messages sent to devices), in the Home Assistant language. Clear a field to go back to the default word ({defauts}). At most {longueur} characters.\n\nThe place name (currently: {nom_lieu}) is set in “General settings”.\n\n**Preview** (what is saved)\n{apercu}",
-        "data": {
-          "decideur": "Decider (one)",
-          "decideurs": "Deciders (several)",
-          "demandeur": "Requester (one)",
-          "demandeurs": "Requesters (several)"
-        },
-        "data_description": {
-          "decideur": "Who accepts or refuses requests.",
-          "demandeur": "Who makes requests."
-        }
-      },
       "musique": {
-        "title": "Music",
+        "title": "🎵 Music",
         "description": "Music Assistant players offered as speakers in Music. All are selected by default.",
         "data": {
           "enceintes": "Offered speakers",
@@ -422,14 +402,14 @@
         }
       },
       "journal_musique": {
-        "title": "Music log",
+        "title": "📜 Music log",
         "description": "Latest Music commands (who, what, from where):\n\n{journal}",
         "data": {
           "jours": "Keep the log for"
         }
       },
       "appareils_essai": {
-        "title": "Android test devices",
+        "title": "🧪 Android test devices",
         "description": "Testing tool: these Android devices get the test version of the app before the others. Leave empty if you don't test the app.",
         "data": {
           "appareils_essai": "Android test devices"
@@ -439,35 +419,109 @@
         }
       },
       "soutien": {
-        "title": "Support the project",
-        "description": "Vision is free and open source. If you'd like to thank the project, you can buy it a coffee: {lien}\n\nIn return, a \"Supporter\" badge appears and the Vision eye occasionally winks, with a small heart, on the screensaver and in \"About\". It is purely decorative: no feature is locked.\n\nThe code you receive by e-mail is checked here, offline: nothing is sent anywhere.",
-        "menu_options": {
-          "soutien_code": "I have a code",
-          "soutien_cafe": "I bought a coffee (on my honour)"
+        "title": "☕ Buy me a coffee",
+        "description": "Vision is free and open source. If you'd like to thank the project, you can buy me a coffee: {lien}\n\nIn return, a \"Supporter\" badge appears and the Vision eye occasionally winks, with a small heart, on the screensaver and in \"About\". It is purely decorative: no feature is locked.\n\nThe code you receive by e-mail is checked here, offline: nothing is sent anywhere.",
+        "data": {
+          "code": "Support code"
         }
       },
       "soutien_actif": {
-        "title": "Support the project",
+        "title": "☕ Buy me a coffee",
         "description": "♥ Thank you! The \"Supporter\" badge is shown on this place's devices.\n\nDonation page: {lien}",
         "menu_options": {
-          "soutien_code": "Enter another code",
-          "soutien_retirer": "Remove the badge"
+          "soutien_code": "🎟️ Enter another code",
+          "soutien_retirer": "🗑️ Remove the badge"
         }
       },
       "soutien_code": {
-        "title": "I have a code",
+        "title": "🎟️ I have a code",
         "description": "Paste the code you received by e-mail (spaces, dashes and line breaks are ignored). It is checked here, offline.",
         "data": {
           "code": "Support code"
         }
       },
       "code_gestion": {
-        "title": "PC management code",
+        "title": "🔑 PC management code",
         "description": "{etat}\n\nThis code releases, on a PC, a message that blocks “until released”. It can only be set here (administrators): the Vision window on the PC can no longer choose it. Home Assistant keeps only its fingerprint and checks it itself; the PC keeps nothing. After {essais} wrong codes on a PC, its tries are paused for {minutes} minutes; after {total} wrong codes in 24 h across the whole place, the code is locked until it is changed here.\n\n6 to 32 characters. A code typed on a PC goes through the Requester's session: do not type it in front of them, and change it if in doubt. A blocking message can also be released from Home Assistant (“Release a message” action), without a code.",
         "data": {
           "action": "Que faire ?",
           "code": "Nouveau code",
           "confirmation": "The same code, once more"
+        }
+      },
+      "reparer": {
+        "title": "🛠️ Repair, back up or restore",
+        "menu_options": {
+          "appareils_relier": "🔗 Pair a device again (app reinstalled, PC reset)",
+          "sauvegarde": "💾 Backup and restore",
+          "installer": "📦 Install links and QR codes",
+          "qr": "🔳 Create a pairing QR code by hand",
+          "cle": "🗝️ Enrollment key"
+        }
+      },
+      "autres": {
+        "title": "🗂️ Other settings",
+        "description": "All the previous settings, until they get their new place.",
+        "menu_options": {
+          "roles": "👥 People and roles",
+          "securite": "🔒 Security",
+          "entites": "🧩 Home Assistant entities",
+          "general": "⚙️ General settings",
+          "accueil": "👋 Welcome messages",
+          "musique": "🎵 Music",
+          "journal_musique": "📜 Music log",
+          "appareils_essai": "🧪 Android test devices"
+        }
+      },
+      "assistant": {
+        "title": "🧭 Run the assistant again (1/4): the place",
+        "description": "Today's answers are already filled in: change only what you want. Nothing is saved before the last step.\n\nDefault: {defauts}.",
+        "data": {
+          "lieu": "Name of the place",
+          "mots": "Words for the roles (optional)"
+        },
+        "data_description": {
+          "lieu": "Examples: School, Office, Club."
+        },
+        "sections": {
+          "mots": {
+            "name": "Words for the roles (optional)",
+            "description": "Default: {defauts}. An empty field keeps the default word; {longueur} characters at most.",
+            "data": {
+              "decideur": "Who decides (one)",
+              "decideurs": "Who decides (several)",
+              "demandeur": "Who asks (one)",
+              "demandeurs": "Who asks (several)"
+            }
+          }
+        }
+      },
+      "assistant_personnes": {
+        "title": "🧭 Run the assistant again (2/4): people",
+        "description": "Who approves or refuses requests? The ticked people will be {decideurs}. An unticked person who was one gets the default role back; the others keep their role.",
+        "data": {
+          "decideurs": "Who decides"
+        }
+      },
+      "assistant_objectifs": {
+        "title": "🧭 Run the assistant again (3/4): goals",
+        "description": "{erreur}An unticked goal turns off its modules (their settings are kept). A ticked goal turns on its recommended modules. An unchanged goal keeps its modules as they are.",
+        "data": {
+          "objectifs": "Goals"
+        }
+      },
+      "assistant_pret": {
+        "title": "🧭 Run the assistant again (4/4): ready to save",
+        "description": "{erreur}{resume}\n\nSaving applies everything at once; it is written to the log."
+      },
+      "code_octroi": {
+        "title": "🛡️ Deciders' unlock code",
+        "description": "{etat}\n\nA Decider's unlock code is the same in the Vision app and in the dashboard: it is asked on EVERY action that grants something (accepting a request, unlocking, giving time, opening, allowing, approving a device, giving a role). Usually the Decider chooses it in the app; here you can set, change or remove it (forgotten code, locked code). Home Assistant only keeps its hash; the fingerprint stays available on their devices. After {essais} wrong codes, an account or device waits {minutes} minutes; after {total} wrong codes in 24 h, everything is locked until a code is set again.\n\nAt least 4 characters.",
+        "data": {
+          "personne": "Decider",
+          "action": "What to do?",
+          "code": "New code",
+          "confirmation": "The same code again"
         }
       }
     },
@@ -485,17 +539,10 @@
       "deverrouillage_deja_vote": "You have already approved this request: another person needs to approve it.",
       "ajout_pas_encore": "Not paired yet. Finish the step on the device, then tap Next again.",
       "ajout_expire": "Time ran out: here is a new QR code (or a new command).",
-      "modules_dependances": "Some modules that others need are missing (details above).",
       "modules_confirmer": "Tick the box to confirm, or close this window to keep the protections.",
       "confirmer_restauration": "Tick the box to confirm: the current configuration will be replaced.",
       "sauvegarde_introuvable": "This backup no longer exists. Choose another one.",
       "sauvegarde_illisible": "This backup cannot be read or comes from a newer version of Vision. Nothing was changed.",
-      "temps_gagne_personne": "Choose a person.",
-      "temps_gagne_liste": "Choose a to-do list (a “todo” entity).",
-      "temps_gagne_minutes": "Minutes per task go from 1 to 240, and the daily cap cannot be smaller than one task.",
-      "regles_lieu_personne": "Choose a person.",
-      "regles_lieu_zone": "Choose a Home Assistant zone.",
-      "regles_lieu_trop": "There are already 40 place rules: remove one before adding another.",
       "accueil_modele_invalide": "The Jinja template is not valid: check its syntax (details at the top of the screen).",
       "vocabulaire_trop_long": "Too long: 30 characters at most.",
       "soutien_vide": "Paste the code you received by e-mail.",
@@ -503,24 +550,23 @@
       "soutien_version": "This code comes from a newer version of Vision: please update Vision.",
       "soutien_signature": "This code is not valid (signature rejected). Copy it again from the e-mail.",
       "code_court": "6 to 32 characters.",
-      "code_different": "The two codes are not the same."
+      "code_different": "The two codes are not the same.",
+      "objectifs_dependances": "A goal is missing: see the message at the top.",
+      "entites_rien_a_piloter": "No controllable entity is given to a person or device: choose some entities first (lights, switches, scripts, scenes, buttons, covers, thermostats).",
+      "code_court_deverrouillage": "At least 4 characters.",
+      "personne_inconnue": "This Decider doesn't exist."
     },
     "abort": {
       "not_loaded": "Vision is not loaded: try again in a moment.",
       "ajout_impossible": "Not possible right now: {raison}",
-      "entites_rien_a_piloter": "No controllable entity is given to a person or device: choose some entities first (lights, switches, scripts, scenes, buttons, covers, thermostats).",
       "sauvegarde_faite": "Backup done: {sauvegarde}. It is in the “{dossier}” folder of the Home Assistant configuration.",
       "sauvegarde_restauree": "Configuration restored from the backup of {sauvegarde}. The previous state is kept: {avant}.",
       "aucune_sauvegarde": "No backups yet. Start with “Back up now”.",
-      "temps_gagne_ok": "Earned time saved.\n\n{resume}",
-      "temps_gagne_coupe": "The “Earned time” module (or “Screen time”) is turned off: turn it on in Configure → Modules.",
-      "regles_lieu_ok": "Rule saved.\n\n{resume}",
-      "regles_lieu_coupe": "The “Rules by place” module (or “App blocking” and “Web filtering”) is turned off: turn it on in Configure → Modules.",
       "accueil_ok": "Welcome messages saved.\n\n**Preview**\n{apercu}",
-      "vocabulaire_ok": "Vocabulary saved.\n\n**Preview**\n{apercu}",
       "essai_aucun_android": "No Android device in Vision: nothing to set.",
       "soutien_merci": "♥ Thank you for your support! The badge appears on devices at their next check-in.",
-      "soutien_retire": "Badge removed."
+      "soutien_retire": "Badge removed.",
+      "aucun_decideur": "No Decider yet: give this role to a person first."
     }
   },
   "selector": {
@@ -578,21 +624,6 @@
         "telephone": "📱 A phone or tablet",
         "tele": "📺 An Android TV",
         "pc": "💻 A Windows PC"
-      }
-    },
-    "prereglage": {
-      "options": {
-        "simple": "Simple: time slots, screen time, requests, messages",
-        "famille": "Recommended: Simple, plus app blocking, web filtering, unlock, protection suspension, screensaver, home screen, protections, “Block everything”",
-        "tout": "Everything: all modules"
-      }
-    },
-    "prereglage_options": {
-      "options": {
-        "simple": "Simple: time slots, screen time, requests, messages",
-        "famille": "Recommended: Simple, plus app blocking, web filtering, unlock, protection suspension, screensaver, home screen, protections, “Block everything”",
-        "tout": "Everything: all modules",
-        "garder": "Keep my choice (boxes below)"
       }
     },
     "action_lot": {
@@ -739,6 +770,36 @@
         "240": "4 h",
         "perso": "Custom"
       }
+    },
+    "reprise_action": {
+      "options": {
+        "simuler": "Simulate",
+        "appliquer": "Apply",
+        "annuler": "Cancel"
+      }
+    },
+    "objectifs": {
+      "options": {
+        "horaires": "⏰ Schedules and screen time: time slots, daily time, advance notice",
+        "contenus": "🛡️ Content: app blocking, web filtering, protections",
+        "demandes": "💬 Requests and remote answers: requests, unlocking, messages, \"Close everything\"",
+        "ecrans": "📺 Shared screens: screensaver (TVs and Android), welcome messages"
+      }
+    },
+    "premier_appareil": {
+      "options": {
+        "telephone": "📱 A phone or tablet",
+        "tele": "📺 An Android TV",
+        "pc": "💻 A Windows PC",
+        "plus_tard": "⏳ Later"
+      }
+    },
+    "code_octroi_action": {
+      "options": {
+        "garder": "Change nothing",
+        "changer": "Choose a new code",
+        "retirer": "Remove the code (the Decider will choose it again in the app)"
+      }
     }
   },
   "services": {
@@ -838,7 +899,7 @@
         },
         "elements": {
           "name": "Named items",
-          "description": "Sites or software targeted by name, without a category. List of { genre: sites|apps, nom: … }."
+          "description": "Sites or software targeted by name, without a category. List of (genre: sites|apps, nom: …)."
         },
         "couleur": {
           "name": "Color (schedule card)",
@@ -906,7 +967,7 @@
         },
         "elements": {
           "name": "Named items",
-          "description": "List of { genre: sites|apps, nom: … }. Empty list to remove them all."
+          "description": "List of (genre: sites|apps, nom: …). Empty list to remove them all."
         },
         "sauf": {
           "name": "Except on",
@@ -948,7 +1009,7 @@
     },
     "build_dashboard": {
       "name": "Rebuild the dashboard",
-      "description": "Rebuilds the Vision dashboard from the current devices and time slots."
+      "description": "Recreates the Vision dashboard from the default model. The current one, including your changes, is first saved to /config/vision_outils/sauvegardes/."
     },
     "update_agent": {
       "name": "Update the agent",
@@ -1028,7 +1089,7 @@
       "fields": {
         "elements": {
           "name": "Items",
-          "description": "List of { genre: sites|apps, nom: … }."
+          "description": "List of (genre: sites|apps, nom: …)."
         },
         "etiquettes": {
           "name": "Labels",
@@ -1112,7 +1173,7 @@
       "fields": {
         "elements": {
           "name": "Items",
-          "description": "List of {genre: apps|sites, nom}."
+          "description": "List of (genre: apps|sites, nom)."
         },
         "decision": {
           "name": "Decision",
@@ -1144,7 +1205,7 @@
       "fields": {
         "propositions": {
           "name": "Proposals",
-          "description": "List of {cle, verdict (garder | hors_demarrage | nuisible), raison, confiance 0-100}."
+          "description": "List of (cle, verdict (garder | hors_demarrage | nuisible), raison, confiance 0-100)."
         },
         "par": {
           "name": "Author",
@@ -1526,11 +1587,11 @@
         },
         "volume": {
           "name": "Volume",
-          "description": "{debut: %, fin: %, montee_s: seconds} — default 10 → 60 % over 180 s."
+          "description": "(debut: %, fin: %, montee_s: seconds) — default 10 → 60 % over 180 s."
         },
         "repetition": {
           "name": "Snooze",
-          "description": "{minutes, max} — default 9 min, 3 times."
+          "description": "(minutes, max) — default 9 min, 3 times."
         },
         "impose": {
           "name": "Imposed",
@@ -1624,11 +1685,11 @@
         },
         "volume": {
           "name": "Volume",
-          "description": "{debut: %, fin: %, montee_s: seconds} — default 10 → 60 % over 180 s."
+          "description": "(debut: %, fin: %, montee_s: seconds) — default 10 → 60 % over 180 s."
         },
         "repetition": {
           "name": "Snooze",
-          "description": "{minutes, max} — default 9 min, 3 times."
+          "description": "(minutes, max) — default 9 min, 3 times."
         },
         "impose": {
           "name": "Imposed",
@@ -1811,6 +1872,98 @@
     "reveil_installer_modeles": {
       "name": "Alarm — install the templates",
       "description": "Places the blueprints shipped with the module (for example « Wake-up on school days ») in the Home Assistant blueprints folder (automations). An existing copy is never overwritten. Administrators only."
+    },
+    "reprise_autorisations": {
+      "name": "Permissions takeover",
+      "description": "New permission rules (for a while, exception, always available): simulate what changes, apply after review, or roll back.",
+      "fields": {
+        "action": {
+          "name": "Action",
+          "description": "Simulate: report without changing anything. Apply: the new decision engine applies (the previous state is saved). Cancel: back to the previous engine."
+        }
+      }
+    },
+    "ecran_regler": {
+      "name": "Screen – device settings",
+      "description": "Screen of one device (administrators and automations only). Defaults change nothing.",
+      "fields": {
+        "pc": {
+          "name": "Device",
+          "description": "Name of the device."
+        },
+        "veille_vision": {
+          "name": "Vision screensaver",
+          "description": "Lets Vision's screensaver (clock, photos, playlist) start on this device."
+        },
+        "garder_allume": {
+          "name": "Keep the screen on",
+          "description": "Vision's home screen keeps the Android screen from going to sleep."
+        }
+      }
+    },
+    "veille_regler": {
+      "name": "Screensaver — device options",
+      "description": "Options of the screensaver of one device (administrators and automations only). The device applies the most recent setting, from Home Assistant or from the TV itself.",
+      "fields": {
+        "pc": {
+          "name": "Device",
+          "description": "Name of the device."
+        },
+        "lecteur": {
+          "name": "Music player banner",
+          "description": "Shows the cover, title, artist and play/pause of the music of this device while it plays (off by default)."
+        },
+        "qr": {
+          "name": "Guests' QR code",
+          "description": "Corner of the guests' QR code (party mode open): haut_gauche (top left), haut_droite (top right), bas_gauche (bottom left), bas_droite (bottom right) or cache (hidden). Bottom right by default."
+        },
+        "logo": {
+          "name": "Vision logo",
+          "description": "Corner of the Vision eye: same values; bottom left (its usual place) by default. The QR code and the logo never share a corner."
+        }
+      }
+    },
+    "son_regler": {
+      "name": "Sound level — device settings",
+      "description": "Settings of the sound measurement on one device (administrators and automations only). Only a number leaves the device: no audio is recorded or sent.",
+      "fields": {
+        "pc": {
+          "name": "Device",
+          "description": "Name of the device."
+        },
+        "actif": {
+          "name": "Measure on this device",
+          "description": "Turns the microphone measurement on or off for this device."
+        },
+        "seuil_db": {
+          "name": "Threshold",
+          "description": "Relative level (0 to 100) above which the room counts as too noisy."
+        },
+        "sensibilite_s": {
+          "name": "Sensitivity",
+          "description": "Seconds above the threshold before an alert (shorter peaks are ignored)."
+        },
+        "alertes_avant_coupure": {
+          "name": "Alerts before cut-off",
+          "description": "The device is cut off at this alert; 0 = alerts only."
+        },
+        "coupure_min": {
+          "name": "Cut-off duration",
+          "description": "How long the device stays closed."
+        },
+        "calme_min": {
+          "name": "Calm reset",
+          "description": "Minutes without noise before the alert count goes back to zero."
+        },
+        "calibration_db": {
+          "name": "Calibration",
+          "description": "Added to the device measurement (microphones differ)."
+        },
+        "plages": {
+          "name": "Active time ranges",
+          "description": "List of (debut, fin) in HH:MM; empty = all day."
+        }
+      }
     }
   },
   "entity": {
@@ -2104,6 +2257,9 @@
       },
       "reveil_appareils": {
         "name": "Devices"
+      },
+      "niveau_sonore": {
+        "name": "Sound level"
       }
     },
     "switch": {
@@ -2383,16 +2539,5 @@
     "virustotal_sans_cle": {
       "message": "First enter your key in “VirusTotal key”. You can create one on virustotal.com, in your profile."
     }
-  },
-  "musique": {
-    "fin_1": "The End 🎬",
-    "fin_2": "The Show Must Go On… add a song 🎭",
-    "fin_3": "Silence Is Golden 🤫",
-    "fin_4": "Encore! 👏",
-    "fin_5": "Play It Again 🎹",
-    "fin_6": "Stop! In the Name of Love ✋",
-    "fin_7": "One More Time 🔁",
-    "fin_8": "Don't Stop Me Now 🎤",
-    "fin_action": "Add a song to get the party going again"
   }
 }

@@ -29,6 +29,10 @@ class BlockActivity : Activity() {
     private lateinit var titre: TextView
     private lateinit var pourquoi: TextView
     private lateinit var quand: TextView
+    /** Lot 6 (B10) : « Fermé par » ou « Fermée par », et la raison du serveur sous la source. */
+    private lateinit var etiquetteFerme: TextView
+    private lateinit var detail: TextView
+    private lateinit var infos: View
     private lateinit var ligneQuand: View
     private lateinit var zoneDemande: LinearLayout
     private var demandeEnvoyee = 0L
@@ -89,7 +93,7 @@ class BlockActivity : Activity() {
         window.setBackgroundDrawable(degrade)
         val tele = ReglagesTvActivity.estTele(this)
         val m = Marges.calculer(resources.displayMetrics.widthPixels, resources.displayMetrics.heightPixels,
-            resources.displayMetrics.density, tele)
+            resources.displayMetrics.density, tele, ZoneSure.pourcentX(this), ZoneSure.pourcentY(this))
         val fond = Ui.colonne(this).apply {
             gravity = Gravity.CENTER
             setPadding(m.cote, m.haut, m.cote, m.bas)
@@ -114,16 +118,30 @@ class BlockActivity : Activity() {
         }
 
         // Pourquoi, et jusqu'à quand : une carte du thème, textes en encre pleine (lisibles partout).
-        val infos = Ui.carte(this, Ui.CARTE).apply { gravity = Gravity.CENTER_HORIZONTAL }
-        fun ligne(etiquette: String, valeur: TextView): View = Ui.colonne(this).apply {
-            gravity = Gravity.CENTER_HORIZONTAL
-            addView(Ui.texte(this@BlockActivity, etiquette, 13f, Ui.TEXTE_2, gras = true, centre = true))
-            addView(Ui.marge(this@BlockActivity, valeur, haut = 2f))
+        // Lot 6 (B10 / APP-33) : « Fermé par : {raison} », puis « Jusqu'à : {heure} » ; la carte se lit d'une traite.
+        val infos = Ui.carte(this, Ui.CARTE).apply { gravity = Gravity.CENTER_HORIZONTAL; isFocusable = false }
+        this.infos = infos
+        if (android.os.Build.VERSION.SDK_INT >= 28) infos.isScreenReaderFocusable = true
+        // 15-10 (recette : « Jusqu'à » coupé, selon l'heure de réouverture) : chaque ligne prend toute la largeur de la
+        // carte et ses textes aussi, centrés ; en largeur « au plus juste », l'intitulé pouvait être mesuré trop étroit.
+        fun pleine(v: View, haut: Float = 0f): View = v.apply {
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                .apply { topMargin = Ui.dp(this@BlockActivity, haut) }
         }
-        pourquoi = Ui.texte(this, "", 17f, Ui.TEXTE, centre = true)
+        fun ligne(etiquette: TextView, valeur: TextView, sous: TextView? = null): View = Ui.colonne(this).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            addView(pleine(etiquette))
+            addView(pleine(valeur, 2f))
+            if (sous != null) addView(pleine(sous, 4f))
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+        fun etiquette(s: String) = Ui.texte(this, s, 13f, Ui.TEXTE_2, gras = true, centre = true)
+        etiquetteFerme = etiquette(getString(R.string.lot6_ferme_par_appareil))
+        pourquoi = Ui.texte(this, "", 17f, Ui.TEXTE, gras = true, centre = true)
+        detail = Ui.texte(this, "", 15f, Ui.TEXTE, centre = true)
         quand = Ui.texte(this, "", 17f, Ui.TEXTE, centre = true)
-        infos.addView(ligne(getString(R.string.block_pourquoi), pourquoi))
-        ligneQuand = ligne(getString(R.string.block_jusqua_quand), quand)
+        infos.addView(ligne(etiquetteFerme, pourquoi, detail))
+        ligneQuand = ligne(etiquette(getString(R.string.lot6_jusqua)), quand)
         infos.addView(Ui.marge(this, ligneQuand, haut = 12f))
         fond.addView(Ui.marge(this, infos, haut = 18f).apply {
             (layoutParams as LinearLayout.LayoutParams).width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -177,7 +195,7 @@ class BlockActivity : Activity() {
         peindre()
     }
 
-    /** Trois durées à demander ; après l'envoi, on attend la réponse d'un parent. */
+    /** Les durées à demander (Durees.DEMANDE, les mêmes partout) ; après l'envoi, on attend la réponse d'un Décideur. */
     private fun construireDemande() {
         zoneDemande.removeAllViews()
         construireDeverrouillage()
@@ -222,7 +240,7 @@ class BlockActivity : Activity() {
         zoneDemande.addView(Ui.texte(this, getString(R.string.block_demander_du_temps), 15f, Ui.TEXTE, gras = true, centre = true))
         val r = Ui.rangeeBoutons(this).apply { gravity = Gravity.CENTER }
         var premier: View? = null
-        listOf(15 to Tr.duree(15), 30 to Tr.duree(30), 60 to Tr.duree(60)).forEachIndexed { k, (min, lbl) ->
+        Durees.DEMANDE.zip(Durees.libelles(Durees.DEMANDE)).forEachIndexed { k, (min, lbl) ->
             val btn = Ui.boutonSecondaire(this, lbl) { demander(min) }
             btn.isFocusableInTouchMode = false
             r.addView(Ui.marge(this, btn, haut = 10f, gauche = if (k == 0) 0f else 10f))
@@ -281,11 +299,18 @@ class BlockActivity : Activity() {
             appli = if (pkg.isEmpty()) "" else Usage.libelle(this, pkg),
             motif = if (pkg.isEmpty()) "" else Etat.raisonDe(pkg),
             codeMotif = if (pkg.isEmpty()) "" else Etat.codeRaisonDe(pkg),
-            reouverture = Etat.prochainChangement.takeIf { it > System.currentTimeMillis() }?.let { Etat.quand(it) } ?: "",
+            reouverture = Etat.prochainChangement.takeIf { it > System.currentTimeMillis() }?.let { TextesBlocage.heure(it) } ?: "",
+            raisonPassee = if (raison.startsWith(RAISON_REGLAGE)) "" else raison,
         )
         titre.text = Ui.coupable(t.titre)
-        pourquoi.text = t.pourquoi
+        etiquetteFerme.text = t.etiquette()
+        pourquoi.text = t.fermePar
+        detail.text = t.detail
+        detail.visibility = if (t.detail.isEmpty()) View.GONE else View.VISIBLE
         quand.text = t.quand
+        // Lecture vocale : une seule phrase pour la carte (« Fermé par : le planning, jusqu'à 21:30 »), puis le détail.
+        infos.contentDescription = listOf(t.resume(), t.detail, if (t.quand.isNotEmpty() && !t.resume().contains(t.quand)) t.quand else "")
+            .filter { it.isNotEmpty() }.joinToString(" ")
         ligneQuand.visibility = if (t.quand.isEmpty()) View.GONE else View.VISIBLE
         // Une demande restée sans réponse : au bout de dix minutes, on laisse redemander.
         if (demandeEnvoyee > 0 && System.currentTimeMillis() - demandeEnvoyee > 10 * 60_000L) {

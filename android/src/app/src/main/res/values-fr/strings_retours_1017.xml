@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 17-10 (l'auteur, point 18b) : « Vider la file » dans le menu d'un titre de la file (télé). -->
+<resources>
+    <string name="partyecran_vider_file">Vider la file</string>
+    <string name="partyecran_vider_titre">Vider la file ?</string>
+    <string name="partyecran_vider_texte">Les %1$d titres à suivre seront retirés. Le titre en cours continue.</string>
+    <string name="partyecran_vider_bouton">Vider</string>
+    <!-- 17-10 (l'auteur, point 8) : le mode soirée (invités par QR code), ouvert ou fermé depuis le lecteur. -->
+    <string name="musrech_soiree_mode">Mode soirée (invités) : %1$s</string>
+    <string name="partyecran_soiree_fermer">Fermer le mode soirée</string>
+    <string name="partyecran_soiree_ouvrir">Ouvrir aux invités</string>
+    <string name="partyecran_soiree_fermee">Mode soirée fermé : pas de QR code, le lien des invités ne marche plus.</string>
+    <!-- 1.93.05 (l'auteur, retour 33) : la mise à jour depuis les réglages de la télé. -->
+    <string name="reglagestv_maj_rechercher">Rechercher une mise à jour</string>
+    <string name="reglagestv_maj_recherche_en_cours">Recherche auprès de Home Assistant…</string>
+    <string name="reglagestv_maj_aucune">Pas encore d\'information sur les mises à jour.</string>
+    <string name="reglagestv_st_demandes">Demandes</string>
+    <string name="jauge_volume">Volume %1$d %%</string>
+    <string name="zonehaut_widget_lecteur">Lecteur musique</string>
+    <string name="veille_option_lecteur">Lecteur musique dans la veille</string>
+    <string name="veille_qr_ajoute">Ajoute ta musique</string>
+    <string name="veille_option_qr">QR code des invités</string>
+    <string name="veille_option_logo">Logo Vision</string>
+    <string name="veille_coin_haut_gauche">En haut à gauche</string>
+    <string name="veille_coin_haut_droite">En haut à droite</string>
+    <string name="veille_coin_bas_gauche">En bas à gauche</string>
+    <string name="veille_coin_bas_droite">En bas à droite</string>
+    <string name="veille_coin_cache">Masqué</string>
+    <string name="veille_coin_pris">Ce coin est déjà pris : %1$s</string>
+</resources>

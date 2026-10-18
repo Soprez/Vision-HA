@@ -41,6 +41,7 @@ class LiaisonEcransTest : InstrumentationTestCase() {
 
     override fun setUp() {
         super.setUp()
+        CodeEssai.poser(instrumentation.targetContext)  // faille du 16-10 : un Décideur a toujours un code
         sauve = HashMap(ctx.getSharedPreferences("vision", 0).all)
         if (android.os.Build.VERSION.SDK_INT >= 33) try { instrumentation.uiAutomation.grantRuntimePermission(ctx.packageName, "android.permission.POST_NOTIFICATIONS") } catch (_: Exception) {}
         serveur = ServerSocket(0, 10, java.net.InetAddress.getByName("127.0.0.1"))
@@ -62,6 +63,7 @@ class LiaisonEcransTest : InstrumentationTestCase() {
         ctx.getSharedPreferences("vision", 0).edit().clear().apply {
             sauve.forEach { (k, x) -> when (x) { is String -> putString(k, x); is Boolean -> putBoolean(k, x); is Int -> putInt(k, x); is Long -> putLong(k, x); is Float -> putFloat(k, x); is Set<*> -> @Suppress("UNCHECKED_CAST") putStringSet(k, x as Set<String>) } }
         }.commit()
+        CodeEssai.rendre(instrumentation.targetContext)
         super.tearDown()
     }
 

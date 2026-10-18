@@ -22,7 +22,7 @@ async def test_volume_des_lecteurs_vision_tenu_a_100(hass, hass_storage, monkeyp
     async def volume_set(call: ServiceCall):
         appels.append((call.data["entity_id"], call.data["volume_level"]))
     hass.services.async_register("media_player", "volume_set", volume_set)
-    hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Télé des parents · Vision", "volume_level": 0.1})
+    hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Télé du bureau · Vision", "volume_level": 0.1})
     hass.states.async_set(MA_CHAMBRE, "playing", {"friendly_name": "Chambre", "volume_level": 0.1})
     await musique.regler_lecteurs_vision(hass)
     ids = {e for e, _ in appels}
@@ -30,6 +30,6 @@ async def test_volume_des_lecteurs_vision_tenu_a_100(hass, hass_storage, monkeyp
     assert MA_CHAMBRE not in ids and [MA_CHAMBRE] not in [e for e, _ in appels]  # une autre enceinte : jamais touchée
     # Déjà à 100 % : rien à faire.
     appels.clear()
-    hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Télé des parents · Vision", "volume_level": 1.0})
+    hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Télé du bureau · Vision", "volume_level": 1.0})
     await musique.regler_lecteurs_vision(hass)
     assert appels == []

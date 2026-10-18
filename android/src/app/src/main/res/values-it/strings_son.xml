@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Niveau sonore (backlog n° 31) : mesure par le micro, des nombres seulement vers Home Assistant. -->
+<resources>
+    <string name="son_titre">Livello sonoro</string>
+    <string name="son_alerte_titre">Troppo rumore</string>
+    <string name="son_alerte_sur">Avviso %1$d di %2$d: all\'ultimo il dispositivo si chiude.</string>
+    <string name="son_alerte">La stanza è troppo rumorosa.</string>
+    <string name="son_canal">Misura del livello sonoro</string>
+    <string name="son_canal_desc">Mostrata mentre Vision misura il livello del rumore (non viene registrato nulla).</string>
+    <string name="son_canal_alerte">Avvisi di rumore</string>
+    <string name="son_canal_alerte_desc">Quando la stanza resta sopra la soglia.</string>
+    <string name="son_notif_titre">Vision misura il livello sonoro</string>
+    <string name="son_notif_texte">Viene misurato solo il livello, qui sul dispositivo. Nessun suono viene registrato o inviato.</string>
+    <string name="son_etat_sans_micro">Nessun microfono su questo dispositivo</string>
+    <string name="son_etat_autoriser">Microfono da autorizzare</string>
+    <string name="son_etat_en_cours">Misura in corso</string>
+    <string name="son_etat_attente">Parte al prossimo ritorno su Vision</string>
+    <string name="son_vie_privee">Vision misura quanto è rumorosa la stanza con il microfono di questo dispositivo.\n\nCosa viene misurato: solo il livello del rumore, qui sul dispositivo.\nCosa no: nessun suono viene registrato, conservato o inviato.\nCosa va a Home Assistant: solo numeri (livello, livello massimo, ora di un avviso).\n\nL\'indicatore «microfono in uso» del sistema resta visibile: è voluto. Troppo a lungo sopra la soglia, compare un avviso; dopo diversi avvisi, il dispositivo può chiudersi per un po\'.</string>
+    <string name="son_vie_privee_sans_micro">Questo dispositivo non ha un microfono: qui il livello sonoro non può essere misurato.</string>
+    <string name="son_autoriser">Autorizza il microfono</string>
+    <string name="son_plus_tard">Più tardi</string>
+    <string name="son_ok">OK</string>
+</resources>

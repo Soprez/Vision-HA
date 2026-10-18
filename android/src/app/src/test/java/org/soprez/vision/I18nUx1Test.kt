@@ -16,7 +16,7 @@ import javax.xml.parsers.DocumentBuilderFactory
  */
 class I18nUx1Test {
     private val langues = listOf("en", "fr", "de", "es", "it", "nl")
-    private val fichiers = listOf("strings_ux1.xml")
+    private val fichiers = listOf("strings_ux1.xml", "strings_lot5.xml")
 
     private class Res(val chaines: Map<String, String>, val pluriels: Map<String, Map<String, String>>, val tableaux: Map<String, List<String>>)
 
@@ -102,6 +102,8 @@ class I18nUx1Test {
 
     private val lot = listOf(
         "Liaison.kt", "Decouverte.kt",
+        // Refonte UX, lot 5 : les espaces de l'écran principal.
+        "Espaces.kt",
     )
 
     /** Noms propres et valeurs techniques, jamais traduits (glossaire). */

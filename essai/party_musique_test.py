@@ -77,8 +77,8 @@ async def _monter(hass, hass_storage, monkeypatch):
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": {
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", role="enfant", type="telephone"),
             "t1": _fiche("t1", "Téléviseur du salon", TELE["secret"], platform="android", role="enfant", type="tv"),
-            "t2": _fiche("t2", "Télé des parents", TELE2["secret"], platform="android", role="enfant", type="tv"),
-            "p1": _fiche("p1", "PIXEL-ROBIN", PARENT["secret"], person="person.robin", platform="android", role="parent"),
+            "t2": _fiche("t2", "Télé du bureau", TELE2["secret"], platform="android", role="enfant", type="tv"),
+            "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
         }}}
     await hass.config.async_update(external_url="https://ha.exemple.org")
     # L'intégration Music Assistant elle-même n'est pas installée dans le banc : son entrée chargée est simulée.

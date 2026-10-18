@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Autorisations par élément (HA 2.5.1, réponses de l'auteur du 14-10) : écran d'une catégorie, recherche, blocages récents, demandes groupées. -->
+<resources>
+    <string name="el_rechercher_court">Suchen</string>
+    <string name="el_rechercher_indice">Website, App oder Programm suchen</string>
+    <string name="el_section_logiciels">Apps und Programme</string>
+    <string name="el_section_sites_seuls">Websites ohne Programm · %1$d</string>
+    <string name="el_services">Dienste</string>
+    <string name="el_sites">Websites</string>
+    <string name="el_services_suivent">Seine Dienste folgen immer dem Programm.</string>
+    <string name="el_suit">Folgt %1$s</string>
+    <string name="el_attente">Verknüpft, als es gesperrt war: wartet auf eine Entscheidung</string>
+    <string name="el_auto">Automatisch verknüpft</string>
+    <string name="el_delier">Lösen</string>
+    <string name="el_suivre_logiciel">%1$s folgen</string>
+    <string name="el_badge_ouvert">Offen</string>
+    <string name="el_badge_par_logiciel">Offen mit %1$s</string>
+    <string name="el_badge_exception">Ausnahme</string>
+    <string name="el_badge_toujours">Immer verfügbar</string>
+    <string name="el_badge_temps">Eine Weile · bis %1$s</string>
+    <string name="el_badge_nomme">Gesperrt (namentlich)</string>
+    <string name="el_badge_categorie">Durch die Kategorie gesperrt</string>
+    <string name="el_badge_plage">Durch ein Zeitfenster gesperrt</string>
+    <string name="el_badge_temps_epuise">Tageszeit aufgebraucht</string>
+    <string name="el_badge_securite">Gesperrt (Sicherheit oder Alter)</string>
+    <string name="el_badge_lieu">Für alle gesperrt</string>
+    <string name="el_badge_liste_noire">Als gefährlich gemeldet</string>
+    <string name="el_mode_titre">%1$s: auswählen</string>
+    <string name="el_mode_categorie">Der Kategorie folgen</string>
+    <string name="el_mode_temps">Eine Weile</string>
+    <string name="el_mode_exception">Ausnahme</string>
+    <string name="el_mode_toujours">Immer verfügbar</string>
+    <string name="el_mode_bloquer">Sperren</string>
+    <string name="el_mode_actuel">%1$s ✓</string>
+    <string name="el_mode_aide">Der Kategorie folgen: keine eigene Einstellung (Standard). Ausnahme: auf allen Geräten, auch wenn die Kategorie gesperrt ist, aber nicht in Zeitfenstern. Immer verfügbar: nichts sperrt es.</string>
+    <string name="el_recherche_rien">Nichts gefunden.</string>
+    <string name="el_logiciel_de">Programm: %1$s</string>
+    <string name="el_service_de">Dienst von %1$s</string>
+    <string name="el_categories_de">Kategorien: %1$s</string>
+    <string name="el_categorie">Kategorie</string>
+    <string name="el_recents_titre">Kürzlich gesperrt</string>
+    <string name="el_recents_vide">Kürzlich nichts gesperrt.</string>
+    <string name="el_recents_tout">Alle anzeigen</string>
+    <string name="el_demander">Anfragen</string>
+    <string name="el_demander_pour">Zugang für %1$s anfragen</string>
+    <string name="el_demande_inclus">In der Antwort enthalten:</string>
+    <string name="el_tele_lecture">Nur lesen: Geändert wird auf dem Telefon (Rolle %1$s) oder in Home Assistant.</string>
+    <string name="el_chargement_echec">Diese Kategorie konnte nicht geladen werden.</string>
+    <plurals name="el_voir_autres">
+        <item quantity="one">%d weitere anzeigen</item>
+        <item quantity="other">%d weitere anzeigen</item>
+    </plurals>
+    <plurals name="el_tentatives">
+        <item quantity="one">%d Versuch</item>
+        <item quantity="other">%d Versuche</item>
+    </plurals>
+    <plurals name="el_groupe_sites">
+        <item quantity="one">%d Website damit gesperrt</item>
+        <item quantity="other">%d Websites damit gesperrt</item>
+    </plurals>
+</resources>

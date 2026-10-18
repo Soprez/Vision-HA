@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Veille télé (lot repris pour la 1.92) : mise en place de l'économiseur, grille, cases typées. -->
+<resources>
+    <string name="eco_etat_vision">La tele ya inicia el salvapantallas de Vision. No hay nada que hacer.</string>
+    <string name="eco_etat_vision_eteint">Vision está elegido, pero el salvapantallas de la tele está desactivado.</string>
+    <string name="eco_etat_autre">El salvapantallas de la tele no es Vision.</string>
+    <string name="eco_etat_inconnu">Esta tele no indica qué salvapantallas usa.</string>
+    <string name="eco_ecrire">Vision puede configurar el salvapantallas por sí mismo: basta con pulsar «Elegir Vision».</string>
+    <string name="eco_reglage">En los ajustes que se abren, con el mando: elige «Salvapantallas» (o «Daydream») y luego «Vision». Después vuelve con Atrás.</string>
+    <string name="eco_adb">Este modelo no ofrece Vision en sus ajustes (Google TV, Chromecast…). Un Decisor puede configurarlo una vez desde un ordenador, con la depuración ADB activada en la tele (Ajustes → Sistema → Opciones para desarrolladores):</string>
+    <string name="eco_adb_apres">Basta con el primer comando: Vision configura luego el salvapantallas por sí mismo y lo restablece tras una actualización de la tele. Los otros dos lo configuran directamente.</string>
+    <string name="eco_repli_accueils">Mientras tanto, Vision inicia su salvapantallas en la pantalla de inicio de la tele tras %1$d min sin mando, nunca delante de otra app, y lo quita a la primera pulsación.</string>
+    <string name="eco_repli_accueil_vision">Mientras tanto, Vision inicia su salvapantallas tras %1$d min sin mando, solo en su propia pantalla de inicio. Para la pantalla de inicio de la tele también, activa la accesibilidad de Vision.</string>
+    <string name="eco_repli_aucun">Sin salvapantallas, el de Vision solo puede iniciarse solo si Vision es la pantalla de inicio de la tele o si su accesibilidad está activa.</string>
+    <string name="eco_repli_jamais">El salvapantallas de Vision en la pantalla de inicio está en «Nunca».</string>
+    <string name="eco_choisir_vision">Elegir Vision</string>
+    <string name="eco_utiliser_repli">Usar el salvapantallas de Vision</string>
+    <string name="eco_plus_tard">Más tarde</string>
+    <string name="eco_ok">OK</string>
+    <string name="eco_ecrit">Hecho: la tele iniciará el salvapantallas de Vision.</string>
+    <string name="eco_ecrit_echec">La tele rechazó el ajuste. El salvapantallas de Vision en la pantalla de inicio toma el relevo.</string>
+    <string name="eco_introuvable">Esta tele no ofrece el ajuste del salvapantallas. El salvapantallas de Vision en la pantalla de inicio toma el relevo.</string>
+    <string name="eco_valeur_vision">Vision</string>
+    <string name="eco_valeur_ecrire">OK: elegir Vision</string>
+    <string name="eco_valeur_reglage">Otro: OK para cambiarlo</string>
+    <string name="eco_valeur_adb">Hace falta un comando ADB: OK para verlo</string>
+    <string name="reg_pastille">Fondo detrás de los valores</string>
+    <string name="oui">Sí</string>
+    <string name="non">No</string>
+    <string name="reg_direct">Cámaras en directo</string>
+    <string name="direct_auto">Auto</string>
+    <string name="direct_aide">Auto: una sola cámara en directo a la vez (flujo ligero), imágenes si la tele no da abasto.</string>
+    <string name="direct_images">Solo imágenes</string>
+    <string name="ecart_instant">ahora mismo</string>
+    <string name="ecart_min">hace %1$d min</string>
+    <string name="ecart_h">hace %1$d h</string>
+    <string name="ecart_hier">ayer</string>
+    <string name="ecart_j">hace %1$d d</string>
+    <string name="agenda_aujourdhui">Hoy</string>
+    <string name="agenda_demain">Mañana</string>
+    <string name="agenda_journee">Todo el día</string>
+    <string name="agenda_vide">Nada previsto</string>
+    <string name="clips_vide">Sin actividad</string>
+</resources>

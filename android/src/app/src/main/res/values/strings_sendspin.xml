@@ -17,4 +17,15 @@
     <string name="appairage_pin_phrase">Enter this code in Music Assistant to pair this TV.</string>
     <string name="appairage_geste_phrase">Music Assistant asks to pair this TV. Allow it?</string>
     <string name="appairage_autoriser">Allow</string>
+    <!-- 1.90.2 (l'auteur : « jamais le code à l'écran ») : appairage à la main seulement, depuis Décideurs. -->
+    <string name="appairage_connexion">Connecting to the music…</string>
+    <string name="appairage_manuel_phrase">Start pairing “%1$s” in Music Assistant: the code will appear here.</string>
+    <string name="appairage_reussi">This TV is paired with Music Assistant.</string>
+    <string name="appairage_echec">Pairing didn\'t succeed. Start it again in Music Assistant.</string>
+    <string name="appairage_fermer">Close</string>
+    <string name="reglagestv_appairage_musique">Music pairing</string>
+    <string name="reglagestv_appairage_ok">Paired</string>
+    <string name="reglagestv_appairage_echec">Not paired</string>
+    <string name="reglagestv_appairage_echec_note">Automatic pairing didn\'t succeed. You can pair by hand.</string>
+    <string name="reglagestv_appairer_main">Pair by hand</string>
 </resources>

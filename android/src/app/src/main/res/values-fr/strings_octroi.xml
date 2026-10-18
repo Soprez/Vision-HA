@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Faille du 16-10 : un appareil Décideur choisit son code dès qu'il l'est devenu. -->
+<resources>
+    <string name="garde_code_decideur_titre">Choisis ton code de gestion</string>
+    <string name="garde_code_decideur_texte">Cet appareil est maintenant un appareil %1$s : choisis un code dès maintenant. Il sera demandé avant chaque octroi (ou l\'empreinte, une fois activée dans Réglages).</string>
+    <string name="garde_code_pose_refaire">Code enregistré. Refais le geste : il demandera le code ou l\'empreinte.</string>
+    <string name="garde_code_suspendu">Trop de codes faux : réessaie dans un quart d\'heure.</string>
+    <string name="garde_code_verrouille">Code de déverrouillage verrouillé (trop d\'essais faux) : un administrateur doit le reposer dans Home Assistant (Configurer › Sécurité).</string>
+    <string name="garde_code_ha_injoignable">Home Assistant est injoignable : le code n\'a pas été enregistré. Réessaie.</string>
+    <string name="garde_code_actuel">Code actuel</string>
+</resources>

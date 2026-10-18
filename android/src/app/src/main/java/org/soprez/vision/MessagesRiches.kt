@@ -332,7 +332,7 @@ object MessagesRiches {
         cadre.isFocusable = true
         if (pleinEcran) cadre.setBackgroundColor(0xE6000000.toInt())
         val carte = Ui.carte(ctx, Ui.CARTE).apply { elevation = Ui.dp(ctx, 8f).toFloat() }
-        // 2.0.0 : « Robin · important » ; un message important est mis en avant (cadre doré), sans rien bloquer.
+        // 2.0.0 : « Nolan · important » ; un message important est mis en avant (cadre doré), sans rien bloquer.
         MessagesV2.entete(m).takeIf { it.isNotEmpty() }?.let { carte.addView(Ui.texte(ctx, it, if (pleinEcran) 16f else 13f, Ui.TEXTE_2)) }
         if (m.optBoolean("important")) carte.background = Ui.fond(Ui.CARTE, Ui.dp(ctx, 20f).toFloat(), Ui.dp(ctx, 3f), Ui.OR)
         // v2 : le titre n'est que l'expéditeur, déjà dans l'en-tête : on ne le répète pas.
@@ -345,7 +345,7 @@ object MessagesRiches {
         when (bloquant) {
             "parent" -> {
                 carte.addView(Ui.marge(ctx, Ui.texte(ctx, ctx.getString(R.string.messagesriches_en_attente), 16f, Ui.TEXTE_2), haut = 12f))
-                val code = EditText(ctx).apply {
+                val code = EditText(ctx).also { ClavierTele.brancher(it) }.apply {
                     hint = ctx.getString(R.string.biometrie_code_gestion); inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
                     setTextColor(Ui.TEXTE); setHintTextColor(Ui.TEXTE_2); minWidth = Ui.dp(ctx, 160f)
                 }
@@ -423,6 +423,12 @@ object MessagesRiches {
         if (m.optString("type") in setOf("audio", "video")) return
         val son = m.optString("sound")
         if (son.isEmpty() || son.contains("Silent", true) || son.contains("silencieux", true)) return
+        // 1.90.2 : sur une télé, le son de l'appli, au volume de la télé (canal média) ; voir [SonTele].
+        if (ReglagesTvActivity.estTele(ctx)) {
+            val r = SonTele.choix(son, m.optBoolean("loop"), m.optBoolean("important")) ?: return
+            if (SonTele.jouer(ctx, r, m.optBoolean("loop")) && m.optBoolean("loop")) main.postDelayed({ SonTele.arreter() }, 60_000)
+            return
+        }
         try {
             val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             sonnerie = RingtoneManager.getRingtone(ctx, uri)?.apply {
@@ -477,6 +483,7 @@ object MessagesRiches {
         main.removeCallbacksAndMessages(null)
         try { sonnerie?.stop() } catch (_: Exception) {}
         sonnerie = null
+        SonTele.arreter()
         joueur?.release(); joueur = null
         val v = vue
         if (v != null) {

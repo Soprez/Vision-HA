@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 16-10 (l'auteur, télé du salon) : rangées de widgets, fond des applis, cadre des widgets, clavier de Vision. -->
+<resources>
+    <string name="lanceur_zone_haut">Fila de widgets arriba</string>
+    <string name="lanceur_zone_bas">Fila de widgets abajo</string>
+    <string name="lanceur_fond_applis">Fondo de las apps</string>
+    <string name="lanceur_cadre_widgets">Marco de los widgets</string>
+    <string name="lanceur_avec">Con</string>
+    <string name="lanceur_sans">Sin</string>
+    <string name="clavier_saisie">Escribir con el mando</string>
+    <string name="lanceur_widgets_tele">Widgets</string>
+    <string name="lanceur_un_widget_vision">Un widget de Vision</string>
+    <string name="lanceur_un_widget">Un widget</string>
+    <string name="lanceur_widgets_tous_poses">Todos los widgets disponibles ya están en la pantalla de inicio.</string>
+</resources>

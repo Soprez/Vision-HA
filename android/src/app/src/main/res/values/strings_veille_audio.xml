@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.91.0 (retour d'essai) : la musique de la veille, une playlist de Music Assistant, favorites en premier (VeilleAudio). -->
+<resources>
+    <string name="veilleaudio_playlist">Playlist during screensaver</string>
+    <string name="veilleaudio_desactivee">Off</string>
+    <string name="veilleaudio_titre_choix">Music Assistant playlist (favourites first)</string>
+    <string name="veilleaudio_aucune">Music Assistant has no playlist in its library yet. Search one from your services (YouTube Music…) right here.</string>
+    <string name="veilleaudio_erreur">Could not read the playlists: %1$s</string>
+    <string name="veilleaudio_reessayer">Retry</string>
+    <string name="veilleaudio_note">Played by this device during the screensaver, instead of the radio; it stops when the screensaver ends. Nothing starts if music is already playing.</string>
+</resources>

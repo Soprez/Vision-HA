@@ -129,6 +129,22 @@ object WidgetsHaStock {
         if (e.code == 409 && e.corps?.optString("error") == "confirmer") Resultat(null, e.corps.optString("retour"))
         else Resultat(WidgetsHa.messageErreur(e.code, e.corps?.optString("error").orEmpty()))
     } catch (_: Exception) { Resultat(WidgetsHa.messageErreur(0, "")) }
+
+    /**
+     * 1.91.3 : la mise en page d'une entité, réglée depuis l'appli d'un Décideur (POST /widgets/mise_en_page) — la même
+     * configuration que l'onglet Widgets HA, pour tous les appareils. Rend null si c'est fait (le catalogue est alors
+     * rechargé), sinon le refus en clair (« réservé aux Décideurs » si l'appareil ne pilote pas). Hors du fil principal.
+     */
+    fun reglerMiseEnPage(ctx: Context, entite: String, m: WidgetsHa.MiseEnPage): String? = try {
+        val cfg = Config(ctx)
+        val corps = JSONObject().put("id", cfg.id).put("secret", cfg.secret).put("entite", entite)
+            .put("mise_en_page", JSONObject(WidgetsHa.versHa(m)))
+        val r = Net.post(ctx, cfg, "/api/pc_parental/widgets/mise_en_page", corps, 15_000)
+        if (r.optBoolean("ok", false)) { try { recharger(ctx) } catch (_: Exception) {}; null } else WidgetsHa.messageErreur(500, "")
+    } catch (e: Net.Echec) {
+        if (e.code == 403 && e.corps?.optString("error") == "piloter") ctx.getString(R.string.editeurwidget_mep_reserve, Vocabulaire.decideur(ctx))
+        else WidgetsHa.messageErreur(e.code, e.corps?.optString("error").orEmpty())
+    } catch (_: Exception) { WidgetsHa.messageErreur(0, "") }
 }
 
 /**

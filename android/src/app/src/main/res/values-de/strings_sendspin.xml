@@ -17,4 +17,15 @@
     <string name="appairage_pin_phrase">Gib diesen Code in Music Assistant ein, um diesen Fernseher zu koppeln.</string>
     <string name="appairage_geste_phrase">Music Assistant möchte diesen Fernseher koppeln. Erlauben?</string>
     <string name="appairage_autoriser">Erlauben</string>
+    <!-- 1.90.2 (l'auteur : « jamais le code à l'écran ») : appairage à la main seulement, depuis Décideurs. -->
+    <string name="appairage_connexion">Verbindung zur Musik…</string>
+    <string name="appairage_manuel_phrase">Starte die Kopplung von „%1$s“ in Music Assistant: Der Code erscheint hier.</string>
+    <string name="appairage_reussi">Dieser Fernseher ist mit Music Assistant gekoppelt.</string>
+    <string name="appairage_echec">Die Kopplung ist fehlgeschlagen. Starte sie erneut in Music Assistant.</string>
+    <string name="appairage_fermer">Schließen</string>
+    <string name="reglagestv_appairage_musique">Musik-Kopplung</string>
+    <string name="reglagestv_appairage_ok">Gekoppelt</string>
+    <string name="reglagestv_appairage_echec">Nicht gekoppelt</string>
+    <string name="reglagestv_appairage_echec_note">Die automatische Kopplung ist fehlgeschlagen. Du kannst von Hand koppeln.</string>
+    <string name="reglagestv_appairer_main">Von Hand koppeln</string>
 </resources>

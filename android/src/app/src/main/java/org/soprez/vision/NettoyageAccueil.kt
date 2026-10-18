@@ -29,8 +29,10 @@ object NettoyageAccueil {
 
     /**
      * L'état d'accueil sans `pkg` : ses cases, sa place dans les dossiers (un dossier vide
-     * disparaît avec sa case), dans l'ordre de la télé, dans le dock, dans les masquées et
-     * les connues (réinstallée, elle reviendra comme une nouvelle appli). Les widgets
+     * disparaît avec sa case), dans l'ordre de la télé, dans le dock et dans les connues.
+     * 17-10 (l'auteur, point 6 : « j'ai retiré Rappel plusieurs fois, il revient ») : elle RESTE dans les
+     * masquées. Une absence n'est souvent que passagère (mise à jour, appli désactivée un instant) ;
+     * l'oublier la faisait revenir sur l'accueil à son retour. Cacher une appli absente ne coûte rien. Les widgets
      * Android dont `widgetDuPaquet(id)` est vrai sont retirés et rendus à libérer.
      */
     fun retirer(pkg: String, e: EtatAccueil, widgetDuPaquet: (Int) -> Boolean): Resultat {
@@ -52,7 +54,7 @@ object NettoyageAccueil {
         val gardes = dossiers.filter { it.pkgs.isNotEmpty() }
         val ordre = e.ordre.filter { it != pkg && it !in dossiersVides }
         val dock = e.dock?.filter { it != pkg }
-        val masquees = e.masquees - pkg
+        val masquees = e.masquees  // point 6 : le choix « retirée de l'accueil » survit à une absence
         val connues = e.connues - pkg
         val change = places.size != e.places.size || gardes.size != e.dossiers.size ||
             gardes.zip(e.dossiers).any { (a, b) -> a.pkgs.size != b.pkgs.size } ||

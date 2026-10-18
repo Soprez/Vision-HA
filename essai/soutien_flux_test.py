@@ -51,10 +51,10 @@ async def test_code_invalide_falsifie_puis_valide(hass, hass_storage, hass_clien
     monkeypatch.setattr(_module(), "CLE_PUBLIQUE_B64", _PUB)
     assert await _releve(admin) == {"actif": False}
 
-    menu = await _ouvrir_soutien(admin, coord.config_entry)
-    assert menu["step_id"] == "soutien" and menu["menu_options"] == ["soutien_code", "soutien_cafe"]
-    form = await (await admin.post(f"{FLUX}/{menu['flow_id']}", json={"next_step_id": "soutien_code"})).json()
-    assert form["step_id"] == "soutien_code"
+    # Retours de l'auteur (15/10) : plus de « café sur l'honneur », la page demande directement le code.
+    form = await _ouvrir_soutien(admin, coord.config_entry)
+    assert form["type"] == "form" and form["step_id"] == "soutien" and "menu_options" not in form
+    assert [c["name"] for c in form["data_schema"]] == ["code"]
 
     for texte, erreur in (("pas un code", "soutien_format"), (_code(Ed25519PrivateKey.generate()), "soutien_signature")):
         r = await (await admin.post(f"{FLUX}/{form['flow_id']}", json={"code": texte})).json()
@@ -71,12 +71,13 @@ async def test_code_invalide_falsifie_puis_valide(hass, hass_storage, hass_clien
     assert menu["step_id"] == "soutien_actif" and "soutien_retirer" in menu["menu_options"]
 
 
-async def test_cafe_sur_l_honneur(hass, hass_storage, hass_client):
+async def test_plus_de_cafe_sur_l_honneur(hass, hass_storage, hass_client):
+    """L'étape « soutien_cafe » n'existe plus ; un badge déjà obtenu sur l'honneur reste affiché."""
     admin = await hass_client()
     coord = await _monter(hass, hass_storage)
-    menu = await _ouvrir_soutien(admin, coord.config_entry)
-    r = await (await admin.post(f"{FLUX}/{menu['flow_id']}", json={"next_step_id": "soutien_cafe"})).json()
-    assert r["type"] == "abort" and r["reason"] == "soutien_merci"
-    assert await _releve(admin) == {"actif": True, "mode": "honneur"}
-    _actuel(hass).store.soutien = {}
+    form = await _ouvrir_soutien(admin, coord.config_entry)
+    r = await admin.post(f"{FLUX}/{form['flow_id']}", json={"next_step_id": "soutien_cafe"})
+    assert r.status == 400 or (await r.json()).get("type") == "form"
     assert await _releve(admin) == {"actif": False}
+    _module().activer_honneur(_actuel(hass).store, 1.0)
+    assert await _releve(admin) == {"actif": True, "mode": "honneur"}

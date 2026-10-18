@@ -2,6 +2,8 @@
 
 [English](README.md) · **Français** · Deutsch · Español · Italiano · Nederlands
 
+**Site et documentation : https://soprez.org/vision**
+
 > Vision parle six langues : français, anglais, allemand, espagnol, italien et néerlandais (intégration
 > Home Assistant, cartes du tableau de bord, agent Windows ; chaque appareil suit sa propre langue). Ce README
 > existe en anglais et en français ; les versions allemande, espagnole, italienne et néerlandaise (`README.de.md`,
@@ -105,9 +107,15 @@ signature. Empreinte SHA-256 du certificat :
 A7:7C:D3:E3:A2:A9:1E:DA:5E:8E:D3:B4:58:D9:90:D0:47:37:CB:A7:A5:84:69:D3:96:8E:BC:3B:10:FE:C1:B7
 ```
 
+## ☕ Payez-moi un café
+
+Vision est gratuit. S'il vous rend service, vous pouvez me payer un café : https://buymeacoffee.com/soprez
+C'est facultatif : rien ne se débloque, un badge « ♥ Soutien » s'affiche seulement sur vos appareils.
+
 ## Contribuer
 
-Voir [CONTRIBUTING.md](CONTRIBUTING.md). Faille de sécurité : [SECURITY.md](SECURITY.md), jamais d'issue publique.
+Voir [CONTRIBUTING.md](CONTRIBUTING.md) (en anglais : [CONTRIBUTING.en.md](CONTRIBUTING.en.md)). Failles de
+sécurité : [SECURITY.md](SECURITY.md), jamais dans une issue publique.
 
 ## Licence
 

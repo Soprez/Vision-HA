@@ -42,7 +42,7 @@
   "maison.bouton_toujours_dispo": "Altijd beschikbaar",
   "maison.bouton_categorie": "Categorie",
   "maison.bouton_non": "Nee",
-  "maison.aide_choix": "Toestaan: open, ook als de categorie geblokkeerd is, tijdens de toegestane tijdvakken van de planning. Altijd beschikbaar: nooit geblokkeerd, ook niet als het apparaat geblokkeerd is.",
+  "maison.aide_choix": "Uitzondering: op al die apparaten, ook als de categorie dicht is, maar niet tijdens tijdvakken. Altijd beschikbaar: niets sluit het.",
   "maison.les_actifs": "Nu actief",
   "maison.aucun_inscrit": "Nog geen apparaat geregistreerd.",
   "maison.aucun_appareil": "Geen apparaat",
@@ -405,7 +405,16 @@
   "code.injoignable": "Home Assistant is niet bereikbaar: probeer het zo opnieuw.",
   "install.exemple_cle": "16 tekens, bijvoorbeeld 0123456789abcdef",
   "soutien.merci": "♥ Supporter — bedankt!",
-  "soutien.soutenir": "Het project steunen",
+  "soutien.soutenir": "☕ Trakteer me op koffie",
   "code.faux": "Dat is niet de juiste code (nog {n} poging(en)).",
-  "code.trop": "Te veel pogingen. Probeer het over {min} min opnieuw."
+  "code.trop": "Te veel pogingen. Probeer het over {min} min opnieuw.",
+  "maison.bouton_15": "15 min",
+  "maison.bouton_exception": "Uitzondering",
+  "maison.bouton_refuser": "Weigeren",
+  "moi.bloque_par_logiciel": "Wat een programma blokkeert",
+  "moi.groupe_sites_one": "{n} site samen ermee geblokkeerd:",
+  "moi.groupe_sites_other": "{n} sites samen ermee geblokkeerd:",
+  "moi.demander_pour": "Toegang vragen voor {nom}",
+  "moi.tentatives_one": "{n} poging",
+  "moi.tentatives_other": "{n} pogingen"
 }

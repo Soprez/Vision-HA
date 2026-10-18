@@ -108,7 +108,7 @@ class MessagesV2Test : InstrumentationTestCase() {
     }
 
     private fun message(id: Int, important: Boolean) = JSONObject().put("v", 2).put("id", id).put("uid", "u$id${System.nanoTime()}")
-        .put("title", "Robin").put("text", "À table dans 10 minutes !").put("de", "Robin").put("important", important)
+        .put("title", "Nolan").put("text", "À table dans 10 minutes !").put("de", "Nolan").put("important", important)
         .put("reponses", JSONArray().put("J'arrive").put("Dans 5 min")).put("libre", true).put("bloquant", "non")
         .put("urgent", false).put("sound", "Notification.Default").put("type", "texte").put("position", "centre").put("duree", 0)
 
@@ -176,7 +176,7 @@ class MessagesV2Test : InstrumentationTestCase() {
         MessagesRiches.recevoir(ctx, JSONArray().put(message(4244, important = true)))
         fun texte(): String { var t = ""; instrumentation.runOnMainSync { t = vues(cadre!!).filterIsInstance<TextView>().joinToString(" | ") { it.text } }; return t }
         attendre("message à l'écran") { "À table dans 10 minutes !" in texte() }
-        assertTrue(texte(), "J'arrive" in texte() && "Dans 5 min" in texte() && "Fermer" in texte() && "Robin · important" in texte())
+        assertTrue(texte(), "J'arrive" in texte() && "Dans 5 min" in texte() && "Fermer" in texte() && "Nolan · important" in texte())
         // Pas de texte libre à la télé.
         var champs = 1
         instrumentation.runOnMainSync { champs = vues(cadre!!).filterIsInstance<android.widget.EditText>().size }

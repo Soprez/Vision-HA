@@ -11,6 +11,22 @@ import org.junit.Test
  * correction douce bornée à 0,5 % de vitesse, recalage d'un coup seulement pour un grand écart.
  */
 class SendspinSynchroTest {
+    /** Banc Musique (2026-10-12) : un écart absurde (horloge pas synchronisée, +1921 s) n'écrit jamais 32 min de silence. */
+    /** Banc Musique : un flux livré 3,3 s en retard est recalé, pas jeté ; un petit retard reste corrigé comme avant. */
+    @Test fun flux_en_retard_recale() {
+        assertEquals(3_348_000L, SendspinSynchro.reancrage(3_348_000L))
+        assertEquals(0L, SendspinSynchro.reancrage(107_000L))
+        assertEquals(0L, SendspinSynchro.reancrage(-186_000L))
+        assertEquals(0L, SendspinSynchro.reancrage(324_000L))
+    }
+
+    @Test fun silence_borne_a_une_demi_seconde() {
+        val d = SendspinSynchro.decider(-1_921_000_000L, 4_410, 44_100)
+        assertTrue(d.silence > 80_000_000)
+        assertEquals(22_050, SendspinSynchro.silenceParPas(d.silence, 44_100))
+        assertEquals(300, SendspinSynchro.silenceParPas(300, 44_100))
+    }
+
     @Test fun rien_sous_une_milliseconde() {
         assertEquals(SendspinSynchro.Decision(), SendspinSynchro.decider(900, 960, 48_000))
         assertEquals(SendspinSynchro.Decision(), SendspinSynchro.decider(-999, 960, 48_000))

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lanceur : liste alphabétique (téléphone), place de la zone du haut, disposition Vertical (télé). -->
+<resources>
+    <string name="lanceur_liste_alpha">Alphabetical list</string>
+    <string name="lanceur_index_alpha">Alphabetical index</string>
+    <string name="lanceur_index_cote">Index side</string>
+    <string name="lanceur_index_droite">Right</string>
+    <string name="lanceur_index_gauche">Left (left-handed)</string>
+    <string name="lanceur_favoris">Favourites</string>
+    <string name="lanceur_favoris_haut">Favourites pinned at the top</string>
+    <string name="lanceur_epingler_favori">Pin to favourites</string>
+    <string name="lanceur_retirer_favori">Remove from favourites</string>
+    <string name="lanceur_zone_position">Top area</string>
+    <string name="lanceur_zone_dessus">Above the icons</string>
+    <string name="lanceur_zone_dessous">Below the icons</string>
+    <string name="lanceur_tele_rangees">Rows</string>
+    <string name="lanceur_tele_vertical">Vertical</string>
+    <string name="lanceur_colonne">App column</string>
+    <string name="lanceur_colonne_gauche">Left</string>
+    <string name="lanceur_colonne_centre">Centre</string>
+    <string name="lanceur_colonne_droite">Right</string>
+    <string name="lanceur_zone_gauche">Left widget area</string>
+    <string name="lanceur_zone_droite">Right widget area</string>
+    <string name="lanceur_zone_activee">on</string>
+    <string name="lanceur_zone_desactivee">off</string>
+    <string name="lanceur_zone_widgets">Choose the widgets</string>
+    <string name="lanceur_zone_activer">Turn this area on</string>
+    <string name="lanceur_zone_desactiver">Turn this area off</string>
+    <string name="lanceur_zones_note">An area only shows up once it has widgets and is turned on.</string>
+    <string name="lanceur_aide_deplacement_vertical">Up and down move · OK drops</string>
+</resources>

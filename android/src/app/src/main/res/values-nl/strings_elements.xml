@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Autorisations par élément (HA 2.5.1, réponses de l'auteur du 14-10) : écran d'une catégorie, recherche, blocages récents, demandes groupées. -->
+<resources>
+    <string name="el_rechercher_court">Zoeken</string>
+    <string name="el_rechercher_indice">Zoek een site, app of programma</string>
+    <string name="el_section_logiciels">Apps en programma\'s</string>
+    <string name="el_section_sites_seuls">Sites zonder programma · %1$d</string>
+    <string name="el_services">Diensten</string>
+    <string name="el_sites">Sites</string>
+    <string name="el_services_suivent">Zijn diensten volgen altijd het programma.</string>
+    <string name="el_suit">Volgt %1$s</string>
+    <string name="el_attente">Gekoppeld toen het geblokkeerd was: wacht op een beslissing</string>
+    <string name="el_auto">Automatisch gekoppeld</string>
+    <string name="el_delier">Loskoppelen</string>
+    <string name="el_suivre_logiciel">%1$s volgen</string>
+    <string name="el_badge_ouvert">Open</string>
+    <string name="el_badge_par_logiciel">Open met %1$s</string>
+    <string name="el_badge_exception">Uitzondering</string>
+    <string name="el_badge_toujours">Altijd beschikbaar</string>
+    <string name="el_badge_temps">Even · tot %1$s</string>
+    <string name="el_badge_nomme">Geblokkeerd (op naam)</string>
+    <string name="el_badge_categorie">Gesloten door de categorie</string>
+    <string name="el_badge_plage">Gesloten door een tijdvak</string>
+    <string name="el_badge_temps_epuise">Tijd van vandaag op</string>
+    <string name="el_badge_securite">Gesloten (veiligheid of leeftijd)</string>
+    <string name="el_badge_lieu">Voor iedereen gesloten</string>
+    <string name="el_badge_liste_noire">Als gevaarlijk gemeld</string>
+    <string name="el_mode_titre">%1$s: kiezen</string>
+    <string name="el_mode_categorie">De categorie volgen</string>
+    <string name="el_mode_temps">Even</string>
+    <string name="el_mode_exception">Uitzondering</string>
+    <string name="el_mode_toujours">Altijd beschikbaar</string>
+    <string name="el_mode_bloquer">Blokkeren</string>
+    <string name="el_mode_actuel">%1$s ✓</string>
+    <string name="el_mode_aide">De categorie volgen: geen eigen instelling (standaard). Uitzondering: op al zijn apparaten, ook als de categorie gesloten is, maar niet tijdens tijdvakken. Altijd beschikbaar: niets sluit het.</string>
+    <string name="el_recherche_rien">Niets gevonden.</string>
+    <string name="el_logiciel_de">Programma: %1$s</string>
+    <string name="el_service_de">Dienst van %1$s</string>
+    <string name="el_categories_de">Categorieën: %1$s</string>
+    <string name="el_categorie">Categorie</string>
+    <string name="el_recents_titre">Onlangs geblokkeerd</string>
+    <string name="el_recents_vide">Onlangs niets geblokkeerd.</string>
+    <string name="el_recents_tout">Alles bekijken</string>
+    <string name="el_demander">Vragen</string>
+    <string name="el_demander_pour">Toegang vragen voor %1$s</string>
+    <string name="el_demande_inclus">Inbegrepen in het antwoord:</string>
+    <string name="el_tele_lecture">Alleen lezen: deze instellingen wijzig je op de telefoon van een %1$s of in Home Assistant.</string>
+    <string name="el_chargement_echec">Deze categorie kon niet worden geladen.</string>
+    <plurals name="el_voir_autres">
+        <item quantity="one">Nog %d bekijken</item>
+        <item quantity="other">Nog %d bekijken</item>
+    </plurals>
+    <plurals name="el_tentatives">
+        <item quantity="one">%d poging</item>
+        <item quantity="other">%d pogingen</item>
+    </plurals>
+    <plurals name="el_groupe_sites">
+        <item quantity="one">%d site samen ermee geblokkeerd</item>
+        <item quantity="other">%d sites samen ermee geblokkeerd</item>
+    </plurals>
+</resources>

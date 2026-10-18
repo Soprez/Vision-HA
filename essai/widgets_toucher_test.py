@@ -98,3 +98,41 @@ async def test_vues_de_la_carte_d_administration(hass, integrations, hass_storag
     chemins = [v["chemin"] for v in d["vues"]]
     assert "/lovelace" in chemins and "/lovelace/maison" in chemins and "/lovelace/1" in chemins
     assert "/tableau-jardin" in chemins and "/tableau-jardin/arrosage" in chemins
+
+
+def test_detail_d_un_attribut_liste():
+    """2.4.4 : un attribut liste se lit élément par élément dans le détail (en-tête : nom et nombre)."""
+    from homeassistant.core import State
+
+    from custom_components.pc_parental import widgets
+
+    etat = State("sensor.liste_exemple", "x", {
+        "friendly_name": "Liste d'exemple", "icon": "mdi:format-list-bulleted",
+        "elements": ["Premier élément de la liste", "Deuxième élément — avec une précision"],
+        "vide": [], "compte": 1, "objets": [{"a": "Objet", "b": "un"}, None, ""]})
+    d = widgets.detail_attributs(etat, ["elements", "vide", "compte", "objets"])
+    assert d == [
+        {"texte": "Elements", "valeur": "2"},
+        {"texte": "Premier élément de la liste", "valeur": ""},
+        {"texte": "Deuxième élément — avec une précision", "valeur": ""},
+        {"texte": "Vide", "valeur": "0"},
+        {"texte": "Compte", "valeur": "1"},
+        {"texte": "Objets", "valeur": "1"},
+        {"texte": "Objet · un", "valeur": ""},
+    ]
+    # Sans choix : tous les attributs simples, listes comprises, jamais l'icône ni le nom.
+    tout = widgets.detail_attributs(etat, [])
+    assert {"texte": "Elements", "valeur": "2"} in tout and not any(x["texte"] in ("Icon", "Friendly name") for x in tout)
+
+
+def test_detail_longues_listes():
+    """Deux listes de 13 et 11 éléments et un compte tiennent dans le détail : 27 lignes, sous la borne de 40."""
+    from homeassistant.core import State
+
+    from custom_components.pc_parental import widgets
+
+    etat = State("sensor.liste_exemple", "x", {"elements": [f"élément {i}" for i in range(13)],
+                                               "autres": [f"autre {i}" for i in range(11)], "compte": 3})
+    tout = widgets.detail_attributs(etat, [])
+    assert len(tout) == 27 and len(tout) <= widgets.DETAIL_ATTRIBUTS_MAX
+    assert tout[-1] == {"texte": "Compte", "valeur": "3"}

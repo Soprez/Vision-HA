@@ -60,6 +60,10 @@ const TEXTES = /*i18n-json*/{
     "filtre_etiquetes": "Étiquetés",
     "filtre_sites": "Sites",
     "filtre_apps": "Logiciels",
+    "titre_filtre": "Afficher",
+    "titre_plateforme": "Appareils",
+    "titre_decision": "Décision",
+    "titre_pcs_bloques": "Bloquée sur ces PC",
     "chercher": "Chercher un site, un logiciel…",
     "selectionnes_one": "{n} sélectionné",
     "selectionnes_other": "{n} sélectionnés",
@@ -149,6 +153,10 @@ const TEXTES = /*i18n-json*/{
     "filtre_etiquetes": "Labelled",
     "filtre_sites": "Sites",
     "filtre_apps": "Apps",
+    "titre_filtre": "Show",
+    "titre_plateforme": "Devices",
+    "titre_decision": "Decision",
+    "titre_pcs_bloques": "Blocked on these PCs",
     "chercher": "Search for a site or an app…",
     "selectionnes_one": "{n} selected",
     "selectionnes_other": "{n} selected",
@@ -238,6 +246,10 @@ const TEXTES = /*i18n-json*/{
     "filtre_etiquetes": "Mit Label",
     "filtre_sites": "Websites",
     "filtre_apps": "Apps",
+    "titre_filtre": "Anzeigen",
+    "titre_plateforme": "Geräte",
+    "titre_decision": "Entscheidung",
+    "titre_pcs_bloques": "Auf diesen PCs gesperrt",
     "chercher": "Website oder App suchen…",
     "selectionnes_one": "{n} ausgewählt",
     "selectionnes_other": "{n} ausgewählt",
@@ -327,6 +339,10 @@ const TEXTES = /*i18n-json*/{
     "filtre_etiquetes": "Con etiqueta",
     "filtre_sites": "Sitios",
     "filtre_apps": "Apps",
+    "titre_filtre": "Mostrar",
+    "titre_plateforme": "Dispositivos",
+    "titre_decision": "Decisión",
+    "titre_pcs_bloques": "Bloqueada en estos PC",
     "chercher": "Buscar un sitio, una app…",
     "selectionnes_one": "{n} seleccionado",
     "selectionnes_other": "{n} seleccionados",
@@ -416,6 +432,10 @@ const TEXTES = /*i18n-json*/{
     "filtre_etiquetes": "Con etichetta",
     "filtre_sites": "Siti",
     "filtre_apps": "App",
+    "titre_filtre": "Mostra",
+    "titre_plateforme": "Dispositivi",
+    "titre_decision": "Decisione",
+    "titre_pcs_bloques": "Bloccata su questi PC",
     "chercher": "Cerca un sito, un'app…",
     "selectionnes_one": "{n} selezionato",
     "selectionnes_other": "{n} selezionati",
@@ -505,6 +525,10 @@ const TEXTES = /*i18n-json*/{
     "filtre_etiquetes": "Met label",
     "filtre_sites": "Sites",
     "filtre_apps": "Apps",
+    "titre_filtre": "Tonen",
+    "titre_plateforme": "Apparaten",
+    "titre_decision": "Beslissing",
+    "titre_pcs_bloques": "Geblokkeerd op deze pc’s",
     "chercher": "Zoek een site, een app…",
     "selectionnes_one": "{n} geselecteerd",
     "selectionnes_other": "{n} geselecteerd",
@@ -552,7 +576,7 @@ const TEXTES = /*i18n-json*/{
   }
 }/*i18n-json:fin*/;
 // Les catégories (étiquettes de la maison) : copie de pc_parental/i18n/categories.json, pour trCat().
-const CATEGORIES_I18N = /*i18n-categories*/{"jeux": {"fr": "Jeux", "en": "Games", "de": "Spiele", "es": "Juegos", "it": "Giochi", "nl": "Games"}, "videos": {"fr": "Vidéos", "en": "Videos", "de": "Videos", "es": "Vídeos", "it": "Video", "nl": "Video's"}, "reseaux_sociaux": {"fr": "Réseaux sociaux", "en": "Social media", "de": "Soziale Medien", "es": "Redes sociales", "it": "Social network", "nl": "Sociale media"}, "tv": {"fr": "TV", "en": "TV", "de": "TV", "es": "TV", "it": "TV", "nl": "tv"}, "vod": {"fr": "VOD", "en": "Streaming", "de": "Streaming", "es": "Streaming", "it": "Streaming", "nl": "Streaming"}, "musique": {"fr": "Musique", "en": "Music", "de": "Musik", "es": "Música", "it": "Musica", "nl": "Muziek"}, "ia": {"fr": "IA", "en": "AI", "de": "KI", "es": "IA", "it": "IA", "nl": "AI"}, "internet": {"fr": "Internet", "en": "Internet", "de": "Internet", "es": "Internet", "it": "Internet", "nl": "Internet"}, "travail": {"fr": "Travail", "en": "Work", "de": "Arbeit", "es": "Trabajo", "it": "Lavoro", "nl": "Werk"}, "creation": {"fr": "Création", "en": "Creativity", "de": "Kreativität", "es": "Creatividad", "it": "Creatività", "nl": "Creativiteit"}, "actu_medias": {"fr": "Actu & médias", "en": "News & media", "de": "Nachrichten & Medien", "es": "Noticias y medios", "it": "Notizie e media", "nl": "Nieuws & media"}, "pub_tracage": {"fr": "Pub & traçage", "en": "Ads & tracking", "de": "Werbung & Tracking", "es": "Anuncios y rastreo", "it": "Pubblicità e tracciamento", "nl": "Advertenties & tracking"}, "contournement": {"fr": "Contournement", "en": "Bypass tools", "de": "Umgehung", "es": "Elusión", "it": "Aggiramento", "nl": "Omzeiling"}, "dangereux": {"fr": "Dangereux", "en": "Dangerous", "de": "Gefährlich", "es": "Peligroso", "it": "Pericoloso", "nl": "Gevaarlijk"}, "adulte": {"fr": "Adulte", "en": "Adult", "de": "Erwachsene", "es": "Adultos", "it": "Adulti", "nl": "Volwassenen"}, "pegi_12": {"fr": "PEGI 12", "en": "PEGI 12", "de": "PEGI 12", "es": "PEGI 12", "it": "PEGI 12", "nl": "PEGI 12"}, "pegi_16": {"fr": "PEGI 16", "en": "PEGI 16", "de": "PEGI 16", "es": "PEGI 16", "it": "PEGI 16", "nl": "PEGI 16"}, "pegi_18": {"fr": "PEGI 18", "en": "PEGI 18", "de": "PEGI 18", "es": "PEGI 18", "it": "PEGI 18", "nl": "PEGI 18"}, "systeme": {"fr": "Système", "en": "System", "de": "System", "es": "Sistema", "it": "Sistema", "nl": "Systeem"}, "google": {"fr": "Google", "en": "Google", "de": "Google", "es": "Google", "it": "Google", "nl": "Google"}, "discord": {"fr": "Discord", "en": "Discord", "de": "Discord", "es": "Discord", "it": "Discord", "nl": "Discord"}, "annuaires_discord": {"fr": "Annuaires Discord", "en": "Discord directories", "de": "Discord-Verzeichnisse", "es": "Directorios de Discord", "it": "Directory Discord", "nl": "Discord-gidsen"}, "toujours_autorise": {"fr": "Toujours autorisé", "en": "Always allowed", "de": "Immer erlaubt", "es": "Siempre permitido", "it": "Sempre consentito", "nl": "Altijd toegestaan"}}/*i18n-categories:fin*/;
+const CATEGORIES_I18N = /*i18n-categories*/{"jeux": {"fr": "Jeux", "en": "Games", "de": "Spiele", "es": "Juegos", "it": "Giochi", "nl": "Games"}, "videos": {"fr": "Vidéos", "en": "Videos", "de": "Videos", "es": "Vídeos", "it": "Video", "nl": "Video's"}, "reseaux_sociaux": {"fr": "Réseaux sociaux", "en": "Social media", "de": "Soziale Medien", "es": "Redes sociales", "it": "Social network", "nl": "Sociale media"}, "tv": {"fr": "TV", "en": "TV", "de": "TV", "es": "TV", "it": "TV", "nl": "tv"}, "vod": {"fr": "VOD", "en": "Streaming", "de": "Streaming", "es": "Streaming", "it": "Streaming", "nl": "Streaming"}, "musique": {"fr": "Musique", "en": "Music", "de": "Musik", "es": "Música", "it": "Musica", "nl": "Muziek"}, "ia": {"fr": "IA", "en": "AI", "de": "KI", "es": "IA", "it": "IA", "nl": "AI"}, "internet": {"fr": "Internet", "en": "Internet", "de": "Internet", "es": "Internet", "it": "Internet", "nl": "Internet"}, "travail": {"fr": "Travail", "en": "Work", "de": "Arbeit", "es": "Trabajo", "it": "Lavoro", "nl": "Werk"}, "creation": {"fr": "Création", "en": "Creativity", "de": "Kreativität", "es": "Creatividad", "it": "Creatività", "nl": "Creativiteit"}, "actu_medias": {"fr": "Actu & médias", "en": "News & media", "de": "Nachrichten & Medien", "es": "Noticias y medios", "it": "Notizie e media", "nl": "Nieuws & media"}, "pub_tracage": {"fr": "Pub & traçage", "en": "Ads & tracking", "de": "Werbung & Tracking", "es": "Anuncios y rastreo", "it": "Pubblicità e tracciamento", "nl": "Advertenties & tracking"}, "contournement": {"fr": "Contournement", "en": "Bypass tools", "de": "Umgehung", "es": "Elusión", "it": "Aggiramento", "nl": "Omzeiling"}, "dangereux": {"fr": "Dangereux", "en": "Dangerous", "de": "Gefährlich", "es": "Peligroso", "it": "Pericoloso", "nl": "Gevaarlijk"}, "adulte": {"fr": "Adulte", "en": "Adult", "de": "Erwachsene", "es": "Adultos", "it": "Adulti", "nl": "Volwassenen"}, "pegi_12": {"fr": "PEGI 12", "en": "PEGI 12", "de": "PEGI 12", "es": "PEGI 12", "it": "PEGI 12", "nl": "PEGI 12"}, "pegi_16": {"fr": "PEGI 16", "en": "PEGI 16", "de": "PEGI 16", "es": "PEGI 16", "it": "PEGI 16", "nl": "PEGI 16"}, "pegi_18": {"fr": "PEGI 18", "en": "PEGI 18", "de": "PEGI 18", "es": "PEGI 18", "it": "PEGI 18", "nl": "PEGI 18"}, "systeme": {"fr": "Système", "en": "System", "de": "System", "es": "Sistema", "it": "Sistema", "nl": "Systeem"}, "google": {"fr": "Google", "en": "Google", "de": "Google", "es": "Google", "it": "Google", "nl": "Google"}, "discord": {"fr": "Discord", "en": "Discord", "de": "Discord", "es": "Discord", "it": "Discord", "nl": "Discord"}, "annuaires_discord": {"fr": "Annuaires Discord", "en": "Discord directories", "de": "Discord-Verzeichnisse", "es": "Directorios de Discord", "it": "Directory Discord", "nl": "Discord-gidsen"}, "toujours_autorise": {"fr": "Toujours autorisé", "en": "Always allowed", "de": "Immer erlaubt", "es": "Siempre permitido", "it": "Sempre consentito", "nl": "Altijd toegestaan"}, "ecole": {"fr": "École", "en": "School", "de": "Schule", "es": "Escuela", "it": "Scuola", "nl": "School"}}/*i18n-categories:fin*/;
 // ---- i18n:code — le même dans toutes les cartes de Vision (essai/i18n_cartes_test.py le vérifie) ----
 // Langue : celle de l'utilisateur Home Assistant (hass.locale.language, sinon hass.language), sur deux lettres ;
 // une langue que Vision ne parle pas → l'anglais. Un texte absent → l'anglais, puis le français, puis la clé.
@@ -722,6 +746,50 @@ const retourGeste = (hote) => {
   };
 };
 
+// 1.93.2 (l'auteur, 17/10 : « quand je clique sur une catégorie, la page remonte tout en haut ») : la carte se redessine
+// en entier (innerHTML) à chaque geste ; pendant un instant elle est plus courte (les ha-icon, ha-card, vision-choix
+// s'initialisent après coup) et le navigateur ramène la page vers le haut, et le bouton cliqué disparaît avec son
+// focus. Avant le dessin : on retient la place de chaque conteneur qui défile (y compris à travers les shadow roots
+// de Home Assistant) et le bouton qui a le focus, et la carte garde sa hauteur. Après : on remet tout, puis encore à
+// l'image suivante, quand les éléments ont pris leur taille.
+function vxGarderPlace(carte) {
+  const places = [];
+  let n = carte;
+  while (n) {
+    if (n.nodeType === 1 && n.scrollHeight > n.clientHeight) {
+      const oy = getComputedStyle(n).overflowY;
+      if (oy === "auto" || oy === "scroll" || oy === "overlay") places.push([n, n.scrollTop]);
+    }
+    n = n.parentNode || n.host || null;
+  }
+  const doc = document.scrollingElement || document.documentElement;
+  places.push([doc, doc.scrollTop]);
+  const actif = carte.shadowRoot && carte.shadowRoot.activeElement;
+  let focus = null;
+  if (actif && actif.attributes) {
+    const cles = [...actif.attributes].filter((a) => a.name.startsWith("data-"));
+    if (cles.length) focus = actif.tagName.toLowerCase() + cles.map((a) => `[${a.name}="${CSS.escape(a.value)}"]`).join("");
+  }
+  // Pendant un geste, le bouton est grisé un instant et ne peut pas garder le focus : on se souvient de lui.
+  if (focus) carte._vxFocus = { sel: focus, t: Date.now() };
+  else if (carte._vxFocus && Date.now() - carte._vxFocus.t < 5000) focus = carte._vxFocus.sel;
+  const hauteur = carte.offsetHeight;
+  if (hauteur) carte.style.minHeight = hauteur + "px";
+  return { places, focus };
+}
+
+function vxRendrePlace(carte, garde) {
+  const remettre = () => {
+    for (const [el, haut] of garde.places) if (Math.abs(el.scrollTop - haut) > 1) el.scrollTop = haut;
+  };
+  remettre();
+  if (garde.focus && carte.shadowRoot) {
+    const b = carte.shadowRoot.querySelector(garde.focus);
+    if (b && typeof b.focus === "function" && !b.disabled) b.focus({ preventScroll: true });
+  }
+  requestAnimationFrame(() => { remettre(); carte.style.minHeight = ""; requestAnimationFrame(remettre); });
+}
+
 class VisionEtiquettesCard extends HTMLElement {
   constructor() {
     super();
@@ -761,7 +829,7 @@ class VisionEtiquettesCard extends HTMLElement {
     // la carte ne peut pas tout savoir. Elle relit régulièrement plutôt
     // que d'afficher un état qui a vieilli sans le dire.
     this._minuteur = setInterval(() => {
-      if (!this._menu && !this._occupe) this._charger(true);
+      if (!this._menu && !this._occupe) this._charger(true, true);
     }, 30000);
   }
 
@@ -769,11 +837,15 @@ class VisionEtiquettesCard extends HTMLElement {
     clearInterval(this._minuteur);
   }
 
-  async _charger(silencieux = false) {
+  async _charger(silencieux = false, minuteur = false) {
     if (!this._hass) return;
     if (!silencieux) this._charge = false;
     try {
       const reponse = await this._hass.callApi("GET", "pc_parental/catalogue");
+      // 1.93.2 : la relecture des 30 s ne redessine rien si rien n'a changé (la page ne bouge pas sous les doigts).
+      const empreinte = JSON.stringify(reponse);
+      if (minuteur && this._charge && !this._erreur && empreinte === this._empreinte) return;
+      this._empreinte = empreinte;
       this._donnees = reponse;
       this._erreur = "";
     } catch (err) {
@@ -1116,14 +1188,9 @@ class VisionEtiquettesCard extends HTMLElement {
       ["pc", tr("pc"), "mdi:desktop-classic"],
       ["android", "Android", "mdi:android"],
     ];
-    return `<div class="filtres" style="margin-left:6px">${choix
-      .map(
-        ([cle, texte, icone]) =>
-          `<button class="filtre" data-plateforme="${cle}" aria-pressed="${
-            this._plateforme === cle
-          }">${icone ? `<ha-icon icon="${icone}" style="--mdc-icon-size:14px;vertical-align:-2px;margin-right:3px;color:${cle === "android" ? "#3DDC84" : "inherit"}"></ha-icon>` : ""}${esc(texte)}</button>`
-      )
-      .join("")}</div>`;
+    // Un choix (vision-choix) : étiquettes s'il tient sur une ligne, liste déroulante sinon.
+    return `<vision-choix class="filtres" data-plateforme titre="${esc(tr("titre_plateforme"))}" valeur="${esc(this._plateforme)}"
+      options="${esc(JSON.stringify(choix.map(([cle, texte, icone]) => (icone ? { cle, libelle: texte, icone } : { cle, libelle: texte }))))}"></vision-choix>`;
   }
 
   _iconesPlateforme(el) {
@@ -1149,14 +1216,8 @@ class VisionEtiquettesCard extends HTMLElement {
     let html = `<div class="barre">
       <input type="search" id="q" placeholder="${esc(tr("chercher"))}"
              value="${esc(this._recherche)}" style="flex:1;min-width:180px">
-      <div class="filtres">${filtres
-        .map(
-          ([cle, texte]) =>
-            `<button class="filtre" data-filtre="${cle}" aria-pressed="${
-              this._filtre === cle
-            }">${esc(texte)}</button>`
-        )
-        .join("")}</div>${this._filtresPlateforme()}</div>`;
+      <vision-choix class="filtres" data-filtre titre="${esc(tr("titre_filtre"))}" valeur="${esc(this._filtre)}"
+        options="${esc(JSON.stringify(filtres.map(([cle, texte]) => ({ cle, libelle: texte }))))}"></vision-choix>${this._filtresPlateforme()}</div>`;
 
     if (this._coches.size) {
       html += `<div class="lot">
@@ -1209,20 +1270,19 @@ class VisionEtiquettesCard extends HTMLElement {
     const etat = ETATS[el.classe] || ETATS["À classer"];
     // Lot 1 (HA-02) : des mots plutôt que des icônes (« Fermer », « Autoriser », « Plus tard ») ; « Plus tard » laisse
     // l'élément à classer (décision « neutre », comme rappuyer sur l'état en cours).
-    const bouton = (decision, classe, texte, titre) => {
-      const actif =
-        (decision === "bloquer" && el.classe === "Bloqués") ||  // i18n-ignorer : valeur de données comparée
-        (decision === "autoriser" && el.classe === "Autorisés") ||  // i18n-ignorer : valeur de données comparée
-        (decision === "neutre" && !["Bloqués", "Autorisés"].includes(el.classe));  // i18n-ignorer : valeurs de données
-      return (
-        `<button class="dec ${classe}" data-decider="${esc(cle)}" data-decision="${decision}" aria-pressed="${actif}" title="${esc(titre)}">${esc(texte)}</button>`
-      );
-    };
+    // 15-10 : un choix (vision-choix) ; « Plus tard » remet à classer, comme rappuyer sur l'état en cours.
+    const actuelle =
+      el.classe === "Bloqués" ? "bloquer"  // i18n-ignorer : valeur de données comparée
+      : el.classe === "Autorisés" ? "autoriser"  // i18n-ignorer : valeur de données comparée
+      : "neutre";
+    const options = [
+      { cle: "bloquer", libelle: tr("dec_fermer"), description: tr("bloquer_tous") },
+      { cle: "autoriser", libelle: tr("dec_autoriser"), description: tr("autoriser_tous") },
+      { cle: "neutre", libelle: tr("dec_plus_tard"), description: tr("titre_plus_tard") },
+    ];
     return `<div class="decisions">
       <span class="etat ${etat.classe}">${esc(tr(etat.texte))}</span>
-      ${bouton("bloquer", "bloquer", tr("dec_fermer"), tr("bloquer_tous"))}
-      ${bouton("autoriser", "autoriser", tr("dec_autoriser"), tr("autoriser_tous"))}
-      ${bouton("neutre", "plus-tard", tr("dec_plus_tard"), tr("titre_plus_tard"))}
+      <vision-choix data-decider="${esc(cle)}" titre="${esc(tr("titre_decision"))}" valeur="${actuelle}" options="${esc(JSON.stringify(options))}"></vision-choix>
       <button class="dec sup-liste" data-decider="${esc(cle)}" data-decision="retirer"
         title="${esc(tr("retirer_liste"))}" aria-label="${esc(tr("retirer_liste"))}">🗑</button>
     </div>`;
@@ -1264,14 +1324,12 @@ class VisionEtiquettesCard extends HTMLElement {
     );
     for (const e of triees) {
       const etat = this._etatCategorie(e);
-      const pcs = this._pcs
-        .map((pc) => {
-          const actif = (e.pcs || []).includes(pc.id);
-          return (
-            `<button class="pc" data-pc="${esc(pc.nom)}" data-etq="${esc(e.nom)}" aria-pressed="${actif}" title="${esc(actif ? tr("bloquee_pc") : tr("bloquer_pc"))}">${esc(pc.nom)}</button>`
-          );
-        })
-        .join("");
+      // Les PC où l'étiquette est bloquée : un choix multiple (vision-choix).
+      const pcs = this._pcs.length
+        ? `<vision-choix multiple data-pcs-etq="${esc(e.nom)}" titre="${esc(tr("titre_pcs_bloques"))}"
+            valeurs="${esc(JSON.stringify(this._pcs.filter((pc) => (e.pcs || []).includes(pc.id)).map((pc) => pc.nom)))}"
+            options="${esc(JSON.stringify(this._pcs.map((pc) => ({ cle: pc.nom, libelle: pc.nom }))))}"></vision-choix>`
+        : "";
       html += `<div class="etq ${etat.classe}">
         <label class="cat" title="${esc(tr("categorie_vision_titre"))}">
           <input type="checkbox" data-categorie="${esc(e.nom)}" ${e.categorie ? "checked" : ""}>
@@ -1346,6 +1404,7 @@ class VisionEtiquettesCard extends HTMLElement {
       ? this._rendrePcs()
       : this._rendreEtiquettes();
 
+    const garde = vxGarderPlace(this);
     this.shadowRoot.innerHTML = `<style>${this._styles()}</style>
       <ha-card>
         <div class="entete">
@@ -1363,6 +1422,7 @@ class VisionEtiquettesCard extends HTMLElement {
         ${corps}
       </ha-card>`;
     this._brancher();
+    vxRendrePlace(this, garde);
   }
 
   // ------------------------------------------------------------ Écoutes
@@ -1394,16 +1454,16 @@ class VisionEtiquettesCard extends HTMLElement {
       });
     }
 
-    tous("[data-filtre]").forEach((b) =>
-      b.addEventListener("click", () => {
-        this._filtre = b.dataset.filtre;
+    tous("[data-filtre]").forEach((c) =>
+      c.addEventListener("vision-choix", (ev) => {
+        this._filtre = ev.detail.valeur;
         this._menu = null;
         this._rendre();
       })
     );
-    tous("[data-plateforme]").forEach((b) =>
-      b.addEventListener("click", () => {
-        this._plateforme = b.dataset.plateforme;
+    tous("[data-plateforme]").forEach((c) =>
+      c.addEventListener("vision-choix", (ev) => {
+        this._plateforme = ev.detail.valeur;
         this._menu = null;
         this._rendre();
       })
@@ -1450,14 +1510,11 @@ class VisionEtiquettesCard extends HTMLElement {
       return { genre, nom };
     };
 
-    tous("[data-decider]").forEach((b) =>
-      b.addEventListener("click", () => {
-        // Rappuyer sur l'état en cours le retire : « bloqué » redevient
-        // « à classer ». Redire ce qui est déjà dit ne change rien.
-        const actif = b.getAttribute("aria-pressed") === "true";
-        const decision = actif ? "neutre" : b.dataset.decision;
-        this._decider([elementDe(b.dataset.decider)], decision);
-      })
+    // La décision : un choix (vision-choix) ; la corbeille reste un bouton.
+    tous("[data-decider]").forEach((c) =>
+      c.dataset.decision
+        ? c.addEventListener("click", () => this._decider([elementDe(c.dataset.decider)], c.dataset.decision))
+        : c.addEventListener("vision-choix", (ev) => this._decider([elementDe(c.dataset.decider)], ev.detail.valeur))
     );
 
     // Retirer en cliquant la pastille de la ligne.
@@ -1545,15 +1602,18 @@ class VisionEtiquettesCard extends HTMLElement {
       })
     );
 
-    tous("[data-pc]").forEach((b) =>
-      b.addEventListener("click", () =>
-        this._basculerPc(
-          b.dataset.etq,
-          b.dataset.pc,
-          b.getAttribute("aria-pressed") !== "true"
-        )
-      )
-    );
+    // Le PC qu'on vient de cocher ou de décocher : la différence avec ce qui était coché.
+    tous("[data-pcs-etq]").forEach((c) => {
+      let avant = JSON.parse(c.getAttribute("valeurs") || "[]");
+      c.addEventListener("vision-choix", (ev) => {
+        const apres = ev.detail.valeurs;
+        const ajoute = apres.find((n) => !avant.includes(n));
+        const retire = avant.find((n) => !apres.includes(n));
+        avant = apres;
+        if (ajoute !== undefined) this._basculerPc(c.dataset.pcsEtq, ajoute, true);
+        else if (retire !== undefined) this._basculerPc(c.dataset.pcsEtq, retire, false);
+      });
+    });
   }
 }
 

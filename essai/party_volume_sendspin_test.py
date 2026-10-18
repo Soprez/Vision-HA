@@ -19,7 +19,7 @@ from party_test import PARENT, SALON, _monter, _post  # noqa: F401
 from deverrouillage_test import _integrations, expected_lingering_tasks, expected_lingering_timers  # noqa: F401
 
 CHAMBRE = "media_player.chambre"
-TELE_V = "media_player.tele_des_parents_vision"
+TELE_V = "media_player.tele_du_bureau_vision"
 
 
 class FauxMass:
@@ -38,7 +38,7 @@ def _ma(hass, monkeypatch, mass):
     from custom_components.pc_parental import musique
     monkeypatch.setattr(musique, "entree", lambda _h: SimpleNamespace(runtime_data=SimpleNamespace(mass=mass)))
     reg = er.async_get(hass)
-    for uid, eid in (("salon_ma", SALON), ("chambre_ma", CHAMBRE), ("52:8c:f9:a5:04:b7", TELE_V), ("upa303ad57", "media_player.essai_natif_vision")):
+    for uid, eid in (("salon_ma", SALON), ("chambre_ma", CHAMBRE), ("02:00:00:00:00:01", TELE_V), ("upa0000001", "media_player.essai_natif_vision")):
         # L'état existe déjà dans le banc : le registre prendrait un autre identifiant (« _2 ») ; on l'ôte un instant.
         avant = hass.states.get(eid)
         if avant is not None:
@@ -55,7 +55,7 @@ async def test_groupe_vision_et_enceinte(hass, hass_storage, hass_client, monkey
     _ma(hass, monkeypatch, mass)
     from custom_components.pc_parental import party, volume_party
     hass.states.async_set(CHAMBRE, "playing", {"friendly_name": "Chambre", "volume_level": 0.2})
-    hass.states.async_set(TELE_V, "playing", {"friendly_name": "Télé des parents · Vision"})
+    hass.states.async_set(TELE_V, "playing", {"friendly_name": "Télé du bureau · Vision"})
     # Une enceinte seule : son volume.
     assert volume_party.etat(hass, SALON) == {"volume": 0.3, "groupe": False, "membres": []}
     # Le lecteur Vision seul : aucun volume.
@@ -64,7 +64,7 @@ async def test_groupe_vision_et_enceinte(hass, hass_storage, hass_client, monkey
     hass.states.async_set(SALON, "playing", {"friendly_name": "Salon", "volume_level": 0.3, "group_members": [SALON, CHAMBRE, TELE_V]})
     e = volume_party.etat(hass, SALON)
     assert e["groupe"] is True and e["volume"] == 0.4
-    assert [(m["nom"], m["volume"]) for m in e["membres"]] == [("Salon", 0.3), ("Chambre", 0.2), ("Télé des parents · Vision", None)]
+    assert [(m["nom"], m["volume"]) for m in e["membres"]] == [("Salon", 0.3), ("Chambre", 0.2), ("Télé du bureau · Vision", None)]
     m = party.maintenant(hass, SALON)
     assert m["volume"] == 0.4 and m["groupe"] is True and len(m["membres"]) == 3
 
@@ -105,11 +105,91 @@ async def test_mp3_seulement_pour_squeezelite(hass, hass_storage, monkeypatch):
     mass = FauxMass()
     _ma(hass, monkeypatch, mass)
     from custom_components.pc_parental import musique
-    hass.states.async_set(TELE_V, "idle", {"friendly_name": "Télé des parents · Vision"})
+    hass.states.async_set(TELE_V, "idle", {"friendly_name": "Télé du bureau · Vision"})
     hass.states.async_set("media_player.essai_natif_vision", "idle", {"friendly_name": "Essai Sendspin natif · Vision"})
     musique._CODEC_FAIT.clear()
     await musique.regler_lecteurs_vision(hass)
     sauves = [kw["player_id"] for c, kw in mass.envoyes if c == "config/players/save"]
-    assert sauves == ["52:8c:f9:a5:04:b7"]  # l'ancien lecteur Squeezelite ; jamais le lecteur Sendspin « upa303ad57 »
+    assert sauves == ["02:00:00:00:00:01"]  # l'ancien lecteur Squeezelite ; jamais le lecteur Sendspin « upa0000001 »
     from custom_components.pc_parental.volume_party import est_squeezelite
-    assert est_squeezelite("52:8C:F9:A5:04:B7") and not est_squeezelite("upa303ad57") and not est_squeezelite(None)
+    assert est_squeezelite("02:00:00:00:00:01") and not est_squeezelite("upa0000001") and not est_squeezelite(None)
+
+
+async def test_ajout_auto_coupe_sur_tout_lecteur_vision(hass, hass_storage, monkeypatch):
+    """2.4.6 (l'auteur : « la file a fini, Play a ajouté 28 titres ») : l'Autoplay de Music Assistant est coupé sur tout
+    lecteur « · Vision », au démarrage et dès qu'un nouveau lecteur apparaît ; jamais sur une autre enceinte ; sauf la
+    Party en cours sur ce lecteur avec « titres similaires »."""
+    await _monter(hass, hass_storage)
+    files = {"q_tele": {"autoplay_enabled": True}, "q_neuf": {"autoplay_enabled": True}, "q_ch": {"autoplay_enabled": True}}
+    mass = FauxMass()
+    mass.player_queues = SimpleNamespace(get=lambda qid: files.get(qid))
+    _ma(hass, monkeypatch, mass)
+    from custom_components.pc_parental import musique, party
+    musique._AUTOPLAY_COUPE.clear()
+    hass.states.async_set(TELE_V, "idle", {"friendly_name": "Télé du bureau · Vision", "active_queue": "q_tele", "volume_level": 1.0})
+    hass.states.async_set(CHAMBRE, "idle", {"friendly_name": "Chambre", "active_queue": "q_ch", "volume_level": 1.0})
+    await hass.async_block_till_done()
+    mass.envoyes.clear()
+
+    def coupes():
+        return [(kw["queue_id"], kw["autoplay_enabled"]) for c, kw in mass.envoyes if c == "player_queues/autoplay"]
+
+    await musique.regler_lecteurs_vision(hass)
+    assert ("q_tele", False) in coupes() and not [q for q, _ in coupes() if q == "q_ch"]
+    # Déjà coupé : plus rien n'est envoyé.
+    files["q_tele"]["autoplay_enabled"] = False
+    mass.envoyes.clear()
+    await musique.regler_lecteurs_vision(hass)
+    assert coupes() == []
+    # Un nouveau lecteur « · Vision » (Sendspin) : coupé dès sa création, sans attendre la minute.
+    hass.states.async_set("media_player.salon_sendspin_vision", "idle",
+                          {"friendly_name": "Salon · Vision", "active_queue": "q_neuf", "volume_level": 1.0})
+    await hass.async_block_till_done()
+    assert ("q_neuf", False) in coupes()
+    # Party sur ce lecteur avec « titres similaires » : on n'y touche pas.
+    files["q_tele"]["autoplay_enabled"] = True
+    party.etat(hass).update({"actif": True, "lecteur": TELE_V, "similaires": True})
+    mass.envoyes.clear()
+    assert await musique.couper_ajout_auto(hass, TELE_V) is False
+    assert coupes() == []
+    party.etat(hass).update({"actif": False, "similaires": False})
+
+
+async def test_lecteur_classique_sans_nom_renomme_et_regle(hass, hass_storage, monkeypatch):
+    """2.4.7 (télé d'essai) : un lecteur Squeezelite enregistré par MA sous « squeezeplay: 5a:7a:… », que MA connaît
+    ensuite comme « Salle De jeux · Vision » : HA renomme l'appareil (pas un nom choisi à la main), coupe l'ajout
+    automatique et tient le volume à 100 %."""
+    from homeassistant.core import ServiceCall
+    from homeassistant.helpers import device_registry as dr
+    await _monter(hass, hass_storage)
+    mass = FauxMass()
+    noms = {"02:00:00:00:00:02": "Salle De jeux · Vision", "11:22:33:44:55:66": "Enceinte du bureau"}
+    mass.players = SimpleNamespace(get=lambda pid: {"player_id": pid, "name": noms.get(pid, "")})
+    mass.player_queues = SimpleNamespace(get=lambda qid: {"autoplay_enabled": True})
+    _ma(hass, monkeypatch, mass)
+    from custom_components.pc_parental import musique
+    musique._AUTOPLAY_COUPE.clear()
+    reg, dreg = er.async_get(hass), dr.async_get(hass)
+    entree = hass.config_entries.async_entries("pc_parental")[0]
+    eids = {}
+    for mac in noms:
+        dev = dreg.async_get_or_create(config_entry_id=entree.entry_id, identifiers={("music_assistant", mac)}, name=f"squeezeplay: {mac}")
+        e = reg.async_get_or_create("media_player", "music_assistant", mac, device_id=dev.id)
+        eids[mac] = (e.entity_id, dev.id)
+        hass.states.async_set(e.entity_id, "idle", {"friendly_name": f"squeezeplay: {mac}", "active_queue": mac, "volume_level": 0.1})
+    appels = []
+
+    async def volume_set(call: ServiceCall):
+        appels.append(call.data["entity_id"])
+    hass.services.async_register("media_player", "volume_set", volume_set)
+    await musique.regler_lecteurs_vision(hass)
+    alex, autre = eids["02:00:00:00:00:02"], eids["11:22:33:44:55:66"]
+    assert dreg.async_get(alex[1]).name_by_user == "Salle De jeux · Vision"
+    assert dreg.async_get(autre[1]).name_by_user is None  # une autre enceinte : jamais touchée
+    assert ("02:00:00:00:00:02", False) in [(kw["queue_id"], kw["autoplay_enabled"]) for c, kw in mass.envoyes if c == "player_queues/autoplay"]
+    assert any(alex[0] in (a if isinstance(a, list) else [a]) for a in appels)
+    assert not any(autre[0] in (a if isinstance(a, list) else [a]) for a in appels)
+    # Un nom choisi à la main n'est jamais écrasé.
+    dreg.async_update_device(alex[1], name_by_user="Télé de la chambre")
+    await musique.regler_lecteurs_vision(hass)
+    assert dreg.async_get(alex[1]).name_by_user == "Télé de la chambre"
