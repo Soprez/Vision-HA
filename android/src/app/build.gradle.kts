@@ -114,7 +114,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime:2.6.2")
     // Client Sendspin natif (lecteur de Music Assistant) : WebSocket, et X25519 / ChaCha20-Poly1305 / SHA-512 de Noise
     // et de l'appairage (Android ne les a qu'à partir des API 28 à 33).
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp:5.5.0")
     // Sa MediaSession (télécommande, système) : même version que media3-exoplayer.
     implementation("androidx.media3:media3-session:1.4.1")
     implementation("org.bouncycastle:bcprov-jdk18on:1.77")
