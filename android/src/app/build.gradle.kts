@@ -117,7 +117,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // Sa MediaSession (télécommande, système) : même version que media3-exoplayer.
     implementation("androidx.media3:media3-session:1.4.1")
-    implementation("org.bouncycastle:bcprov-jdk18on:1.77")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.86")
 }
 
 // Les essais sur émulateur (androidTest) : mêmes versions d'androidx que l'appli (déjà en cache),
