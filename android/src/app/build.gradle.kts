@@ -124,6 +124,6 @@ dependencies {
 // sinon leur classpath redemande les versions plus anciennes déclarées par CameraX.
 dependencies {
     androidTestImplementation("androidx.annotation:annotation:1.3.0")
-    androidTestImplementation("androidx.core:core:1.8.0")
+    androidTestImplementation("androidx.core:core:1.19.1")
     androidTestImplementation("androidx.collection:collection:1.2.0")
 }
