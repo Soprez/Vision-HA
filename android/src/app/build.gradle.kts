@@ -125,5 +125,5 @@ dependencies {
 dependencies {
     androidTestImplementation("androidx.annotation:annotation:1.3.0")
     androidTestImplementation("androidx.core:core:1.8.0")
-    androidTestImplementation("androidx.collection:collection:1.2.0")
+    androidTestImplementation("androidx.collection:collection:1.7.0")
 }
