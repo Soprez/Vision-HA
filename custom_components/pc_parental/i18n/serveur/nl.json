@@ -529,6 +529,7 @@
   "party.invites_validation": "Jij keurt de nummers van gasten goed.",
   "party.joue_apres": "Speelt hierna.",
   "party.lance": "Muziek gestart.",
+  "party.lance_sur": "Muziek gestart op {enceinte}.",
   "party.merci_attente": "Bedankt! Je nummer wacht op het akkoord van de gastheren.",
   "party.merci_file": "Bedankt! Je nummer staat in de wachtrij.",
   "party.mis_a_la_fin": "Naar het einde verplaatst.",

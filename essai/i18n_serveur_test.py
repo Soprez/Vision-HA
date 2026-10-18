@@ -108,7 +108,8 @@ EXCEPTIONS: dict[str, set[str]] = {
     "parent.py": {"pub & traçage", "Toujours autorisé"},
     "labels.py": {"toujours autorisé"},
     "musique.py": {"YouTube Music", "Apple Music", "Radio Browser", "Music Assistant",
-                   "Déplacer ", "À la fin "},  # libellés d'une action, pour le journal (_LOGGER) seulement
+                   "Déplacer ", "À la fin ",  # libellés d'une action, pour le journal (_LOGGER) seulement
+                   "already played"},  # 2.5.11 : message d'erreur de Music Assistant, comparé (jamais affiché)
     "nouveautes.py": {"version ou points manquants"},  # erreur interne, rattrapée aussitôt et écrite au journal
     "processus_catalogue.py": {"advanced micro devices", "killer networking", "rivet networks", "microsoft windows",
                                "easy anti-cheat", "ha parental"},  # éditeurs et noms comparés aux données

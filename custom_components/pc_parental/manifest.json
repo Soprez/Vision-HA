@@ -20,5 +20,5 @@
     "pyqrcode>=1.2.1"
   ],
   "single_config_entry": true,
-  "version": "2.5.10"
+  "version": "2.5.11.1"
 }

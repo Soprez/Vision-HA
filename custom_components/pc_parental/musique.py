@@ -637,6 +637,37 @@ async def jouer_element(hass: HomeAssistant, lecteur: str, id_element: str) -> N
     await _sur_file(hass, lecteur, "move_next " + id_element, lambda pq, q: pq.move_next(q, id_element))
 
 
+def deja_joue(err: BaseException) -> bool:
+    """Music Assistant refuse de déplacer un titre déjà joué ou déjà en tampon (``move_item`` : « N is already
+    played/buffered »). Pur (essais)."""
+    return "already played" in str(err) or "buffered" in str(err)
+
+
+async def rejouer_element(hass: HomeAssistant, lecteur: str, id_element: str) -> bool:
+    """2.5.11 (l'auteur, 18/10, 1.93.05 : « je ne peux pas rejouer un morceau passé de la file », « ça n'a pas marché »).
+
+    Depuis que le lecteur de Vision dit enfin à Music Assistant qu'un titre commence (STMs, 1.93.04.1), MA sait ce qui
+    est joué : il refuse de déplacer un titre déjà joué ou en tampon (« 23 is already played/buffered »). Pour un tel titre, on y revient avec ``play_index`` : revenir EN ARRIÈRE ne marque rien comme
+    joué (le souci de la 2.5.8 venait des sauts en avant). Un titre à venir garde la manière de la 2.5.8
+    (``move_next`` puis « suivant »).
+
+    Rend vrai si le titre est déjà lancé (``play_index``) : l'appelant n'enchaîne PAS « suivant »."""
+    if not id_element:
+        raise MusiqueIndisponible("commun.choix_inconnu")
+    mass, qid = _client(hass), _file_id(hass, lecteur)
+    if mass is None or not qid:
+        raise MusiqueIndisponible("mus.file_non_modifiable")
+    try:
+        await mass.player_queues.move_next(qid, id_element)
+        return False
+    except Exception as err:  # noqa: BLE001
+        if not deja_joue(err):
+            _LOGGER.info("move_next %s sur la file %s : %s", id_element, qid, err)
+            raise MusiqueIndisponible("mus.echec_reessaie") from err
+    await _sur_file(hass, lecteur, "play_index " + id_element, lambda pq, q: pq.play_index(q, id_element))
+    return True
+
+
 async def ensuite_element(hass: HomeAssistant, lecteur: str, id_element: str) -> None:
     """2.2.1 : placer un titre de la file juste après celui qui joue."""
     if not id_element:

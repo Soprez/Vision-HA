@@ -529,6 +529,7 @@
   "party.invites_validation": "Du bestätigst die Titel der Gäste.",
   "party.joue_apres": "Spielt als Nächstes.",
   "party.lance": "Musik gestartet.",
+  "party.lance_sur": "Musik gestartet auf {enceinte}.",
   "party.merci_attente": "Danke! Dein Titel wartet auf das Okay der Gastgeber.",
   "party.merci_file": "Danke! Dein Titel ist in der Warteschlange.",
   "party.mis_a_la_fin": "Ans Ende verschoben.",

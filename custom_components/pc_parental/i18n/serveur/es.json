@@ -529,6 +529,7 @@
   "party.invites_validation": "Tú apruebas las canciones de los invitados.",
   "party.joue_apres": "Suena justo después.",
   "party.lance": "Música iniciada.",
+  "party.lance_sur": "Música iniciada en {enceinte}.",
   "party.merci_attente": "¡Gracias! Tu canción espera el visto bueno de los anfitriones.",
   "party.merci_file": "¡Gracias! Tu canción está en la cola.",
   "party.mis_a_la_fin": "Movida al final.",

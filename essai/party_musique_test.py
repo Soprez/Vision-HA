@@ -66,6 +66,10 @@ class FauxFiles:
         self.supprimes.append(("jouer", qid, index))
 
     async def move_next(self, qid, item):
+        # Comme Music Assistant (player_queues/move_item) : un titre déjà joué ou en cours ne se déplace pas.
+        ids = [x.get("queue_item_id") for x in self.items]
+        if item in ids and ids.index(item) <= self.courant:
+            raise IndexError(f"{ids.index(item)} is already played/buffered")
         self.supprimes.append(("ensuite", qid, item))
 
     async def transfer(self, src, dst, auto_play=None):

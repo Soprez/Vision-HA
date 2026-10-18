@@ -65,6 +65,29 @@ async def test_la_tele_pilote_la_file_et_l_enceinte(hass, hass_storage, hass_cli
     assert r["lecteur"] == MA_CHAMBRE
 
 
+async def test_rejouer_un_titre_deja_passe(hass, hass_storage, hass_client, monkeypatch):
+    """2.5.11 (l'auteur, 18/10, 1.93.05 : « je ne peux pas rejouer un morceau passé », « ça n'a pas marché ») : Music Assistant
+    refuse de déplacer un titre déjà joué (« 23 is already played/buffered », journal du 18/10 à 01:25). Un titre passé
+    est relancé directement (play_index), sans « suivant » derrière ; un titre à venir garde move_next + « suivant »."""
+    _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
+    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"T{k}", "uri": f"library://track/{k}"}} for k in range(5)]
+    files.courant = 2
+    suivants = []
+    hass.services.async_register("media_player", "media_next_track", lambda call: suivants.append(call.data.get("entity_id")))
+    # Un titre déjà passé (index 1) : relancé tel quel, rien n'est déplacé, pas de « suivant ».
+    s, r = await _post(client, "commande", TELE, action="jouer_element", element="q1")
+    assert s == 200, r
+    assert ("jouer", "qid-salon", "q1") in files.supprimes and ("ensuite", "qid-salon", "q1") not in files.supprimes
+    assert suivants == []
+    # Le titre en cours (index 2) : relancé lui aussi depuis le début.
+    s, r = await _post(client, "commande", TELE, action="jouer_element", element="q2")
+    assert s == 200 and ("jouer", "qid-salon", "q2") in files.supprimes and suivants == []
+    # Un titre à venir (index 4) : placé juste après celui en cours, puis « suivant » (inchangé depuis la 2.5.8).
+    s, r = await _post(client, "commande", TELE, action="jouer_element", element="q4")
+    assert s == 200 and ("ensuite", "qid-salon", "q4") in files.supprimes and len(suivants) == 1
+    assert ("jouer", "qid-salon", "q4") not in files.supprimes
+
+
 async def test_un_enfant_ne_coupe_pas_la_musique(hass, hass_storage, hass_client, monkeypatch):
     _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
     s, r = await _post(client, "commande", ENFANT, action="jouer_element", element="q1")

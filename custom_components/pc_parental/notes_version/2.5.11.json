@@ -1,0 +1,50 @@
+{
+  "version": "2.5.11",
+  "date": "2026-10-18",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Musique : rejouer un titre déjà passé de la file fonctionne de nouveau.",
+        "en": "Music: replaying a track that has already played in the queue works again.",
+        "de": "Musik: Einen bereits gespielten Titel der Warteschlange erneut abspielen funktioniert wieder.",
+        "es": "Música: volver a reproducir una canción ya escuchada de la cola vuelve a funcionar.",
+        "it": "Musica: riascoltare un brano già passato nella coda funziona di nuovo.",
+        "nl": "Muziek: een al afgespeeld nummer uit de wachtrij opnieuw afspelen werkt weer."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Musique : le titre affiché suit le son ; plus de boucle, les ajouts passent (Vision 1.93.04.1).",
+        "en": "Music: the title shown follows the sound; no more loops, added tracks play (Vision 1.93.04.1).",
+        "de": "Musik: Der Titel folgt dem Ton; keine Schleifen mehr, Hinzugefügtes wird gespielt (Vision 1.93.04.1).",
+        "es": "Música: el título sigue al sonido; sin bucles, lo añadido suena (Vision 1.93.04.1).",
+        "it": "Musica: il titolo segue l'audio; niente loop, le aggiunte partono (Vision 1.93.04.1).",
+        "nl": "Muziek: de titel volgt het geluid; geen lussen meer, toevoegingen spelen (Vision 1.93.04.1)."
+      }
+    },
+    {
+      "cibles": [
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Musique : le bouton Pause reste juste pendant toute la lecture.",
+        "en": "Music: the Pause button stays right for the whole playback.",
+        "de": "Musik: Die Pause-Taste bleibt während der ganzen Wiedergabe korrekt.",
+        "es": "Música: el botón Pausa se mantiene correcto durante toda la reproducción.",
+        "it": "Musica: il pulsante Pausa resta corretto per tutta la riproduzione.",
+        "nl": "Muziek: de pauzeknop blijft kloppen tijdens het hele afspelen."
+      }
+    }
+  ]
+}

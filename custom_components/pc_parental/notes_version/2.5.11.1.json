@@ -1,0 +1,50 @@
+{
+  "version": "2.5.11.1",
+  "date": "2026-10-18",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Musique : lancée depuis une télé, la soirée joue sur la télé elle-même, même si son lecteur se reconnecte à cet instant.",
+        "en": "Music: started from a TV, the party plays on that TV itself, even if its player is reconnecting at that moment.",
+        "de": "Musik: Von einem Fernseher gestartet, spielt die Party dort, auch wenn sich sein Player gerade neu verbindet.",
+        "es": "Música: iniciada desde una tele, la fiesta suena en esa misma tele, aunque su reproductor se esté reconectando.",
+        "it": "Musica: avviata da una TV, la festa suona sulla TV stessa, anche se il suo lettore si sta riconnettendo.",
+        "nl": "Muziek: gestart vanaf een tv speelt het feest op die tv zelf, ook als de speler net opnieuw verbindt."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Musique : quand la soirée part sur une autre enceinte, la télé dit laquelle.",
+        "en": "Music: when the party starts on another speaker, the TV says which one.",
+        "de": "Musik: Startet die Party auf einem anderen Lautsprecher, sagt der Fernseher, auf welchem.",
+        "es": "Música: cuando la fiesta empieza en otro altavoz, la tele dice cuál.",
+        "it": "Musica: quando la festa parte su un altro altoparlante, la TV dice quale.",
+        "nl": "Muziek: begint het feest op een andere luidspreker, dan zegt de tv welke."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Musique : le lecteur de la télé passe avant la dernière enceinte de la soirée, sauf si elle joue encore.",
+        "en": "Music: the TV's own player comes before the party's last speaker, unless that one is still playing.",
+        "de": "Musik: Der Player des Fernsehers geht vor dem letzten Lautsprecher der Party, außer dieser spielt noch.",
+        "es": "Música: el reproductor de la tele va antes que el último altavoz de la fiesta, salvo si aún suena.",
+        "it": "Musica: il lettore della TV precede l'ultimo altoparlante della festa, a meno che stia ancora suonando.",
+        "nl": "Muziek: de speler van de tv gaat vóór de laatste luidspreker van het feest, tenzij die nog speelt."
+      }
+    }
+  ]
+}

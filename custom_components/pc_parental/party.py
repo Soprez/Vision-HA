@@ -243,13 +243,62 @@ def lecteurs_pour(hass: HomeAssistant, store, pc: dict[str, Any] | None, langue:
     return sorted(l + tous, key=lambda e: (not e["dispo"], not e["ma"], e["nom"].lower()))
 
 
+# 2.5.11.1 : le temps laissé au lecteur « · Vision » d'une télé pour revenir en ligne au lancement d'une soirée.
+ATTENTE_LECTEUR_PROPRE_S = 8.0
+
+EN_COURS = ("playing", "paused", "buffering")
+
+
+def lecteur_propre(hass: HomeAssistant, store, pc: dict[str, Any] | None) -> tuple[str, str]:
+    """Le lecteur « · Vision » de cette télé dans Music Assistant (Vision y joue le son lui-même) : (entity_id, état),
+    ou ("", "") si la télé n'en a pas. Avec deux jumeaux du même nom (2.5.7), celui qui est en ligne."""
+    if not (pc and est_tele(pc)):
+        return "", ""
+    propre = str(pc.get("name") or "").strip().lower() + SUFFIXE_VISION.lower()
+    candidats = [x for x in lecteurs(hass, None) if x["ma"] and x["nom"].strip().lower() == propre]
+    if not candidats:
+        return "", ""
+    x = max(candidats, key=lambda e: e["etat"] != "unavailable")
+    return x["entity_id"], str(x["etat"])
+
+
+async def attendre_lecteur_propre(hass: HomeAssistant, store, pc: dict[str, Any] | None) -> str:
+    """2.5.11.1 (l'auteur, 18/10 : « remplacer » puis ▶ sur la télé, rien ne joue). Au
+    moment exact du « lancer_ici », le lecteur « <télé> · Vision » était hors ligne pour quelques secondes
+    (l'appli venait de se reconnecter à Music Assistant : « Duplicate connection detected ») ; il est revenu 0 à 6 s
+    plus tard. La soirée partait alors sur une autre enceinte, sans le dire, et tout ce que l'auteur faisait ensuite visait
+    cette enceinte-là. On laisse au lecteur propre jusqu'à ATTENTE_LECTEUR_PROPRE_S pour revenir.
+
+    Rend son entity_id s'il est en ligne (tout de suite ou après l'attente), sinon ""."""
+    eid, et = lecteur_propre(hass, store, pc)
+    if not eid:
+        return ""
+    fin = hass.loop.time() + ATTENTE_LECTEUR_PROPRE_S
+    while et == "unavailable" and hass.loop.time() < fin:
+        await asyncio.sleep(0.25)
+        eid, et = lecteur_propre(hass, store, pc)
+    if et == "unavailable":
+        _LOGGER.warning("%s : le lecteur %s de la télé %s est toujours hors ligne après %.0f s", PRODUIT, eid,
+                        (pc or {}).get("name"), ATTENTE_LECTEUR_PROPRE_S)
+        return ""
+    return eid
+
+
 def lecteur_par_defaut(hass: HomeAssistant, store, pc: dict[str, Any] | None = None) -> str:
     """L'enceinte d'une Party lancée sans choix : la dernière, sinon celle de Music Assistant de la même pièce
-    (« Salon » pour « Téléviseur du salon »), jamais la télé elle-même."""
+    (« Salon » pour « Téléviseur du salon »), jamais la télé elle-même.
+
+    2.5.11.1 : depuis une télé dont le lecteur « · Vision » est en ligne, ce lecteur passe avant la dernière enceinte
+    de la soirée, sauf si elle joue encore (2.2.3 : « quand je reviens, la musique doit continuer »)."""
     st = etat(hass)
     l = [x for x in lecteurs_pour(hass, store, pc) if not (pc and est_l_ecran(hass, store, x["entity_id"], str(pc.get("id"))))]
     if st["lecteur"] and any(x["entity_id"] == st["lecteur"] and x["ma"] for x in l):
-        return st["lecteur"]
+        propre, etat_propre = lecteur_propre(hass, store, pc)
+        dernier = hass.states.get(st["lecteur"])
+        if not (propre and propre != st["lecteur"] and etat_propre != "unavailable"
+                and (dernier is None or dernier.state not in EN_COURS)):
+            return st["lecteur"]
+        return propre
     mots = _mots((pc or {}).get("name"))
     # 2.2.3 (l'auteur : « quand je reviens, la musique doit continuer ») : un lecteur Music Assistant qui joue déjà (après un
     # redémarrage de HA, la soirée est oubliée mais la musique continue) passe avant tout, la même pièce d'abord ;
@@ -659,7 +708,16 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
             raise textes.Erreur("party.tele_seule")
         if st["actif"] and st["ecran"] == str(pc.get("id")):
             return ""
-        return await lancer(hass, store, str(pc.get("id")), lecteur_par_defaut(hass, store, pc), par, pc, lg)
+        # 2.5.11.1 (l'auteur, 18/10) : le lecteur de la télé peut être en train de se reconnecter : on l'attend un peu, et si
+        # la soirée part ailleurs, la télé dit sur quelle enceinte (le 18/10, rien ne disait « Télé du bureau »).
+        propre = await attendre_lecteur_propre(hass, store, pc)
+        lecteur = lecteur_par_defaut(hass, store, pc)
+        retour = await lancer(hass, store, str(pc.get("id")), lecteur, par, pc, lg)
+        if lecteur != propre:
+            s = hass.states.get(lecteur)
+            nom = str(s.attributes.get("friendly_name") or lecteur) if s is not None else lecteur
+            return textes.t("party.lance_sur", lg, enceinte=nom)
+        return retour
     if action == "jouer":
         # 2.2.1 (test réel de l'auteur : « Tidal Wave » est parti sur la télé elle-même) : pendant une Party, on joue TOUJOURS
         # sur l'enceinte de la Party ; changer d'enceinte passe par « enceinte ». Hors Party, un décideur choisit.
@@ -737,8 +795,10 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
         return textes.t("party.deplace", lg)
     if action in ("jouer_element", "ensuite_element"):
         if action == "jouer_element":
-            await musique.jouer_element(hass, st["lecteur"], str(corps.get("element") or ""))
-            await _service(hass, "media_player", "media_next_track", st["lecteur"])
+            # 2.5.11 : un titre déjà joué (ou en tampon) est relancé directement par Music Assistant (play_index) ;
+            # « suivant » n'est enchaîné que pour un titre à venir, placé juste après celui en cours.
+            if not await musique.rejouer_element(hass, st["lecteur"], str(corps.get("element") or "")):
+                await _service(hass, "media_player", "media_next_track", st["lecteur"])
             return textes.t("party.cest_parti", lg)
         await musique.ensuite_element(hass, st["lecteur"], str(corps.get("element") or ""))
         return textes.t("party.joue_apres", lg)
@@ -954,7 +1014,9 @@ class PcParentalPartyEtatView(_Porte):
         ma = musique.lecteurs_ma(self.hass)
         noms = {e["id"]: e["nom"] for e in ecrans(store)}
         # 2.2.3 : soirée pas lancée (ou oubliée par un redémarrage) → on montre ce qui joue vraiment.
-        vu = st["lecteur"] if st["actif"] or st["lecteur"] else lecteur_par_defaut(self.hass, store, pc)
+        # 2.5.11.1 : hors soirée, l'enceinte montrée est celle qu'un « lancer_ici » prendrait (le lecteur propre d'une télé
+        # passe avant la dernière enceinte) ; lecteur_par_defaut garde la dernière enceinte dans les autres cas.
+        vu = st["lecteur"] if st["actif"] else lecteur_par_defaut(self.hass, store, pc)
         lect = self.hass.states.get(vu) if vu else None
         if st["actif"] and st["lecteur"] and musique.ajout_auto_actif(self.hass, st["lecteur"]) and not st.get("similaires"):
             _LOGGER.warning("%s : l'ajout automatique de Music Assistant s'était rallumé sur %s : coupé", PRODUIT, st["lecteur"])

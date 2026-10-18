@@ -21,3 +21,13 @@ updates:
       interval: weekly
     labels: [dépendances]
     open-pull-requests-limit: 5
+    # Montées lourdes, faites à la main plus tard (1.93.06) : AGP 9, okhttp 5, androidx.core 1.19 et au-delà.
+    ignore:
+      - dependency-name: "com.android.application"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "com.android.tools.build:gradle"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "com.squareup.okhttp3:*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "androidx.core:*"
+        versions: [">= 1.19.0"]
