@@ -964,5 +964,7 @@
   "prot.titre": "Protection turned off",
   "prot.titre_retablie": "Protection restored",
   "prot.coupee": "Protection turned off on “{nom}”: Vision's accessibility service is off, so Vision protects nothing there. On the device: Settings › Accessibility › Vision › On.",
-  "prot.retablie": "Protection restored on “{nom}”: Vision's accessibility is active again."
+  "prot.retablie": "Protection restored on “{nom}”: Vision's accessibility is active again.",
+  "son.coupure": "Too much noise ({n} warnings): this device is closed for {minutes} min, until {heure}.",
+  "son.responsable_coupure": "Too much noise on “{nom}” ({niveau} dBFS) after {n} warnings today: closed for {minutes} min, until {heure}."
 }

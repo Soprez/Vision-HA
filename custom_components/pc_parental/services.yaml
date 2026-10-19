@@ -1149,3 +1149,10 @@ son_regler:
           max: -40
           unit_of_measurement: dBFS
           mode: box
+    reagir:
+      selector:
+        boolean: null
+    micros_exclus:
+      selector:
+        text:
+          multiple: true

@@ -14,6 +14,7 @@ sur un PC (agent Windows).
 from __future__ import annotations
 
 import pathlib
+import time
 import shutil
 import subprocess
 from datetime import datetime
@@ -310,3 +311,113 @@ async def test_plancher_micro_reglable(hass, hass_storage, hass_client):
     assert (await _releve(client, son={"depassements": []}))["son"]["micro_plancher_dbfs"] == -100
     assert son.regler(pc, {"micro_plancher_dbfs": -10})["micro_plancher_dbfs"] == -40
     assert son.regler(pc, {"micro_plancher_dbfs": -500})["micro_plancher_dbfs"] == -120
+
+
+async def test_trois_avertissements_puis_coupure_une_heure(hass, hass_storage, hass_client):
+    """2.5.12.7 : 1er dépassement message doux, 2e message ferme, 3e coupure de 60 min (fermeture comme le service
+    lock : écran de blocage, réouverture à l'échéance), message à l'écran, responsables prévenus, tout journalisé ;
+    puis la gradation repart de zéro."""
+    coord = await _monter(hass, hass_storage)
+    from custom_components.pc_parental import son
+    pc = coord.store.pcs["pc1"]
+    son.regler(pc, {"actif": True, "seuil_db": 75, "sensibilite_s": 3, "repos_min": 2, "ferme_apres_min": 15,
+                    "calme_min": 15, "alertes_avant_coupure": 3, "coupure_min": 60})
+    coupures = []
+    hass.bus.async_listen("vision_son_coupure", lambda e: coupures.append(dict(e.data)))
+    t0 = 1_792_400_000.0
+    assert son.recevoir(hass, coord.store, pc, {"depassements": [{"ts": t0 * 1000, "db": 80}]}, maintenant=t0 + 5)
+    await hass.async_block_till_done()
+    assert _messages(coord) == ["Moins fort, s'il te plaît 🙂"] and pc.get("override") is None
+    son.recevoir(hass, coord.store, pc, {"depassements": [{"ts": (t0 + 180) * 1000, "db": 82}]}, maintenant=t0 + 185)
+    await hass.async_block_till_done()
+    assert _messages(coord)[-1].startswith("C'est encore trop fort") and pc.get("override") is None
+    assert _messages(coord, "p1") == []
+    avant = time.time()
+    son.recevoir(hass, coord.store, pc, {"depassements": [{"ts": (t0 + 600) * 1000, "db": 85}]}, maintenant=t0 + 605)
+    await hass.async_block_till_done()
+    o = pc.get("override")
+    assert o and o["mode"] == "locked" and 3590 <= o["until"] - avant <= 3610   # fermé une heure
+    assert _messages(coord)[-1].startswith("Trop de bruit (3 avertissements) : l'appareil est fermé 60 min, jusqu'à")
+    responsable = _messages(coord, "p1")
+    assert len(responsable) == 1 and "PC-PL" in responsable[0] and "fermé 60 min" in responsable[0] and "-15.0 dBFS" in responsable[0]
+    assert coupures == [{"appareil": "pc1", "nom": "PC-PL", "minutes": 60, "alertes": 3}]
+    e = son.etat(pc)
+    assert e["alertes"] == 0 and e["niveau_alerte"] == 0
+    assert [(x["type"], x.get("rang"), x["niveau_dbfs"]) for x in e["journal"]] == [
+        ("avertissement", 1, -20.0), ("avertissement", 2, -18.0), ("coupure", 3, -15.0)]
+    s = hass.states.get("sensor.pc_pl_niveau_sonore")
+    # Le journal est lisible dans le capteur (heure locale), même sans relevé récent pour l'état.
+    assert e["journal"][-1]["minutes"] == 60
+    # Après la coupure, la gradation repart du message doux.
+    son.recevoir(hass, coord.store, pc, {"depassements": [{"ts": (t0 + 4500) * 1000, "db": 80}]}, maintenant=t0 + 4505)
+    await hass.async_block_till_done()
+    assert _messages(coord)[-1] == "Moins fort, s'il te plaît 🙂"
+
+
+async def test_calme_quinze_minutes_remet_a_zero(hass, hass_storage, hass_client):
+    """Deux avertissements, puis 15 min de calme : le troisième dépassement redevient un premier avertissement."""
+    coord = await _monter(hass, hass_storage)
+    from custom_components.pc_parental import son
+    pc = coord.store.pcs["pc1"]
+    son.regler(pc, {"actif": True, "repos_min": 2, "ferme_apres_min": 15, "calme_min": 15,
+                    "alertes_avant_coupure": 3, "coupure_min": 60})
+    t0 = 1_792_400_000.0
+    son.recevoir(hass, coord.store, pc, {"depassements": [{"ts": t0 * 1000, "db": 80}]}, maintenant=t0 + 5)
+    son.recevoir(hass, coord.store, pc, {"depassements": [{"ts": (t0 + 300) * 1000, "db": 80}]}, maintenant=t0 + 305)
+    son.recevoir(hass, coord.store, pc, {"depassements": [{"ts": (t0 + 300 + 16 * 60) * 1000, "db": 80}]},
+                 maintenant=t0 + 300 + 16 * 60 + 5)
+    await hass.async_block_till_done()
+    assert pc.get("override") is None and son.etat(pc)["alertes"] == 1
+    assert _messages(coord)[-1] == "Moins fort, s'il te plaît 🙂"
+
+
+async def test_reagir_eteint_mesure_seule(hass, hass_storage, hass_client):
+    """« Réagir au bruit » éteint (d'un clic) : dépassements comptés et journalisés, sans message, sans responsables,
+    sans coupure ; rallumé, la règle reprend."""
+    coord = await _monter(hass, hass_storage)
+    from custom_components.pc_parental import son
+    pc = coord.store.pcs["pc1"]
+    son.regler(pc, {"actif": True, "repos_min": 0, "alertes_avant_coupure": 1, "coupure_min": 60})
+    sw = hass.states.get("switch.pc_pl_reagir_au_bruit")
+    assert sw is not None and sw.state == "on"   # réagir : allumé par défaut (comportement d'avant)
+    await hass.services.async_call("switch", "turn_off", {"entity_id": "switch.pc_pl_reagir_au_bruit"}, blocking=True)
+    assert son.reglages(pc)["reagir"] is False
+    t0 = 1_792_400_000.0
+    for k in range(4):
+        son.recevoir(hass, coord.store, pc, {"depassements": [{"ts": (t0 + 60 * k) * 1000, "db": 90}]}, maintenant=t0 + 60 * k + 5)
+    await hass.async_block_till_done()
+    assert _messages(coord) == [] and _messages(coord, "p1") == [] and pc.get("override") is None
+    e = son.etat(pc)
+    assert e["aujourd_hui"] == 4 and e["alertes"] == 0 and [x["type"] for x in e["journal"]] == ["depassement"] * 4
+    await hass.services.async_call("switch", "turn_on", {"entity_id": "switch.pc_pl_reagir_au_bruit"}, blocking=True)
+    son.recevoir(hass, coord.store, pc, {"depassements": [{"ts": (t0 + 600) * 1000, "db": 90}]}, maintenant=t0 + 605)
+    await hass.async_block_till_done()
+    assert pc.get("override") is not None   # une seule alerte avant coupure : fermé
+
+
+async def test_entites_coupure_et_micros_exclus(hass, hass_storage, hass_client):
+    """Réglages par appareil : avertissements avant coupure (0 = jamais), durée, micros ignorés envoyés à l'agent."""
+    coord = await _monter(hass, hass_storage)
+    from custom_components.pc_parental import son
+    pc = coord.store.pcs["pc1"]
+    av = hass.states.get("number.pc_pl_bruit_avertissements_avant_coupure")
+    cp = hass.states.get("number.pc_pl_bruit_duree_de_la_coupure")
+    assert av is not None and float(av.state) == 0 and cp is not None   # un PC : jamais de coupure par défaut
+    await hass.services.async_call("number", "set_value", {"entity_id": av.entity_id, "value": 3}, blocking=True)
+    await hass.services.async_call("number", "set_value", {"entity_id": cp.entity_id, "value": 60}, blocking=True)
+    r = son.reglages(pc)
+    assert r["alertes_avant_coupure"] == 3 and r["coupure_min"] == 60
+    rep = await hass.services.async_call(DOMAIN, "son_regler", {"pc": "PC-PL", "actif": True,
+                                                                 "micros_exclus": ["CORSAIR VOID", "  "]},
+                                         blocking=True, return_response=True)
+    assert rep["reglages"]["micros_exclus"] == ["CORSAIR VOID"]
+    client = await hass_client()
+    d = await _releve(client, son={"depassements": []})
+    assert d["son"]["micros_exclus"] == ["CORSAIR VOID"]
+    # Bornes : 8 au plus, 80 caractères, chaînes seulement.
+    assert son.regler(pc, {"micros_exclus": ["x" * 200, 3, *[f"m{i}" for i in range(20)]]})["micros_exclus"][0] == "x" * 80
+    assert len(son.reglages(pc)["micros_exclus"]) == 8
+    # L'état « exclu » d'un micro remonte dans le détail.
+    son.recevoir(hass, coord.store, pc, {"micros_actifs": 1, "micros_detail": [{"nom": "Casque (CORSAIR VOID)", "etat": "exclu", "niveau": 80}]})
+    assert son.etat(pc)["micros_detail"][0]["etat"] == "exclu"
+

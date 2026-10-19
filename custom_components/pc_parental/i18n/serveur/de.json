@@ -964,5 +964,7 @@
   "prot.titre": "Schutz deaktiviert",
   "prot.titre_retablie": "Schutz wiederhergestellt",
   "prot.coupee": "Schutz auf „{nom}“ deaktiviert: Der Bedienungshilfe-Dienst von Vision ist aus, Vision schützt dort nichts mehr. Auf dem Gerät: Einstellungen › Bedienungshilfen › Vision › An.",
-  "prot.retablie": "Schutz auf „{nom}“ wiederhergestellt: Die Bedienungshilfe von Vision ist wieder aktiv."
+  "prot.retablie": "Schutz auf „{nom}“ wiederhergestellt: Die Bedienungshilfe von Vision ist wieder aktiv.",
+  "son.coupure": "Zu laut ({n} Warnungen): Dieses Gerät ist {minutes} Min. gesperrt, bis {heure}.",
+  "son.responsable_coupure": "Zu laut auf „{nom}“ ({niveau} dBFS) nach {n} Warnungen heute: {minutes} Min. gesperrt, bis {heure}."
 }

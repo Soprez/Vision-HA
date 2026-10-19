@@ -964,5 +964,7 @@
   "prot.titre": "Protection désactivée",
   "prot.titre_retablie": "Protection rétablie",
   "prot.coupee": "Protection désactivée sur « {nom} » : le service d'accessibilité de Vision est coupé, Vision n'y protège plus rien. Sur l'appareil : Paramètres › Accessibilité › Vision › Activé.",
-  "prot.retablie": "Protection rétablie sur « {nom} » : l'accessibilité de Vision est de nouveau active."
+  "prot.retablie": "Protection rétablie sur « {nom} » : l'accessibilité de Vision est de nouveau active.",
+  "son.coupure": "Trop de bruit ({n} avertissements) : l'appareil est fermé {minutes} min, jusqu'à {heure}.",
+  "son.responsable_coupure": "Trop de bruit sur « {nom} » ({niveau} dBFS) après {n} avertissements aujourd'hui : fermé {minutes} min, jusqu'à {heure}."
 }

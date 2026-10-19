@@ -1,0 +1,47 @@
+{
+  "version": "2.5.12.7",
+  "date": "2026-10-19",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "pc"
+      ],
+      "texte": {
+        "fr": "Niveau sonore : 1er dépassement, message doux ; 2e, message ferme ; au 3e, l'appareil peut être fermé (durée réglable).",
+        "en": "Sound level: 1st time a gentle message, 2nd a firm one; at the 3rd the device can be closed (adjustable duration).",
+        "de": "Lautstärke: 1. Mal sanfte Meldung, 2. Mal strenge; beim 3. kann das Gerät gesperrt werden (Dauer einstellbar).",
+        "es": "Nivel de ruido: 1.ª vez mensaje suave, 2.ª firme; a la 3.ª el dispositivo puede cerrarse (duración ajustable).",
+        "it": "Livello sonoro: 1ª volta messaggio gentile, 2ª fermo; alla 3ª il dispositivo può essere chiuso (durata regolabile).",
+        "nl": "Geluidsniveau: 1e keer vriendelijk bericht, 2e streng; bij de 3e kan het apparaat dicht (duur instelbaar)."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "« Réagir au bruit » par appareil : éteint, mesure seule. Avertissements et coupures sont journalisés.",
+        "en": "“React to noise” per device: off means measure only. Warnings and cut-offs are logged.",
+        "de": "„Auf Lärm reagieren“ je Gerät: aus heißt nur messen. Warnungen und Sperren werden protokolliert.",
+        "es": "«Reaccionar al ruido» por dispositivo: apagado, solo medir. Avisos y cortes quedan registrados.",
+        "it": "«Reagire al rumore» per dispositivo: spento, solo misura. Avvisi e blocchi vengono registrati.",
+        "nl": "‘Reageren op lawaai’ per apparaat: uit is alleen meten. Waarschuwingen en blokkeringen worden gelogd."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "pc"
+      ],
+      "texte": {
+        "fr": "Niveau sonore des PC : décalage continu retiré, niveau de chaque micro, micros muets ou ignorés hors moyenne.",
+        "en": "PC sound level: DC offset removed, level of each microphone, silent or ignored microphones left out.",
+        "de": "Lautstärke am PC: Gleichanteil entfernt, Pegel je Mikrofon, stumme oder ignorierte Mikrofone ausgelassen.",
+        "es": "Nivel de ruido del PC: sin componente continua, nivel de cada micrófono, mudos o ignorados fuera de la media.",
+        "it": "Livello sonoro del PC: componente continua rimossa, livello di ogni microfono, muti o ignorati esclusi.",
+        "nl": "Geluidsniveau pc: gelijkspanning verwijderd, niveau per microfoon, stille of genegeerde microfoons buiten."
+      }
+    }
+  ]
+}

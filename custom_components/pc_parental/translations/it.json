@@ -2074,6 +2074,14 @@
         "micro_plancher_dbfs": {
           "name": "Soglia minima del microfono",
           "description": "Un microfono sotto questo livello (dBFS, prima della calibrazione) non capta nulla e conta come spento."
+        },
+        "reagir": {
+          "name": "Reagire al rumore",
+          "description": "Acceso: messaggi graduali, responsabili avvisati, blocco. Spento: solo misura."
+        },
+        "micros_exclus": {
+          "name": "Microfoni ignorati",
+          "description": "Parti di nomi di microfoni esclusi dal livello (es. una cuffia vicino alla bocca)."
         }
       }
     }
@@ -2232,6 +2240,12 @@
       },
       "bruit_repos": {
         "name": "Rumore: intervallo tra due avvisi"
+      },
+      "bruit_avertissements": {
+        "name": "Rumore: avvisi prima del blocco"
+      },
+      "bruit_coupure": {
+        "name": "Rumore: durata del blocco"
       }
     },
     "select": {
@@ -2425,6 +2439,9 @@
       },
       "niveau_sonore_mesure": {
         "name": "Misurare il livello sonoro"
+      },
+      "bruit_reagir": {
+        "name": "Reagire al rumore"
       }
     },
     "text": {

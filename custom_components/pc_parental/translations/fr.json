@@ -2074,6 +2074,14 @@
         "micro_plancher_dbfs": {
           "name": "Plancher d'un micro",
           "description": "Un micro plus bas que ce niveau (dBFS, avant calibration) ne capte rien : il compte comme éteint."
+        },
+        "reagir": {
+          "name": "Réagir au bruit",
+          "description": "Allumé : messages gradués, responsables prévenus, coupure. Éteint : mesure seule."
+        },
+        "micros_exclus": {
+          "name": "Micros ignorés",
+          "description": "Morceaux de noms de micros laissés hors du niveau (par exemple un casque collé à la bouche)."
         }
       }
     }
@@ -2232,6 +2240,12 @@
       },
       "bruit_repos": {
         "name": "Bruit : délai entre deux alertes"
+      },
+      "bruit_avertissements": {
+        "name": "Bruit : avertissements avant coupure"
+      },
+      "bruit_coupure": {
+        "name": "Bruit : durée de la coupure"
       }
     },
     "select": {
@@ -2425,6 +2439,9 @@
       },
       "niveau_sonore_mesure": {
         "name": "Mesurer le niveau sonore"
+      },
+      "bruit_reagir": {
+        "name": "Réagir au bruit"
       }
     },
     "text": {

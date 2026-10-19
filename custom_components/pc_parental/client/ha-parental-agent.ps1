@@ -1034,13 +1034,14 @@ param([string]$Sortie, [string]$Reglages, [int]$DureeS = 0)
 # Le niveau d'une tranche est la moyenne (en energie) des SEULS micros allumes (retour d'essai) : un micro muet dans Windows, un
 # silence numerique (drapeau SILENT ou echantillons tous a 0) ou un niveau fige plus de micro_fige_s secondes est
 # exclu et ne tire jamais le niveau vers le bas ; desactive ou debranche, il n'est plus enumere (re-ouverture 60 s).
+# 1.93.5 : un micro dont le nom contient un des micros_exclus (ex. un casque colle a la bouche) est ignore (etat exclu).
 # 1.93.5 (retour d'essai) : un micro sous micro_plancher_dbfs (-90 par defaut, avant calibration) ne capte rien : il compte
 # comme eteint (etat sous_plancher).
 # Aucun micro actif : pas de niveau du tout (Home Assistant affiche « indisponible », jamais 0).
 # Aucun echantillon n'est garde ni envoye : le tampon est remis a zero apres chaque calcul.
 # Echelle : dB relatifs 0..100 = dBFS + 100 + calibration (la meme que l'appli Android, NiveauSonoreCalcul).
 # $Reglages (JSON ecrit par l'agent) : { seuil_db, sensibilite_s, calibration_db, micro_fige_s, micro_plancher_dbfs,
-# plages:[{debut,fin}] }.
+# micros_exclus:[morceaux de noms], plages:[{debut,fin}] }.
 # $DureeS > 0 : essai, s'arrete apres ce delai (banc).
 
 $verrou = New-Object Threading.Mutex($false, 'Local\VisionSon')
@@ -1324,7 +1325,7 @@ namespace VisionSon
 
 function Lire-Config {
     param([string]$Chemin)
-    $c = @{ seuil = 75; sensibilite = 3; calibration = 0; fige = 10; plancher = -90; plages = @() }
+    $c = @{ seuil = 75; sensibilite = 3; calibration = 0; fige = 10; plancher = -90; exclus = @(); plages = @() }
     if (-not $Chemin -or -not (Test-Path $Chemin)) { return $c }
     try {
         $j = Get-Content -LiteralPath $Chemin -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -1332,6 +1333,9 @@ function Lire-Config {
         if ($j.PSObject.Properties['sensibilite_s']) { $c.sensibilite = [double]$j.sensibilite_s }
         if ($j.PSObject.Properties['calibration_db']) { $c.calibration = [double]$j.calibration_db }
         if ($j.PSObject.Properties['micro_fige_s']) { $c.fige = [math]::Max(2.0, [double]$j.micro_fige_s) }
+        if ($j.PSObject.Properties['micros_exclus'] -and $null -ne $j.micros_exclus) {
+            $c.exclus = @(@($j.micros_exclus) | ForEach-Object { [string]$_ } | Where-Object { $_ })
+        }
         if ($j.PSObject.Properties['micro_plancher_dbfs']) { $c.plancher = [math]::Min(-40.0, [math]::Max(-120.0, [double]$j.micro_plancher_dbfs)) }
         if ($j.PSObject.Properties['plages'] -and $null -ne $j.plages) {
             $c.plages = @(@($j.plages) | ForEach-Object {
@@ -1370,13 +1374,16 @@ function Mesurer-Tranche {
        sans_donnees) et son energie (actif, sous_plancher ou fige), pour le niveau par micro. Un micro sous
        $PlancherDbfs (avant calibration) ne capte rien : il compte comme eteint (retour d'essai). #>
     param($Micros, [hashtable]$Figes, [hashtable]$VusActifs, [datetime]$Maintenant, [double]$Fige, [hashtable]$ParMicro = @{},
-          [double]$PlancherDbfs = -90)
+          [double]$PlancherDbfs = -90, [string[]]$Exclus = @())
     $sommeCarres = 0.0; $nActifs = 0
     foreach ($m in @($Micros)) {
         $p = $ParMicro[$m.Id]
         if ($null -eq $p) { $p = @{ nom = [string]$m.Nom; energie = 0.0; n = 0; etat = 'sans_donnees' }; $ParMicro[$m.Id] = $p }
         try { $r = [double]$m.LireRms() } catch { $r = -1.0 }
         if ($r -lt 0) { continue }
+        $exclu = $false
+        foreach ($x in @($Exclus)) { if ($x -and ([string]$m.Nom).IndexOf([string]$x, [StringComparison]::OrdinalIgnoreCase) -ge 0) { $exclu = $true; break } }
+        if ($exclu) { if ($r -gt 0) { $p.energie += $r * $r; $p.n++ }; $Figes.Remove($m.Id); $p.etat = 'exclu'; continue }
         $muet = $false; try { $muet = [bool]$m.Muet() } catch { }
         if ($muet -or $r -le 0) { $Figes.Remove($m.Id); $p.etat = $(if ($muet) { 'muet' } else { 'silence' }); continue }
         $p.energie += $r * $r; $p.n++
@@ -1448,7 +1455,7 @@ while ($true) {
     if (($maintenant - $derniereConfig).TotalSeconds -ge 10) { $config = Lire-Config $Reglages; $derniereConfig = $maintenant }
 
     # Une tranche de 100 ms : la moyenne des seuls micros allumes (Mesurer-Tranche).
-    $rmsMoyen = Mesurer-Tranche -Micros $micros -Figes $figes -VusActifs $vusActifs -Maintenant $maintenant -Fige $config.fige -ParMicro $parMicro -PlancherDbfs $config.plancher
+    $rmsMoyen = Mesurer-Tranche -Micros $micros -Figes $figes -VusActifs $vusActifs -Maintenant $maintenant -Fige $config.fige -ParMicro $parMicro -PlancherDbfs $config.plancher -Exclus $config.exclus
     if ($rmsMoyen -ge 0) {
         $db = Niveau-Relatif -Rms $rmsMoyen -Calibration $config.calibration
         $energies[$pos] = [math]::Pow(10.0, $db / 10.0); $niveaux[$pos] = $db
@@ -4418,6 +4425,7 @@ function Sync-Son {
         calibration_db = [double](Get-PropOrDefault $bloc 'calibration_db' 0)
         micro_fige_s   = [double](Get-PropOrDefault $bloc 'micro_fige_s' 10)
         micro_plancher_dbfs = [double](Get-PropOrDefault $bloc 'micro_plancher_dbfs' -90)
+        micros_exclus  = @(@(Get-PropOrDefault $bloc 'micros_exclus' @()) | ForEach-Object { [string]$_ } | Where-Object { $_ })
         plages         = $plages
     } | ConvertTo-Json -Compress -Depth 4
     if ($reglages -ne $script:SonReglagesJson) {

@@ -162,6 +162,20 @@ $figes = @{}; $vus = @{}
 $r = Mesurer-Tranche -Micros @((Faux-Micro 'e' @(0.0000317))) -Figes $figes -VusActifs $vus -Maintenant $t0 -Fige 10
 Verifier 'à -89,98 dBFS : compté' $r 0.0000317
 
+# 10. (1.93.5) Un micro dont le nom contient un des micros exclus (ex. un casque collé à la bouche) est ignoré.
+$figes = @{}; $vus = @{}; $par = @{}
+$casque = Faux-Micro 'k' @(0.5); $casque.Nom = 'Microphone sur casque (3- CORSAIR VOID ELITE)'
+$piece = Faux-Micro 'p' @(0.01)
+$r = Mesurer-Tranche -Micros @($casque, $piece) -Figes $figes -VusActifs $vus -Maintenant $t0 -Fige 10 -ParMicro $par -Exclus @('corsair void')
+Verifier 'micro exclu par son nom (sans tenir compte de la casse)' $r 0.01
+$det = @(Detail-Micros -Micros @($casque, $piece) -ParMicro $par -Calibration 0)
+$k = $det | Where-Object { $_.nom -like '*CORSAIR*' }
+if ($k.etat -ne 'exclu') { Write-Output "ÉCART : état $($k.etat) au lieu de exclu"; $ecarts++ } else { Write-Output 'ok   détail : micro exclu signalé' }
+Verifier 'détail : niveau du micro exclu visible (-6 dBFS)' $k.niveau ([math]::Round(20 * [math]::Log10(0.5) + 100, 1))
+$figes = @{}; $vus = @{}
+$r = Mesurer-Tranche -Micros @((Faux-Micro 'k2' @(0.5))) -Figes $figes -VusActifs $vus -Maintenant $t0 -Fige 10 -Exclus @('Micro k2')
+Verifier 'seul micro exclu : pas de niveau' $r -1
+
 if ($ecarts) { Write-Output "$ecarts écart(s)."; exit 1 }
 Write-Output 'Tout est conforme.'
 exit 0

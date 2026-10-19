@@ -62,6 +62,8 @@ REGLAGES_DEFAUT: dict[str, Any] = {
     "plages": [],                # [{"debut": "HH:MM", "fin": "HH:MM"}] ; vide = toute la journée
     "calibration_db": 0,         # ajouté à la mesure de l'appareil (micros très différents)
     "micro_fige_s": 10,          # un micro dont le niveau ne bouge plus pendant ce temps est exclu de la moyenne (2.5.12.3)
+    "reagir": True,              # réagir aux dépassements (messages, responsables, coupure) ; éteint = mesure seule (2.5.12.7)
+    "micros_exclus": [],         # morceaux de noms de micros ignorés (ex. un casque collé à la bouche) (2.5.12.7)
     "micro_plancher_dbfs": -90,  # un micro plus bas que ça (avant calibration) ne capte rien : compté comme éteint (l'auteur, agent 1.93.5)
 }
 # Un PC (agent Windows, 2.5.12.3) : des alertes et des messages, jamais de coupure par défaut ; 3 s suffisent.
@@ -71,8 +73,10 @@ BORNES: dict[str, tuple[float, float]] = {
     "ferme_apres_min": (1, 120), "alertes_avant_coupure": (0, 10), "coupure_min": (1, 240), "calme_min": (1, 240),
     "calibration_db": (-30, 30), "micro_fige_s": (2, 300), "micro_plancher_dbfs": (-120, -40),
 }
-ETATS_MICRO = ("actif", "muet", "silence", "sous_plancher", "fige", "sans_donnees")  # état d'un micro (agent 1.93.5)
-MAX_DEPASSEMENTS = 20  # par relevé : un appareil qui s'emballe ne remplit pas le journal
+ETATS_MICRO = ("actif", "muet", "silence", "sous_plancher", "exclu", "fige", "sans_donnees")  # état d'un micro (agent 1.93.5)
+MAX_DEPASSEMENTS = 20
+JOURNAL_MAX = 20     # avertissements et coupures gardés dans l'état (capteur « Niveau sonore », attribut journal)
+EXCLUS_MAX = 8       # morceaux de noms de micros exclus, 80 caractères chacun  # par relevé : un appareil qui s'emballe ne remplit pas le journal
 
 
 def actif_module(store) -> bool:
@@ -99,6 +103,9 @@ def reglages(pc: dict[str, Any]) -> dict[str, Any]:
             r[k] = base[k]
     r["actif"] = bool(r["actif"])
     r["prevenir_responsable"] = bool(r["prevenir_responsable"])
+    r["reagir"] = bool(r["reagir"])
+    exclus = r["micros_exclus"] if isinstance(r["micros_exclus"], list) else []
+    r["micros_exclus"] = [str(x).strip()[:80] for x in exclus if isinstance(x, str) and str(x).strip()][:EXCLUS_MAX]
     r["nuit"] = "heures" if str(r.get("nuit")) == "heures" else "plages"
     for k in ("nuit_debut", "nuit_fin"):
         r[k] = str(r[k]) if _minutes(r.get(k)) is not None else base[k]
@@ -133,6 +140,7 @@ def etat(pc: dict[str, Any]) -> dict[str, Any]:
     # 2.5.12.3 (l'auteur, précision) : seuls les micros vraiment allumés comptent ; aucun = capteur indisponible.
     e.setdefault("micros_actifs", None)  # micros pris en compte (None : l'appareil ne le dit pas, ex. l'appli)
     e.setdefault("micros_liste", [])     # leurs noms
+    e.setdefault("journal", [])          # avertissements et coupures : heure, type, rang, niveau (2.5.12.7)
     e.setdefault("micros_detail", [])    # chaque micro : nom, état, niveau relatif (agent 1.93.5)
     return e
 
@@ -204,6 +212,7 @@ def pour_releve(store, pc: dict[str, Any]) -> dict[str, Any]:
         "actif": True, "seuil_db": int(r["seuil_nuit_db"] if nuit else r["seuil_db"]), "nuit": nuit,
         "sensibilite_s": r["sensibilite_s"], "plages": r["plages"], "calibration_db": r["calibration_db"],
         "micro_fige_s": r["micro_fige_s"], "micro_plancher_dbfs": r["micro_plancher_dbfs"],
+        "micros_exclus": r["micros_exclus"],
         "alertes": int(e["alertes"]), "alertes_avant_coupure": r["alertes_avant_coupure"],
     }
 
@@ -228,6 +237,23 @@ def par_micro(e: dict[str, Any]) -> list[dict[str, Any]]:
             for d in (e.get("micros_detail") or []) if isinstance(d, dict)]
 
 
+def _noter(e: dict[str, Any], quand: float, genre: str, db: float | None, **plus: Any) -> None:
+    """2.5.12.7 : un avertissement, une coupure ou un dépassement sans réaction, gardé dans l'état (les 20 derniers)."""
+    entree = {"ts": round(float(quand), 1), "type": genre, "niveau_dbfs": dbfs(db), **plus}
+    e["journal"] = (list(e.get("journal") or []) + [entree])[-JOURNAL_MAX:]
+
+
+def journal_lisible(e: dict[str, Any]) -> list[dict[str, Any]]:
+    """Le journal pour le capteur : l'heure locale à la place de l'horodatage."""
+    sortie = []
+    for x in e.get("journal") or []:
+        if isinstance(x, dict):
+            d = {k: v for k, v in x.items() if k != "ts"}
+            d["heure"] = dt_util.as_local(dt_util.utc_from_timestamp(float(x.get("ts") or 0))).isoformat(timespec="seconds")
+            sortie.append(d)
+    return sortie
+
+
 def _message(hass: HomeAssistant, store, pc: dict[str, Any], cle: str, **champs: Any) -> None:
     """Un message à l'écran de l'appareil, dans sa langue (l'agent PC l'affiche en notification Windows)."""
     try:
@@ -238,12 +264,13 @@ def _message(hass: HomeAssistant, store, pc: dict[str, Any], cle: str, **champs:
         _LOGGER.info("Vision : message « %s » non déposé sur %s : %s", cle, pc.get("id"), err)
 
 
-def _prevenir_responsables(hass: HomeAssistant, store, pc: dict[str, Any], niveau: float | None, n_jour: int) -> None:
+def _prevenir_responsables(hass: HomeAssistant, store, pc: dict[str, Any], niveau: float | None, n_jour: int,
+                           cle: str = "son.responsable", **champs: Any) -> None:
     """2.5.12.3 : les responsables, par leurs canaux « alertes » (comme protection.py), dans leur langue."""
     from . import canaux, roles
 
     nom = str(pc.get("name") or pc.get("id"))
-    phrase = textes.Phrase("son.responsable", nom=nom, n=n_jour, niveau=(dbfs(niveau) if niveau is not None else "?"))
+    phrase = textes.Phrase(cle, nom=nom, n=n_jour, niveau=(dbfs(niveau) if niveau is not None else "?"), **champs)
     langue_ha = textes.ha(hass)
     titre_ha = textes.t("son.responsable_titre", langue_ha)
     hass.async_create_task(canaux.compagnon_simple(hass, store, "alertes", titre_ha, phrase.en(langue_ha), tag=f"vision_son_{pc.get('id')}"))
@@ -333,30 +360,51 @@ def recevoir(hass: HomeAssistant, store, pc: dict[str, Any], bloc: Any, maintena
         dernier = float(e["dernier"] or 0)
         if dernier and quand - dernier < r["repos_min"] * 60:
             continue
+        db = _nombre(d.get("db"))
+        seuil = int(r["seuil_nuit_db"] if est_nuit(store, pc, instant) else r["seuil_db"])
+        if not r["reagir"]:
+            # 2.5.12.7 : mesure seule. Compté et journalisé, sans message, sans responsables, sans coupure.
+            e["aujourd_hui"] = int(e["aujourd_hui"]) + 1
+            e["dernier"] = quand
+            _noter(e, quand, "depassement", db, seuil_dbfs=seuil - 100)
+            _LOGGER.info("Vision : bruit sur « %s » (%s dBFS, seuil %s dBFS), sans réaction (mesure seule).",
+                         nom, dbfs(db), seuil - 100)
+            continue
         rapproche = bool(dernier) and quand - dernier <= r["ferme_apres_min"] * 60
         e["niveau_alerte"] = min(NIVEAU_RESPONSABLE, int(e["niveau_alerte"]) + 1) if rapproche else NIVEAU_DOUX
         e["alertes"] = int(e["alertes"]) + 1
         e["aujourd_hui"] = int(e["aujourd_hui"]) + 1
         e["dernier"] = quand
         n, seuil_coupure = e["alertes"], r["alertes_avant_coupure"]
-        seuil = int(r["seuil_nuit_db"] if est_nuit(store, pc, instant) else r["seuil_db"])
-        db = _nombre(d.get("db"))
         hass.bus.async_fire(EV_SEUIL, {
             "appareil": pc.get("id"), "nom": nom, "niveau": db, "niveau_dbfs": dbfs(db), "seuil": seuil,
             "seuil_dbfs": seuil - 100, "nuit": est_nuit(store, pc, instant), "alerte": n,
             "alertes_avant_coupure": seuil_coupure, "gradation": e["niveau_alerte"], "aujourd_hui": e["aujourd_hui"],
         })
-        # 2.5.12.3 : la réaction graduée. Les PC n'ont pas d'alerte locale : c'est ce message qui s'affiche.
-        if e["niveau_alerte"] == NIVEAU_DOUX:
-            _message(hass, store, pc, "son.doux")
-        else:
-            _message(hass, store, pc, "son.ferme")
+        if seuil_coupure and n >= seuil_coupure:
+            # 2.5.12.7 : la coupure, comme une fermeture Vision de N minutes (écran de blocage, réouverture seule à
+            # l'échéance) ; un message à l'écran, les responsables prévenus ; la gradation repart de zéro.
+            store.set_override(pc, MODE_LOCKED, r["coupure_min"])
+            fin_coupure = time.time() + r["coupure_min"] * 60
+            langue = textes.pour(hass, pc)
+            _message(hass, store, pc, "son.coupure", n=n, minutes=r["coupure_min"], heure=textes.heure(fin_coupure, langue))
+            if r["prevenir_responsable"]:
+                _prevenir_responsables(hass, store, pc, db, e["aujourd_hui"], cle="son.responsable_coupure",
+                                       minutes=r["coupure_min"], heure=textes.heure(fin_coupure, textes.ha(hass)))
+            hass.bus.async_fire(EV_COUPURE, {"appareil": pc.get("id"), "nom": nom, "minutes": r["coupure_min"], "alertes": n})
+            _noter(e, quand, "coupure", db, rang=n, seuil_dbfs=seuil - 100, minutes=r["coupure_min"])
+            _LOGGER.warning("Vision : trop de bruit sur « %s » : coupure %d min après %d avertissements (%s dBFS, seuil %s dBFS).",
+                            nom, r["coupure_min"], n, dbfs(db), seuil - 100)
+            e["alertes"] = 0
+            e["niveau_alerte"] = 0
+            continue
+        # La réaction graduée. Les PC n'ont pas d'alerte locale : c'est ce message qui s'affiche.
+        _message(hass, store, pc, "son.doux" if e["niveau_alerte"] == NIVEAU_DOUX else "son.ferme")
+        _noter(e, quand, "avertissement", db, rang=n, seuil_dbfs=seuil - 100)
+        _LOGGER.warning("Vision : bruit sur « %s » : avertissement %d%s (%s dBFS, seuil %s dBFS).", nom, n,
+                        f"/{seuil_coupure}" if seuil_coupure else "", dbfs(db), seuil - 100)
         if e["niveau_alerte"] >= NIVEAU_RESPONSABLE and r["prevenir_responsable"]:
             _prevenir_responsables(hass, store, pc, db, e["aujourd_hui"])
             _LOGGER.warning("Vision : trop de bruit sur « %s » (%s dBFS, %d fois aujourd'hui) : responsables prévenus.",
                             nom, dbfs(db), e["aujourd_hui"])
-        if seuil_coupure and n >= seuil_coupure:
-            store.set_override(pc, MODE_LOCKED, r["coupure_min"])
-            hass.bus.async_fire(EV_COUPURE, {"appareil": pc.get("id"), "nom": nom, "minutes": r["coupure_min"], "alertes": n})
-            e["alertes"] = 0
     return change

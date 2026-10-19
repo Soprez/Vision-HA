@@ -228,7 +228,8 @@ def _son_numbers(coordinator: PcParentalCoordinator) -> list:
     sortie: list = []
     for pc_id in coordinator.pcs:
         sortie += [SonSeuilNumber(coordinator, pc_id, nuit=False), SonSeuilNumber(coordinator, pc_id, nuit=True),
-                   SonDureeNumber(coordinator, pc_id), SonReposNumber(coordinator, pc_id)]
+                   SonDureeNumber(coordinator, pc_id), SonReposNumber(coordinator, pc_id),
+                   SonAvertissementsNumber(coordinator, pc_id), SonCoupureNumber(coordinator, pc_id)]
     return sortie
 
 
@@ -310,3 +311,34 @@ class SonReposNumber(_SonNumber):
 
         super().__init__(coordinator, pc_id, "repos")
         self._attr_native_min_value, self._attr_native_max_value = _son.BORNES["repos_min"]
+
+
+class SonAvertissementsNumber(_SonNumber):
+    """2.5.12.7 : avertissements avant la coupure (0 = jamais de coupure)."""
+
+    _attr_translation_key = "bruit_avertissements"
+    _attr_icon = "mdi:numeric-3-circle-outline"
+    _attr_native_step = 1
+    _cle = "alertes_avant_coupure"
+
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
+        from . import son as _son
+
+        super().__init__(coordinator, pc_id, "avertissements")
+        self._attr_native_min_value, self._attr_native_max_value = _son.BORNES["alertes_avant_coupure"]
+
+
+class SonCoupureNumber(_SonNumber):
+    """2.5.12.7 : durée de la coupure, en minutes."""
+
+    _attr_translation_key = "bruit_coupure"
+    _attr_icon = "mdi:lock-clock"
+    _attr_native_unit_of_measurement = "min"
+    _attr_native_step = 1
+    _cle = "coupure_min"
+
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
+        from . import son as _son
+
+        super().__init__(coordinator, pc_id, "coupure")
+        self._attr_native_min_value, self._attr_native_max_value = _son.BORNES["coupure_min"]

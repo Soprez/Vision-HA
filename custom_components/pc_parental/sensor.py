@@ -902,6 +902,7 @@ class NiveauSonoreSensor(PcEntity, SensorEntity):
             "niveau_relatif": e.get("niveau"), "micros": e.get("micros"),
             "micros_actifs": e.get("micros_actifs"), "micros_pris_en_compte": list(e.get("micros_liste") or []),
             "par_micro": son.par_micro(e),
+            "reagir": r["reagir"], "micros_exclus": r["micros_exclus"], "journal": son.journal_lisible(e),
             "seuil": seuil - 100, "seuil_jour": r["seuil_db"] - 100, "seuil_nuit": r["seuil_nuit_db"] - 100, "nuit": nuit,
             "alertes": e.get("alertes", 0), "alertes_avant_coupure": r["alertes_avant_coupure"],
             "aujourd_hui": e.get("aujourd_hui", 0), "gradation": e.get("niveau_alerte", 0),

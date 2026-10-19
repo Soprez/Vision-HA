@@ -60,6 +60,21 @@ ou, quand le module est allumé ET la mesure activée pour cet appareil :
   sont prévenus par leurs canaux « alertes » (`prevenir_responsable`). Deux dépassements à moins de `repos_min` l'un de
   l'autre ne comptent qu'une fois. Le compteur du jour (`aujourd_hui`) est dans le capteur et l'événement.
 - Un PC n'est jamais coupé par défaut (`alertes_avant_coupure` 0) ; sa sensibilité par défaut est de 3 s.
+- **2.5.12.7, coupure graduée** : avec `alertes_avant_coupure` = N (réglable par appareil, entité « Bruit :
+  avertissements avant coupure »), les N−1 premiers avertissements sont des messages (doux, puis ferme) et le N-ième
+  ferme l'appareil `coupure_min` minutes (entité « Bruit : durée de la coupure ») : même dérogation que le service
+  `lock` (écran de blocage, réouverture seule à l'échéance), message « Trop de bruit (N avertissements) : l'appareil
+  est fermé … jusqu'à … », responsables prévenus (`son.responsable_coupure`, si `prevenir_responsable`), événement
+  `vision_son_coupure`, puis la gradation repart de zéro. Le compteur revient à zéro après `calme_min` sans
+  dépassement ; deux dépassements à moins de `repos_min` comptent une fois.
+- **2.5.12.7, « Réagir au bruit »** (`reagir`, interrupteur par appareil, allumé par défaut) : éteint, la mesure
+  continue, les dépassements sont comptés et journalisés, sans message, sans responsables, sans coupure.
+- **2.5.12.7, journal** : chaque avertissement, coupure ou dépassement sans réaction est gardé (les 20 derniers :
+  heure, type, rang, niveau et seuil en dBFS, durée) dans l'attribut `journal` du capteur « Niveau sonore », et écrit
+  au journal de Home Assistant (WARNING pour les avertissements et coupures).
+- **2.5.12.7, micros ignorés** (`micros_exclus`, service `son_regler`) : des morceaux de noms (sans tenir compte de la
+  casse) ; un micro dont le nom en contient un est laissé hors du niveau (état `exclu`, son niveau reste visible dans
+  `par_micro`). Utile pour un casque collé à la bouche, qui mesure la voix et non la pièce.
 
 - Chaque dépassement (dans les plages) compte une alerte et lance `vision_son_seuil_depasse`
   (`appareil`, `nom`, `niveau`, `seuil`, `alerte`, `alertes_avant_coupure`).
@@ -102,7 +117,7 @@ ou, quand le module est allumé ET la mesure activée pour cet appareil :
   sur PC-SAM (deux micros à −99 dBFS). Aucun micro au-dessus : capteur indisponible.
   Désactivé ou débranché : il n'est plus énuméré (réouverture toutes les 60 s, ou aussitôt s'il tombe en panne).
   Aucun micro actif pendant 5 s : la minute est oubliée et aucun niveau n'est écrit (`micros_actifs: 0`).
-- Les réglages (seuil du moment, sensibilité, calibration, micro figé, plages) lui sont déposés par l'agent dans
+- Les réglages (seuil du moment, sensibilité, calibration, micro figé, plancher, micros ignorés, plages) lui sont déposés par l'agent dans
   `son-reglages.json`, relu toutes les 10 s. Les micros sont réouverts toutes les 60 s (branchements).
 - Session **verrouillée** : la sonde continue (la session reste active pour Windows). Session **déconnectée** (plage
   « Verrouiller la session ») : les processus survivent, mais l'agent ne peut pas y lancer une sonde ; une sonde déjà

@@ -2074,6 +2074,14 @@
         "micro_plancher_dbfs": {
           "name": "Mikrofon-Untergrenze",
           "description": "Ein Mikrofon leiser als dieser Pegel (dBFS, vor Kalibrierung) nimmt nichts auf und gilt als aus."
+        },
+        "reagir": {
+          "name": "Auf Lärm reagieren",
+          "description": "An: abgestufte Meldungen, Verantwortliche benachrichtigt, Sperre. Aus: nur messen."
+        },
+        "micros_exclus": {
+          "name": "Ignorierte Mikrofone",
+          "description": "Teile von Mikrofonnamen, die nicht in den Pegel eingehen (z. B. ein Headset am Mund)."
         }
       }
     }
@@ -2232,6 +2240,12 @@
       },
       "bruit_repos": {
         "name": "Lärm: Abstand zwischen zwei Warnungen"
+      },
+      "bruit_avertissements": {
+        "name": "Lärm: Warnungen vor Sperre"
+      },
+      "bruit_coupure": {
+        "name": "Lärm: Dauer der Sperre"
       }
     },
     "select": {
@@ -2425,6 +2439,9 @@
       },
       "niveau_sonore_mesure": {
         "name": "Lautstärke messen"
+      },
+      "bruit_reagir": {
+        "name": "Auf Lärm reagieren"
       }
     },
     "text": {

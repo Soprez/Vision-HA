@@ -48,6 +48,7 @@ async def async_setup_entry(
         entites.append(PcAccessSwitch(coordinator, pc_id))
         if son_actif:
             entites.append(SonMesureSwitch(coordinator, pc_id))  # 2.5.12.3 : la mesure du bruit, par appareil
+            entites.append(SonReagirSwitch(coordinator, pc_id))  # 2.5.12.7 : réagir (messages, coupure) ou mesurer seulement
         for rule in coordinator.rules(pc_id):
             entites.append(RuleSwitch(coordinator, pc_id, rule["id"]))
         for etiquette in etiquettes:
@@ -56,7 +57,7 @@ async def async_setup_entry(
             )
     valides = (
         {f"{DOMAIN}_acces_{pc}" for pc in coordinator.pcs}
-        | ({f"{DOMAIN}_son_mesure_{pc}" for pc in coordinator.pcs} if son_actif else set())
+        | ({f"{DOMAIN}_son_{cle}_{pc}" for pc in coordinator.pcs for cle in ("mesure", "reagir")} if son_actif else set())
         | {
             f"{DOMAIN}_rule_{pc}_{r['id']}"
             for pc in coordinator.pcs
@@ -576,6 +577,36 @@ class SonMesureSwitch(PcEntity, SwitchEntity):
         from . import son as _son
 
         await appliquer(self.coordinator, lambda: _son.regler(self.pc, {"actif": actif}))
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._poser(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._poser(False)
+
+
+class SonReagirSwitch(PcEntity, SwitchEntity):
+    """2.5.12.7 : réagir au bruit sur cet appareil (messages gradués, responsables, coupure) ; éteint, la mesure
+    continue sans aucune réaction. D'un clic, la règle s'arrête. Administrateurs."""
+
+    _attr_translation_key = "bruit_reagir"
+    _attr_icon = "mdi:account-voice"
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
+        super().__init__(coordinator, pc_id)
+        self._attr_unique_id = f"{DOMAIN}_son_reagir_{pc_id}"
+
+    @property
+    def is_on(self) -> bool:
+        from . import son as _son
+
+        return bool(self.pc and _son.reglages(self.pc)["reagir"])
+
+    async def _poser(self, actif: bool) -> None:
+        from . import son as _son
+
+        await appliquer(self.coordinator, lambda: _son.regler(self.pc, {"reagir": actif}))
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self._poser(True)

@@ -2074,6 +2074,14 @@
         "micro_plancher_dbfs": {
           "name": "Microphone floor",
           "description": "A microphone quieter than this (dBFS, before calibration) picks up nothing and counts as off."
+        },
+        "reagir": {
+          "name": "React to noise",
+          "description": "On: graduated messages, people in charge notified, cut-off. Off: measure only."
+        },
+        "micros_exclus": {
+          "name": "Ignored microphones",
+          "description": "Parts of microphone names left out of the level (e.g. a headset close to the mouth)."
         }
       }
     }
@@ -2232,6 +2240,12 @@
       },
       "bruit_repos": {
         "name": "Noise: delay between two alerts"
+      },
+      "bruit_avertissements": {
+        "name": "Noise: warnings before cut-off"
+      },
+      "bruit_coupure": {
+        "name": "Noise: cut-off duration"
       }
     },
     "select": {
@@ -2425,6 +2439,9 @@
       },
       "niveau_sonore_mesure": {
         "name": "Measure the sound level"
+      },
+      "bruit_reagir": {
+        "name": "React to noise"
       }
     },
     "text": {

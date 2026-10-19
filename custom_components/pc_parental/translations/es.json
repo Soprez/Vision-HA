@@ -2074,6 +2074,14 @@
         "micro_plancher_dbfs": {
           "name": "Umbral mínimo del micrófono",
           "description": "Un micrófono por debajo de este nivel (dBFS, antes de calibrar) no capta nada y cuenta como apagado."
+        },
+        "reagir": {
+          "name": "Reaccionar al ruido",
+          "description": "Activado: mensajes graduales, responsables avisados, corte. Desactivado: solo medir."
+        },
+        "micros_exclus": {
+          "name": "Micrófonos ignorados",
+          "description": "Partes de nombres de micrófonos fuera del nivel (p. ej. unos auriculares junto a la boca)."
         }
       }
     }
@@ -2232,6 +2240,12 @@
       },
       "bruit_repos": {
         "name": "Ruido: tiempo entre dos alertas"
+      },
+      "bruit_avertissements": {
+        "name": "Ruido: avisos antes del corte"
+      },
+      "bruit_coupure": {
+        "name": "Ruido: duración del corte"
       }
     },
     "select": {
@@ -2425,6 +2439,9 @@
       },
       "niveau_sonore_mesure": {
         "name": "Medir el nivel de ruido"
+      },
+      "bruit_reagir": {
+        "name": "Reaccionar al ruido"
       }
     },
     "text": {

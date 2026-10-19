@@ -2074,6 +2074,14 @@
         "micro_plancher_dbfs": {
           "name": "Ondergrens microfoon",
           "description": "Een microfoon zachter dan dit niveau (dBFS, vóór kalibratie) vangt niets op en telt als uit."
+        },
+        "reagir": {
+          "name": "Reageren op lawaai",
+          "description": "Aan: oplopende berichten, verantwoordelijken gewaarschuwd, blokkering. Uit: alleen meten."
+        },
+        "micros_exclus": {
+          "name": "Genegeerde microfoons",
+          "description": "Delen van microfoonnamen die niet meetellen (bv. een headset bij de mond)."
         }
       }
     }
@@ -2232,6 +2240,12 @@
       },
       "bruit_repos": {
         "name": "Lawaai: tijd tussen twee meldingen"
+      },
+      "bruit_avertissements": {
+        "name": "Lawaai: waarschuwingen vóór blokkering"
+      },
+      "bruit_coupure": {
+        "name": "Lawaai: duur van de blokkering"
       }
     },
     "select": {
@@ -2425,6 +2439,9 @@
       },
       "niveau_sonore_mesure": {
         "name": "Geluidsniveau meten"
+      },
+      "bruit_reagir": {
+        "name": "Reageren op lawaai"
       }
     },
     "text": {
