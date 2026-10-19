@@ -34,6 +34,7 @@ async def async_setup_entry(
             RythmeListeNoire(coordinator),
         ]
         + [PauseMaxNumber(coordinator, pc_id) for pc_id in coordinator.pcs]
+        + _son_numbers(coordinator)
     )
     prune_stale(hass, coordinator, "number", f"{DOMAIN}_pause_max_", {f"{DOMAIN}_pause_max_{pc}" for pc in coordinator.pcs})
     # La règle de moyenne a quitté l'intégration (1.60.0) : ses seuils quittent le registre.
@@ -213,3 +214,99 @@ class PauseMaxNumber(EntityIdFige, PcEntity, NumberEntity):
             self.pc["pause_max"] = entier
 
         await appliquer(self.coordinator, _faire)
+
+
+# --------------------------------------------------------------------------- Niveau sonore (2.5.12.3)
+
+
+def _son_numbers(coordinator: PcParentalCoordinator) -> list:
+    """Les réglages chiffrés du niveau sonore, par appareil, seulement quand le module est allumé (son.py)."""
+    from . import son as _son
+
+    if not _son.actif_module(coordinator.store):
+        return []
+    sortie: list = []
+    for pc_id in coordinator.pcs:
+        sortie += [SonSeuilNumber(coordinator, pc_id, nuit=False), SonSeuilNumber(coordinator, pc_id, nuit=True),
+                   SonDureeNumber(coordinator, pc_id), SonReposNumber(coordinator, pc_id)]
+    return sortie
+
+
+class _SonNumber(EntityIdFige, PcEntity, NumberEntity):
+    """Un réglage du niveau sonore de cet appareil (son.reglages), écrit par son.regler. Administrateurs."""
+
+    _plateforme_entity_id = "number"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_mode = NumberMode.BOX
+    _cle = ""        # la clé de son.REGLAGES_DEFAUT
+    _decalage = 0    # dBFS affiché = relatif + décalage (les seuils) ; 0 pour les durées
+
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str, suffixe: str) -> None:
+        super().__init__(coordinator, pc_id)
+        self._attr_unique_id = f"{DOMAIN}_son_{suffixe}_{pc_id}"
+
+    @property
+    def native_value(self) -> float | None:
+        from . import son as _son
+
+        return float(_son.reglages(self.pc)[self._cle] + self._decalage) if self.pc else None
+
+    async def async_set_native_value(self, value: float) -> None:
+        from . import son as _son
+
+        def _faire() -> None:
+            _son.regler(self.pc, {self._cle: int(round(value)) - self._decalage})
+
+        await appliquer(self.coordinator, _faire)
+
+
+class SonSeuilNumber(_SonNumber):
+    """Seuil de jour ou de nuit, en dBFS (0 = pleine échelle du micro ; l'appareil le reçoit en dB relatifs + 100)."""
+
+    _attr_icon = "mdi:volume-high"
+    _attr_native_unit_of_measurement = "dB"
+    _attr_native_step = 1
+    _decalage = -100
+
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str, nuit: bool) -> None:
+        from . import son as _son
+
+        self._cle = "seuil_nuit_db" if nuit else "seuil_db"
+        self._attr_translation_key = "seuil_sonore_nuit" if nuit else "seuil_sonore_jour"
+        if nuit:
+            self._attr_icon = "mdi:weather-night"
+        super().__init__(coordinator, pc_id, "seuil_nuit" if nuit else "seuil_jour")
+        bas, haut = _son.BORNES[self._cle]
+        self._attr_native_min_value, self._attr_native_max_value = bas - 100, haut - 100
+
+
+class SonDureeNumber(_SonNumber):
+    """Secondes au-dessus du seuil avant une alerte (« sensibilité »)."""
+
+    _attr_translation_key = "bruit_duree"
+    _attr_icon = "mdi:timer-sand"
+    _attr_native_unit_of_measurement = "s"
+    _attr_native_step = 1
+    _cle = "sensibilite_s"
+
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
+        from . import son as _son
+
+        super().__init__(coordinator, pc_id, "duree")
+        self._attr_native_min_value, self._attr_native_max_value = _son.BORNES["sensibilite_s"]
+
+
+class SonReposNumber(_SonNumber):
+    """Minutes au moins entre deux alertes comptées."""
+
+    _attr_translation_key = "bruit_repos"
+    _attr_icon = "mdi:timer-outline"
+    _attr_native_unit_of_measurement = "min"
+    _attr_native_step = 1
+    _cle = "repos_min"
+
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
+        from . import son as _son
+
+        super().__init__(coordinator, pc_id, "repos")
+        self._attr_native_min_value, self._attr_native_max_value = _son.BORNES["repos_min"]

@@ -61,6 +61,7 @@ async def async_setup_entry(
     son_actif = _son.actif_module(coordinator.store)
     if son_actif:
         entites.extend(NiveauSonoreSensor(coordinator, pc_id) for pc_id in coordinator.pcs)
+        entites.extend(MicrosActifsSensor(coordinator, pc_id) for pc_id in coordinator.pcs)
     valides = {
         f"{DOMAIN}_{cle}_{pc}"
         for pc in coordinator.pcs
@@ -74,7 +75,7 @@ async def async_setup_entry(
             "alertes",
             "blocages",
         )
-    } | ({f"{DOMAIN}_son_{pc}" for pc in coordinator.pcs} if son_actif else set()) | {
+    } | ({f"{DOMAIN}_{cle}_{pc}" for pc in coordinator.pcs for cle in ("son", "son_micros")} if son_actif else set()) | {
         f"{DOMAIN}_fermetures_{p.split('.')[-1]}"
         for p in coordinator.store.personnes_suivies()
     } | {
@@ -844,10 +845,11 @@ class FermeturesSensor(HubEntity, SensorEntity):
 
 
 class NiveauSonoreSensor(PcEntity, SensorEntity):
-    """Niveau sonore de la pièce (dB relatifs, 0 à 100), mesuré par le micro de l'appareil ; jamais d'audio.
+    """Niveau sonore de la pièce en dBFS (0 = pleine échelle du micro), mesuré par le micro de l'appareil ; jamais d'audio.
 
     Indisponible quand la mesure est éteinte sur l'appareil ou sans relevé depuis cinq minutes. Attributs : le maximum
-    de la dernière minute, les alertes comptées et le seuil de la coupure.
+    de la dernière minute, le pic des 10 dernières secondes, l'instant, le seuil du moment (jour ou nuit), les alertes
+    comptées, celles d'aujourd'hui et la gradation des messages (2.5.12.3).
     """
 
     _attr_translation_key = "niveau_sonore"
@@ -870,18 +872,76 @@ class NiveauSonoreSensor(PcEntity, SensorEntity):
 
         from . import son
 
+        e = self._etat()
+        # 2.5.12.3 (retour d'essai) : aucun micro allumé = indisponible, jamais 0 (le capteur « Micros actifs » dit pourquoi).
         return bool(super().available and self.pc and son.mesure_active(self.coordinator.store, self.pc)
-                    and time.time() - float(self._etat().get("maj") or 0) < 300)
+                    and time.time() - float(e.get("maj") or 0) < 300
+                    and e.get("micros_actifs") != 0 and e.get("niveau") is not None)
 
     @property
     def native_value(self):
-        return self._etat().get("niveau")
+        # 2.5.12.3 (retour d'essai) : le capteur parle en dBFS (0 = pleine échelle du micro) ; l'appareil mesure en dB relatifs
+        # (0 à 100 = dBFS + 100), gardés dans l'attribut « niveau_relatif ».
+        from . import son
+
+        return son.dbfs(self._etat().get("niveau"))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         from . import son
 
         e = self._etat()
-        r = son.reglages(self.pc) if self.pc else son.REGLAGES_DEFAUT
-        return {"maximum": e.get("maximum"), "alertes": e.get("alertes", 0), "alertes_avant_coupure": r["alertes_avant_coupure"],
-                "seuil": r["seuil_db"]}
+        pc = self.pc or {}
+        r = son.reglages(pc)
+        store = self.coordinator.store
+        nuit = son.est_nuit(store, pc) if self.pc else False
+        seuil = int(r["seuil_nuit_db"] if nuit else r["seuil_db"])
+        return {
+            "echelle": "dBFS",
+            "maximum": son.dbfs(e.get("maximum")), "pic_10s": son.dbfs(e.get("pic")), "instant": son.dbfs(e.get("instant")),
+            "niveau_relatif": e.get("niveau"), "micros": e.get("micros"),
+            "micros_actifs": e.get("micros_actifs"), "micros_pris_en_compte": list(e.get("micros_liste") or []),
+            "seuil": seuil - 100, "seuil_jour": r["seuil_db"] - 100, "seuil_nuit": r["seuil_nuit_db"] - 100, "nuit": nuit,
+            "alertes": e.get("alertes", 0), "alertes_avant_coupure": r["alertes_avant_coupure"],
+            "aujourd_hui": e.get("aujourd_hui", 0), "gradation": e.get("niveau_alerte", 0),
+        }
+
+
+class MicrosActifsSensor(PcEntity, SensorEntity):
+    """2.5.12.3 (retour d'essai) : les micros pris en compte dans le niveau sonore (allumés, ni muets, ni silencieux, ni figés).
+
+    Reste disponible quand « Niveau sonore » ne l'est plus faute de micro : 0 et la liste vide disent pourquoi.
+    Indisponible quand la mesure est éteinte, sans relevé depuis cinq minutes, ou si l'appareil ne le dit pas (l'appli).
+    """
+
+    _attr_translation_key = "micros_actifs"
+    _attr_icon = "mdi:microphone"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
+        super().__init__(coordinator, pc_id)
+        self._attr_unique_id = f"{DOMAIN}_son_micros_{pc_id}"
+
+    def _etat(self) -> dict[str, Any]:
+        from . import son
+
+        return son.etat(self.pc) if self.pc else {}
+
+    @property
+    def available(self) -> bool:
+        import time
+
+        from . import son
+
+        e = self._etat()
+        return bool(super().available and self.pc and son.mesure_active(self.coordinator.store, self.pc)
+                    and time.time() - float(e.get("maj") or 0) < 300 and e.get("micros_actifs") is not None)
+
+    @property
+    def native_value(self) -> int | None:
+        return self._etat().get("micros_actifs")
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        e = self._etat()
+        return {"liste": list(e.get("micros_liste") or []), "micros_ecoutes": e.get("micros")}

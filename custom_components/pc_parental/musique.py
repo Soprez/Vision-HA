@@ -643,16 +643,19 @@ def deja_joue(err: BaseException) -> bool:
     return "already played" in str(err) or "buffered" in str(err)
 
 
-async def rejouer_element(hass: HomeAssistant, lecteur: str, id_element: str) -> bool:
+async def rejouer_element(hass: HomeAssistant, lecteur: str, id_element: str) -> None:
     """2.5.11 (l'auteur, 18/10, 1.93.05 : « je ne peux pas rejouer un morceau passé de la file », « ça n'a pas marché »).
 
     Depuis que le lecteur de Vision dit enfin à Music Assistant qu'un titre commence (STMs, 1.93.04.1), MA sait ce qui
     est joué : il refuse de déplacer un titre déjà joué ou en tampon (« 23 is already played/buffered », journal de MA
     du 18/10 à 01:25). Pour un tel titre, on y revient avec ``play_index`` : revenir EN ARRIÈRE ne marque rien comme
-    joué (le souci de la 2.5.8 venait des sauts en avant). Un titre à venir garde la manière de la 2.5.8
-    (``move_next`` puis « suivant »).
+    joué (le souci de la 2.5.8 venait des sauts en avant). Un titre à venir est d'abord placé juste après celui en cours
+    (``move_next``, l'ordre de la file est gardé et « Précédent » ramène au titre d'avant).
 
-    Rend vrai si le titre est déjà lancé (``play_index``) : l'appelant n'enchaîne PAS « suivant »."""
+    2.5.12.2 (l'auteur, 19/10, file de 928 titres : « je clique sur Jump Around, c'est The Golden Path qui s'affiche ») :
+    dans les deux cas, c'est ``play_index`` SUR CE TITRE qui le lance. Avant, un titre à venir était lancé par
+    « suivant » après le déplacement : si la file bougeait entre les deux (titre qui se termine, lecteur à l'arrêt ou
+    qui se reconnecte, index courant périmé), « suivant » partait sur un autre titre que celui choisi."""
     if not id_element:
         raise MusiqueIndisponible("commun.choix_inconnu")
     mass, qid = _client(hass), _file_id(hass, lecteur)
@@ -660,13 +663,11 @@ async def rejouer_element(hass: HomeAssistant, lecteur: str, id_element: str) ->
         raise MusiqueIndisponible("mus.file_non_modifiable")
     try:
         await mass.player_queues.move_next(qid, id_element)
-        return False
     except Exception as err:  # noqa: BLE001
         if not deja_joue(err):
             _LOGGER.info("move_next %s sur la file %s : %s", id_element, qid, err)
             raise MusiqueIndisponible("mus.echec_reessaie") from err
     await _sur_file(hass, lecteur, "play_index " + id_element, lambda pq, q: pq.play_index(q, id_element))
-    return True
 
 
 async def ensuite_element(hass: HomeAssistant, lecteur: str, id_element: str) -> None:
@@ -773,7 +774,7 @@ def _nom_dans_ma(hass: HomeAssistant, player_id: str) -> str:
 
 
 def nom_vision(hass: HomeAssistant, e) -> str:
-    """2.4.7 (télé d'essai : « squeezeplay: 5a:7a:… ») : le nom « <appareil> · Vision » de ce lecteur, vu par Home
+    """2.4.7 (télé d'essai : « squeezeplay: … ») : le nom « <appareil> · Vision » de ce lecteur, vu par Home
     Assistant ou, à défaut, par Music Assistant ; vide si ce n'est pas un lecteur de Vision.
 
     MA enregistre un lecteur Squeezelite juste après sa connexion, sous un nom par défaut ; Vision lui renvoie ensuite

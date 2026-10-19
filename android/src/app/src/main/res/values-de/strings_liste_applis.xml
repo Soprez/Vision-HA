@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 1.93.06.1 (retour d'essai) : « Afficher la liste des applications » (tablette tableau de bord, télé). -->
+    <string name="listeapplis_titre">App-Liste anzeigen</string>
+    <string name="listeapplis_affichee">Angezeigt</string>
+    <string name="listeapplis_masquee">Ausgeblendet</string>
+    <string name="listeapplis_note">Ausgeblendet zeigt der Startbildschirm nur die Widgets (Dashboard). Zurück zu den Einstellungen: lange auf die Uhrzeit drücken (oder in Home Assistant einstellen).</string>
+    <string name="listeapplis_note_tele">Ausgeblendet zeigt der Startbildschirm nur die Widgets. Zurück zu den Einstellungen: OK auf der Uhr lange drücken (oder in Home Assistant einstellen).</string>
+    <string name="listeapplis_garde">Vision-Einstellungen öffnen</string>
+    <string name="listeapplis_confirmation">Zurück zu den Einstellungen: lange auf die Uhrzeit drücken (oder in Home Assistant einstellen).</string>
+    <string name="listeapplis_confirmation_tele">Zurück zu den Einstellungen: OK auf der Uhr lange drücken (oder in Home Assistant einstellen).</string>
+    <string name="listeapplis_compris">Verstanden</string>
+</resources>

@@ -590,6 +590,14 @@ class ReglagesTvActivity : Activity(), ZoneSure.Geree {
             startActivity(Intent(this, LanceurActivity::class.java).putExtra(LanceurActivity.EXTRA_MODIFIER, true).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP))
             finish()
         })
+        // 1.93.06.1 (retour d'essai) : « Afficher la liste des applications » ; désactivée, l'accueil ne montre que les widgets.
+        if (Modules.actif(this, Modules.ACCUEIL)) {
+            val liste = AffichageApplis.liste(this)
+            contenu.addView(ligne(getString(R.string.listeapplis_titre), getString(if (liste) R.string.listeapplis_affichee else R.string.listeapplis_masquee), "liste_applis") {
+                AffichageApplis.changer(this, tele) { repeindre() }
+            })
+            note(getString(if (tele) R.string.listeapplis_note_tele else R.string.listeapplis_note))
+        }
         // l'auteur (13 octobre) : la disposition de l'accueil — rangées (d'avant) ou « Vertical » : une colonne d'applis à
         // gauche, au centre ou à droite, et de part et d'autre des zones de widgets, choisies et activées par un Décideur.
         val vertical = DispositionAccueil.disposTele(this) == DispositionAccueil.TELE_VERTICAL

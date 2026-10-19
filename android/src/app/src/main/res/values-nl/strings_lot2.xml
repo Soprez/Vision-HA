@@ -806,4 +806,5 @@
     <string name="setup_parametres_appareil_impossible">De apparaatinstellingen kunnen hier niet worden geopend.</string>
     <string name="vuewidget_min_max">%1$s · min %2$s · max %3$s</string>
     <string name="vuewidget_plage">%1$s – %2$s</string>
+    <string name="lanceur_tuile_parametres">Instellingen</string>
 </resources>

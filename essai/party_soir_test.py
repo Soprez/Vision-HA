@@ -55,10 +55,10 @@ async def test_la_tele_pilote_la_file_et_l_enceinte(hass, hass_storage, hass_cli
     for action in ("jouer_element", "ensuite_element", "retirer"):
         s, r = await _post(client, "commande", TELE, action=action, element="q1")
         assert s == 200, (action, r)
-    # 2.5.8 (retour d'essai) : « Jouer maintenant » place le titre juste après celui en cours puis y passe — plus de saut
-    # (play_index) qui faisait passer pour joués tous les titres d'entre les deux.
-    assert ("jouer", "qid-salon", "q1") not in files.supprimes
-    assert files.supprimes.count(("ensuite", "qid-salon", "q1")) == 2 and len(suivants) == 1
+    # 2.5.8 (retour d'essai) : « Jouer maintenant » place le titre juste après celui en cours (pas de saut qui ferait passer pour
+    # joués les titres d'entre les deux) ; 2.5.12.2 (l'auteur, 19/10) : puis lance CE titre (play_index), jamais « suivant ».
+    assert files.supprimes.count(("ensuite", "qid-salon", "q1")) == 2 and ("jouer", "qid-salon", "q1") in files.supprimes
+    assert suivants == []
     s, r = await _post(client, "commande", TELE, action="enceinte", lecteur="media_player.televiseur_du_salon_4")
     assert s == 200 and ("transfert", "qid-salon", "q-tv") in files.supprimes and "Music Assistant" not in r["retour"]
     s, r = await _post(client, "commande", TELE, action="enceinte", lecteur=MA_CHAMBRE)
@@ -70,7 +70,8 @@ async def test_la_tele_pilote_la_file_et_l_enceinte(hass, hass_storage, hass_cli
 async def test_rejouer_un_titre_deja_passe(hass, hass_storage, hass_client, monkeypatch):
     """2.5.11 (l'auteur, 18/10, 1.93.05 : « je ne peux pas rejouer un morceau passé », « ça n'a pas marché ») : Music Assistant
     refuse de déplacer un titre déjà joué (« 23 is already played/buffered », journal du 18/10 à 01:25). Un titre passé
-    est relancé directement (play_index), sans « suivant » derrière ; un titre à venir garde move_next + « suivant »."""
+    est relancé directement (play_index), sans « suivant » derrière ; un titre à venir est placé juste après celui en
+    cours (move_next) puis lancé lui aussi par play_index (2.5.12.2 : plus jamais « suivant », voir party_file_longue_test)."""
     _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
     files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"T{k}", "uri": f"library://track/{k}"}} for k in range(5)]
     files.courant = 2
@@ -84,10 +85,10 @@ async def test_rejouer_un_titre_deja_passe(hass, hass_storage, hass_client, monk
     # Le titre en cours (index 2) : relancé lui aussi depuis le début.
     s, r = await _post(client, "commande", TELE, action="jouer_element", element="q2")
     assert s == 200 and ("jouer", "qid-salon", "q2") in files.supprimes and suivants == []
-    # Un titre à venir (index 4) : placé juste après celui en cours, puis « suivant » (inchangé depuis la 2.5.8).
+    # Un titre à venir (index 4) : placé juste après celui en cours (comme en 2.5.8), puis lancé lui-même (2.5.12.2).
     s, r = await _post(client, "commande", TELE, action="jouer_element", element="q4")
-    assert s == 200 and ("ensuite", "qid-salon", "q4") in files.supprimes and len(suivants) == 1
-    assert ("jouer", "qid-salon", "q4") not in files.supprimes
+    assert s == 200 and ("ensuite", "qid-salon", "q4") in files.supprimes and suivants == []
+    assert ("jouer", "qid-salon", "q4") in files.supprimes
 
 
 async def test_un_enfant_ne_coupe_pas_la_musique(hass, hass_storage, hass_client, monkeypatch):

@@ -24,7 +24,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$script:Version           = '1.93.3'
+$script:Version           = '1.93.4'
 $script:Racine            = Split-Path -Parent $ConfigPath
 $script:JournalPath       = Join-Path $script:Racine 'agent.log'
 $script:EtatPath          = Join-Path $script:Racine 'etat.json'
@@ -105,6 +105,13 @@ $script:TrayRenouvelee    = $false
 # L'œil de Vision (PNG 96 px, le même dessin que sur la veille et dans la fenêtre), posé à côté de la sonde pour les notifications.
 $script:LogoBase64        = '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'
 $script:IdlePath          = Join-Path $script:SondeDir 'inactivite.json'
+# Niveau sonore (1.93.4, module « son » de Home Assistant) : une seconde sonde dans la session de l'utilisateur, qui
+# écoute tous les micros et n'écrit que des nombres. Lancée seulement quand le relevé dit « son.actif ».
+$script:SonPath           = Join-Path $script:SondeDir 'son.ps1'
+$script:SonSortiePath     = Join-Path $script:SondeDir 'niveau-son.json'
+$script:SonReglagesPath   = Join-Path $script:SondeDir 'son-reglages.json'
+$script:SonVoulu          = $false
+$script:SonReglagesJson   = ''
 $script:LangueSession     = ''
 $script:FormatsSession    = ''
 
@@ -861,6 +868,11 @@ function Get-Decision {
         signatures   = (Get-Signatures -Noms @($releve.ouverts + @($releve.premier)))
         agent_charge = (Get-ChargeAgent)
     }
+    # Niveau sonore (1.93.4) : ce que la sonde a mesuré, des nombres seulement (docs/son-contrat-appareils.md).
+    if ($script:SonVoulu) {
+        $son = Get-ReleveSon
+        if ($null -ne $son) { $corps.son = $son }
+    }
     if ($script:DemandeTemps -gt 0) {
         # Module Demandes coupé entre le clic et le relevé : la demande ne part pas.
         if (Module-Actif 'demandes') { $corps.demande_temps = $script:DemandeTemps }
@@ -1005,6 +1017,440 @@ while ($true) {
     } catch { }
     Start-Sleep -Seconds 5
 }
+'@
+
+# Sonde « niveau sonore » (1.93.4) : voir l'en-tête du script. Même mécanique que la sonde d'inactivité
+# (un processus dans la session de l'utilisateur, un verrou nommé, un fichier écrit à côté puis remplacé).
+$script:SonSource = @'
+param([string]$Sortie, [string]$Reglages, [int]$DureeS = 0)
+
+# Niveau sonore (agent Vision 1.93.4, module « son » de Home Assistant 2.5.12.3).
+# Tourne dans la session de l'utilisateur. Ecoute TOUS les micros actifs (WASAPI, mode partage : les autres
+# programmes gardent le micro), calcule un niveau RMS toutes les 100 ms, et n'ecrit que des NOMBRES dans $Sortie :
+# moyenne de la derniere minute, maximum, pic des 10 dernieres secondes, instant, nombre de micros, depassements,
+# plus le nombre et les noms des micros pris en compte.
+# Le niveau d'une tranche est la moyenne (en energie) des SEULS micros allumes (retour d'essai) : un micro muet dans Windows, un
+# silence numerique (drapeau SILENT ou echantillons tous a 0) ou un niveau fige plus de micro_fige_s secondes est
+# exclu et ne tire jamais le niveau vers le bas ; desactive ou debranche, il n'est plus enumere (re-ouverture 60 s).
+# Aucun micro actif : pas de niveau du tout (Home Assistant affiche « indisponible », jamais 0).
+# Aucun echantillon n'est garde ni envoye : le tampon est remis a zero apres chaque calcul.
+# Echelle : dB relatifs 0..100 = dBFS + 100 + calibration (la meme que l'appli Android, NiveauSonoreCalcul).
+# $Reglages (JSON ecrit par l'agent) : { seuil_db, sensibilite_s, calibration_db, micro_fige_s, plages:[{debut,fin}] }.
+# $DureeS > 0 : essai, s'arrete apres ce delai (banc).
+
+$verrou = New-Object Threading.Mutex($false, 'Local\VisionSon')
+try { $tenu = $verrou.WaitOne(0) } catch [Threading.AbandonedMutexException] { $tenu = $true }
+if (-not $tenu) { exit 0 }
+
+Add-Type -TypeDefinition @"
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
+namespace VisionSon
+{
+    [ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")]
+    class MMDeviceEnumeratorCom { }
+
+    [Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IMMDeviceEnumerator
+    {
+        int EnumAudioEndpoints(int dataFlow, int stateMask, out IMMDeviceCollection devices);
+        int GetDefaultAudioEndpoint(int dataFlow, int role, out IMMDevice endpoint);
+        int GetDevice([MarshalAs(UnmanagedType.LPWStr)] string id, out IMMDevice device);
+        int RegisterEndpointNotificationCallback(IntPtr client);
+        int UnregisterEndpointNotificationCallback(IntPtr client);
+    }
+
+    [Guid("0BD7A1BE-7A1A-44DB-8397-CC5392387B5E"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IMMDeviceCollection
+    {
+        int GetCount(out uint count);
+        int Item(uint index, out IMMDevice device);
+    }
+
+    [Guid("D666063F-1587-4E43-81F1-B948E807363F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IMMDevice
+    {
+        int Activate(ref Guid iid, uint clsCtx, IntPtr activationParams, [MarshalAs(UnmanagedType.IUnknown)] out object itf);
+        int OpenPropertyStore(uint access, out IPropertyStore properties);
+        int GetId([MarshalAs(UnmanagedType.LPWStr)] out string id);
+        int GetState(out uint state);
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct PropertyKey { public Guid fmtid; public int pid; }
+
+    [StructLayout(LayoutKind.Explicit)]
+    struct PropVariant
+    {
+        [FieldOffset(0)] public ushort vt;
+        [FieldOffset(8)] public IntPtr p;
+        [FieldOffset(16)] public long reserve; // 24 octets en 64 bits ; plus grand que necessaire en 32 bits
+    }
+
+    [Guid("886d8eeb-8cf2-4446-8d02-cdba1dbdcf99"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IPropertyStore
+    {
+        int GetCount(out uint count);
+        int GetAt(uint index, out PropertyKey key);
+        int GetValue(ref PropertyKey key, out PropVariant value);
+        int SetValue(ref PropertyKey key, ref PropVariant value);
+        int Commit();
+    }
+
+    [Guid("5CDF2C82-841E-4546-9722-0CF74078229A"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IAudioEndpointVolume
+    {
+        int RegisterControlChangeNotify(IntPtr notify);
+        int UnregisterControlChangeNotify(IntPtr notify);
+        int GetChannelCount(out uint count);
+        int SetMasterVolumeLevel(float level, ref Guid context);
+        int SetMasterVolumeLevelScalar(float level, ref Guid context);
+        int GetMasterVolumeLevel(out float level);
+        int GetMasterVolumeLevelScalar(out float level);
+        int SetChannelVolumeLevel(uint channel, float level, ref Guid context);
+        int SetChannelVolumeLevelScalar(uint channel, float level, ref Guid context);
+        int GetChannelVolumeLevel(uint channel, out float level);
+        int GetChannelVolumeLevelScalar(uint channel, out float level);
+        int SetMute([MarshalAs(UnmanagedType.Bool)] bool mute, ref Guid context);
+        int GetMute([MarshalAs(UnmanagedType.Bool)] out bool mute);
+    }
+
+    [Guid("1CB9AD4C-DBFA-4c32-B178-C2F568A703B2"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IAudioClient
+    {
+        int Initialize(int shareMode, uint streamFlags, long bufferDuration, long periodicity, IntPtr format, IntPtr sessionGuid);
+        int GetBufferSize(out uint frames);
+        int GetStreamLatency(out long latency);
+        int GetCurrentPadding(out uint padding);
+        int IsFormatSupported(int shareMode, IntPtr format, out IntPtr closest);
+        int GetMixFormat(out IntPtr format);
+        int GetDevicePeriod(out long defaultPeriod, out long minimumPeriod);
+        int Start();
+        int Stop();
+        int Reset();
+        int SetEventHandle(IntPtr handle);
+        int GetService(ref Guid iid, [MarshalAs(UnmanagedType.IUnknown)] out object service);
+    }
+
+    [Guid("C8ADBD64-E71E-48a0-A4DE-185C395CD317"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IAudioCaptureClient
+    {
+        int GetBuffer(out IntPtr data, out uint frames, out uint flags, out ulong devicePosition, out ulong qpcPosition);
+        int ReleaseBuffer(uint frames);
+        int GetNextPacketSize(out uint frames);
+    }
+
+    /// Un micro ouvert en capture partagee. LireRms() vide ce qui attend et rend le RMS (0..1) des echantillons lus,
+    /// 0 pour un silence numerique (drapeau SILENT ou echantillons tous exactement a 0), ou -1 s'il n'y avait rien.
+    /// Rien n'est garde : le tampon de Windows est rendu aussitot.
+    public class Micro
+    {
+        [DllImport("ole32.dll")] static extern int PropVariantClear(ref PropVariant pv);
+        static readonly Guid IID_IAudioEndpointVolume = new Guid("5CDF2C82-841E-4546-9722-0CF74078229A");
+        static readonly Guid IID_IAudioClient = new Guid("1CB9AD4C-DBFA-4c32-B178-C2F568A703B2");
+        static readonly Guid IID_IAudioCaptureClient = new Guid("C8ADBD64-E71E-48a0-A4DE-185C395CD317");
+        static readonly Guid SousFormatFlottant = new Guid("00000003-0000-0010-8000-00AA00389B71");
+        static readonly Guid SousFormatPcm = new Guid("00000001-0000-0010-8000-00AA00389B71");
+
+        IAudioClient client;
+        IAudioCaptureClient capture;
+        IAudioEndpointVolume volume;
+        int canaux, bits, blocOctets;
+        bool flottant;
+        public string Id;
+        public string Nom;
+        public bool EnPanne;
+
+        /// Coupe dans Windows (micro « muet ») ; faux si on ne sait pas le lire.
+        public bool Muet()
+        {
+            if (volume == null) return false;
+            try { bool m; return volume.GetMute(out m) == 0 && m; } catch { return false; }
+        }
+
+        static string NomAmical(IMMDevice appareil)
+        {
+            IPropertyStore props = null;
+            try
+            {
+                if (appareil.OpenPropertyStore(0 /* STGM_READ */, out props) != 0 || props == null) return null;
+                PropertyKey cle = new PropertyKey();
+                cle.fmtid = new Guid("a45c254e-df1c-4efd-8020-67d146a850e0"); cle.pid = 14; // PKEY_Device_FriendlyName
+                PropVariant v;
+                if (props.GetValue(ref cle, out v) != 0) return null;
+                try { return v.vt == 31 /* VT_LPWSTR */ && v.p != IntPtr.Zero ? Marshal.PtrToStringUni(v.p) : null; }
+                finally { PropVariantClear(ref v); }
+            }
+            catch { return null; }
+            finally { if (props != null) { try { Marshal.ReleaseComObject(props); } catch { } } }
+        }
+
+        public static List<Micro> Ouvrir()
+        {
+            List<Micro> sortie = new List<Micro>();
+            IMMDeviceEnumerator enumerateur = (IMMDeviceEnumerator)new MMDeviceEnumeratorCom();
+            IMMDeviceCollection liste;
+            if (enumerateur.EnumAudioEndpoints(1 /* eCapture */, 1 /* DEVICE_STATE_ACTIVE */, out liste) != 0) return sortie;
+            uint n; liste.GetCount(out n);
+            for (uint i = 0; i < n; i++)
+            {
+                IMMDevice appareil;
+                if (liste.Item(i, out appareil) != 0) continue;
+                Micro m = new Micro();
+                try { if (m.Demarrer(appareil)) sortie.Add(m); else m.Fermer(); }
+                catch { m.Fermer(); }
+            }
+            return sortie;
+        }
+
+        bool Demarrer(IMMDevice appareil)
+        {
+            string id; appareil.GetId(out id); Id = id;
+            Nom = NomAmical(appareil);
+            if (string.IsNullOrEmpty(Nom)) Nom = id;
+            object o;
+            Guid vid = IID_IAudioEndpointVolume;
+            try { if (appareil.Activate(ref vid, 23, IntPtr.Zero, out o) == 0) volume = (IAudioEndpointVolume)o; } catch { volume = null; }
+            Guid iid = IID_IAudioClient;
+            if (appareil.Activate(ref iid, 23 /* CLSCTX_ALL */, IntPtr.Zero, out o) != 0) return false;
+            client = (IAudioClient)o;
+            IntPtr fmt;
+            if (client.GetMixFormat(out fmt) != 0 || fmt == IntPtr.Zero) return false;
+            try
+            {
+                int tag = Marshal.ReadInt16(fmt, 0) & 0xFFFF;
+                canaux = Marshal.ReadInt16(fmt, 2);
+                blocOctets = Marshal.ReadInt16(fmt, 12);
+                bits = Marshal.ReadInt16(fmt, 14);
+                if (tag == 0xFFFE)
+                {
+                    byte[] g = new byte[16]; Marshal.Copy(new IntPtr(fmt.ToInt64() + 24), g, 0, 16);
+                    Guid sous = new Guid(g);
+                    flottant = sous == SousFormatFlottant;
+                    if (!flottant && sous != SousFormatPcm) return false;
+                }
+                else if (tag == 3) flottant = true;
+                else if (tag == 1) flottant = false;
+                else return false;
+                // Partage (0), sans drapeau, tampon d'une seconde : le micro reste disponible aux autres programmes.
+                if (client.Initialize(0, 0, 10000000, 0, fmt, IntPtr.Zero) != 0) return false;
+            }
+            finally { Marshal.FreeCoTaskMem(fmt); }
+            Guid cid = IID_IAudioCaptureClient;
+            if (client.GetService(ref cid, out o) != 0) return false;
+            capture = (IAudioCaptureClient)o;
+            return client.Start() == 0;
+        }
+
+        public double LireRms()
+        {
+            if (capture == null) return -1;
+            double somme = 0; long n = 0; long silencieux = 0;
+            uint paquet;
+            while (true)
+            {
+                if (capture.GetNextPacketSize(out paquet) != 0) { EnPanne = true; break; }
+                if (paquet == 0) break;
+                IntPtr data; uint frames, flags; ulong pos, qpc;
+                if (capture.GetBuffer(out data, out frames, out flags, out pos, out qpc) != 0) { EnPanne = true; break; }
+                bool silence = (flags & 2) != 0; // AUDCLNT_BUFFERFLAGS_SILENT
+                int total = (int)frames * canaux;
+                if (!silence && data != IntPtr.Zero && total > 0)
+                {
+                    if (flottant && bits == 32)
+                    {
+                        float[] e = new float[total]; Marshal.Copy(data, e, 0, total);
+                        for (int i = 0; i < total; i++) somme += (double)e[i] * e[i];
+                        Array.Clear(e, 0, total);
+                    }
+                    else if (!flottant && bits == 16)
+                    {
+                        short[] e = new short[total]; Marshal.Copy(data, e, 0, total);
+                        for (int i = 0; i < total; i++) { double v = e[i] / 32768.0; somme += v * v; }
+                        Array.Clear(e, 0, total);
+                    }
+                    else if (!flottant && bits == 32)
+                    {
+                        int[] e = new int[total]; Marshal.Copy(data, e, 0, total);
+                        for (int i = 0; i < total; i++) { double v = e[i] / 2147483648.0; somme += v * v; }
+                        Array.Clear(e, 0, total);
+                    }
+                    n += total;
+                }
+                // Un paquet marque silencieux ne compte pas comme des zeros : il ne tire pas le niveau vers le bas.
+                else if (silence) silencieux += total;
+                capture.ReleaseBuffer(frames);
+            }
+            if (n == 0) return silencieux > 0 ? 0.0 : -1.0;
+            return Math.Sqrt(somme / n); // 0 exactement : des echantillons tous nuls, un silence numerique
+        }
+
+        public void Fermer()
+        {
+            try { if (client != null) client.Stop(); } catch { }
+            if (capture != null) { try { Marshal.ReleaseComObject(capture); } catch { } capture = null; }
+            if (volume != null) { try { Marshal.ReleaseComObject(volume); } catch { } volume = null; }
+            if (client != null) { try { Marshal.ReleaseComObject(client); } catch { } client = null; }
+        }
+    }
+}
+"@
+
+function Lire-Config {
+    param([string]$Chemin)
+    $c = @{ seuil = 75; sensibilite = 3; calibration = 0; fige = 10; plages = @() }
+    if (-not $Chemin -or -not (Test-Path $Chemin)) { return $c }
+    try {
+        $j = Get-Content -LiteralPath $Chemin -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($j.PSObject.Properties['seuil_db']) { $c.seuil = [double]$j.seuil_db }
+        if ($j.PSObject.Properties['sensibilite_s']) { $c.sensibilite = [double]$j.sensibilite_s }
+        if ($j.PSObject.Properties['calibration_db']) { $c.calibration = [double]$j.calibration_db }
+        if ($j.PSObject.Properties['micro_fige_s']) { $c.fige = [math]::Max(2.0, [double]$j.micro_fige_s) }
+        if ($j.PSObject.Properties['plages'] -and $null -ne $j.plages) {
+            $c.plages = @(@($j.plages) | ForEach-Object {
+                $d = ([string]$_.debut).Split(':'); $f = ([string]$_.fin).Split(':')
+                @{ d = [int]$d[0] * 60 + [int]$d[1]; f = [int]$f[0] * 60 + [int]$f[1] }
+            })
+        }
+    } catch { }
+    return $c
+}
+
+function Dans-Plages {
+    param($Plages, [int]$Minute)
+    if (-not $Plages -or @($Plages).Count -eq 0) { return $true }
+    foreach ($p in @($Plages)) {
+        if ($p.d -eq $p.f) { return $true }
+        if ($p.d -lt $p.f -and $Minute -ge $p.d -and $Minute -lt $p.f) { return $true }
+        if ($p.d -gt $p.f -and ($Minute -ge $p.d -or $Minute -lt $p.f)) { return $true }
+    }
+    return $false
+}
+
+function Niveau-Relatif {
+    # RMS (0..1) -> dB relatifs 0..100 (dBFS + 100 + calibration), comme NiveauSonoreCalcul.niveauRms.
+    param([double]$Rms, [double]$Calibration)
+    if ($Rms -le 0) { return 0.0 }
+    $db = 20.0 * [math]::Log10($Rms) + 100.0 + $Calibration
+    return [math]::Max(0.0, [math]::Min(100.0, $db))
+}
+
+function Mesurer-Tranche {
+    <# Une tranche de 100 ms : le RMS moyen (en energie) des seuls micros allumes, ou -1 s'il n'y en a aucun.
+       Exclus : muet dans Windows, silence numerique (0 exact, -inf dBFS), niveau fige depuis plus de $Fige secondes.
+       Un micro sans donnees cette tranche ne compte pas non plus. $Figes et $VusActifs (par Id) sont tenus a jour. #>
+    param($Micros, [hashtable]$Figes, [hashtable]$VusActifs, [datetime]$Maintenant, [double]$Fige)
+    $sommeCarres = 0.0; $nActifs = 0
+    foreach ($m in @($Micros)) {
+        try { $r = [double]$m.LireRms() } catch { $r = -1.0 }
+        if ($r -lt 0) { continue }
+        $muet = $false; try { $muet = [bool]$m.Muet() } catch { }
+        if ($muet -or $r -le 0) { $Figes.Remove($m.Id); continue }
+        $dbm = 20.0 * [math]::Log10($r)
+        $f = $Figes[$m.Id]
+        if ($null -eq $f -or [math]::Abs($f.db - $dbm) -gt 0.01) { $Figes[$m.Id] = @{ db = $dbm; depuis = $Maintenant } }
+        elseif (($Maintenant - $f.depuis).TotalSeconds -ge $Fige) { continue }
+        $sommeCarres += $r * $r; $nActifs++
+        $VusActifs[$m.Id] = @{ quand = $Maintenant; nom = [string]$m.Nom }
+    }
+    if ($nActifs -eq 0) { return -1.0 }
+    return [math]::Sqrt($sommeCarres / $nActifs)
+}
+
+function Micros-Pris {
+    <# Les Id des micros pris en compte ces $FenetreS dernieres secondes et encore ouverts ; oublie les autres. #>
+    param($Micros, [hashtable]$Figes, [hashtable]$VusActifs, [datetime]$Maintenant, [double]$FenetreS = 5)
+    $ouverts = @{}; foreach ($m in @($Micros)) { $ouverts[$m.Id] = $true }
+    foreach ($id in @($VusActifs.Keys)) { if (-not $ouverts.ContainsKey($id)) { $VusActifs.Remove($id); $Figes.Remove($id) } }
+    return @($VusActifs.Keys | Where-Object { ($Maintenant - $VusActifs[$_].quand).TotalSeconds -le $FenetreS })
+}
+
+$TRANCHES_MINUTE = 600   # 100 ms par tranche
+$energies = New-Object double[] $TRANCHES_MINUTE
+$niveaux  = New-Object double[] $TRANCHES_MINUTE
+$pos = 0; $rempli = 0
+$depassements = New-Object System.Collections.ArrayList
+$config = Lire-Config $Reglages
+$derniereConfig = Get-Date
+$derniereEcriture = Get-Date
+$derniereOuverture = [datetime]::MinValue
+$micros = @()
+$figes = @{}        # par micro (Id) : dernier niveau (dB) et depuis quand il ne bouge plus
+$vusActifs = @{}    # par micro (Id) : derniere fois qu'il a compte dans la moyenne, et son nom
+$auDessusDepuis = $null   # depuis quand le niveau depasse le seuil sans interruption
+$armee = $true            # une alerte par passage au-dessus du seuil
+$debut = Get-Date
+
+while ($true) {
+    $maintenant = Get-Date
+    if ($DureeS -gt 0 -and ($maintenant - $debut).TotalSeconds -ge $DureeS) { break }
+    # Les micros : ouverts au depart, puis re-ouverts toutes les 60 s (branchements) ou des qu'un tombe en panne.
+    $panne = @($micros | Where-Object { $_.EnPanne }).Count -gt 0
+    if ($panne -or ($maintenant - $derniereOuverture).TotalSeconds -ge 60) {
+        foreach ($m in $micros) { try { $m.Fermer() } catch { } }
+        try { $micros = @([VisionSon.Micro]::Ouvrir()) } catch { $micros = @() }
+        $derniereOuverture = $maintenant
+    }
+    if (($maintenant - $derniereConfig).TotalSeconds -ge 10) { $config = Lire-Config $Reglages; $derniereConfig = $maintenant }
+
+    # Une tranche de 100 ms : la moyenne des seuls micros allumes (Mesurer-Tranche).
+    $rmsMoyen = Mesurer-Tranche -Micros $micros -Figes $figes -VusActifs $vusActifs -Maintenant $maintenant -Fige $config.fige
+    if ($rmsMoyen -ge 0) {
+        $db = Niveau-Relatif -Rms $rmsMoyen -Calibration $config.calibration
+        $energies[$pos] = [math]::Pow(10.0, $db / 10.0); $niveaux[$pos] = $db
+        $pos = ($pos + 1) % $TRANCHES_MINUTE; if ($rempli -lt $TRANCHES_MINUTE) { $rempli++ }
+        # Detection : au-dessus du seuil pendant « sensibilite » secondes sans interruption, une alerte, puis
+        # il faut repasser sous le seuil pour en avoir une autre.
+        if ($db -ge $config.seuil) {
+            if ($null -eq $auDessusDepuis) { $auDessusDepuis = $maintenant }
+            elseif ($armee -and ($maintenant - $auDessusDepuis).TotalSeconds -ge $config.sensibilite) {
+                $armee = $false
+                if (Dans-Plages -Plages $config.plages -Minute ($maintenant.Hour * 60 + $maintenant.Minute)) {
+                    $ts = [long]([DateTimeOffset]::new($maintenant.ToUniversalTime())).ToUnixTimeMilliseconds()
+                    [void]$depassements.Add(@{ ts = $ts; db = [math]::Round($db, 1) })
+                }
+            }
+        } else { $auDessusDepuis = $null; $armee = $true }
+    }
+
+    if (($maintenant - $derniereEcriture).TotalSeconds -ge 5) {
+        $derniereEcriture = $maintenant
+        try {
+            # Les micros pris en compte ces 5 dernieres secondes (encore ouverts). Aucun : la minute est oubliee et
+            # aucun niveau n'est ecrit (jamais 0), le capteur passe a « indisponible ».
+            $pris = @(Micros-Pris -Micros $micros -Figes $figes -VusActifs $vusActifs -Maintenant $maintenant)
+            if ($pris.Count -eq 0) { $rempli = 0; $pos = 0; $auDessusDepuis = $null; $armee = $true }
+            $n = $rempli
+            $sortieObj = @{ pid = $PID; micros = @($micros).Count; micros_actifs = $pris.Count
+                            micros_liste = @($pris | ForEach-Object { $vusActifs[$_].nom } | Sort-Object) }
+            if ($n -gt 0) {
+                $sommeE = 0.0; $max = 0.0
+                for ($i = 0; $i -lt $n; $i++) { $sommeE += $energies[$i]; if ($niveaux[$i] -gt $max) { $max = $niveaux[$i] } }
+                $sortieObj.niveau = [math]::Round(10.0 * [math]::Log10($sommeE / $n), 1)
+                $sortieObj.maximum = [math]::Round($max, 1)
+                $pic = 0.0; $inst = 0.0; $k = 0
+                for ($i = 1; $i -le [math]::Min(100, $n); $i++) {
+                    $v = $niveaux[(($pos - $i) % $TRANCHES_MINUTE + $TRANCHES_MINUTE) % $TRANCHES_MINUTE]
+                    if ($v -gt $pic) { $pic = $v }
+                    if ($i -le 10) { $inst += $v; $k++ }
+                }
+                $sortieObj.pic10 = [math]::Round($pic, 1)
+                if ($k -gt 0) { $sortieObj.instant = [math]::Round($inst / $k, 1) }
+            }
+            # Les depassements des 10 dernieres minutes : Home Assistant ignore ceux qu'il a deja vus.
+            $limite = [long]([DateTimeOffset]::new($maintenant.ToUniversalTime().AddMinutes(-10))).ToUnixTimeMilliseconds()
+            $garder = @($depassements | Where-Object { $_.ts -ge $limite })
+            $depassements.Clear(); foreach ($d in $garder) { [void]$depassements.Add($d) }
+            $sortieObj.depassements = @($garder)
+            $sortieObj | ConvertTo-Json -Compress -Depth 4 | Set-Content -Path "$Sortie.tmp" -Encoding UTF8
+            Move-Item -LiteralPath "$Sortie.tmp" -Destination $Sortie -Force
+        } catch { }
+    }
+    Start-Sleep -Milliseconds 100
+}
+foreach ($m in $micros) { try { $m.Fermer() } catch { } }
 '@
 
 # Script exécuté dans la session de l'utilisateur pour afficher une vraie
@@ -3834,6 +4280,129 @@ function Start-Sonde {
     }
 }
 
+function Get-SondesSon {
+    # Les sondes « niveau sonore » en vie dans une session (ligne de commande : son.ps1, pas sonde.ps1).
+    param([int]$Session)
+    return @(
+        Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |
+            Where-Object { $_.SessionId -eq $Session -and $_.CommandLine -like '*HAParental-session\son.ps1*' } |
+            Sort-Object CreationDate
+    )
+}
+
+function Stop-SondesSon {
+    param([object[]]$Liste)
+    foreach ($s in @($Liste)) {
+        try { Stop-Process -Id $s.ProcessId -Force -ErrorAction Stop }
+        catch { Write-Journal "Sonde son $($s.ProcessId) non arrêtée : $_" 'WARN' }
+    }
+}
+
+function Start-SondeSon {
+    <#
+        S'assure qu'UNE sonde « niveau sonore » tourne dans la session en cours (mêmes règles que Start-Sonde :
+        le script est renouvelé s'il change, une seule sonde par session, relancée si elle se tait deux minutes).
+        Une session verrouillée reste « active » pour Windows : la sonde continue de mesurer. Une session
+        déconnectée (plage « Verrouiller la session ») garde ses processus, mais une sonde ne peut pas y être lancée.
+    #>
+    $session = Get-SessionConsole
+    if ($null -eq $session -or $session.Etat -ne $script:WTS_ACTIVE) { return }
+    if (-not (Grant-DossierSonde)) { return }
+    $renouvelee = $false
+    try {
+        $surDisque = ''
+        if (Test-Path $script:SonPath) { $surDisque = [string](Get-Content $script:SonPath -Raw -Encoding UTF8 -ErrorAction SilentlyContinue) }
+        $norme = { param($t) ([string]$t -replace "`r`n", "`n").Trim() }
+        if ((& $norme $surDisque) -ne (& $norme $script:SonSource)) {
+            Set-Content -Path $script:SonPath -Value $script:SonSource -Encoding UTF8
+            $renouvelee = $true
+        }
+    } catch { Write-Journal "Sonde son non écrite : $_" 'WARN'; return }
+    $vivantes = @(Get-SondesSon -Session $session.Id)
+    if ($renouvelee -and $vivantes.Count -gt 0) { Stop-SondesSon $vivantes; $vivantes = @() }
+    if ($vivantes.Count -gt 1) { Stop-SondesSon $vivantes[0..($vivantes.Count - 2)]; $vivantes = @($vivantes[-1]) }
+    if ($vivantes.Count -eq 1) {
+        $age = 9999
+        if (Test-Path $script:SonSortiePath) { $age = [int]((Get-Date) - (Get-Item $script:SonSortiePath).LastWriteTime).TotalSeconds }
+        if ($age -lt 120) { return }
+        Stop-SondesSon $vivantes
+        Write-Journal "Sonde son muette depuis $age s : relancée." 'WARN'
+    }
+    $ligne = ('powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden ' +
+              '-ExecutionPolicy Bypass -File "{0}" -Sortie "{1}" -Reglages "{2}"') -f `
+              $script:SonPath, $script:SonSortiePath, $script:SonReglagesPath
+    if ([Wts]::RunAsUser($session.Id, $ligne)) { Write-Journal "Sonde niveau sonore lancée dans la session $($session.Id)." }
+    else { Write-Journal "Sonde niveau sonore impossible à lancer." 'WARN' }
+}
+
+function Sync-Son {
+    <#
+        Le bloc « son » du relevé (Home Assistant 2.5.12.3) : « actif » lance ou arrête la sonde ; les réglages
+        (seuil du moment, sensibilité, calibration, plages) lui sont déposés dans un fichier qu'elle relit toutes
+        les 10 s. Sans bloc, ou « actif: false » : la sonde est arrêtée et ses fichiers effacés.
+    #>
+    param($Decision)
+    $bloc = $null
+    if ($null -ne $Decision -and $Decision.PSObject.Properties['son']) { $bloc = $Decision.son }
+    $voulu = ($null -ne $bloc -and [bool](Get-PropOrDefault $bloc 'actif' $false))
+    if (-not $voulu) {
+        if ($script:SonVoulu) {
+            $session = Get-SessionConsole
+            if ($null -ne $session) { Stop-SondesSon @(Get-SondesSon -Session $session.Id) }
+            Remove-Item -LiteralPath $script:SonReglagesPath, $script:SonSortiePath -Force -ErrorAction SilentlyContinue
+            Write-Journal 'Niveau sonore : mesure arrêtée (Home Assistant).'
+        }
+        $script:SonVoulu = $false; $script:SonReglagesJson = ''
+        return
+    }
+    $plages = @()
+    if ($bloc.PSObject.Properties['plages'] -and $null -ne $bloc.plages) {
+        $plages = @(@($bloc.plages) | ForEach-Object { @{ debut = [string]$_.debut; fin = [string]$_.fin } })
+    }
+    $reglages = @{
+        seuil_db       = [double](Get-PropOrDefault $bloc 'seuil_db' 75)
+        sensibilite_s  = [double](Get-PropOrDefault $bloc 'sensibilite_s' 3)
+        calibration_db = [double](Get-PropOrDefault $bloc 'calibration_db' 0)
+        micro_fige_s   = [double](Get-PropOrDefault $bloc 'micro_fige_s' 10)
+        plages         = $plages
+    } | ConvertTo-Json -Compress -Depth 4
+    if ($reglages -ne $script:SonReglagesJson) {
+        try {
+            if (Grant-DossierSonde) {
+                Set-Content -Path "$($script:SonReglagesPath).tmp" -Value $reglages -Encoding UTF8
+                Move-Item -LiteralPath "$($script:SonReglagesPath).tmp" -Destination $script:SonReglagesPath -Force
+                $script:SonReglagesJson = $reglages
+            }
+        } catch { Write-Journal "Réglages du niveau sonore non écrits : $_" 'WARN' }
+    }
+    if (-not $script:SonVoulu) { Write-Journal ("Niveau sonore : mesure demandée par Home Assistant (seuil " + (Get-PropOrDefault $bloc 'seuil_db' 75) + ").") }
+    $script:SonVoulu = $true
+    Start-SondeSon
+}
+
+function Get-ReleveSon {
+    # Ce que la sonde « niveau sonore » a écrit (frais de moins de 60 s) : des nombres seulement.
+    if (-not (Test-Path $script:SonSortiePath)) { return $null }
+    try {
+        $age = ((Get-Date) - (Get-Item $script:SonSortiePath).LastWriteTime).TotalSeconds
+        if ($age -ge 60) { return $null }
+        $lu = Get-Content $script:SonSortiePath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $son = @{}
+        foreach ($cle in @('niveau', 'maximum', 'pic10', 'instant', 'micros', 'micros_actifs')) {
+            if ($lu.PSObject.Properties[$cle] -and $null -ne $lu.$cle) { $son[$cle] = [double]$lu.$cle }
+        }
+        if ($lu.PSObject.Properties['micros_liste'] -and $null -ne $lu.micros_liste) {
+            $son['micros_liste'] = @(@($lu.micros_liste) | ForEach-Object { [string]$_ })
+        }
+        $dep = @()
+        if ($lu.PSObject.Properties['depassements'] -and $null -ne $lu.depassements) {
+            $dep = @(@($lu.depassements) | ForEach-Object { @{ ts = [long]$_.ts; db = [double]$_.db } })
+        }
+        $son['depassements'] = $dep
+        return $son
+    } catch { return $null }
+}
+
 function Get-Releve {
     <#
         Ce que la sonde a constaté dans la session de l'utilisateur :
@@ -5451,7 +6020,7 @@ function Invoke-AutoDesinstallation {
     # La sonde tourne dans la session de l'utilisateur : elle survivrait.
     try {
         Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |
-            Where-Object { $_.CommandLine -like '*HAParental*sonde.ps1*' } |
+            Where-Object { $_.CommandLine -like '*HAParental*sonde.ps1*' -or $_.CommandLine -like '*HAParental-session\son.ps1*' } |
             ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
     } catch { }
 
@@ -6475,6 +7044,8 @@ function Start-Agent {
             $script:Soutien = [bool](Get-PropOrDefault (Get-PropOrDefault $decision 'soutien' $null) 'actif' $false)
             try { Sync-Maison -Config $config } catch { }
             Write-EtatSonde -Decision $decision
+            # Niveau sonore (1.93.4) : un confort, jamais au prix de l'agent.
+            try { Sync-Son -Decision $decision } catch { Write-Journal "Niveau sonore : $_" 'WARN' }
             if ($decision.PSObject.Properties['liberer'] -and $decision.liberer) {
                 try { Set-MessagesLiberes -Ids @($decision.liberer) } catch { Write-Journal "Libération : $_" 'WARN' }
             }

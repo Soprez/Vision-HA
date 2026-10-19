@@ -1963,6 +1963,20 @@
         }
       }
     },
+    "accueil_regler": {
+      "name": "Schermata iniziale — elenco delle app",
+      "description": "Mostra o nascondi l'elenco delle app nella schermata iniziale di un dispositivo Android (solo amministratori e automazioni). Nascosto, la schermata iniziale mostra solo i widget (cruscotto); tenere premuto sull'ora apre sempre le impostazioni, dietro il codice o l'impronta. Il dispositivo applica l'impostazione più recente, da Home Assistant o dal dispositivo stesso.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nome del dispositivo."
+        },
+        "liste_applis": {
+          "name": "Mostra l'elenco delle app",
+          "description": "Attivo (predefinito): l'elenco delle app è visibile. Disattivo: solo i widget (l'elenco resta se la schermata iniziale non ha widget)."
+        }
+      }
+    },
     "widget_regler": {
       "name": "Widget — riga sotto il valore",
       "description": "Imposta il widget di un'entità su tutti i dispositivi (solo amministratori e automazioni): la riga sotto il valore, il nome e l'icona. Come la scheda Widgets HA.",
@@ -2024,6 +2038,38 @@
         "plages": {
           "name": "Fasce attive",
           "description": "Elenco di (debut, fin) in HH:MM; vuoto = tutto il giorno."
+        },
+        "seuil_nuit_db": {
+          "name": "Soglia di notte",
+          "description": "Livello relativo (0-100) di notte: le fasce «Blocca la sessione» del dispositivo, altrimenti la fascia di riserva."
+        },
+        "nuit": {
+          "name": "Definizione della notte",
+          "description": "«plages»: l'orario del dispositivo; «heures»: la fascia di riserva qui sotto."
+        },
+        "nuit_debut": {
+          "name": "Inizio della notte (riserva)",
+          "description": "HH:MM, senza fascia di sessione o se nuit = heures."
+        },
+        "nuit_fin": {
+          "name": "Fine della notte (riserva)",
+          "description": "HH:MM."
+        },
+        "repos_min": {
+          "name": "Intervallo tra due avvisi",
+          "description": "Minuti minimi tra due avvisi conteggiati."
+        },
+        "ferme_apres_min": {
+          "name": "Finestra della gradazione",
+          "description": "Un altro avviso entro questo tempo: messaggio fermo, poi si avvisano i responsabili."
+        },
+        "prevenir_responsable": {
+          "name": "Avvisare i responsabili",
+          "description": "Al terzo avviso ravvicinato, tramite i loro canali «avvisi»."
+        },
+        "micro_fige_s": {
+          "name": "Microfono bloccato",
+          "description": "Un microfono il cui livello non cambia per questi secondi viene escluso dalla media."
         }
       }
     }
@@ -2170,6 +2216,18 @@
       },
       "rafraichir_la_liste_noire_toutes_les": {
         "name": "Aggiorna la lista di blocco ogni"
+      },
+      "seuil_sonore_jour": {
+        "name": "Soglia sonora di giorno"
+      },
+      "seuil_sonore_nuit": {
+        "name": "Soglia sonora di notte"
+      },
+      "bruit_duree": {
+        "name": "Rumore: durata prima di un avviso"
+      },
+      "bruit_repos": {
+        "name": "Rumore: intervallo tra due avvisi"
       }
     },
     "select": {
@@ -2325,6 +2383,9 @@
       },
       "niveau_sonore": {
         "name": "Livello sonoro"
+      },
+      "micros_actifs": {
+        "name": "Microfoni attivi"
       }
     },
     "switch": {
@@ -2357,6 +2418,9 @@
       },
       "veille_vrai_rendu_des_cartes": {
         "name": "Salvaschermo: vera resa delle schede"
+      },
+      "niveau_sonore_mesure": {
+        "name": "Misurare il livello sonoro"
       }
     },
     "text": {

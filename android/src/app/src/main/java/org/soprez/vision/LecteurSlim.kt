@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 package org.soprez.vision
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Handler
@@ -12,6 +15,7 @@ import java.io.DataInputStream
 import java.io.OutputStream
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.net.SocketTimeoutException
 import java.net.URI
 import java.nio.ByteBuffer
 
@@ -113,6 +117,17 @@ object LecteurSlim {
             suiviReseau = ReseauLocal.Suivi(ctx.applicationContext) { n -> if (premier) premier = false else reseauChange(n != null) }
                 .also { it.demarrer() }
         }
+        if (reveilCtx !== ctx.applicationContext) {
+            // 1.93.06.1 (TV du salon, 19/10) : au réveil de la télé, la liaison est vérifiée tout de suite (voir verifierLiaison).
+            // Posé une fois par application (les essais Robolectric en recréent une à chaque essai).
+            try {
+                val r = object : BroadcastReceiver() {
+                    override fun onReceive(c: Context?, i: Intent?) { Thread { verifierLiaison("réveil de l'écran") }.apply { isDaemon = true; start() } }
+                }
+                ctx.applicationContext.registerReceiver(r, IntentFilter(Intent.ACTION_SCREEN_ON))
+                reveilCtx = ctx.applicationContext
+            } catch (_: Exception) {}
+        }
         val t = Thread { boucle(ctx.applicationContext, hote) }
         t.isDaemon = true; fil = t; t.start()
     }
@@ -159,11 +174,46 @@ object LecteurSlim {
             val reste = attenteAvantLiaison(SystemClock.elapsedRealtime() - retourReseauA, attenteRetourMs)
             if (retourReseauA > 0L && reste > 0L) try { Thread.sleep(reste) } catch (_: InterruptedException) { return }
             val hote = hoteForce ?: serveur(ctx)
-            if (hote != null) try { session(ctx, hote) } catch (e: Exception) { Log.i(TAG, "liaison coupée : ${e.message}") }
+            var toutDeSuite = false
+            if (hote != null) try { session(ctx, hote) } catch (_: LiaisonMuette) {
+                // 1.93.06.1 : Music Assistant a déjà abandonné une liaison muette ; on se reconnecte sans attendre.
+                Log.i(TAG, "aucune commande de Music Assistant depuis ${sansCommandeMs / 1000} s : liaison tenue pour morte, reconnexion")
+                toutDeSuite = true
+            } catch (e: Exception) { Log.i(TAG, "liaison coupée : ${e.message}") }
             connecte = false
             if (moi.isInterrupted || fil !== moi) return
-            try { Thread.sleep(5_000) } catch (_: InterruptedException) { return }
+            // 1.93.06.1 (TCL éteinte au bouton, 19/10 13:38 → 13:57) : écran éteint, le réseau de la télé somnole (la
+            // connexion s'ouvre, puis plus rien ne passe) ; se reconnecter sans cesse faisait clignoter le lecteur dans
+            // Home Assistant toutes les minutes. Écran éteint : on attend le réveil (ou un retour du réseau), même
+            // après une liaison muette.
+            if (!ecranAllume(ctx)) { attendreReveil(ctx, moi); if (moi.isInterrupted || fil !== moi) return; continue }
+            if (toutDeSuite || reconnexionDemandee) { reconnexionDemandee = false; retourReseauA = 0L; continue }
+            // Entre deux essais : 5 s, sauf si une reconnexion est demandée entre-temps (réveil, lancement de la soirée).
+            for (k in 0 until 50) {
+                if (reconnexionDemandee) { reconnexionDemandee = false; retourReseauA = 0L; break }
+                try { Thread.sleep(100) } catch (_: InterruptedException) { return }
+            }
         }
+    }
+
+    /** 1.93.06.1 : la liaison n'a rien reçu de Music Assistant pendant [sansCommandeMs] (voir [SANS_COMMANDE_MS]). */
+    private class LiaisonMuette : Exception("liaison muette")
+
+    /** L'écran est-il allumé (télé réveillée) ? Vrai dans le doute. */
+    private fun ecranAllume(ctx: Context): Boolean = try { Usage.ecranAllume(ctx) } catch (_: Exception) { true }
+
+    /** Écran éteint : au plus [VEILLE_ESSAI_MS] sans nouvel essai de liaison, sauf réveil ou reconnexion demandée. */
+    const val VEILLE_ESSAI_MS = 15L * 60_000L
+    @Volatile var veilleEssaiMs = VEILLE_ESSAI_MS
+
+    private fun attendreReveil(ctx: Context, moi: Thread) {
+        Log.i(TAG, "écran éteint : liaison en attente du réveil de la télé")
+        val fin = horlogeMs() + veilleEssaiMs
+        while (!moi.isInterrupted && fil === moi && !ecranAllume(ctx) && !reconnexionDemandee && horlogeMs() < fin) {
+            try { Thread.sleep(500) } catch (_: InterruptedException) { return }
+        }
+        reconnexionDemandee = false
+        retourReseauA = 0L
     }
 
     /**
@@ -183,6 +233,9 @@ object LecteurSlim {
             s.connect(InetSocketAddress(hote, PORT), 8_000)
             s.tcpNoDelay = true
             s.keepAlive = true
+            // 1.93.06.1 : chien de garde — sans commande de Music Assistant pendant sansCommandeMs, la lecture lève
+            // SocketTimeoutException (LiaisonMuette) et la liaison est refaite (voir SANS_COMMANDE_MS).
+            s.soTimeout = sansCommandeMs.toInt()
             synchronized(verrou) {
                 if (fil !== Thread.currentThread()) return  // arrêté (ou remplacé) pendant la connexion : rien n'est envoyé
                 socket = s
@@ -190,6 +243,7 @@ object LecteurSlim {
             }
             liaisons++
             relieA = SystemClock.elapsedRealtime()
+            derniereCommandeA = horlogeMs()
             gardeDepart = true
             // 1.93.06 (banc, coupure réseau) : une reconnexion en pleine lecture se dit comme squeezelite (bit 0x4000
             // du HELO) ; sinon Music Assistant voit un lecteur neuf, éteint, et la musique ne reprend pas.
@@ -198,7 +252,7 @@ object LecteurSlim {
             envoyer("HELO", helo(ctx, reconnexion))
             if (jouait) relancerApresCoupure(ctx, s)
             connecte = true
-            lireCommandes(ctx, s, hote)
+            try { lireCommandes(ctx, s, hote) } catch (e: SocketTimeoutException) { throw LiaisonMuette() }
         } finally {
             connecte = false
             fermer(s)
@@ -240,6 +294,58 @@ object LecteurSlim {
     @Volatile var liaisons = 0; private set
     @Volatile private var relieA = 0L
 
+    // ------------------------------------------------------------ liaison muette (TV du salon, 19/10)
+
+    /**
+     * 1.93.06.1 (l'auteur, 19/10 : « 928 titres, je clique sur Jump Around, c'est The Golden Path qui s'affiche, ▶ ne donne
+     * rien ») : la TCL s'est mise en veille à 09:27 ; Music Assistant a abandonné la liaison 15 s plus tard (plus de
+     * réponse à ses « strm t »). Au réveil (09:37), la connexion TCP restait « ouverte » côté télé (rien ne l'avait
+     * fermée, la lecture bloquait sans fin) : le lecteur est resté hors ligne 77 min, jusqu'à ce qu'un changement du
+     * réseau la ferme à 10:54. La soirée lancée entre-temps depuis la télé est partie sur une autre enceinte.
+     *
+     * Music Assistant envoie une commande (« strm t », battement) toutes les quelques secondes : sans AUCUNE commande
+     * pendant [SANS_COMMANDE_MS], la liaison est tenue pour morte, fermée et refaite tout de suite (il l'a déjà
+     * abandonnée, pas de doublon). Au réveil de l'écran et avant de lancer la soirée depuis cet appareil, la même
+     * vérification est faite sans attendre ([verifierLiaison]).
+     */
+    const val SANS_COMMANDE_MS = 20_000L
+    /** Réglable pour les essais. */
+    @Volatile var sansCommandeMs = SANS_COMMANDE_MS
+    @Volatile private var derniereCommandeA = 0L
+    @Volatile private var reconnexionDemandee = false
+    private var reveilCtx: Context? = null
+
+    /** Pur : la liaison est-elle muette depuis trop longtemps ? */
+    fun liaisonMorte(depuisDerniereCommandeMs: Long, limiteMs: Long): Boolean = depuisDerniereCommandeMs > limiteMs
+
+    /** L'horloge du chien de garde : monotone et VRAIE (celle de SystemClock est simulée dans les essais Robolectric). */
+    private fun horlogeMs(): Long = System.nanoTime() / 1_000_000L
+
+    /** La boucle de liaison tourne-t-elle ? */
+    val enMarche: Boolean get() = fil?.isAlive == true
+
+    /**
+     * La liaison est-elle vivante (reliée, et une commande de Music Assistant depuis moins de [sansCommandeMs]) ? Sinon
+     * elle est fermée tout de suite et la boucle se reconnecte sans attendre. Hors du fil principal (fermeture réseau).
+     */
+    fun verifierLiaison(pourquoi: String = ""): Boolean {
+        val s = socket
+        if (s != null && connecte && !liaisonMorte(horlogeMs() - derniereCommandeA, sansCommandeMs)) return true
+        if (!enMarche) return false
+        Log.i(TAG, "liaison ${if (s == null) "absente" else "muette"} ($pourquoi) : reconnexion tout de suite")
+        reconnexionDemandee = true
+        retourReseauA = 0L
+        s?.let { fermer(it) }
+        return false
+    }
+
+    /** Attend que la liaison soit établie (au plus [maxMs]) ; vrai si elle l'est. Hors du fil principal. */
+    fun attendreLiaison(maxMs: Long): Boolean {
+        val fin = horlogeMs() + maxMs
+        while (!connecte && enMarche && horlogeMs() < fin) try { Thread.sleep(100) } catch (_: InterruptedException) { return connecte }
+        return connecte
+    }
+
     private fun lireCommandes(ctx: Context, s: Socket, hote: String) {
         // 1.90.4 (télé d'essai : lecteur « squeezeplay: 5a:7a:… » sans nom dans Music Assistant) : MA enregistre le
         // lecteur en tâche de fond juste après le HELO, et ignore le nom s'il arrive avant la fin (course selon la
@@ -251,6 +357,7 @@ object LecteurSlim {
             val longueur = entree.readUnsignedShort()
             val cmd = ByteArray(4); entree.readFully(cmd)
             val data = ByteArray(longueur - 4); entree.readFully(data)
+            derniereCommandeA = horlogeMs()
             val c = String(cmd, Charsets.US_ASCII)
             h?.post { try { traiter(ctx, c, data, hote) } catch (e: Exception) { Log.w(TAG, "commande $c ignorée : $e") } }
         }

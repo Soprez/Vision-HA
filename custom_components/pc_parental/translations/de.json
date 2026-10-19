@@ -1963,6 +1963,20 @@
         }
       }
     },
+    "accueil_regler": {
+      "name": "Startbildschirm — App-Liste",
+      "description": "App-Liste auf dem Startbildschirm eines Android-Geräts ein- oder ausblenden (nur Administratoren und Automatisierungen). Ausgeblendet zeigt der Startbildschirm nur die Widgets (Dashboard); langes Drücken auf die Uhrzeit öffnet weiterhin die Einstellungen, hinter Code oder Fingerabdruck. Das Gerät übernimmt die neueste Einstellung, aus Home Assistant oder vom Gerät selbst.",
+      "fields": {
+        "pc": {
+          "name": "Gerät",
+          "description": "Name des Geräts."
+        },
+        "liste_applis": {
+          "name": "App-Liste anzeigen",
+          "description": "Ein (Standard): die App-Liste wird angezeigt. Aus: nur die Widgets (die Liste bleibt, wenn der Startbildschirm kein Widget hat)."
+        }
+      }
+    },
     "widget_regler": {
       "name": "Widget — Zeile unter dem Wert",
       "description": "Stellt das Widget einer Entität auf allen Geräten ein (nur Administratoren und Automatisierungen): die Zeile unter dem Wert, Name und Symbol. Wie die Karte Widgets HA.",
@@ -2024,6 +2038,38 @@
         "plages": {
           "name": "Aktive Zeiten",
           "description": "Liste von (debut, fin) im Format HH:MM; leer = ganztägig."
+        },
+        "seuil_nuit_db": {
+          "name": "Schwelle nachts",
+          "description": "Relativer Pegel (0 bis 100) nachts: die Zeiträume „Sitzung sperren“ des Geräts, sonst der Ersatzzeitraum."
+        },
+        "nuit": {
+          "name": "Definition der Nacht",
+          "description": "„plages“: der Zeitplan des Geräts; „heures“: der Ersatzzeitraum unten."
+        },
+        "nuit_debut": {
+          "name": "Beginn der Nacht (Ersatz)",
+          "description": "HH:MM, ohne Sitzungszeitraum oder wenn nuit = heures."
+        },
+        "nuit_fin": {
+          "name": "Ende der Nacht (Ersatz)",
+          "description": "HH:MM."
+        },
+        "repos_min": {
+          "name": "Abstand zwischen zwei Warnungen",
+          "description": "Mindestens so viele Minuten zwischen zwei gezählten Warnungen."
+        },
+        "ferme_apres_min": {
+          "name": "Fenster der Steigerung",
+          "description": "Eine weitere Warnung in dieser Zeit: strenger Hinweis, dann werden die Verantwortlichen benachrichtigt."
+        },
+        "prevenir_responsable": {
+          "name": "Verantwortliche benachrichtigen",
+          "description": "Bei der dritten dicht folgenden Warnung, über ihre Kanäle „Warnungen“."
+        },
+        "micro_fige_s": {
+          "name": "Eingefrorenes Mikrofon",
+          "description": "Ein Mikrofon, dessen Pegel sich so viele Sekunden nicht ändert, wird aus dem Mittelwert ausgeschlossen."
         }
       }
     }
@@ -2170,6 +2216,18 @@
       },
       "rafraichir_la_liste_noire_toutes_les": {
         "name": "Sperrliste aktualisieren alle"
+      },
+      "seuil_sonore_jour": {
+        "name": "Lautstärkeschwelle tagsüber"
+      },
+      "seuil_sonore_nuit": {
+        "name": "Lautstärkeschwelle nachts"
+      },
+      "bruit_duree": {
+        "name": "Lärm: Dauer vor einer Warnung"
+      },
+      "bruit_repos": {
+        "name": "Lärm: Abstand zwischen zwei Warnungen"
       }
     },
     "select": {
@@ -2325,6 +2383,9 @@
       },
       "niveau_sonore": {
         "name": "Lautstärke"
+      },
+      "micros_actifs": {
+        "name": "Aktive Mikrofone"
       }
     },
     "switch": {
@@ -2357,6 +2418,9 @@
       },
       "veille_vrai_rendu_des_cartes": {
         "name": "Bildschirmschoner: echte Kartendarstellung"
+      },
+      "niveau_sonore_mesure": {
+        "name": "Lautstärke messen"
       }
     },
     "text": {

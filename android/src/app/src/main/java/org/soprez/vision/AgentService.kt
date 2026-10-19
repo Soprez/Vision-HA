@@ -160,6 +160,7 @@ class AgentService : Service() {
         // 1.93.05 (retour 36) : les options de la veille de cet appareil, réglées depuis Home Assistant.
         try { OptionsVeille.releve(this, r.optJSONObject("veille_options")) } catch (_: Exception) {}
         try { FocusMusique.releve(this, r.optJSONObject("musique_options")) } catch (_: Exception) {}  // 1.93.06 : focus audio
+        try { AffichageApplis.releve(this, r.optJSONObject("accueil_options")) } catch (_: Exception) {}  // 1.93.06.1 : liste des applis
         // Réveil : les événements remontés sont reçus ; la liste à armer et les ordres arrivent (l'appareil sonne seul).
         try { Reveils.acquitter(this, corps.optJSONObject("reveils")); Reveils.releve(this, r) } catch (_: Exception) {}
         // Niveau sonore : dépassements remis, puis réglages de la mesure (« actif: false » arrête le micro).

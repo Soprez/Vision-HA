@@ -1,0 +1,47 @@
+{
+  "version": "2.5.12.2",
+  "date": "2026-10-19",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Musique : « Jouer maintenant » sur un titre de la file lance toujours ce titre-là, même dans une longue file.",
+        "en": "Music: “Play now” on a queued track always starts that very track, even in a long queue.",
+        "de": "Musik: „Jetzt abspielen“ startet immer genau diesen Titel, auch in einer langen Warteschlange.",
+        "es": "Música: «Reproducir ahora» inicia siempre ese mismo título, incluso en una cola larga.",
+        "it": "Musica: «Riproduci ora» avvia sempre proprio quel brano, anche in una coda lunga.",
+        "nl": "Muziek: “Nu afspelen” start altijd precies dat nummer, ook in een lange wachtrij."
+      }
+    },
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "Lecteur télé : après une veille de la télé, le lecteur se relie de lui-même à Music Assistant.",
+        "en": "TV player: after the TV sleeps, the player reconnects to Music Assistant by itself.",
+        "de": "TV-Player: Nach dem Standby des Fernsehers verbindet sich der Player von selbst wieder mit Music Assistant.",
+        "es": "Reproductor TV: tras el reposo de la tele, el reproductor se reconecta solo a Music Assistant.",
+        "it": "Lettore TV: dopo lo standby della TV, il lettore si ricollega da solo a Music Assistant.",
+        "nl": "Tv-speler: na de stand-by van de tv verbindt de speler zichzelf opnieuw met Music Assistant."
+      }
+    },
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "Lecteur télé : la soirée lancée depuis la télé relie d'abord son lecteur ; plus de départ surprise ailleurs.",
+        "en": "TV player: a party started from the TV connects its player first; no more surprise start on another speaker.",
+        "de": "TV-Player: Eine vom Fernseher gestartete Party verbindet zuerst seinen Player; kein Überraschungsstart anderswo.",
+        "es": "Reproductor TV: la fiesta iniciada desde la tele conecta antes su reproductor; sin arranque sorpresa en otro altavoz.",
+        "it": "Lettore TV: la festa avviata dalla TV collega prima il suo lettore; niente più avvii a sorpresa altrove.",
+        "nl": "Tv-speler: een feest gestart vanaf de tv verbindt eerst zijn speler; geen verrassende start op een andere speaker."
+      }
+    }
+  ]
+}

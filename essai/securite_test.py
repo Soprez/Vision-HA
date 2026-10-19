@@ -423,7 +423,11 @@ async def _attendre(client, d):
 
 
 async def test_appairage_valide_par_un_admin(hass, hass_storage, hass_client):
-    client = await hass_client()  # administrateur ; les vues de l'appareil ignorent l'authentification
+    # Administrateur à jetons seuls (2.5.12.5 : un administrateur qui se connecte n'a plus de code) ; les vues de
+    # l'appareil ignorent l'authentification.
+    from octroi_test import _client_code
+
+    client = await _client_code(hass, hass_client)
     _, coord = await _monter(hass, hass_storage)
     poser_code_octroi(hass)
     cle = coord.store.enroll_key

@@ -39,6 +39,20 @@ object LecteurMusique {
 
     fun arreter() { LecteurSlim.arreter(); LecteurSendspin.arreter() }
 
+    /**
+     * 1.93.06.1 (TV du salon, 19/10) : avant de lancer la soirée depuis cet appareil, son lecteur doit être relié à Music
+     * Assistant (Home Assistant l'attend 8 s, puis part sur une autre enceinte). Une liaison muette est refermée et
+     * rouverte ; on attend au plus [maxMs]. Hors du fil principal. Moteur Sendspin : il se reconnecte seul, on ne fait
+     * que dire s'il est relié.
+     */
+    fun assurerLiaison(ctx: Context, maxMs: Long = 8_000L): Boolean {
+        if (moteur(ctx) == SENDSPIN) return LecteurSendspin.connecte
+        if (!LecteurVision.actif(ctx) || !ReglagesTvActivity.estTele(ctx)) return false
+        if (!LecteurSlim.enMarche) LecteurSlim.demarrer(ctx)
+        if (LecteurSlim.verifierLiaison("lancement de la soirée")) return true
+        return LecteurSlim.attendreLiaison(maxMs)
+    }
+
     /** « lecture », « pause » ou « arrêt » (celui du moteur qui tourne). */
     val etat: String get() = if (LecteurSendspin.actif) LecteurSendspin.etat else LecteurSlim.etat
 

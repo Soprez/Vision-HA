@@ -51,6 +51,7 @@ from .const import (
     ORIGINE_JAMAIS,
     FAMILLES_APPS,
     DEPENDANCES_APPS,
+    SEGMENTS_GENERIQUES,
     FAMILLES_SITES,
     SERVEURS_PARTAGES,
     LAISSEZ_PASSER_MAX,
@@ -196,6 +197,15 @@ def membres_site(nom: str) -> list[str]:
     if not nom:
         return []
     return [nom] + sorted(a for a, c in FAMILLES_SITES.items() if c == nom)
+
+
+def racine_app(famille: str) -> str:
+    """2.5.12.4 : le premier segment significatif d'un nom d'appli (« com.snapchat.android » → « snapchat », « roblox »
+    → « roblox ») ; vide si aucun ne l'est. Sert à reconnaître les sites qui portent le nom de l'appli."""
+    for seg in str(famille or "").lower().split("."):
+        if seg and seg not in SEGMENTS_GENERIQUES:
+            return seg
+    return ""
 
 
 def membres_app(nom: str) -> list[str]:
@@ -668,9 +678,13 @@ class PcStore:
         # 2.5.1 : les sites liés tout seuls (« suit » : il suit le logiciel ; sinon il était fermé au moment du lien et
         # attend un geste du Décideur), et ceux qu'un Décideur a déliés à la main (jamais reliés tout seuls).
         self.domaines_auto = {
-            str(app): {str(d): dict(f) for d, f in doms.items() if _nom_site(str(d)) and isinstance(f, dict)}
+            str(app): {str(d): dict(f) for d, f in doms.items() if _nom_site(str(d)) and isinstance(f, dict)
+                       # 2.5.12.4 : un site désormais connu de Vision pour ce logiciel n'est plus un lien
+                       # automatique (whatsapp.com, lié tout seul à « whatsapp.root », revient à WhatsApp).
+                       and str(d) not in DEPENDANCES_APPS.get(str(app), ())}
             for app, doms in (data.get("domaines_auto") or {}).items() if isinstance(doms, dict)
         }
+        self.domaines_auto = {app: doms for app, doms in self.domaines_auto.items() if doms}
         self.domaines_delies = {
             str(app): [str(d) for d in doms if _nom_site(str(d))]
             for app, doms in (data.get("domaines_delies") or {}).items() if isinstance(doms, list)
@@ -2557,7 +2571,7 @@ class PcStore:
         """Des sites vus sur les appareils de la personne qui portent le nom de l'appli (« roblox » → robloxlabs.com,
         rbx…) et pas encore liés. Depuis la 2.5.1, `lier_auto` les lie tout seuls : la liste se vide."""
         famille = FAMILLES_APPS.get(_nom_app(app), _nom_app(app))
-        racine = famille.split(".")[0]
+        racine = racine_app(famille)
         if len(racine) < 4:
             return []
         deja = {s["nom"] for s in self.sites_du_logiciel(famille)}
@@ -2757,7 +2771,10 @@ class PcStore:
         familles = set(DEPENDANCES_APPS) | set(getattr(self, "domaines_lies", None) or {}) | set(
             getattr(self, "domaines_auto", None) or {})
         rendu: dict[str, str] = {}
-        for famille in sorted(familles):
+        # 2.5.12.4 : les logiciels connus de Vision d'abord, dans l'ordre de la table (« roblox » avant son paquet
+        # Android, « com.whatsapp » avant le programme PC), puis les autres : un site garde le logiciel qui l'a déclaré.
+        ordre = [f for f in DEPENDANCES_APPS if f in familles] + sorted(familles - set(DEPENDANCES_APPS))
+        for famille in ordre:
             for s in self.sites_du_logiciel(famille):
                 rendu.setdefault(s["nom"], famille)
         return rendu
@@ -4003,6 +4020,11 @@ class PcStore:
                     continue
                 for dep in deps:
                     if dep in nommes:
+                        continue
+                    # 2.5.12.4 : jamais un site de publicité, de traçage, adulte, dangereux ou de contournement, même
+                    # rangé sous une appli autorisée : la catégorie bannie prime.
+                    if self.est_dangereux(dep) or (
+                            {str(e).strip().lower() for e in self.etiquettes_de("sites", dep)} & ETIQUETTES_SANS_LIEN_AUTO):
                         continue
                     if dep in sites:
                         sites.remove(dep)

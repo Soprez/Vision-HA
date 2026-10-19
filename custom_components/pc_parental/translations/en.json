@@ -1963,6 +1963,20 @@
         }
       }
     },
+    "accueil_regler": {
+      "name": "Home screen — apps list",
+      "description": "Show or hide the apps list on an Android device's home screen (administrators and automations only). Hidden, the home screen shows only the widgets (dashboard); a long press on the time still opens the settings, behind the code or fingerprint. The device applies the most recent setting, from Home Assistant or from the device itself.",
+      "fields": {
+        "pc": {
+          "name": "Device",
+          "description": "Name of the device."
+        },
+        "liste_applis": {
+          "name": "Show the apps list",
+          "description": "On (default): the apps list is shown. Off: only the widgets (the list stays if the home screen has no widget)."
+        }
+      }
+    },
     "widget_regler": {
       "name": "Widget — line under the value",
       "description": "Sets the widget of an entity on every device (administrators and automations only): the line written under the value, its name and its icon. Same as the Widgets HA card.",
@@ -2024,6 +2038,38 @@
         "plages": {
           "name": "Active time ranges",
           "description": "List of (debut, fin) in HH:MM; empty = all day."
+        },
+        "seuil_nuit_db": {
+          "name": "Night threshold",
+          "description": "Relative level (0 to 100) at night: the device's “Lock the session” ranges, otherwise the fallback range."
+        },
+        "nuit": {
+          "name": "Definition of night",
+          "description": "“plages”: the device's schedule; “heures”: the fallback range below."
+        },
+        "nuit_debut": {
+          "name": "Night start (fallback)",
+          "description": "HH:MM, used without a session range or when nuit = heures."
+        },
+        "nuit_fin": {
+          "name": "Night end (fallback)",
+          "description": "HH:MM."
+        },
+        "repos_min": {
+          "name": "Delay between two alerts",
+          "description": "Minimum minutes between two counted alerts."
+        },
+        "ferme_apres_min": {
+          "name": "Escalation window",
+          "description": "One more alert within this delay: firm message, then the responsible people are notified."
+        },
+        "prevenir_responsable": {
+          "name": "Notify the responsible people",
+          "description": "On the third close alert, through their “alerts” channels."
+        },
+        "micro_fige_s": {
+          "name": "Frozen microphone delay",
+          "description": "A microphone whose level does not change for this many seconds is left out of the average."
         }
       }
     }
@@ -2170,6 +2216,18 @@
       },
       "rafraichir_la_liste_noire_toutes_les": {
         "name": "Refresh the blocklist every"
+      },
+      "seuil_sonore_jour": {
+        "name": "Daytime sound threshold"
+      },
+      "seuil_sonore_nuit": {
+        "name": "Night-time sound threshold"
+      },
+      "bruit_duree": {
+        "name": "Noise: duration before an alert"
+      },
+      "bruit_repos": {
+        "name": "Noise: delay between two alerts"
       }
     },
     "select": {
@@ -2325,6 +2383,9 @@
       },
       "niveau_sonore": {
         "name": "Sound level"
+      },
+      "micros_actifs": {
+        "name": "Active microphones"
       }
     },
     "switch": {
@@ -2357,6 +2418,9 @@
       },
       "veille_vrai_rendu_des_cartes": {
         "name": "Screensaver: real card rendering"
+      },
+      "niveau_sonore_mesure": {
+        "name": "Measure the sound level"
       }
     },
     "text": {

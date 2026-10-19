@@ -1963,6 +1963,20 @@
         }
       }
     },
+    "accueil_regler": {
+      "name": "Startscherm — app-lijst",
+      "description": "De app-lijst op het startscherm van een Android-apparaat tonen of verbergen (alleen beheerders en automatiseringen). Verborgen toont het startscherm alleen de widgets (dashboard); de tijd ingedrukt houden opent nog steeds de instellingen, achter de code of vingerafdruk. Het apparaat past de nieuwste instelling toe, van Home Assistant of van het apparaat zelf.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat."
+        },
+        "liste_applis": {
+          "name": "App-lijst tonen",
+          "description": "Aan (standaard): de app-lijst wordt getoond. Uit: alleen de widgets (de lijst blijft als het startscherm geen widget heeft)."
+        }
+      }
+    },
     "widget_regler": {
       "name": "Widget — regel onder de waarde",
       "description": "Stelt de widget van een entiteit in op alle apparaten (alleen beheerders en automatiseringen): de regel onder de waarde, de naam en het pictogram. Zoals de kaart Widgets HA.",
@@ -2024,6 +2038,38 @@
         "plages": {
           "name": "Actieve tijden",
           "description": "Lijst van (debut, fin) in HH:MM; leeg = de hele dag."
+        },
+        "seuil_nuit_db": {
+          "name": "Drempel 's nachts",
+          "description": "Relatief niveau (0 tot 100) 's nachts: de ‘Sessie vergrendelen’-tijdvakken van het apparaat, anders het reservetijdvak."
+        },
+        "nuit": {
+          "name": "Definitie van de nacht",
+          "description": "‘plages’: het rooster van het apparaat; ‘heures’: het reservetijdvak hieronder."
+        },
+        "nuit_debut": {
+          "name": "Begin van de nacht (reserve)",
+          "description": "HH:MM, zonder sessietijdvak of als nuit = heures."
+        },
+        "nuit_fin": {
+          "name": "Einde van de nacht (reserve)",
+          "description": "HH:MM."
+        },
+        "repos_min": {
+          "name": "Tijd tussen twee meldingen",
+          "description": "Minimaal zoveel minuten tussen twee getelde meldingen."
+        },
+        "ferme_apres_min": {
+          "name": "Venster van de opbouw",
+          "description": "Nog een melding binnen deze tijd: streng bericht, daarna worden de verantwoordelijken gewaarschuwd."
+        },
+        "prevenir_responsable": {
+          "name": "Verantwoordelijken waarschuwen",
+          "description": "Bij de derde snel volgende melding, via hun kanalen ‘meldingen’."
+        },
+        "micro_fige_s": {
+          "name": "Bevroren microfoon",
+          "description": "Een microfoon waarvan het niveau zoveel seconden niet verandert, telt niet mee in het gemiddelde."
         }
       }
     }
@@ -2170,6 +2216,18 @@
       },
       "rafraichir_la_liste_noire_toutes_les": {
         "name": "Blokkeerlijst vernieuwen elke"
+      },
+      "seuil_sonore_jour": {
+        "name": "Geluidsdrempel overdag"
+      },
+      "seuil_sonore_nuit": {
+        "name": "Geluidsdrempel 's nachts"
+      },
+      "bruit_duree": {
+        "name": "Lawaai: duur vóór een melding"
+      },
+      "bruit_repos": {
+        "name": "Lawaai: tijd tussen twee meldingen"
       }
     },
     "select": {
@@ -2325,6 +2383,9 @@
       },
       "niveau_sonore": {
         "name": "Geluidsniveau"
+      },
+      "micros_actifs": {
+        "name": "Actieve microfoons"
       }
     },
     "switch": {
@@ -2357,6 +2418,9 @@
       },
       "veille_vrai_rendu_des_cartes": {
         "name": "Schermbeveiliging: echte weergave van kaarten"
+      },
+      "niveau_sonore_mesure": {
+        "name": "Geluidsniveau meten"
       }
     },
     "text": {

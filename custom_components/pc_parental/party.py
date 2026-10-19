@@ -796,9 +796,10 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
     if action in ("jouer_element", "ensuite_element"):
         if action == "jouer_element":
             # 2.5.11 : un titre déjà joué (ou en tampon) est relancé directement par Music Assistant (play_index) ;
-            # « suivant » n'est enchaîné que pour un titre à venir, placé juste après celui en cours.
-            if not await musique.rejouer_element(hass, st["lecteur"], str(corps.get("element") or "")):
-                await _service(hass, "media_player", "media_next_track", st["lecteur"])
+            # un titre à venir est d'abord placé juste après celui en cours. 2.5.12.2 (l'auteur, 19/10) : dans les deux cas,
+            # c'est CE titre que Music Assistant lance (play_index), jamais « suivant » (qui partait sur un autre titre
+            # dès que la file bougeait entre les deux).
+            await musique.rejouer_element(hass, st["lecteur"], str(corps.get("element") or ""))
             return textes.t("party.cest_parti", lg)
         await musique.ensuite_element(hass, st["lecteur"], str(corps.get("element") or ""))
         return textes.t("party.joue_apres", lg)
@@ -889,9 +890,16 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
         # état périmé. Et on mesure le délai jusqu'au vrai changement d'état (journal), pour savoir d'où vient le retard.
         voulu = str(corps.get("voulu") or "")
         service = {"pause": "media_pause", "lecture": "media_play"}.get(voulu) if action == "lecture" else None
+        # 2.5.12.2 (retour d'essai) : ▶ sur un lecteur arrêté par Music Assistant après une pause longue → même titre, même position.
+        reprise = None
+        if action == "lecture" and voulu == "lecture":
+            s = hass.states.get(lecteur)
+            reprise = position_de_reprise(lecteur, s.state if s else None, s.attributes if s else None, time.time())
         t0 = time.monotonic()
         _mesurer(hass, lecteur, action + (" → " + voulu if voulu else ""), t0)
         await _service(hass, "media_player", service or ACTIONS_LECTURE[action], lecteur)
+        if reprise is not None:
+            hass.async_create_task(reprendre_a(hass, lecteur, reprise))
         _LOGGER.info("%s : Musique %s — appel du service : %d ms", PRODUIT, action, (time.monotonic() - t0) * 1000)
         return ""
     if action in ("volume", "volume_membre"):
@@ -922,6 +930,62 @@ _COUPURES: dict[str, float] = {}
 # joue pas (vidéo, TV en direct, HDMI). Gardé en mémoire (pas dans le magasin) ; récent = moins de AUTRE_SON_MAX_S.
 AUTRE_SON_MAX_S = 60
 _AUTRE_SON: dict[str, tuple[bool, float]] = {}
+
+# 2.5.12.2 (l'auteur, 19/10 : « une pause de plus de 30 s fait reprendre le titre au début ») : Music Assistant arrête un lecteur
+# en pause depuis 30 s (« Clearing active output protocol ») et ▶ repart alors du début du titre. On retient la position
+# au moment de la pause ; au ▶ suivant sur un lecteur à l'arrêt, le même titre est repris là où il en était (saut dès que
+# la lecture est repartie). Un lecteur encore en pause reprend sur place : rien à faire.
+PAUSE_REPRISE_MAX_S = 4 * 3600
+PAUSE_REPRISE_MIN_S = 10
+PAUSE_REPRISE_ATTENTE_S = 15
+_PAUSES: dict[str, tuple[str, float, float]] = {}
+
+
+def noter_pause(eid: str, nouveau_etat: str | None, attrs: dict[str, Any] | None, maintenant_ts: float) -> None:
+    """À chaque changement d'état d'un lecteur : la position au moment d'une pause est retenue ; une lecture l'efface."""
+    attrs = attrs or {}
+    if nouveau_etat == "paused":
+        pos, cid = attrs.get("media_position"), str(attrs.get("media_content_id") or "")
+        if isinstance(pos, (int, float)) and cid:
+            _PAUSES[eid] = (cid, float(pos), maintenant_ts)
+    elif nouveau_etat == "playing":
+        _PAUSES.pop(eid, None)
+
+
+def position_de_reprise(eid: str, etat_lecteur: str | None, attrs: dict[str, Any] | None, maintenant_ts: float) -> float | None:
+    """La position où reprendre un lecteur à l'ARRÊT après une pause (même titre, pause récente, au-delà de
+    PAUSE_REPRISE_MIN_S), sinon None (en pause : Music Assistant reprend sur place ; autre titre ; trop ancien). Pur."""
+    p = _PAUSES.get(eid)
+    if p is None or etat_lecteur not in ("idle", "off", "standby"):
+        return None
+    cid, pos, ts = p
+    if maintenant_ts - ts > PAUSE_REPRISE_MAX_S or pos < PAUSE_REPRISE_MIN_S:
+        return None
+    actuel = str((attrs or {}).get("media_content_id") or "")
+    if actuel and actuel != cid:
+        return None
+    return pos
+
+
+async def reprendre_a(hass: HomeAssistant, eid: str, position: float) -> None:
+    """Dès que la lecture est repartie (au plus PAUSE_REPRISE_ATTENTE_S), saut à [position] ; l'appli recale son lecteur."""
+    fin = hass.loop.time() + PAUSE_REPRISE_ATTENTE_S
+    while hass.loop.time() < fin:
+        s = hass.states.get(eid)
+        if s is not None and s.state == "playing":
+            break
+        await asyncio.sleep(0.25)
+    else:
+        _LOGGER.info("%s : Musique — reprise à %.0f s abandonnée sur %s (la lecture n'est pas repartie)", PRODUIT, position, eid)
+        return
+    try:
+        await _service(hass, "media_player", "media_seek", eid, {"seek_position": position})
+    except Exception as err:  # noqa: BLE001 - le titre repart du début, comme avant
+        _LOGGER.info("%s : Musique — reprise à %.0f s impossible sur %s : %s", PRODUIT, position, eid, err)
+        return
+    etat(hass)["saut"] = {"lecteur": eid, "position": position, "ts": time.time()}
+    _PAUSES.pop(eid, None)
+    _LOGGER.info("%s : Musique — titre repris à %.0f s sur %s après une pause longue", PRODUIT, position, eid)
 
 
 def noter_autre_son(pc_id: str, oui: bool, maintenant_ts: float) -> None:

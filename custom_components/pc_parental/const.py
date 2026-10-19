@@ -6,11 +6,11 @@ from datetime import timedelta
 
 DOMAIN = "pc_parental"
 
-VERSION = "2.5.12"
+VERSION = "2.5.12.5"
 
 # Version du client PowerShell hébergé par cette intégration. Les agents
 # installés sur les PC se mettent à jour tout seuls quand elle change.
-CLIENT_VERSION = "1.93.3"
+CLIENT_VERSION = "1.93.4"
 CLIENT_DIR = "client"
 
 # Nom du produit. Le domaine technique reste « pc_parental » : le changer
@@ -244,14 +244,64 @@ LIENS_AUTO_MAX = 40
 # Le choix du mode d'un élément : « categorie » (suivre la catégorie, le défaut) retire tout réglage propre.
 MODE_SUIVRE = "categorie"
 
+# 2.5.12.4 (l'auteur, 19/10 : « l'appli doit découvrir SEULE quels sites appartiennent à quelle appli ») : les sites des
+# grandes applis mobiles. Sur le téléphone d'un membre, Snapchat, Instagram et WhatsApp étaient autorisés, mais la
+# catégorie fermée « Réseaux sociaux » bloquait leurs CDN : plus d'images. Une même liste sert au paquet Android et au
+# nom du programme sur PC. JAMAIS de domaine de publicité ou de traçage ici (facebook.net, appsflyer…) : il serait
+# ouvert avec l'appli ; la catégorie bannie doit primer (le store l'écarte aussi, par sécurité).
+_ROBLOX = ("roblox.com", "rbx.com", "rbxinfra.com", "rbxcdn.com", "robloxlabs.com")
+_DISCORD = ("discord.com", "discordapp.com", "discordapp.net", "discordcdn.com", "discord.gg", "discord.media")
+_SNAPCHAT = ("snapchat.com", "sc-cdn.net", "snap.com", "sc-static.net", "sc-prod.net", "bitmoji.com")
+_INSTAGRAM = ("instagram.com", "cdninstagram.com", "fbcdn.net")
+_WHATSAPP = ("whatsapp.com", "whatsapp.net")
+_TIKTOK = ("tiktok.com", "tiktokv.com", "tiktokcdn.com", "tiktokcdn-eu.com", "tiktokcdn-us.com", "ibytedtos.com")
+_YOUTUBE = ("youtube.com", "ytimg.com", "googlevideo.com", "ggpht.com", "youtu.be", "youtube-nocookie.com")
+_NETFLIX = ("netflix.com", "nflxvideo.net", "nflximg.net", "nflxext.com", "nflxso.net")
+_SPOTIFY = ("spotify.com", "scdn.co", "spotifycdn.com", "spotifycdn.net")
+_PINTEREST = ("pinterest.com", "pinterest.fr", "pinimg.com")
+_BEREAL = ("bereal.com", "bere.al")
+_RETRO = ("retro-cdn.com",)
+
 DEPENDANCES_APPS = {
-    "roblox": ("roblox.com", "rbx.com", "rbxinfra.com", "rbxcdn.com", "robloxlabs.com"),
+    "roblox": _ROBLOX,
     "steam": ("steampowered.com", "steamcommunity.com", "steamstatic.com", "steamcontent.com", "steamserver.net"),
-    "discord": ("discord.com", "discordapp.com", "discordapp.net", "discordcdn.com", "discord.gg", "discord.media"),
+    "discord": _DISCORD,
     "epicgameslauncher": ("epicgames.com", "unrealengine.com", "epicgames.dev"),
     "riotclient": ("riotgames.com", "riotcdn.net", "pvp.net", "leagueoflegends.com", "valorant.com"),
     "minecraft": ("minecraft.net", "mojang.com", "minecraftservices.com"),
+    # 2.5.12.4 : applis mobiles (paquet Android) et leur programme sur PC quand il existe.
+    "com.snapchat.android": _SNAPCHAT,
+    "com.instagram.android": _INSTAGRAM,
+    "com.whatsapp": _WHATSAPP,
+    "com.whatsapp.w4b": _WHATSAPP,
+    "whatsapp.root": _WHATSAPP,
+    "whatsapp": _WHATSAPP,
+    "com.zhiliaoapp.musically": _TIKTOK,
+    "com.ss.android.ugc.trill": _TIKTOK,
+    "tiktok": _TIKTOK,
+    "com.google.android.youtube": _YOUTUBE,
+    "com.google.android.youtube.tv": _YOUTUBE,
+    "com.google.android.apps.youtube.kids": _YOUTUBE,
+    "com.netflix.mediaclient": _NETFLIX,
+    "com.netflix.ninja": _NETFLIX,
+    "netflix": _NETFLIX,
+    "com.spotify.music": _SPOTIFY,
+    "com.spotify.tv.android": _SPOTIFY,
+    "spotify": _SPOTIFY,
+    "com.discord": _DISCORD,
+    "com.roblox.client": _ROBLOX,
+    "com.pinterest": _PINTEREST,
+    "com.bereal.ft": _BEREAL,
+    "io.lonepalm.retro": _RETRO,
 }
+
+# 2.5.12.4 : la racine d'un nom de paquet Android, pour reconnaître les sites qui portent le nom de l'appli
+# (com.snapchat.android → « snapchat »). Ces segments ne disent rien de l'appli : on les saute. Les grandes marques
+# parapluies aussi (com.google.android.youtube ne doit pas lier tout « google.* » à YouTube).
+SEGMENTS_GENERIQUES = frozenset({
+    "com", "org", "net", "io", "co", "app", "apps", "android", "mobile", "client", "tv", "ft", "w4b",
+    "google", "microsoft", "samsung", "sec", "amazon", "facebook", "meta",
+})
 
 FAMILLES_APPS = {
     "chrome_proxy": "chrome",

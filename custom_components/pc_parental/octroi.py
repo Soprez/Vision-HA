@@ -1,6 +1,6 @@
 """FAILLE DE SÉCURITÉ (l'auteur, 16/10) : accorder exige une preuve à CHAQUE geste, sans délai de grâce.
 
-l'auteur a déverrouillé Alex depuis son téléphone de Décideur en touchant la demande, sans empreinte ni code. Règle :
+l'auteur a déverrouillé un membre depuis son téléphone de Décideur en touchant la demande, sans empreinte ni code. Règle :
 toute action qui déverrouille ou accorde (accepter une demande, déverrouiller, prolonger, autoriser, ouvrir, valider
 un appareil, donner un rôle ou du temps) exige à chaque fois l'empreinte ou le code, sur tous les chemins.
 
@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import logging
 import hmac
 import secrets
 import time
@@ -38,6 +39,8 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 
 from . import roles
+
+_LOGGER = logging.getLogger(__name__)
 
 RESTRICTIFS = frozenset({"fermer", "message", "concentration", "pause_generale"})
 LECTURES = frozenset({"", "categorie", "recherche", "recents", "canaux"})
@@ -220,6 +223,30 @@ def personne_du_compte(hass: HomeAssistant, user_id: str | None) -> str:
     return ""
 
 
+def dispense(hass: HomeAssistant, store, utilisateur) -> str:
+    """2.5.12.5 (l'auteur, 19/10) : au tableau, un compte qui n'a pas à taper le code de déverrouillage, et pourquoi
+    (« decideur », « administrateur ») ; "" sinon. Décidé ICI, côté serveur, d'après le compte de la requête :
+    - un compte HA lié à une personne Décideur déclarée (rôle qui gère ou approuve) ;
+    - un administrateur HA qui se connecte lui-même (au moins un identifiant de connexion), pas un compte créé par le
+      système ni un compte à jetons seuls (un accès d'API, un assistant) : ceux-là, comme un compte partagé, une
+      tablette ou une télé, gardent le code."""
+    if utilisateur is None or not getattr(utilisateur, "is_active", False):
+        return ""
+    if personne_du_compte(hass, getattr(utilisateur, "id", None)) in decideurs(store):
+        return "decideur"
+    if getattr(utilisateur, "is_admin", False) and not getattr(utilisateur, "system_generated", True) \
+            and getattr(utilisateur, "credentials", None):
+        return "administrateur"
+    return ""
+
+
+def _resume(corps: dict[str, Any]) -> str:
+    """Le geste, en peu de mots, pour le journal (« accorder chrome », « lier_domaine roblox → rbxcdn.com »)."""
+    morceaux = [str(corps.get(k)) for k in ("action", "op", "initiative", "nom", "app", "domaine", "pc", "minutes")
+                if corps.get(k) not in (None, "", [], {})]
+    return " ".join(morceaux)[:160] or "?"
+
+
 async def exiger(hass: HomeAssistant, coord, request, corps: dict[str, Any], accorde: bool) -> dict[str, Any] | None:
     """Pour une vue du tableau : None si le geste peut passer, sinon le corps de la réponse 403 (avec « retour »)."""
     if not accorde:
@@ -229,6 +256,18 @@ async def exiger(hass: HomeAssistant, coord, request, corps: dict[str, Any], acc
     utilisateur = request.get("hass_user")
     qui = str(getattr(utilisateur, "id", "") or "?")
     personne = personne_du_compte(hass, getattr(utilisateur, "id", None))
+    # 2.5.12.5 (retour d'essai) : un administrateur ou un Décideur déclaré n'a plus à taper le code ; l'auteur est journalisé.
+    raison = dispense(hass, coord.store, utilisateur)
+    if raison:
+        nom = str(getattr(utilisateur, "name", "") or qui)
+        geste = _resume(corps)
+        _LOGGER.warning("Vision : geste accordé sans code par %s (%s, compte HA %s) : %s", nom, raison, qui, geste)
+        hass.bus.async_fire("logbook_entry", {"name": "Vision", "domain": "pc_parental", "message": textes.t(
+            "octroi.sans_code", textes.ha(hass), par=nom, raison=textes.t("octroi.dispense_" + raison, textes.ha(hass)),
+            geste=geste)})
+        hass.bus.async_fire("pc_parental_geste_sans_code", {"par": nom, "user_id": qui, "personne": personne,
+                                                             "raison": raison, "geste": geste})
+        return None
     erreur = await verifier(hass, coord.store, qui, corps.get("code_octroi"), personne or None)
     if not erreur:
         return None

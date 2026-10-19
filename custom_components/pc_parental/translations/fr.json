@@ -1963,6 +1963,20 @@
         }
       }
     },
+    "accueil_regler": {
+      "name": "Accueil — liste des applications",
+      "description": "Afficher ou masquer la liste des applications sur l'accueil d'un appareil Android (administrateurs et automatisations seulement). Masquée, l'accueil ne montre que les widgets (tableau de bord) ; un appui long sur l'heure ouvre toujours les paramètres, derrière le code ou l'empreinte. L'appareil applique le réglage le plus récent, de Home Assistant ou de l'appareil lui-même.",
+      "fields": {
+        "pc": {
+          "name": "Appareil",
+          "description": "Nom de l'appareil."
+        },
+        "liste_applis": {
+          "name": "Afficher la liste des applications",
+          "description": "Activé (par défaut) : la liste des applications est affichée. Désactivé : les widgets seuls (la liste reste si l'accueil n'a aucun widget)."
+        }
+      }
+    },
     "widget_regler": {
       "name": "Widget — ligne sous la valeur",
       "description": "Règle le widget d'une entité sur tous les appareils (administrateurs et automatisations seulement) : la ligne écrite sous la valeur, son nom et son icône. Comme la carte Widgets HA.",
@@ -2024,6 +2038,38 @@
         "plages": {
           "name": "Plages actives",
           "description": "Liste de (debut, fin) en HH:MM ; vide = toute la journée."
+        },
+        "seuil_nuit_db": {
+          "name": "Seuil la nuit",
+          "description": "Niveau relatif (0 à 100) la nuit : les plages « Verrouiller la session » de l'appareil, sinon la plage de repli."
+        },
+        "nuit": {
+          "name": "Définition de la nuit",
+          "description": "« plages » : le planning de l'appareil ; « heures » : la plage de repli ci-dessous."
+        },
+        "nuit_debut": {
+          "name": "Début de la nuit (repli)",
+          "description": "HH:MM, utilisé sans plage de session ou si nuit = heures."
+        },
+        "nuit_fin": {
+          "name": "Fin de la nuit (repli)",
+          "description": "HH:MM."
+        },
+        "repos_min": {
+          "name": "Délai entre deux alertes",
+          "description": "Minutes au moins entre deux alertes comptées."
+        },
+        "ferme_apres_min": {
+          "name": "Fenêtre de la gradation",
+          "description": "Une alerte de plus dans ce délai : message ferme, puis les responsables sont prévenus."
+        },
+        "prevenir_responsable": {
+          "name": "Prévenir les responsables",
+          "description": "À la troisième alerte rapprochée, par leurs canaux « alertes »."
+        },
+        "micro_fige_s": {
+          "name": "Micro figé",
+          "description": "Un micro dont le niveau ne bouge plus pendant ce nombre de secondes est exclu de la moyenne."
         }
       }
     }
@@ -2170,6 +2216,18 @@
       },
       "rafraichir_la_liste_noire_toutes_les": {
         "name": "Rafraîchir la liste noire toutes les"
+      },
+      "seuil_sonore_jour": {
+        "name": "Seuil sonore le jour"
+      },
+      "seuil_sonore_nuit": {
+        "name": "Seuil sonore la nuit"
+      },
+      "bruit_duree": {
+        "name": "Bruit : durée avant alerte"
+      },
+      "bruit_repos": {
+        "name": "Bruit : délai entre deux alertes"
       }
     },
     "select": {
@@ -2325,6 +2383,9 @@
       },
       "niveau_sonore": {
         "name": "Niveau sonore"
+      },
+      "micros_actifs": {
+        "name": "Micros actifs"
       }
     },
     "switch": {
@@ -2357,6 +2418,9 @@
       },
       "veille_vrai_rendu_des_cartes": {
         "name": "Veille : vrai rendu des cartes"
+      },
+      "niveau_sonore_mesure": {
+        "name": "Mesurer le niveau sonore"
       }
     },
     "text": {

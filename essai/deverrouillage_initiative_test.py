@@ -153,7 +153,10 @@ async def test_service_d_administrateur(hass, hass_storage, hass_client):
 
 
 async def test_carte_exige_le_code_du_decideur(hass, hass_storage, hass_client):
-    client = await hass_client()
+    # 2.5.12.5 : un administrateur qui se connecte n'a plus de code ; le code reste demandé à un compte à jetons seuls.
+    from octroi_test import _client_code
+
+    client = await _client_code(hass, hass_client)
     await _monter(hass, hass_storage)
     r = await client.post("/api/pc_parental/deverrouillage", json={"initiative": "e1", "minutes": 15})
     assert r.status == 403  # aucun code : le tableau n'accorde rien

@@ -1,0 +1,46 @@
+{
+  "version": "2.5.12.5",
+  "date": "2026-10-19",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Tableau de bord : plus de code de déverrouillage pour un administrateur ou un responsable ; chaque geste est noté.",
+        "en": "Dashboard: no more unlock code for an administrator or a responsible person; every action is logged.",
+        "de": "Dashboard: kein Entsperrcode mehr für Administratoren oder Verantwortliche; jede Aktion wird protokolliert.",
+        "es": "Panel: ya no se pide el código de desbloqueo a un administrador o responsable; cada acción queda registrada.",
+        "it": "Cruscotto: niente più codice di sblocco per un amministratore o un responsabile; ogni azione è registrata.",
+        "nl": "Dashboard: geen ontgrendelcode meer voor een beheerder of verantwoordelijke; elke actie wordt vastgelegd."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Applis mobiles autorisées : leurs sites (images, vidéos) restent ouverts sur leur appareil ; pub et traçage bloqués.",
+        "en": "Allowed mobile apps: their sites (images, videos) stay open on their device; ads and tracking stay blocked.",
+        "de": "Erlaubte Handy-Apps: ihre Seiten (Bilder, Videos) bleiben auf dem Gerät offen; Werbung und Tracking gesperrt.",
+        "es": "Apps móviles permitidas: sus sitios (imágenes, vídeos) siguen abiertos en su dispositivo; anuncios y rastreo, no.",
+        "it": "App mobili consentite: i loro siti (immagini, video) restano aperti sul dispositivo; pubblicità e tracciamento no.",
+        "nl": "Toegestane mobiele apps: hun sites (beelden, video's) blijven open op hun toestel; reclame en tracking geblokkeerd."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Snapchat, Instagram, WhatsApp, TikTok, YouTube, Netflix, Spotify… : Vision connaît leurs sites, rien à lier à la main.",
+        "en": "Snapchat, Instagram, WhatsApp, TikTok, YouTube, Netflix, Spotify…: Vision knows their sites, nothing to link by hand.",
+        "de": "Snapchat, Instagram, WhatsApp, TikTok, YouTube, Netflix, Spotify…: Vision kennt ihre Seiten, nichts von Hand.",
+        "es": "Snapchat, Instagram, WhatsApp, TikTok, YouTube, Netflix, Spotify…: Vision conoce sus sitios, nada que enlazar.",
+        "it": "Snapchat, Instagram, WhatsApp, TikTok, YouTube, Netflix, Spotify…: Vision conosce i loro siti, niente a mano.",
+        "nl": "Snapchat, Instagram, WhatsApp, TikTok, YouTube, Netflix, Spotify…: Vision kent hun sites, niets met de hand."
+      }
+    }
+  ]
+}

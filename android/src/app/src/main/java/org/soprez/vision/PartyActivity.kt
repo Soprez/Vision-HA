@@ -7,6 +7,7 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -193,7 +194,11 @@ class PartyActivity : Activity(), ZoneSure.Geree {
                     if (auPremierPlan) main.postDelayed(relire, 1_000L)
                     return@post
                 }
-                if (nouveauTitre.isNotEmpty() && nouveauTitre != actuelTitre) { titrePrecedent = actuelTitre; titreChangeA = System.currentTimeMillis() }
+                if (nouveauTitre.isNotEmpty() && nouveauTitre != actuelTitre) {
+                    titrePrecedent = actuelTitre; titreChangeA = System.currentTimeMillis()
+                    // 1.93.06.1 : à comparer avec le dernier « jouer_element » du journal (titre affiché = titre joué).
+                    Log.i(TAG_PARTY, "titre joué : « ${e?.maintenant?.titre} » — ${e?.maintenant?.artiste}")
+                }
                 // 1.93.06 (retour 40) : le bouton suit le lecteur réel de cet appareil (Party.corrigerParLocal).
                 val f = e?.let { tenirVoulu(filtrerFile(it, avant), avant) }?.let { Party.corrigerParLocal(this, it, voulu.isNotEmpty()) }
                 if (f != null) { etat = f; erreur = "" } else erreur = err
@@ -384,8 +389,55 @@ class PartyActivity : Activity(), ZoneSure.Geree {
     // 1.93.05 (l'auteur, retour 38) : la jauge de volume de Vision ; la touche reste au système.
     private val jauge by lazy { JaugeVolume(this, theme) }
 
+    // ------------------------------------------------------------ 1.93.06.1 : journal et garde des appuis OK (télé)
+
+    /** La vue qui a le focus (currentFocus reste vide sous Robolectric : on lit l'arbre). */
+    private fun focusActuel(): View? = currentFocus ?: window.decorView.findFocus()
+
+    /** La clé logique d'une vue : sa ligne de la file (« file:<id> »), sinon sa description, sinon son texte, sinon son étiquette. */
+    private fun cleFocus(v: View?): String? = when {
+        v == null -> null
+        (v.tag as? String)?.startsWith("file:") == true -> (v.tag as String)
+        v.contentDescription?.isNotEmpty() == true -> v.contentDescription.toString()
+        v is TextView && v.text.isNotEmpty() -> v.text.toString()
+        else -> v.tag as? String
+    }
+
+    /** Le rang d'une ligne dans la file affichée (titres passés compris), -1 hors de la file. */
+    private fun rangFile(v: View?): Int = colFile?.let { c -> (0 until c.childCount).firstOrNull { c.getChildAt(it) === v } } ?: -1
+
+    private var okCleBas: String? = null
+    private var okVueBas: View? = null
+
+    /**
+     * l'auteur (19/10) : « un appui qui agit sur un autre élément que celui sélectionné ». Un appui vaut pour l'élément focalisé
+     * à l'ENFONCEMENT ([OkGarde]) : si l'écran a été rebâti entre-temps (relecture, montée de la file), la même ligne est
+     * cliquée nous-mêmes ; un autre élément n'est jamais cliqué. Chaque appui est journalisé (élément, rang, écran n°).
+     * Vrai si l'événement est pris ici.
+     */
+    private fun gardeOk(ev: android.view.KeyEvent): Boolean {
+        if (ev.keyCode !in OkGarde.TOUCHES_OK) return false
+        val f = focusActuel()
+        if (ev.action == android.view.KeyEvent.ACTION_DOWN) {
+            if (ev.repeatCount == 0) {
+                okCleBas = cleFocus(f); okVueBas = f
+                Log.i(TAG_PARTY, "OK ↓ sur « ${okCleBas ?: "rien"} » (rang ${rangFile(f)} de la file, écran n° $constructions)")
+            }
+            return false
+        }
+        if (ev.action != android.view.KeyEvent.ACTION_UP) return false
+        val bas = okCleBas; val vueBas = okVueBas; okCleBas = null; okVueBas = null
+        val d = OkGarde.decider(bas, cleFocus(f), vueBas != null && vueBas === f)
+        when (d) {
+            OkGarde.Decision.NORMAL -> return false
+            OkGarde.Decision.IGNORER -> { Log.w(TAG_PARTY, OkGarde.journal(d, bas, cleFocus(f))); return true }
+            OkGarde.Decision.REJOUER -> { Log.i(TAG_PARTY, OkGarde.journal(d, bas, cleFocus(f))); f?.performClick(); return true }
+        }
+    }
+
     override fun dispatchKeyEvent(ev: android.view.KeyEvent): Boolean {
         if (tele) jauge.touche(ev)
+        if (tele && deplace.isEmpty() && !parametresOuverts && gardeOk(ev)) return true
         if (parametresOuverts && (ev.keyCode == android.view.KeyEvent.KEYCODE_BACK || ev.keyCode == android.view.KeyEvent.KEYCODE_ESCAPE)) {
             if (ev.action == android.view.KeyEvent.ACTION_UP) { parametresOuverts = false; construire() }
             return true
@@ -455,6 +507,7 @@ class PartyActivity : Activity(), ZoneSure.Geree {
             var ok = false
             try {
                 val cfg = Config(this)
+                if (action == "lancer_ici" && tele) { LecteurMusique.assurerLiaison(this); Party.noterLancementIci(this) }  // 1.93.06.1 : voir jouerTele
                 val r = Net.post(this, cfg, "/api/pc_parental/party/commande", corps.put("id", cfg.id).put("secret", cfg.secret).put("action", action), 9_000)
                 ok = r.optBoolean("ok"); msg = r.optString("retour")
             } catch (x: Net.Echec) { msg = Party.messageErreur(x.code, x.corps) } catch (_: Exception) { msg = Party.messageErreur(0, null) }
@@ -568,6 +621,7 @@ class PartyActivity : Activity(), ZoneSure.Geree {
     }
 
     @Volatile var constructions = 0
+    private val TAG_PARTY = "VisionParty"
     /** 1.86.5 (retour d'essai) : la télé qui rouvre Musique pendant que la musique joue (soirée oubliée après un redémarrage de HA)
      *  relance la soirée d'elle-même, une fois : on arrive sur l'écran Lecture (pochette, QR, file), pas sur la recherche. */
     private var relanceFaite = false
@@ -800,6 +854,9 @@ class PartyActivity : Activity(), ZoneSure.Geree {
             var msg = ""; var ok = false
             try {
                 val cfg = Config(this)
+                // 1.93.06.1 (19/10) : le lecteur de cette télé d'abord relié (sinon la soirée part sur une autre enceinte).
+                if (tele) LecteurMusique.assurerLiaison(this)
+                Party.noterLancementIci(this)  // 1.93.06.1 : pas d'ouverture automatique pour une soirée lancée d'ici
                 val l = Net.post(this, cfg, "/api/pc_parental/party/commande", JSONObject().put("action", "lancer_ici").put("id", cfg.id).put("secret", cfg.secret), 10_000)
                 if (!l.optBoolean("ok", true)) throw Net.Echec(400, l.toString())
                 val r = Net.post(this, cfg, "/api/pc_parental/party/commande", corps.put("action", "jouer").put("id", cfg.id).put("secret", cfg.secret), 10_000)
@@ -1019,7 +1076,10 @@ class PartyActivity : Activity(), ZoneSure.Geree {
         if (t.id.isEmpty()) return
         val choix = ArrayList<Pair<String, () -> Unit>>()
         val decide = e.piloter || e.ici
-        if (decide) choix.add(getString(R.string.partyecran_jouer_maintenant) to { commande("jouer_element", JSONObject().put("element", t.id)) })
+        if (decide) choix.add(getString(R.string.partyecran_jouer_maintenant) to {
+            Log.i(TAG_PARTY, "jouer_element rang ${rangFile(ligneDe(t.id))} « ${t.titre} » (${t.id})")
+            commande("jouer_element", JSONObject().put("element", t.id))
+        })
         choix.add(getString(R.string.choixmusique_jouer_ensuite) to { placer(t, true) })
         if (decide && tele) choix.add(getString(R.string.partyecran_deplacer) to { main.post { commencerDeplacement(t) } })
         if (decide) choix.add(getString(R.string.partyecran_mettre_fin) to { placer(t, false) })
@@ -1129,7 +1189,9 @@ class PartyActivity : Activity(), ZoneSure.Geree {
             else -> e.maintenant
         }
         val h = hauteurDp() - 2 * margeY() / resources.displayMetrics.density
-        val focusAvant = (currentFocus?.contentDescription ?: (currentFocus as? TextView)?.text)?.toString()
+        val focusAvant = (focusActuel()?.contentDescription ?: (focusActuel() as? TextView)?.text)?.toString()
+        // 1.93.06.1 : une ligne de la file se retrouve par l'identifiant du titre (deux titres peuvent porter le même nom).
+        val focusAvantLigne = (focusActuel()?.tag as? String)?.takeIf { it.startsWith("file:") }
         val grille = LinearLayout(this).apply { setPadding(margeX(), margeY(), margeX(), margeY()) }
 
         // Gauche : ce qui passe, les commandes, puis le code invités.
@@ -1379,7 +1441,11 @@ class PartyActivity : Activity(), ZoneSure.Geree {
         racine.contentDescription = Party.NOM + " : " + Party.titreAffiche(m) + (if (m.artiste.isNotEmpty()) ", " + m.artiste else "")
         setContentView(racine)
         // Le focus revient où il était (même bouton ou même titre) ; à la première ouverture, sur lecture / pause.
-        val cible = ligneDe(deplace) ?: focusAvant?.let { d -> trouverDesc(racine, d) } ?: if (vide) ajouter else lecture
+        val cible = ligneDe(deplace) ?: focusAvantLigne?.let { ligneDe(it.removePrefix("file:")) } ?: focusAvant?.let { d -> trouverDesc(racine, d) } ?: if (vide) ajouter else lecture
+        // 1.93.06.1 (l'auteur, 19/10) : un rafraîchissement ne doit jamais déplacer le focus ; s'il le fait, le journal le dit.
+        val voulu = focusAvantLigne ?: focusAvant
+        if (voulu != null && deplace.isEmpty() && cleFocus(cible) != voulu && !(cible === lecture && voulu in setOf(getString(R.string.vuewidget_pause), getString(R.string.vuewidget_lecture))))
+            Log.w(TAG_PARTY, "focus déplacé par le rafraîchissement (écran n° $constructions) : « $voulu » → « ${cleFocus(cible)} »")
         cible.post {
             cible.requestFocus()
             if (deplace.isNotEmpty() && cible.tag == "file:$deplace") cible.animate().scaleX(1.03f).scaleY(1.03f).translationZ(px(14f).toFloat()).setDuration(1).start()

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 1.93.06.1 (retour d'essai) : « Afficher la liste des applications » (tablette tableau de bord, télé). -->
+    <string name="listeapplis_titre">Show the apps list</string>
+    <string name="listeapplis_affichee">Shown</string>
+    <string name="listeapplis_masquee">Hidden</string>
+    <string name="listeapplis_note">Hidden, the home screen shows only the widgets (dashboard). To get back to the settings: long press on the time (or change it from Home Assistant).</string>
+    <string name="listeapplis_note_tele">Hidden, the home screen shows only the widgets. To get back to the settings: long press OK on the clock (or change it from Home Assistant).</string>
+    <string name="listeapplis_garde">Open Vision\'s settings</string>
+    <string name="listeapplis_confirmation">To get back to the settings: long press on the time (or change it from Home Assistant).</string>
+    <string name="listeapplis_confirmation_tele">To get back to the settings: long press OK on the clock (or change it from Home Assistant).</string>
+    <string name="listeapplis_compris">Got it</string>
+</resources>

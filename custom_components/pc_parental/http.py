@@ -22,7 +22,7 @@ from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
 
 from . import android_maj, client_files, installation, labels, listes, messages
-from . import lieu, messages_v2, modules, musique_options, nouveautes, party, preavis, roles, soutien, textes, veille_options, veille_pc, widgets
+from . import accueil_options, lieu, messages_v2, modules, musique_options, nouveautes, party, preavis, roles, soutien, textes, veille_options, veille_pc, widgets
 from .parent import PcParentalMaisonView, PcParentalParentView
 from .demandes import PcParentalDemandeView
 from .veille import PcParentalVeilleEntitesView, PcParentalVeilleFluxView, PcParentalVeilleImageView, PcParentalVeilleView
@@ -449,6 +449,8 @@ class PcParentalPollView(HomeAssistantView):
             "veille_options": veille_options.pour_releve(pc),
             # 1.93.06 : la musique de cet appareil face au son des autres applis (pc_parental.musique_regler), si réglé.
             "musique_options": musique_options.pour_releve(pc),
+            # 1.93.06.1 : « Afficher la liste des applications » de cet appareil (pc_parental.accueil_regler), si réglé.
+            "accueil_options": accueil_options.pour_releve(pc),
             # Soutien du projet (docs/soutien.md) : badge et animation, rien d'autre.
             "soutien": soutien.pour_releve(coord.store),
             # L'agent reçoit le résultat, pas les règles : les étiquettes

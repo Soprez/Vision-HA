@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 1.93.06.1 (retour d'essai) : « Afficher la liste des applications » (tablette tableau de bord, télé). -->
+    <string name="listeapplis_titre">Afficher la liste des applications</string>
+    <string name="listeapplis_affichee">Affichée</string>
+    <string name="listeapplis_masquee">Masquée</string>
+    <string name="listeapplis_note">Masquée, l\'accueil ne montre que les widgets (tableau de bord). Pour revenir aux paramètres : appui long sur l\'heure (ou réglage depuis Home Assistant).</string>
+    <string name="listeapplis_note_tele">Masquée, l\'accueil ne montre que les widgets. Pour revenir aux paramètres : appui long sur OK sur l\'heure (ou réglage depuis Home Assistant).</string>
+    <string name="listeapplis_garde">Ouvrir les paramètres de Vision</string>
+    <string name="listeapplis_confirmation">Pour revenir aux paramètres : appui long sur l\'heure (ou réglage depuis Home Assistant).</string>
+    <string name="listeapplis_confirmation_tele">Pour revenir aux paramètres : appui long sur OK sur l\'heure (ou réglage depuis Home Assistant).</string>
+    <string name="listeapplis_compris">J\'ai compris</string>
+</resources>

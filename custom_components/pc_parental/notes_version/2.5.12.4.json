@@ -1,0 +1,62 @@
+{
+  "version": "2.5.12.4",
+  "date": "2026-10-19",
+  "points": [
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "Accueil télé vertical : Paramètres en dernière tuile, liste en fondu, les widgets tiennent toujours dans l'écran.",
+        "en": "Vertical TV start screen: Settings as the last tile, a faded list, widgets always fit on the screen.",
+        "de": "TV-Start senkrecht: Einstellungen als letzte Kachel, Liste mit Überblendung, Widgets passen immer auf den Schirm.",
+        "es": "Inicio TV vertical: Ajustes como último mosaico, lista con fundido, los widgets siempre caben en la pantalla.",
+        "it": "Schermata iniziale TV verticale: Impostazioni come ultimo riquadro, elenco sfumato, i widget stanno sempre.",
+        "nl": "Verticaal tv-start: Instellingen als laatste tegel, lijst met vervaging, widgets passen altijd op het scherm."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "« Afficher la liste des applications » : masquée, l'accueil ne montre que les widgets ; appui long sur l'heure.",
+        "en": "“Show the apps list”: when hidden, the start screen shows only widgets; long press on the time for settings.",
+        "de": "„App-Liste anzeigen“: ausgeblendet nur Widgets auf dem Start; Einstellungen per langem Druck auf die Uhrzeit.",
+        "es": "«Mostrar la lista de aplicaciones»: oculta, el inicio solo muestra widgets; ajustes con pulsación larga en la hora.",
+        "it": "«Mostra l'elenco delle app»: nascosto, si vedono solo i widget; impostazioni tenendo premuto sull'ora.",
+        "nl": "„App-lijst tonen”: verborgen toont het startscherm alleen widgets; instellingen door de tijd ingedrukt te houden."
+      }
+    },
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "Lecteur télé : une liaison muette se refait seule, OK agit sur ce qui est sélectionné, Musique ne s'ouvre plus seul.",
+        "en": "TV player: a silent link reconnects by itself, OK acts on what is selected, Music no longer opens by itself.",
+        "de": "TV-Player: stumme Verbindung baut sich neu auf, OK wirkt auf die Auswahl, Musik öffnet sich nicht mehr von selbst.",
+        "es": "Reproductor TV: un enlace mudo se rehace solo, OK actúa sobre lo seleccionado, Música ya no se abre sola.",
+        "it": "Lettore TV: un collegamento muto si rifà da solo, OK agisce sulla selezione, Musica non si apre più da sola.",
+        "nl": "Tv-speler: een stille verbinding herstelt zich, OK werkt op de selectie, Muziek opent niet meer vanzelf."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Musique : après une pause longue, ▶ reprend le titre là où il en était (et non au début).",
+        "en": "Music: after a long pause, play resumes the track where it was (not from the start).",
+        "de": "Musik: Nach einer langen Pause setzt ▶ den Titel dort fort, wo er war (nicht von vorn).",
+        "es": "Música: tras una pausa larga, ▶ reanuda el título donde estaba (no desde el principio).",
+        "it": "Musica: dopo una pausa lunga, ▶ riprende il brano da dove era (non dall'inizio).",
+        "nl": "Muziek: na een lange pauze hervat ▶ het nummer waar het was (niet vanaf het begin)."
+      }
+    }
+  ]
+}

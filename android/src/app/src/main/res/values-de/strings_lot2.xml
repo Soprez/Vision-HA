@@ -806,4 +806,5 @@
     <string name="setup_parametres_appareil_impossible">Die Geräteeinstellungen lassen sich hier nicht öffnen.</string>
     <string name="vuewidget_min_max">%1$s · Min. %2$s · Max. %3$s</string>
     <string name="vuewidget_plage">%1$s – %2$s</string>
+    <string name="lanceur_tuile_parametres">Einstellungen</string>
 </resources>

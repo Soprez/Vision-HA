@@ -322,6 +322,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         nouveau = event.data.get("new_state")
         if nouveau is None or not str(event.data.get("entity_id") or "").startswith("media_player."):
             return
+        # 2.5.12.2 : la position au moment d'une pause (tout lecteur), pour reprendre là après un arrêt de Music Assistant.
+        from . import party as _party
+        _party.noter_pause(nouveau.entity_id, nouveau.state, dict(nouveau.attributes), _horloge.time())
         if not str(nouveau.attributes.get("friendly_name") or "").endswith(_mus.SUFFIXE_VISION):
             return
         vol = nouveau.attributes.get("volume_level")
@@ -1210,6 +1213,17 @@ def _async_register_services(hass: HomeAssistant) -> None:
         coord.async_update_listeners()
         return {"pc": pc["id"], "reglages": reglages}
 
+    async def _accueil_regler(call: ServiceCall) -> dict:
+        """1.93.06.1 (l'auteur, tablettes tableau de bord) : « Afficher la liste des applications » d'un appareil Android."""
+        from . import accueil_options as _ao
+
+        coord = _coordinator()
+        pc = _pc(coord, call.data["pc"])
+        reglages = _ao.regler(pc, {k: v for k, v in call.data.items() if k != "pc"})
+        await coord.store.async_save()
+        coord.async_update_listeners()
+        return {"pc": pc["id"], "reglages": reglages}
+
     async def _widget_regler(call: ServiceCall) -> dict:
         """1.93.06 (retour d'essai) : la ligne sous la valeur d'un widget (une autre entité, « Réduit jusqu'à 12:00 »), son nom et son
         icône, sans passer par la carte Widgets HA. ``ligne`` vide : plus de ligne."""
@@ -1263,6 +1277,11 @@ def _async_register_services(hass: HomeAssistant) -> None:
         vol.Optional("reprise"): cv.boolean,
     }), supports_response=SupportsResponse.OPTIONAL)
 
+    service_admin(hass, "accueil_regler", _accueil_regler, schema=vol.Schema({
+        vol.Required("pc"): cv.string,
+        vol.Required("liste_applis"): cv.boolean,
+    }), supports_response=SupportsResponse.OPTIONAL)
+
     service_admin(hass, "widget_regler", _widget_regler, schema=vol.Schema({
         vol.Required("entite"): cv.entity_id,
         vol.Optional("ligne"): vol.Any(None, "", cv.entity_id),
@@ -1280,6 +1299,15 @@ def _async_register_services(hass: HomeAssistant) -> None:
         vol.Optional("calme_min"): vol.All(vol.Coerce(int), vol.Range(min=1, max=240)),
         vol.Optional("calibration_db"): vol.All(vol.Coerce(int), vol.Range(min=-30, max=30)),
         vol.Optional("plages"): [vol.Schema({vol.Required("debut"): cv.string, vol.Required("fin"): cv.string})],
+        # 2.5.12.3 : seuil de nuit, délai entre deux alertes, gradation des messages, responsables prévenus.
+        vol.Optional("seuil_nuit_db"): vol.All(vol.Coerce(int), vol.Range(min=30, max=100)),
+        vol.Optional("nuit"): vol.In(["plages", "heures"]),
+        vol.Optional("nuit_debut"): cv.string,
+        vol.Optional("nuit_fin"): cv.string,
+        vol.Optional("repos_min"): vol.All(vol.Coerce(int), vol.Range(min=0, max=120)),
+        vol.Optional("ferme_apres_min"): vol.All(vol.Coerce(int), vol.Range(min=1, max=120)),
+        vol.Optional("prevenir_responsable"): cv.boolean,
+        vol.Optional("micro_fige_s"): vol.All(vol.Coerce(int), vol.Range(min=2, max=300)),
     }), supports_response=SupportsResponse.OPTIONAL)
 
     # Module Réveil — services pc_parental.reveil_* (droits du Réveil, pas « administrateurs seulement »).

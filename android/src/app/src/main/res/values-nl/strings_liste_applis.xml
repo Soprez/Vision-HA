@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 1.93.06.1 (retour d'essai) : « Afficher la liste des applications » (tablette tableau de bord, télé). -->
+    <string name="listeapplis_titre">App-lijst tonen</string>
+    <string name="listeapplis_affichee">Getoond</string>
+    <string name="listeapplis_masquee">Verborgen</string>
+    <string name="listeapplis_note">Verborgen toont het startscherm alleen de widgets (dashboard). Terug naar de instellingen: houd de tijd ingedrukt (of stel het in via Home Assistant).</string>
+    <string name="listeapplis_note_tele">Verborgen toont het startscherm alleen de widgets. Terug naar de instellingen: houd OK op de klok ingedrukt (of stel het in via Home Assistant).</string>
+    <string name="listeapplis_garde">Vision-instellingen openen</string>
+    <string name="listeapplis_confirmation">Terug naar de instellingen: houd de tijd ingedrukt (of stel het in via Home Assistant).</string>
+    <string name="listeapplis_confirmation_tele">Terug naar de instellingen: houd OK op de klok ingedrukt (of stel het in via Home Assistant).</string>
+    <string name="listeapplis_compris">Begrepen</string>
+</resources>

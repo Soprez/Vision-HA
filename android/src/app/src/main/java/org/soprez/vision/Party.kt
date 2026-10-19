@@ -406,11 +406,41 @@ object Party {
         val depuis = p.optLong("depuis")
         if (p.optBoolean("ecran") && depuis != pr.getLong("ouverte", 0L)) {
             pr.edit().putLong("ouverte", depuis).apply()
-            ouvrir(ctx, auto = true)
+            // 1.93.06.1 (l'auteur, 19/10 : « une action qui part toute seule ») : à 12:39:07 sur la TCL, l'écran Musique s'est
+            // ouvert tout seul, 35 min après une soirée lancée depuis cette télé, pendant qu'on naviguait sur l'accueil ;
+            // l'OK qui suivait a mis la musique en pause. L'ouverture automatique n'a de sens que pour une soirée lancée
+            // d'AILLEURS (téléphone), tout de suite après, et jamais par-dessus une autre appli.
+            val devant = try { Usage.premierPlan(ctx) } catch (_: Exception) { null }
+            val raison = ouvertureAutoPermise(depuis, System.currentTimeMillis() / 1000, pr.getLong("lancee_ici", 0L), devant != null && devant != ctx.packageName)
+            if (raison == null) {
+                android.util.Log.i("VisionParty", "relevé : soirée lancée sur cette télé à $depuis, ouverture automatique de l'écran Musique")
+                ouvrir(ctx, auto = true)
+            } else android.util.Log.i("VisionParty", "relevé : soirée lancée sur cette télé à $depuis, pas d'ouverture automatique ($raison)")
         }
     }
 
+    /** 1.93.06.1 : la soirée vient d'être lancée depuis CETTE télé (écran Musique) : l'écran est déjà là. */
+    fun noterLancementIci(ctx: Context) = prefs(ctx).edit().putLong("lancee_ici", System.currentTimeMillis() / 1000).apply()
+
+    /** Au-delà, une soirée n'ouvre plus l'écran Musique d'elle-même (le relevé peut arriver bien après le lancement). */
+    const val OUVERTURE_AUTO_MAX_S = 90L
+
+    /**
+     * Pur (PartyOuvertureAutoTest) : la raison (code du journal : lancee_ici, trop_tard_<n>s, autre_appli_devant) de NE
+     * PAS ouvrir l'écran Musique de lui-même pour cette soirée, ou null s'il peut s'ouvrir. [depuisS] : début de la soirée (Home Assistant) ; [lanceeIciS] : dernier lancement fait
+     * depuis cette télé ; [autreAppliDevant] : une autre appli (ou une entrée de la télé) est au premier plan.
+     */
+    fun ouvertureAutoPermise(depuisS: Long, maintenantS: Long, lanceeIciS: Long, autreAppliDevant: Boolean): String? = when {
+        kotlin.math.abs(depuisS - lanceeIciS) <= 30L -> "lancee_ici"
+        maintenantS - depuisS > OUVERTURE_AUTO_MAX_S -> "trop_tard_${maintenantS - depuisS}s"
+        autreAppliDevant -> "autre_appli_devant"
+        else -> null
+    }
+
     fun ouvrir(ctx: Context, auto: Boolean = false) {
+        // 1.93.06.1 (l'auteur, 19/10 : « une action qui part toute seule ») : qui ouvre l'écran Musique, et pourquoi.
+        android.util.Log.i("VisionParty", "ouverture de l'écran Musique (${if (auto) "automatique : soirée lancée sur cette télé" else "demandée"}) par " +
+            (Thread.currentThread().stackTrace.getOrNull(3)?.let { "${it.className.substringAfterLast('.')}.${it.methodName}" } ?: "?"))
         try {
             ctx.startActivity(Intent(ctx, PartyActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 .putExtra("auto", auto))

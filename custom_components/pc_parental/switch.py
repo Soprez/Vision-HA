@@ -41,8 +41,13 @@ async def async_setup_entry(
     # Les étiquettes cochées comme catégories, plus celles encore posées : un
     # interrupteur « Radiateur » sur chaque appareil ne fermait rien.
     etiquettes = labels.details_proposes(hass, coordinator.store)
+    from . import son as _son
+
+    son_actif = _son.actif_module(coordinator.store)
     for pc_id in coordinator.pcs:
         entites.append(PcAccessSwitch(coordinator, pc_id))
+        if son_actif:
+            entites.append(SonMesureSwitch(coordinator, pc_id))  # 2.5.12.3 : la mesure du bruit, par appareil
         for rule in coordinator.rules(pc_id):
             entites.append(RuleSwitch(coordinator, pc_id, rule["id"]))
         for etiquette in etiquettes:
@@ -51,6 +56,7 @@ async def async_setup_entry(
             )
     valides = (
         {f"{DOMAIN}_acces_{pc}" for pc in coordinator.pcs}
+        | ({f"{DOMAIN}_son_mesure_{pc}" for pc in coordinator.pcs} if son_actif else set())
         | {
             f"{DOMAIN}_rule_{pc}_{r['id']}"
             for pc in coordinator.pcs
@@ -546,3 +552,33 @@ class ListeNoireSwitch(HubEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self._regler(False)
+
+
+class SonMesureSwitch(PcEntity, SwitchEntity):
+    """2.5.12.3 : la mesure du niveau sonore sur cet appareil (son.reglages « actif »). Éteinte par défaut ; le module
+    « Niveau sonore » doit être allumé pour que l'interrupteur existe. Administrateurs."""
+
+    _attr_translation_key = "niveau_sonore_mesure"
+    _attr_icon = "mdi:microphone-outline"
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
+        super().__init__(coordinator, pc_id)
+        self._attr_unique_id = f"{DOMAIN}_son_mesure_{pc_id}"
+
+    @property
+    def is_on(self) -> bool:
+        from . import son as _son
+
+        return bool(self.pc and _son.reglages(self.pc)["actif"])
+
+    async def _poser(self, actif: bool) -> None:
+        from . import son as _son
+
+        await appliquer(self.coordinator, lambda: _son.regler(self.pc, {"actif": actif}))
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._poser(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._poser(False)

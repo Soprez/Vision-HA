@@ -1,6 +1,6 @@
 """FAILLE DE SÉCURITÉ (l'auteur, 16/10) : accorder exige une preuve à CHAQUE geste, sans délai de grâce (octroi.py).
 
-l'auteur a déverrouillé Alex depuis son téléphone de Décideur en touchant la demande, sans empreinte ni code. Côté
+l'auteur a déverrouillé un membre depuis son téléphone de Décideur en touchant la demande, sans empreinte ni code. Côté
 Home Assistant, ces essais prouvent :
 - notifications de l'appli Compagnon : plus aucun bouton d'accord ; un bouton d'accord d'une ancienne notification
   (accès, temps, déverrouillage) n'accorde rien ; « Refuser » marche toujours ;
@@ -47,6 +47,17 @@ def _poser_code(hass, code=CODE, personne="person.nolan"):
     _module("octroi").poser(_actuel(hass).store, personne, code)
 
 
+async def _client_code(hass, hass_client):
+    """2.5.12.5 (retour d'essai) : un administrateur qui se connecte, ou un Décideur déclaré, n'a plus de code au tableau
+    (octroi_sans_code_test). Ces essais du code passent par un administrateur à jetons seuls (comme un accès d'API) :
+    le tableau lui demande toujours le code."""
+    from homeassistant.auth.models import TOKEN_TYPE_LONG_LIVED_ACCESS_TOKEN
+
+    u = await hass.auth.async_create_user("Essai du code", group_ids=["system-admin"])
+    jeton = await hass.auth.async_create_refresh_token(u, client_name="essai", token_type=TOKEN_TYPE_LONG_LIVED_ACCESS_TOKEN)
+    return await hass_client(hass.auth.async_create_access_token(jeton))
+
+
 def _demandes(hass):
     return [d for d in _module("parent").etat_maison(hass, _actuel(hass), "p1")["demandes"] if d["pc"] == "e1"]
 
@@ -68,7 +79,7 @@ def test_regle_des_gestes_qui_accordent():
 
 
 async def test_tableau_sans_code_pose_n_accorde_rien(hass, hass_storage, hass_client):
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     await _monter(hass, hass_storage)
     r = await client.post(MAISON, json={"action": "temps", "pc": "e1", "minutes": 30})
     corps = await r.json()
@@ -79,7 +90,7 @@ async def test_tableau_sans_code_pose_n_accorde_rien(hass, hass_storage, hass_cl
 
 
 async def test_tableau_code_a_chaque_geste(hass, hass_storage, hass_client):
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     await _monter(hass, hass_storage)
     _poser_code(hass)
     geste = {"action": "temps", "pc": "e1", "minutes": 30}
@@ -95,7 +106,7 @@ async def test_tableau_code_a_chaque_geste(hass, hass_storage, hass_client):
 
 
 async def test_tableau_accepter_une_demande_exige_le_code(hass, hass_storage, hass_client):
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     await _monter(hass, hass_storage)
     _poser_code(hass)
     await _demander(client, ENFANT, "sites")
@@ -117,7 +128,7 @@ async def test_tableau_accepter_une_demande_exige_le_code(hass, hass_storage, ha
 async def test_codes_faux_limites(hass, hass_storage, hass_client):
     from custom_components.pc_parental import octroi
 
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     await _monter(hass, hass_storage)
     _poser_code(hass)
     geste = {"action": "ouvrir", "pc": "e1", "minutes": 30}
@@ -130,7 +141,7 @@ async def test_codes_faux_limites(hass, hass_storage, hass_client):
 
 
 async def test_fiche_personne_role_et_temps(hass, hass_storage, hass_client):
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     await _monter(hass, hass_storage)
     _poser_code(hass)
     r = await client.post("/api/pc_parental/personne/admin", json={"op": "role", "personne": "person.lou", "role": "parent"})
@@ -142,7 +153,7 @@ async def test_fiche_personne_role_et_temps(hass, hass_storage, hass_client):
 
 
 async def test_appairage_valider_et_qr(hass, hass_storage, hass_client):
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     await _monter(hass, hass_storage)
     _poser_code(hass)
     r = await client.post("/api/pc_parental/appairage", json={"code": "ABCDEF", "action": "valider", "personne": "person.lou"})
@@ -164,7 +175,7 @@ def test_notifications_compagnon_sans_bouton_d_accord():
 
 async def test_ancienne_notification_n_accorde_rien(hass, hass_storage, hass_client, hass_admin_user):
     """Un bouton d'accord d'une notification envoyée avant la correction : ignoré, la demande attend toujours."""
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     await _monter(hass, hass_storage)
     await _demander(client, ENFANT, "temps")
     await _demander(client, ENFANT, "sites")
@@ -189,7 +200,7 @@ async def test_notification_compagnon_seulement_refuser(hass, hass_storage, hass
     """La notification d'une demande d'accès n'a plus que « Refuser »."""
     from custom_components.pc_parental import canaux
 
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     coord = await _monter(hass, hass_storage)
     recus = []
 
@@ -227,7 +238,7 @@ async def test_rouvrir_tout_fermer_par_la_carte_avec_le_code(hass, hass_storage,
 
     from custom_components.pc_parental import dashboard
 
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     coord = await _monter(hass, hass_storage)
     vues = dashboard.build(hass, _actuel(hass))["views"]
     texte = json.dumps(next(v for v in vues if v.get("path") == "maison"))
@@ -262,7 +273,7 @@ async def test_migration_du_code_de_l_appli_sans_rien_redemander(hass, hass_stor
     au premier code juste, Home Assistant le garde en PBKDF2."""
     import hashlib
 
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     await _monter(hass, hass_storage)
     assert (await _code(client, "etat"))[1] == {"ok": True, "pose": False}
     locale = hashlib.sha256(b"vision:2580").hexdigest()
@@ -282,7 +293,7 @@ async def test_migration_du_code_de_l_appli_sans_rien_redemander(hass, hass_stor
 
 
 async def test_l_appli_choisit_puis_change_le_code(hass, hass_storage, hass_client):
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     await _monter(hass, hass_storage)
     assert (await _code(client, "definir", code="12"))[1]["error"] == "code_court"
     assert (await _code(client, "definir", code="1357"))[0] == 200
@@ -297,7 +308,7 @@ async def test_l_appli_choisit_puis_change_le_code(hass, hass_storage, hass_clie
 
 
 async def test_un_demandeur_n_a_pas_de_code_de_deverrouillage(hass, hass_storage, hass_client):
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     await _monter(hass, hass_storage)
     r = await client.post(PARENT_URL, json={**ENFANT, "action": "code_deverrouillage", "op": "definir", "code": "1234"})
     assert r.status == 403
@@ -305,7 +316,7 @@ async def test_un_demandeur_n_a_pas_de_code_de_deverrouillage(hass, hass_storage
 
 
 async def test_le_releve_dit_si_le_code_est_dans_ha(hass, hass_storage, hass_client):
-    client = await hass_client()
+    client = await _client_code(hass, hass_client)
     await _monter(hass, hass_storage)
     r = await (await client.post("/api/pc_parental/poll", json={**PARENT})).json()
     assert r["code_deverrouillage"] is False
@@ -318,13 +329,12 @@ async def test_le_releve_dit_si_le_code_est_dans_ha(hass, hass_storage, hass_cli
 
 
 async def test_le_tableau_prend_le_code_de_la_personne_du_compte(hass, hass_storage, hass_client, hass_admin_user):
-    """Un compte HA lié à Nolan : c'est le code de Nolan qui compte, pas celui de Mia."""
+    """Un compte HA lié à Nolan (Décideur déclaré : PIXEL-NOLAN gère). 2.5.12.5 (l'auteur, 19/10) : un Décideur déclaré n'a
+    plus à taper le code au tableau (octroi_sans_code_test) ; avant, c'était le code de Nolan, pas celui de Mia."""
     client = await hass_client()
     await _monter(hass, hass_storage)
     hass.states.async_set("person.nolan", "home", {"friendly_name": "Nolan", "user_id": hass_admin_user.id})
     _poser_code(hass, "1111", "person.nolan")
     _poser_code(hass, "2222", "person.mia")
-    r = await client.post(MAISON, json={"action": "temps", "pc": "e1", "minutes": 15, "code_octroi": "2222"})
-    assert r.status == 403 and (await r.json())["error"] == "code_octroi_faux"
-    r = await client.post(MAISON, json={"action": "temps", "pc": "e1", "minutes": 15, "code_octroi": "1111"})
-    assert r.status == 200
+    r = await client.post(MAISON, json={"action": "temps", "pc": "e1", "minutes": 15})
+    assert r.status == 200, await r.text()

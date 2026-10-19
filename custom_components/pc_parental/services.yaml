@@ -1021,6 +1021,16 @@ musique_regler:
     reprise:
       selector:
         boolean: null
+accueil_regler:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    liste_applis:
+      required: true
+      selector:
+        boolean: null
 widget_regler:
   fields:
     entite:
@@ -1089,3 +1099,46 @@ son_regler:
     plages:
       selector:
         object: null
+    seuil_nuit_db:
+      selector:
+        number:
+          min: 30
+          max: 100
+          unit_of_measurement: dB
+          mode: box
+    nuit:
+      selector:
+        select:
+          options:
+            - plages
+            - heures
+    nuit_debut:
+      selector:
+        text: null
+    nuit_fin:
+      selector:
+        text: null
+    repos_min:
+      selector:
+        number:
+          min: 0
+          max: 120
+          unit_of_measurement: min
+          mode: box
+    ferme_apres_min:
+      selector:
+        number:
+          min: 1
+          max: 120
+          unit_of_measurement: min
+          mode: box
+    prevenir_responsable:
+      selector:
+        boolean: null
+    micro_fige_s:
+      selector:
+        number:
+          min: 2
+          max: 300
+          unit_of_measurement: s
+          mode: box

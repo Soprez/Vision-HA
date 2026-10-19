@@ -1035,6 +1035,15 @@ class SetupActivity : Activity(), ZoneSure.Geree {
         if (Modules.actif(this, Modules.MESSAGES)) racine.addView(ligneReglage(getString(R.string.reglagestv_son_des_messages), MessagesV2.nomSon(MessagesV2.sonAppareil(this))) {
             ReglagesPartages.choisirSonMessages(this, apres)
         }.apply { tag = "son_messages" })
+        // 1.93.06.1 (l'auteur, tablette tableau de bord) : « Afficher la liste des applications » ; désactivée, l'accueil ne
+        // montre que les widgets. La note dit comment revenir ici (appui long sur l'heure).
+        if (Modules.actif(this, Modules.ACCUEIL)) {
+            val liste = AffichageApplis.liste(this)
+            racine.addView(ligneReglage(getString(R.string.listeapplis_titre), getString(if (liste) R.string.listeapplis_affichee else R.string.listeapplis_masquee)) {
+                AffichageApplis.changer(this, tele = false) { dessiner() }
+            }.apply { tag = "liste_applis" })
+            racine.addView(Ui.marge(this, Ui.texte(this, getString(R.string.listeapplis_note), 13f, Ui.TEXTE_2), bas = 8f))
+        }
         // L'œil sur le bouton Accueil de la barre de navigation (prototype, désactivé par défaut) et sa note.
         racine.addView(ligneReglage(getString(R.string.oeilaccueil_titre), ReglagesPartages.nomOeilAccueil(this)) {
             ReglagesPartages.basculerOeilAccueil(this, apres)

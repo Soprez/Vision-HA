@@ -413,8 +413,58 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         if (event.action == KeyEvent.ACTION_DOWN && !toucheEnfoncee) toucheDepuis = SystemClock.uptimeMillis()
         toucheEnfoncee = event.action == KeyEvent.ACTION_DOWN
         if (event.action == KeyEvent.ACTION_UP && reconstructionEnAttente) { reconstructionEnAttente = false; main.postDelayed({ construire() }, 150) }
+        if (tele && gardeOk(event)) return true
         if (tele && toucheModes(event)) return true
         return super.dispatchKeyEvent(event)
+    }
+
+    // ------------------------------------------------------------ 1.93.06.1 : journal et garde des appuis OK (télé)
+
+    /**
+     * La clé logique d'une vue de l'accueil : son cadre (appli, widget, zone : une clé par élément), sinon l'étiquette
+     * de la vue ou de ses parents (dock, poignée…), sinon sa description. Deux cases d'applis ne partagent jamais une clé.
+     */
+    private fun cleVue(v: View?): String? {
+        if (v == null) return null
+        // Dans un cadre, la commande elle-même compte (« − » et « + » d'une consigne ne sont pas le même élément).
+        val propre = (v.tag as? String) ?: (v.tag as? Accueil.Place)?.cle ?: v.contentDescription?.toString()?.takeIf { it.isNotEmpty() }
+        cadreDe(v)?.let { return "cadre:" + it.cle + (propre?.let { p -> "/$p" } ?: "") }
+        var x: View? = v
+        while (x != null && x !== racine) {
+            (x.tag as? String)?.let { return it }
+            (x.tag as? Accueil.Place)?.let { return "place:" + it.cle }
+            x = x.parent as? View
+        }
+        return v.contentDescription?.toString()
+    }
+
+    private var okCleBas: String? = null
+    private var okVueBas: View? = null
+
+    /**
+     * l'auteur (19/10 : « clics fantômes », à 11:27:59 Vision a lancé une appli TCL que personne n'avait choisie) : un appui sur
+     * OK vaut pour l'élément focalisé à l'ENFONCEMENT ([OkGarde]). Si l'accueil a été rebâti entre-temps et que le focus
+     * est ailleurs, l'appui ne fait rien et le journal le dit ; si c'est le même élément sur une vue rebâtie, il est
+     * cliqué. Chaque appui est journalisé. Vrai si l'événement est pris ici.
+     */
+    private fun gardeOk(ev: KeyEvent): Boolean {
+        if (ev.keyCode !in OkGarde.TOUCHES_OK || modeTele.modification || dossierOuvert != null) return false
+        val f = currentFocus ?: racine.findFocus()
+        if (ev.action == KeyEvent.ACTION_DOWN) {
+            if (ev.repeatCount == 0) {
+                okCleBas = cleVue(f); okVueBas = f
+                android.util.Log.i("VisionAccueil", "OK ↓ sur « ${okCleBas ?: "rien"} » (accueil n° $constructions)")
+            }
+            return false
+        }
+        if (ev.action != KeyEvent.ACTION_UP) return false
+        val bas = okCleBas; val vueBas = okVueBas; okCleBas = null; okVueBas = null
+        val d = OkGarde.decider(bas, cleVue(f), vueBas != null && vueBas === f)
+        when (d) {
+            OkGarde.Decision.NORMAL -> return false
+            OkGarde.Decision.IGNORER -> { okRetenu = null; android.util.Log.w("VisionAccueil", OkGarde.journal(d, bas, cleVue(f))); return true }
+            OkGarde.Decision.REJOUER -> { okRetenu = null; android.util.Log.i("VisionAccueil", OkGarde.journal(d, bas, cleVue(f))); f?.performClick(); return true }
+        }
     }
 
     // ------------------------------------------------------------------ télé : modes Utilisation et Modification (1.93.06)
@@ -487,7 +537,13 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
     }
 
     private fun appuiLongOk() {
-        val c = cadreDe(currentFocus)
+        val c = cadreDe(currentFocus ?: racine.findFocus())
+        // 1.93.06.1 (retour d'essai) : liste masquée, l'appui long sur l'horloge (ou sur n'importe quelle carte s'il n'y a pas
+        // d'horloge) ouvre les paramètres, derrière le code ou l'empreinte. Les autres cartes gardent la Modification.
+        if (masqueApplis && !modeTele.modification && c?.sorte == CadreTele.Sorte.ZONE) {
+            val horloge = zonesTele.keys.any { ZoneHaut.HORLOGE in DispositionAccueil.widgetsZone(this, it) }
+            if (c.cle == ZoneHaut.HORLOGE || !horloge) { ouvrirParametresProteges(); return }
+        }
         if (!modeTele.modification) { entrerModification(c?.cle); return }
         // En Modification, l'appui long ouvre les options du cadre (retirer, détail…) : la télécommande du Chromecast
         // n'a pas de touche Menu.
@@ -729,10 +785,11 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
     // La hauteur prise en haut par la barre d'état et l'encoche (px, Android 15+ : l'accueil est dessiné dessous).
     private var insetH = 0
     private val dm get() = resources.displayMetrics
-    private fun empreinte(): String = "g" + Paquets.generation + "|" + cfg.inscrit + "|" + Accueil.masquees(this).sorted().joinToString(",") + "|" + Accueil.ordre(this).joinToString(",") + "|" + theme.nom + theme.fond + "|" + Accueil.dossiers(this).joinToString { it.cle + it.nom + it.pkgs.size } + "|" + profilConnu + "|" + Modules.signature(Modules.actifs(this)) + "|" + WidgetsHaStock.generation + "|" + Etat.verrouilleEffectif() + Etat.apps.hashCode() + Etat.toujours.hashCode() + "|" + (if (tele) "" else Accueil.disposition(this).joinToString { it.cle + it.col + "," + it.row + "," + it.w + "x" + it.h } + "|" + Accueil.dock(this).joinToString(",") + "|" + Accueil.mode(this)) + "|" + DispositionAccueil.empreinte(this)
+    private fun empreinte(): String = "g" + Paquets.generation + "|" + cfg.inscrit + "|" + Accueil.masquees(this).sorted().joinToString(",") + "|" + Accueil.ordre(this).joinToString(",") + "|" + theme.nom + theme.fond + "|" + Accueil.dossiers(this).joinToString { it.cle + it.nom + it.pkgs.size } + "|" + profilConnu + "|" + Modules.signature(Modules.actifs(this)) + "|" + WidgetsHaStock.generation + "|" + Etat.verrouilleEffectif() + Etat.apps.hashCode() + Etat.toujours.hashCode() + "|" + (if (tele) "" else Accueil.disposition(this).joinToString { it.cle + it.col + "," + it.row + "," + it.w + "x" + it.h } + "|" + Accueil.dock(this).joinToString(",") + "|" + Accueil.mode(this)) + "|" + DispositionAccueil.empreinte(this) + "|" + AffichageApplis.liste(this)
 
     /** Ouvre une appli ; fermée par les règles, elle montre pourquoi (et comment demander) au lieu de s'ouvrir. */
     private fun ouvrir(pkg: String) {
+        android.util.Log.i("VisionAccueil", "ouvre $pkg (focus : « ${cleVue(currentFocus ?: racine.findFocus()) ?: "rien"} »)")
         val raison = Etat.doitBloquer(this, pkg)
         if (raison != null) BlockActivity.afficher(this, raison, pkg) else Accueil.lancer(this, pkg)
     }
@@ -998,7 +1055,10 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         // 1.91.2 (retour d'essai) : rien sous la date. Plus de pastille « Gestion » (le mode se voit dans les Réglages) ni de lien
         // « Personnaliser cette zone » : le Décideur personnalise la zone par un appui long (retour haptique), ou dans
         // Réglages › Accueil › Zone du haut.
-        if (profil == "parent") ZoneHaut.appuiLongPourPersonnaliser(this, entete) { recreate() }
+        // 1.93.06.1 (retour d'essai) : liste masquée, la tuile des réglages n'est plus là : un appui long sur l'heure (l'en-tête)
+        // ouvre les paramètres, derrière le code ou l'empreinte, pour tout le monde. Sinon, le geste du Décideur.
+        if (masqueApplis) entete.setOnLongClickListener { it.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS); ouvrirParametresProteges(); true }
+        else if (profil == "parent") ZoneHaut.appuiLongPourPersonnaliser(this, entete) { recreate() }
         return entete
     }
 
@@ -1046,6 +1106,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         racine.addView(FondAccueil.vue(this, theme, tele), FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         // l'auteur (13 octobre) : télé en rangées ou en colonne (« Vertical ») ; téléphone en grille, pages ou liste alphabétique.
         heure = null; date = null  // reposées par la disposition (zone du haut, horloge) ; sinon d'anciennes vues
+        masqueApplis = false
         when {
             tele -> if (teleVerticale()) construireTeleVertical() else construireTele()
             Accueil.mode(this) == Accueil.MODE_ALPHA -> { indexAlpha = null; construireAlpha() }
@@ -1138,8 +1199,11 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
 
         colonne.addView(View(this), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
 
+        // 1.93.06.1 (retour d'essai) : « Afficher la liste des applications » désactivé (et au moins un widget posé) : pas de rangée
+        // d'applis ; la roue des réglages, en bas, reste.
+        masqueApplis = AffichageApplis.masquee(AffichageApplis.liste(this), Accueil.disposition(this).count { it.estWidget && !WidgetsAndroid.estAndroid(it.code) })
         // Les applications, en rangée (qui défile si elle déborde), et le « + » au bout.
-        colonne.addView(etiquetteSection(getString(R.string.lanceur_applications), tv(20f)))
+        if (!masqueApplis) colonne.addView(etiquetteSection(getString(R.string.lanceur_applications), tv(20f)))
         // 1.91.0 (photos de l'auteur : icônes coupées net au bord de la marge) : la rangée défile d'un bord de l'écran à l'autre ;
         // au repos, la première appli est sur la zone sûre ; ce qui passe dans l'overscan s'efface en fondu. La marge haute
         // et basse laisse la place à l'appli agrandie au focus (×1,12), puisque la rangée garde son propre cadre.
@@ -1147,9 +1211,11 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         rangeeApps = rangee
         val defile = HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; clipChildren = false; clipToPadding = false }
         defile.addView(rangee)
-        colonne.addView(defile)
-        BordABord.poser(defile, rangee, margeX, margeX, px(6f))
-        remplirRangeeTele()
+        if (!masqueApplis) {
+            colonne.addView(defile)
+            BordABord.poser(defile, rangee, margeX, margeX, px(6f))
+            remplirRangeeTele()
+        } else rangeeApps = null
 
         // Les widgets posés sur la télé : 16-10 (l'auteur, parité) ceux de Vision (chauffage, école…) comme sur le téléphone, et
         // ceux de Home Assistant, qui agissent (avant : lecture seule) ; ceux de HA masqués quand le module « entites » est coupé.
@@ -1374,8 +1440,13 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
     private fun construireTelephone() {
         val profil = profil()
         val pages = Accueil.mode(this) == Accueil.MODE_PAGES
+        // 1.93.06.1 (l'auteur, tablette tableau de bord) : liste des applications masquée (et au moins un widget) : ni dock, ni
+        // poignée, ni tiroir ; les widgets prennent la place.
+        val actifsTete = Modules.actifs(this)
+        masqueApplis = AffichageApplis.masquee(AffichageApplis.liste(this),
+            Accueil.disposition(this).count { it.estWidget && Modules.widgetVisible(actifsTete, it.code) })
         // Le bas de l'écran (poignée du tiroir et dock) est fixe ; le reste défile ou se feuillette au-dessus.
-        val hauteurBas = px(110f)
+        val hauteurBas = if (masqueApplis) 0 else px(110f)
         // 1.90.1 : la largeur et la hauteur utiles (sans les barres du système), et le paysage.
         val largeurUtile = dm.widthPixels - insetG - insetD
         val hauteurUtile = dm.heightPixels
@@ -1472,7 +1543,13 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         // Ce qui reste sous le haut : marge du haut (elle couvre la barre d'état), grille (son retrait), points des pages, et une petite marge.
         val dispo = hauteurUtile - px(40f) - hautMesure - px(14f) - (if (pages) px(24f) else 0) - hauteurBas - px(8f)
         val lignesVisibles: Int
-        if (paysage) {
+        if (paysage && masqueApplis) {
+            // 1.93.06.1 (l'auteur, tablette tableau de bord) : sans la liste, les widgets prennent toute la place : les cases
+            // remplissent la largeur de la grille, et leur hauteur fait tenir toutes les lignes de widgets dans l'écran.
+            val lignes = AffichageApplis.lignes(Accueil.disposition(this).filter { it.estWidget })
+            hc = minOf(hc, (dispo / lignes.coerceAtLeast(1)).coerceAtLeast(px(48f)))
+            lignesVisibles = (dispo / hc).coerceAtLeast(1)
+        } else if (paysage) {
             // 1.90.1 : une case n'est jamais plus basse que son contenu (icône et deux lignes de nom) : c'est ce qui
             // empilait trois icônes par case. Les cases restent à leur taille utile, la grille se centre.
             val mini = hauteurMinCase()
@@ -1483,7 +1560,9 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         Accueil.lignesParPage = if (pages) lignesVisibles else 0
         // Les widgets d'un module coupé dans Home Assistant ne s'affichent plus ; ils restent rangés pour la réactivation.
         val actifs = Modules.actifs(this)
-        val places = Accueil.synchroniser(this, profil).filter { !it.estWidget || Modules.widgetVisible(actifs, it.code) }
+        val toutes = Accueil.synchroniser(this, profil).filter { !it.estWidget || Modules.widgetVisible(actifs, it.code) }
+        // 1.93.06.1 : sans la liste, les widgets seuls, sans les lignes laissées vides par les applis (à l'écran seulement).
+        val places = if (masqueApplis) AffichageApplis.sansLignesVides(toutes.filter { it.estWidget }) else toutes
         celluleL = lc; celluleH = hc
         WidgetsAndroid.nettoyer(this)
         // Accueil vide (nouvel appareil) : on dit comment le remplir.
@@ -1494,7 +1573,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         fun grilleNeuve(page: Int) = GrilleAccueil(this).apply {
             setPadding(0, px(14f), 0, 0); couleurCible = theme.or; hauteurCellule = hc; lignesMin = if (grilleCourte) 1 else lignesVisibles; hauteurFixe = pages; decalageLignes = page * lignesVisibles
             // 1.90.1 : en paysage, des cases à leur taille (jamais tassées sous leur contenu), la grille centrée.
-            if (paysage) { largeurCelluleFixe = lc; hauteurMinCellule = hc }
+            if (paysage && !masqueApplis) { largeurCelluleFixe = lc; hauteurMinCellule = hc }
             // En mode pages (hauteur fixe), la case n'est jamais tassée sous son contenu non plus.
             else hauteurMinCellule = hauteurMinCase()
         }
@@ -1507,7 +1586,9 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
             for (p in 0..n) {   // une page de plus, vide : on y glisse une case pour l'ouvrir
                 val g = grilleNeuve(p)
                 places.filter { it.row / lignesVisibles == p }.forEach { g.addView(vuePlace(it)) }
-                brancherGrille(g, p)
+                // 1.93.06.1 : liste masquée, les places montrées ne sont pas celles enregistrées : pas de dépôt (un appui
+                // long ouvre le menu du widget) ; on réorganise la grille avec la liste affichée.
+                if (!masqueApplis) brancherGrille(g, p)
                 pg.ajouterPage(g)
             }
             grille = pg.rangee.getChildAt(0) as GrilleAccueil
@@ -1524,7 +1605,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
             val g = grilleNeuve(0)
             grille = g
             places.forEach { pl -> g.addView(vuePlace(pl)) }
-            brancherGrille(g, 0)
+            if (!masqueApplis) brancherGrille(g, 0)
             zoneGrille.addView(g, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
             if (enteteZone != null && zoneDessous) zoneGrille.addView(enteteZone, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(12f) })
             zoneGrille.addView(View(this), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
@@ -1543,7 +1624,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         }
         poignee.addView(View(this).apply { background = GradientDrawable().apply { cornerRadius = px(3f).toFloat(); setColor(theme.or) } }, LinearLayout.LayoutParams(px(64f), px(6f)))
         brancherGestes(poignee, consomme = true, toucher = { tiroirApplis() })
-        bas.addView(poignee)
+        if (!masqueApplis) bas.addView(poignee)
 
         // Le dock : trois applications au choix, sans autre bouton. Appui long sur une icône pour la changer.
         val dock = LinearLayout(this).apply { gravity = Gravity.CENTER; setPadding(px(8f), px(2f), px(8f), px(6f)); tag = "dock" }
@@ -1559,7 +1640,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         if (pkgs.isEmpty()) dock.addView(texte(getString(R.string.lanceur_dock_vide), 12f, theme.encre3).apply { setPadding(px(8f), px(16f), px(8f), px(16f)) })
         dock.setOnLongClickListener { if (pkgs.size < Accueil.DOCK_MAX) choisirAppliDock(pkgs.size); true }
         dock.isLongClickable = true
-        bas.addView(dock)
+        if (!masqueApplis) bas.addView(dock)
 
         // La zone « retirer », visible pendant un glisser.
         zoneRetrait = LinearLayout(this).apply {
@@ -2656,7 +2737,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         }
     }
 
-    private fun tiroirApplis() { animerTiroir(1f) }
+    private fun tiroirApplis() { if (masqueApplis) return; animerTiroir(1f) }
 
     // ---------------------------------------------------------------- widgets
 
@@ -3178,6 +3259,13 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
 
     /** La grille ne garde que ses lignes occupées (zone du haut posée en dessous, mode Grille). */
     private var grilleCourte = false
+    /** 1.93.06.1 (retour d'essai) : la liste des applications est masquée sur cet accueil (AffichageApplis : widgets seuls). */
+    private var masqueApplis = false
+
+    /** 1.93.06.1 : les paramètres de Vision, derrière le code ou l'empreinte (accès gardé quand la liste est masquée). */
+    private fun ouvrirParametresProteges() = Garde.exiger(this, getString(R.string.listeapplis_garde)) {
+        if (tele) startActivity(Intent(this, ReglagesTvActivity::class.java)) else SetupActivity.ouvrir(this, Espaces.REGLAGES)
+    }
     private var indexAlpha: IndexAlpha? = null
 
     /**
@@ -3371,14 +3459,20 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         // sous la rangée de widgets du bas) ; le zoom au focus tient dans la marge de la liste.
         val defile = ScrollView(this).apply {
             isVerticalScrollBarEnabled = false; clipChildren = true; clipToPadding = true; addView(liste)
+            // 1.93.06.1 (retour d'essai) : un fondu en haut et en bas, comme les rangées de la disposition horizontale (avant, les tuiles
+            // arrivaient coupées net en haut pendant la navigation). Il ne se montre que du côté où la liste continue (force
+            // du bord d'Android, proportionnelle au défilement : aucune animation à régler). L'appli prise reste hors du fondu.
+            isVerticalFadingEdgeEnabled = true; setFadingEdgeLength(fonduColonne()); tag = "defile_applis"
             // Le cadre de la colonne (clipChildren de son parent est faux, pour l'anneau du mini-lecteur) : on coupe au contour.
             outlineProvider = android.view.ViewOutlineProvider.BOUNDS; clipToOutline = true
         }
         col.addView(defile, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
-        val pied = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL or Gravity.END; setPadding(0, px(8f), 0, 0) }
+        // 1.93.06.1 (retour d'essai) : plus de roue des réglages en bas de la colonne (trop grosse) : « Paramètres » est la dernière
+        // tuile de la liste. Le pied ne garde que l'aide du déplacement, et seulement pendant un déplacement : au repos,
+        // la liste prend toute la hauteur libérée.
+        val pied = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL or Gravity.END; setPadding(0, px(8f), 0, 0); tag = "pied_colonne" }
         pied.addView(texte(if (deplacement != null) getString(R.string.lanceur_aide_deplacement_vertical) else "", tv(18f), theme.encre2).apply { tag = "aide" }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        val roue = maxOf(tv(84f), Ui.CIBLE_MIN)
-        pied.addView(roueReglages(roue), LinearLayout.LayoutParams(px(roue), px(roue)))
+        pied.visibility = if (deplacement != null) View.VISIBLE else View.GONE
         col.addView(pied)
 
         // Les zones de widgets possibles, selon la place de la colonne ; une zone vide ou non activée ne montre rien.
@@ -3407,17 +3501,22 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
             }
             zones[z] = conteneur
             if (rangee) return conteneur
-            // 16-10 (recette télé) : une zone de côté trop pleine pour sa hauteur défile (le focus de la télécommande
-            // l'emmène) au lieu d'écraser sa dernière carte ; moins pleine, elle reste centrée.
-            return ScrollView(this).apply { isVerticalScrollBarEnabled = false; isFillViewport = true; clipChildren = true; addView(conteneur, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)) }
+            // 1.93.06.1 (l'auteur, consigne du salon : − et + sous le bord au repos) : une zone de côté trop pleine pour sa hauteur
+            // réduit ses widgets ensemble (même échelle, centrés) au lieu de défiler : tout widget tient dans l'écran au
+            // repos. Moins pleine, elle reste centrée, à sa taille.
+            return ZoneAjustee(this).apply { tag = "zone_ajustee_$z"; addView(conteneur, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)) }
         }
+        // 1.93.06.1 (retour d'essai) : liste masquée (et au moins un widget dans une zone) : pas de colonne ; les zones prennent la
+        // place. Les paramètres : appui long sur OK sur l'horloge (ou sur une carte, s'il n'y a pas d'horloge).
+        masqueApplis = AffichageApplis.masquee(AffichageApplis.liste(this), DispositionAccueil.zonesTele(pos).sumOf { z ->
+            val w = DispositionAccueil.widgetsZone(this, z); if (DispositionAccueil.zoneVisible(w, DispositionAccueil.zoneActivee(this, z))) w.size else 0 })
         val haut = zone(DispositionAccueil.ZONE_H)
         val largeurCol = (dm.widthPixels * if (pos == DispositionAccueil.COLONNE_CENTRE) 0.30f else 0.32f).toInt()
         val lpZone = { LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f) }
         when (pos) {
-            DispositionAccueil.COLONNE_GAUCHE -> { ligne.addView(col, LinearLayout.LayoutParams(largeurCol, ViewGroup.LayoutParams.MATCH_PARENT)); ligne.addView(zone(DispositionAccueil.ZONE_D), lpZone()) }
-            DispositionAccueil.COLONNE_DROITE -> { ligne.addView(zone(DispositionAccueil.ZONE_G), lpZone()); ligne.addView(col, LinearLayout.LayoutParams(largeurCol, ViewGroup.LayoutParams.MATCH_PARENT)) }
-            else -> { ligne.addView(zone(DispositionAccueil.ZONE_G), lpZone()); ligne.addView(col, LinearLayout.LayoutParams(largeurCol, ViewGroup.LayoutParams.MATCH_PARENT)); ligne.addView(zone(DispositionAccueil.ZONE_D), lpZone()) }
+            DispositionAccueil.COLONNE_GAUCHE -> { if (!masqueApplis) ligne.addView(col, LinearLayout.LayoutParams(largeurCol, ViewGroup.LayoutParams.MATCH_PARENT)); ligne.addView(zone(DispositionAccueil.ZONE_D), lpZone()) }
+            DispositionAccueil.COLONNE_DROITE -> { ligne.addView(zone(DispositionAccueil.ZONE_G), lpZone()); if (!masqueApplis) ligne.addView(col, LinearLayout.LayoutParams(largeurCol, ViewGroup.LayoutParams.MATCH_PARENT)) }
+            else -> { ligne.addView(zone(DispositionAccueil.ZONE_G), lpZone()); if (!masqueApplis) ligne.addView(col, LinearLayout.LayoutParams(largeurCol, ViewGroup.LayoutParams.MATCH_PARENT)); ligne.addView(zone(DispositionAccueil.ZONE_D), lpZone()) }
         }
         val bas = zone(DispositionAccueil.ZONE_B)
         val lpRangee = { LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
@@ -3427,9 +3526,14 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         zonesTele = zones
         dernieresCartes.clear()
         remplirColonneTele()
+        // Sans colonne, le focus part sur la première carte d'une zone (sinon il n'y aurait rien de pris).
+        if (masqueApplis) racine.post { if (currentFocus == null || currentFocus?.isShown != true) zones.values.firstNotNullOfOrNull { premierFocusable(it) }?.requestFocus() }
     }
 
-    /** Les applis de la colonne (et « Ajouter » au bout). */
+    /** 1.93.06.1 : la longueur du fondu en haut et en bas de la liste des applis (télé, disposition verticale). */
+    private fun fonduColonne(): Int = px(tv(40f))
+
+    /** Les applis de la colonne, puis « Ajouter », puis « Paramètres » (1.93.06.1 : toujours la dernière, sans menu). */
     private fun remplirColonneTele() {
         val liste = rangeeApps ?: return
         liste.removeAllViews()
@@ -3438,6 +3542,9 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         cases.forEach { c -> liste.addView(ligneTele(c, cles), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = px(8f) }) }
         val plus = ligneTele(null, cles)
         liste.addView(plus, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        // 1.93.06.1 (retour d'essai) : « Paramètres » remplace la roue du bas. Hors des données de l'accueil : ni « Retirer » ni Menu,
+        // et toujours la dernière, même après un déplacement d'appli.
+        liste.addView(ligneTele(null, cles, parametres = true), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(8f) })
         if (cases.isEmpty()) {
             liste.addView(texte(getString(R.string.lanceur_accueil_vide_tele), tv(22f), theme.encre2, Polices.moyen(this)).apply { setPadding(px(8f), px(10f), px(8f), 0) })
             plus.post { if (currentFocus == null || currentFocus?.tag == "plus") plus.requestFocus() }
@@ -3446,20 +3553,25 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
 
     /**
      * Une ligne de la colonne : le disque et le nom, sur une carte qui s'éclaire et grossit un peu au focus (anneau
-     * d'or). c = null : « Ajouter » (choisir d'autres applications, ou un widget Home Assistant). Mêmes gestes que les
-     * cases des rangées : OK ouvre, appui long ou Menu ouvre le menu, déplacement en haut et en bas.
+     * d'or). c = null : « Ajouter » (choisir d'autres applications, ou un widget Home Assistant), ou, avec [parametres],
+     * « Paramètres » (les réglages de Vision). Mêmes gestes que les cases des rangées : OK ouvre, appui long ou Menu ouvre
+     * le menu, déplacement en haut et en bas.
      */
-    private fun ligneTele(c: Accueil.Case?, cles: List<String>): View {
+    private fun ligneTele(c: Accueil.Case?, cles: List<String>, parametres: Boolean = false): View {
         val taille = tv(64f)
-        val nom = when { c == null -> getString(R.string.exceptions_ajouter); c.dossier != null -> c.dossier.nom; else -> Accueil.etiquette(this, c.pkg!!) }
+        val nom = when { parametres -> getString(R.string.lanceur_tuile_parametres); c == null -> getString(R.string.exceptions_ajouter); c.dossier != null -> c.dossier.nom; else -> Accueil.etiquette(this, c.pkg!!) }
         val enDeplacement = c != null && deplacement == c.cle
         val l = LinearLayout(this).apply {
-            gravity = Gravity.CENTER_VERTICAL; setPadding(px(12f), px(8f), px(14f), px(8f)); tag = c?.cle ?: "plus"
+            gravity = Gravity.CENTER_VERTICAL; setPadding(px(12f), px(8f), px(14f), px(8f)); tag = c?.cle ?: if (parametres) "parametres" else "plus"
             isFocusable = true; isClickable = true; contentDescription = nom; minimumHeight = px(Ui.CIBLE_MIN)
             background = fondLigneTele(focus = false, enDeplacement = enDeplacement)
             if (c != null) setTag(R.id.cadre_tele, CadreTele(c.cle, CadreTele.Sorte.APPLI))
         }
         val icone: View = when {
+            parametres -> FrameLayout(this).apply {
+                background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(theme.carte); setStroke(px(1.5f), theme.carteBord) }
+                addView(icone(R.drawable.ic_reglages, taille * 0.46f, theme.or), FrameLayout.LayoutParams(px(taille * 0.46f), px(taille * 0.46f), Gravity.CENTER))
+            }
             c == null -> FrameLayout(this).apply {
                 background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(0); setStroke(px(1.5f), theme.encre2, px(8f).toFloat(), px(6f).toFloat()) }
                 addView(icone(R.drawable.ic_plus, taille * 0.4f, theme.encre2), FrameLayout.LayoutParams(px(taille * 0.4f), px(taille * 0.4f), Gravity.CENTER))
@@ -3475,7 +3587,8 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
             if (a) derniereLigneTele = v
             // 17-10 (l'auteur, point 11) : l'appli prise ne reste plus collée au bord coupé de la liste (elle paraissait rognée,
             // et l'overscan la mangeait) : une marge autour d'elle, comme pour les autres commandes (Ui.garderVisible).
-            if (a) v.post { Ui.garderVisible(v, px(14f)) }
+            // 1.93.06.1 : au moins la longueur du fondu, pour que l'appli prise ne soit jamais estompée.
+            if (a) v.post { Ui.garderVisible(v, maxOf(px(14f), fonduColonne())) }
             if (deplacement != null) return@setOnFocusChangeListener
             v.background = fondLigneTele(focus = a, enDeplacement = false)
             libelle.setTextColor(if (a) theme.encre else theme.encre2); libelle.typeface = if (a) Polices.gras(this) else Polices.moyen(this)
@@ -3484,6 +3597,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         l.setOnClickListener {
             when {
                 deplacement != null -> { deplacement = null; construire() }
+                parametres -> startActivity(Intent(this, ReglagesTvActivity::class.java))
                 c == null -> ajouterTele()
                 c.dossier != null -> ouvrirDossier(c.dossier, cles)
                 else -> ouvrir(c.pkg!!)

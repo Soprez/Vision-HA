@@ -1,0 +1,47 @@
+{
+  "version": "2.5.12.3",
+  "date": "2026-10-19",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "pc"
+      ],
+      "texte": {
+        "fr": "Niveau sonore des PC : moyenne des seuls micros allumés, un nombre envoyé (dBFS), jamais de son.",
+        "en": "PC sound level: average of the microphones that are on, a number sent (dBFS), never any audio.",
+        "de": "Lautstärke am PC: Mittel nur der eingeschalteten Mikrofone, nur eine Zahl (dBFS), nie Ton.",
+        "es": "Nivel de ruido del PC: media de los micrófonos encendidos, solo un número (dBFS), nunca sonido.",
+        "it": "Livello sonoro del PC: media dei soli microfoni accesi, solo un numero (dBFS), mai audio.",
+        "nl": "Geluidsniveau pc: gemiddelde van de ingeschakelde microfoons, alleen een getal (dBFS), nooit geluid."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "pc"
+      ],
+      "texte": {
+        "fr": "Trop de bruit : message doux à l'écran, puis message ferme si ça recommence, puis les responsables sont prévenus.",
+        "en": "Too loud: a gentle on-screen message, then a firm one if it happens again, then the responsible people are told.",
+        "de": "Zu laut: sanfter Hinweis am Bildschirm, bei Wiederholung ein strenger, dann werden die Verantwortlichen informiert.",
+        "es": "Demasiado ruido: mensaje suave en pantalla, luego uno firme si se repite, luego se avisa a los responsables.",
+        "it": "Troppo rumore: messaggio gentile sullo schermo, poi uno fermo se si ripete, poi si avvisano i responsabili.",
+        "nl": "Te veel lawaai: een vriendelijk bericht, dan een streng bericht, dan worden de verantwoordelijken gewaarschuwd."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Réglages par appareil : mesure, seuil de jour, seuil de nuit (plage « Verrouiller la session »), durée, délai.",
+        "en": "Per-device settings: measurement, day and night thresholds (“Lock the session” range), duration, delay between alerts.",
+        "de": "Einstellungen je Gerät: Messung, Schwelle tagsüber und nachts („Sitzung sperren“), Dauer, Abstand zwischen Warnungen.",
+        "es": "Ajustes por dispositivo: medición, umbral de día y de noche (franja «Bloquear la sesión»), duración y espera.",
+        "it": "Impostazioni per dispositivo: misura, soglia di giorno e di notte (fascia «Blocca la sessione»), durata, intervallo.",
+        "nl": "Instellingen per apparaat: meting, drempel overdag en 's nachts (‘Sessie vergrendelen’), duur, tijd tussen meldingen."
+      }
+    }
+  ]
+}

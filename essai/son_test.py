@@ -76,11 +76,12 @@ async def test_reglages_par_appareil_et_bornes(hass, hass_storage, hass_client):
     await _monter(hass, hass_storage)
     client = await hass_client()
     assert (await _releve(client, ENFANT))["son"] == {"actif": False}  # module allumé, mesure éteinte par appareil
-    r = await _regler(hass, actif=True, seuil_db=80, sensibilite_s=4, plages=[{"debut": "08:00", "fin": "20:00"}, {"debut": "x", "fin": "y"}])
+    r = await _regler(hass, actif=True, seuil_db=80, seuil_nuit_db=80, sensibilite_s=4, plages=[{"debut": "08:00", "fin": "20:00"}, {"debut": "x", "fin": "y"}])
     assert r["reglages"]["seuil_db"] == 80 and r["reglages"]["plages"] == [{"debut": "08:00", "fin": "20:00"}]
     bloc = (await _releve(client, ENFANT))["son"]
+    assert isinstance(bloc.pop("nuit"), bool)  # 2.5.12.3 : le relevé dit si c'est la nuit (seuil du moment)
     assert bloc == {"actif": True, "seuil_db": 80, "sensibilite_s": 4, "plages": [{"debut": "08:00", "fin": "20:00"}],
-                    "calibration_db": 0, "alertes": 0, "alertes_avant_coupure": 3}
+                    "calibration_db": 0, "micro_fige_s": 10, "alertes": 0, "alertes_avant_coupure": 3}
     assert (await _releve(client, ENFANT2))["son"] == {"actif": False}  # l'autre appareil n'est pas concerné
 
 
@@ -106,7 +107,7 @@ async def test_alertes_coupure_et_remise_a_zero(hass, hass_storage, hass_client,
     assert (await _releve(client, ENFANT))["son"]["alertes"] == 1
     # Capteur : le niveau, le maximum et les alertes.
     etat = hass.states.get(next(e for e in hass.states.async_entity_ids("sensor") if e.endswith("niveau_sonore")))
-    assert etat is not None and float(etat.state) == 60.0 and etat.attributes["alertes"] == 1
+    assert etat is not None and float(etat.state) == -40.0 and etat.attributes["alertes"] == 1  # 2.5.12.3 : en dBFS (60 relatifs)
     # Deux autres dépassements : la troisième alerte coupe l'appareil, puis le compteur repart de zéro.
     await _releve(client, ENFANT, son={"niveau": 70, "depassements": [dep(2), dep(3)]})
     await hass.async_block_till_done()
@@ -138,7 +139,8 @@ async def test_que_des_nombres_et_plages(hass, hass_storage, hass_client):
     await hass.async_block_till_done()
     assert vus == []
     e = son.etat(coord.store.get("e1"))
-    assert set(e) == {"alertes", "dernier", "vu_jusqua", "niveau", "maximum", "maj"} and e["niveau"] == 55.0
+    assert set(e) == {"alertes", "dernier", "vu_jusqua", "niveau", "maximum", "maj", "pic", "instant", "micros", "jour", "aujourd_hui",
+                      "niveau_alerte", "micros_actifs", "micros_liste"} and e["niveau"] == 55.0
     # Rien d'audio n'est gardé dans la fiche de l'appareil.
     assert "audio" not in str(coord.store.get("e1").get("son")) and "extrait" not in str(coord.store.get("e1").get("son"))
 

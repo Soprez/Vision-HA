@@ -1963,6 +1963,20 @@
         }
       }
     },
+    "accueil_regler": {
+      "name": "Inicio — lista de aplicaciones",
+      "description": "Mostrar u ocultar la lista de aplicaciones en la pantalla de inicio de un dispositivo Android (solo administradores y automatizaciones). Oculta, la pantalla de inicio solo muestra los widgets (panel); mantener pulsada la hora sigue abriendo los ajustes, tras el código o la huella. El dispositivo aplica el ajuste más reciente, de Home Assistant o del propio dispositivo.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nombre del dispositivo."
+        },
+        "liste_applis": {
+          "name": "Mostrar la lista de aplicaciones",
+          "description": "Activado (por defecto): se muestra la lista de aplicaciones. Desactivado: solo los widgets (la lista se mantiene si el inicio no tiene ningún widget)."
+        }
+      }
+    },
     "widget_regler": {
       "name": "Widget — línea bajo el valor",
       "description": "Ajusta el widget de una entidad en todos los dispositivos (solo administradores y automatizaciones): la línea bajo el valor, su nombre y su icono. Como la tarjeta Widgets HA.",
@@ -2024,6 +2038,38 @@
         "plages": {
           "name": "Franjas activas",
           "description": "Lista de (debut, fin) en HH:MM; vacía = todo el día."
+        },
+        "seuil_nuit_db": {
+          "name": "Umbral de noche",
+          "description": "Nivel relativo (0 a 100) de noche: las franjas «Bloquear la sesión» del dispositivo, o la franja de reserva."
+        },
+        "nuit": {
+          "name": "Definición de la noche",
+          "description": "«plages»: el horario del dispositivo; «heures»: la franja de reserva de abajo."
+        },
+        "nuit_debut": {
+          "name": "Inicio de la noche (reserva)",
+          "description": "HH:MM, sin franja de sesión o si nuit = heures."
+        },
+        "nuit_fin": {
+          "name": "Fin de la noche (reserva)",
+          "description": "HH:MM."
+        },
+        "repos_min": {
+          "name": "Tiempo entre dos alertas",
+          "description": "Minutos como mínimo entre dos alertas contadas."
+        },
+        "ferme_apres_min": {
+          "name": "Ventana de la gradación",
+          "description": "Una alerta más en este plazo: mensaje firme, luego se avisa a los responsables."
+        },
+        "prevenir_responsable": {
+          "name": "Avisar a los responsables",
+          "description": "A la tercera alerta seguida, por sus canales de «alertas»."
+        },
+        "micro_fige_s": {
+          "name": "Micrófono congelado",
+          "description": "Un micrófono cuyo nivel no cambia durante estos segundos se excluye de la media."
         }
       }
     }
@@ -2170,6 +2216,18 @@
       },
       "rafraichir_la_liste_noire_toutes_les": {
         "name": "Actualizar la lista de bloqueo cada"
+      },
+      "seuil_sonore_jour": {
+        "name": "Umbral de ruido de día"
+      },
+      "seuil_sonore_nuit": {
+        "name": "Umbral de ruido de noche"
+      },
+      "bruit_duree": {
+        "name": "Ruido: duración antes de una alerta"
+      },
+      "bruit_repos": {
+        "name": "Ruido: tiempo entre dos alertas"
       }
     },
     "select": {
@@ -2325,6 +2383,9 @@
       },
       "niveau_sonore": {
         "name": "Nivel de ruido"
+      },
+      "micros_actifs": {
+        "name": "Micrófonos activos"
       }
     },
     "switch": {
@@ -2357,6 +2418,9 @@
       },
       "veille_vrai_rendu_des_cartes": {
         "name": "Salvapantallas: tarjetas reales"
+      },
+      "niveau_sonore_mesure": {
+        "name": "Medir el nivel de ruido"
       }
     },
     "text": {

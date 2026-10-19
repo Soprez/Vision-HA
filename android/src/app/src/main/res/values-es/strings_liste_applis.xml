@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 1.93.06.1 (retour d'essai) : « Afficher la liste des applications » (tablette tableau de bord, télé). -->
+    <string name="listeapplis_titre">Mostrar la lista de aplicaciones</string>
+    <string name="listeapplis_affichee">Visible</string>
+    <string name="listeapplis_masquee">Oculta</string>
+    <string name="listeapplis_note">Oculta, la pantalla de inicio solo muestra los widgets (panel). Para volver a los ajustes: mantén pulsada la hora (o ajústalo desde Home Assistant).</string>
+    <string name="listeapplis_note_tele">Oculta, la pantalla de inicio solo muestra los widgets. Para volver a los ajustes: mantén pulsado OK sobre la hora (o ajústalo desde Home Assistant).</string>
+    <string name="listeapplis_garde">Abrir los ajustes de Vision</string>
+    <string name="listeapplis_confirmation">Para volver a los ajustes: mantén pulsada la hora (o ajústalo desde Home Assistant).</string>
+    <string name="listeapplis_confirmation_tele">Para volver a los ajustes: mantén pulsado OK sobre la hora (o ajústalo desde Home Assistant).</string>
+    <string name="listeapplis_compris">Entendido</string>
+</resources>
