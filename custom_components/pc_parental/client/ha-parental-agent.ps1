@@ -24,7 +24,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$script:Version           = '1.93.5'
+$script:Version           = '1.93.6'
 $script:Racine            = Split-Path -Parent $ConfigPath
 $script:JournalPath       = Join-Path $script:Racine 'agent.log'
 $script:EtatPath          = Join-Path $script:Racine 'etat.json'
@@ -2783,8 +2783,9 @@ function VueDemande($item) {
         }
         Deposer @{ genre = [string]$t.item.genre; nom = $nom; libelle = $nom; lien = $l; motif = (Valeur $t.motif); duree = [string]$script:DureeChoisie }
         $script:Demandees[[string]$t.item.genre + ':' + $nom] = $true
-        $s.Content = (T 'demande.envoyee'); $s.IsEnabled = $false
-        $t.erreur.Text = (T 'demande.tu_seras_prevenu'); $t.erreur.Foreground = (Pinceau 'Vert'); $t.erreur.Visibility = 'Visible'
+        # La demande part au prochain passage de l'agent : « envoyée » vient de lui, quand Home Assistant l'a reçue.
+        $s.Content = (T 'demande.en_route'); $s.IsEnabled = $false
+        $t.erreur.Text = (T 'demande.en_route_detail'); $t.erreur.Foreground = (Pinceau 'Vert'); $t.erreur.Visibility = 'Visible'
     } @{ item = $item; motif = $motif; lien = $lien; erreur = $null }
     $erreur = Txt '' 12 'Rouge' $false '0,8,0,0'; $erreur.Visibility = 'Collapsed'
     $ok.Tag.erreur = $erreur
@@ -5515,6 +5516,14 @@ function Send-Demandes {
             continue
         }
         $genre = [string](Get-PropOrDefault $contenu 'genre' 'apps')
+        $libelle0 = [string](Get-PropOrDefault $contenu 'libelle' (Get-PropOrDefault $contenu 'nom' ''))
+        if (((Get-Date) - $f.LastWriteTime).TotalHours -ge 24) {
+            # Restée un jour sans pouvoir partir : on le dit, au lieu de l'envoyer à des parents qui ne l'attendent plus.
+            Remove-Item $f.FullName -Force -ErrorAction SilentlyContinue
+            Write-Journal "Demande d'accès abandonnée après 24 h sans envoi : $libelle0." 'WARN'
+            [void](Send-Message -Texte (T 'agent.demande_non_envoyee' @{ nom = $libelle0 }) -Titre 'Vision' -Secondes 8 -Son '')
+            continue
+        }
         if ($genre -eq 'temps') {
             # Une demande de temps part avec le prochain relevé, comme sur Android.
             $script:DemandeTemps = [int](Get-PropOrDefault $contenu 'minutes' 30)
@@ -5550,9 +5559,17 @@ function Send-Demandes {
             [void](Send-Message -Texte (T 'agent.demande_envoyee' @{ nom = $libelle }) `
                 -Titre 'Vision' -Secondes 8 -Son '')
         } catch {
-            # Home Assistant injoignable : le fichier reste, on réessaiera.
-            if ((Get-CodeHttp $_) -ge 400) { Remove-Item $f.FullName -Force -ErrorAction SilentlyContinue }
-            Write-Journal "Demande d'accès non envoyée : $_" 'WARN'
+            # Home Assistant injoignable, en train de démarrer (404, 503), surchargé ou en erreur passagère (408, 429,
+            # 5xx) : le fichier reste, on réessaiera au prochain passage. Seul un refus définitif (requête invalide,
+            # appareil inconnu, module coupé) l'efface, et l'enfant le sait.
+            $code = Get-CodeHttp $_
+            if ($code -in @(400, 401, 403, 410, 413, 422)) {
+                Remove-Item $f.FullName -Force -ErrorAction SilentlyContinue
+                Write-Journal "Demande d'accès refusée par Home Assistant ($code) : $libelle : $_" 'WARN'
+                [void](Send-Message -Texte (T 'agent.demande_non_envoyee' @{ nom = $libelle }) -Titre 'Vision' -Secondes 8 -Son '')
+            } else {
+                Write-Journal "Demande d'accès pas encore envoyée ($code), nouvel essai au prochain passage : $libelle : $_" 'WARN'
+            }
             break
         }
     }

@@ -416,5 +416,8 @@
   "moi.groupe_sites_other": "{n} sites bloqués avec lui :",
   "moi.demander_pour": "Demander l'accès pour {nom}",
   "moi.tentatives_one": "{n} tentative",
-  "moi.tentatives_other": "{n} tentatives"
+  "moi.tentatives_other": "{n} tentatives",
+  "demande.en_route": "Demande en route…",
+  "demande.en_route_detail": "Elle part tout de suite ; Vision te dira quand elle sera arrivée.",
+  "agent.demande_non_envoyee": "Ta demande pour {nom} n'a pas pu partir. Réessaie plus tard."
 }

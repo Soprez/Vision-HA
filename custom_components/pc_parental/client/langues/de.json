@@ -416,5 +416,8 @@
   "moi.groupe_sites_other": "{n} Websites damit gesperrt:",
   "moi.demander_pour": "Zugang für {nom} anfragen",
   "moi.tentatives_one": "{n} Versuch",
-  "moi.tentatives_other": "{n} Versuche"
+  "moi.tentatives_other": "{n} Versuche",
+  "demande.en_route": "Anfrage unterwegs…",
+  "demande.en_route_detail": "Sie wird gesendet; Vision sagt dir, wenn sie angekommen ist.",
+  "agent.demande_non_envoyee": "Deine Anfrage für {nom} konnte nicht gesendet werden. Versuch es später noch einmal."
 }

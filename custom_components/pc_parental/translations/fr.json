@@ -2404,6 +2404,9 @@
       },
       "micros_actifs": {
         "name": "Micros actifs"
+      },
+      "demandes_en_attente": {
+        "name": "Demandes en attente"
       }
     },
     "switch": {

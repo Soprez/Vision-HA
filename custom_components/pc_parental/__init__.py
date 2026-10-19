@@ -347,6 +347,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     from . import a_decider as _adec
     entry.async_on_unload(_adec.installer(hass))
 
+    # Demandes d'accès : notifications HA recréées (un redémarrage les efface), secours si aucun Décideur ne l'a reçue.
+    from . import demandes_livraison as _livraison
+    entry.async_on_unload(_livraison.demarrer(hass, coordinator))
+
     # 2.4.0 (retour d'essai) : arrêt automatique de la lecture après inactivité (Configurer › Musique).
     from . import musique_arret as _arret
 

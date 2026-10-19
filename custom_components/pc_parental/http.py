@@ -567,7 +567,13 @@ class PcParentalPollView(HomeAssistantView):
 
         # Messages à afficher sur ce PC (poubelle, rappel, avertissement…).
         if attente := coord.store.take_messages(pc):
-            reponse["notify"] = [messages.pour_appareil(m) for m in attente]
+            # Demandes d'accès : la remise est notée (accusé de réception), une demande déjà réglée ne sonne plus.
+            from . import demandes_livraison as _livraison
+
+            attente = _livraison.a_remettre(coord.store, pc["id"], attente)
+            if attente:
+                reponse["notify"] = [messages.pour_appareil(m) for m in attente]
+            attente = True
         # Messages bloquants « parent » libérés depuis Home Assistant.
         if liberes := messages.prendre_liberations(pc):
             reponse["liberer"] = liberes

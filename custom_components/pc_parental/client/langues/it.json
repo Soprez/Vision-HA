@@ -416,5 +416,8 @@
   "moi.groupe_sites_other": "{n} siti bloccati con esso:",
   "moi.demander_pour": "Chiedi l'accesso per {nom}",
   "moi.tentatives_one": "{n} tentativo",
-  "moi.tentatives_other": "{n} tentativi"
+  "moi.tentatives_other": "{n} tentativi",
+  "demande.en_route": "Richiesta in viaggio…",
+  "demande.en_route_detail": "Sta partendo; Vision ti dirà quando è arrivata.",
+  "agent.demande_non_envoyee": "La tua richiesta per {nom} non è partita. Riprova più tardi."
 }

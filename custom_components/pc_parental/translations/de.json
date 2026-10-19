@@ -2404,6 +2404,9 @@
       },
       "micros_actifs": {
         "name": "Aktive Mikrofone"
+      },
+      "demandes_en_attente": {
+        "name": "Offene Anfragen"
       }
     },
     "switch": {

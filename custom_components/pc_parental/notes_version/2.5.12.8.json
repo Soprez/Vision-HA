@@ -1,0 +1,45 @@
+{
+  "version": "2.5.12.8",
+  "date": "2026-10-19",
+  "points": [
+    {
+      "cibles": [
+        "pc"
+      ],
+      "texte": {
+        "fr": "PC : une demande d'accès attend et repart si Home Assistant ne répond pas ; « envoyée » seulement à l'arrivée.",
+        "en": "PC: an access request waits and is resent if Home Assistant does not answer; “sent” only once it arrives.",
+        "de": "PC: Eine Zugriffsanfrage wartet und wird neu gesendet, wenn Home Assistant nicht antwortet; „gesendet“ erst danach.",
+        "es": "PC: una solicitud de acceso espera y se reenvía si Home Assistant no responde; «enviada» solo al llegar.",
+        "it": "PC: una richiesta di accesso attende e riparte se Home Assistant non risponde; «inviata» solo all'arrivo.",
+        "nl": "Pc: een toegangsverzoek wacht en gaat opnieuw als Home Assistant niet antwoordt; ‘verstuurd’ pas bij aankomst."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Une demande attend le téléphone du Décideur tant qu'elle est ouverte ; secours sur l'appli Compagnon après 5 min.",
+        "en": "A request waits for the Decider's phone while it is open; Companion app fallback after 5 min.",
+        "de": "Eine Anfrage wartet auf das Telefon des Entscheiders, solange sie offen ist; nach 5 Min. Companion-App.",
+        "es": "Una solicitud espera al teléfono del Decisor mientras esté abierta; respaldo en la app Companion tras 5 min.",
+        "it": "Una richiesta attende il telefono del Decisore finché è aperta; riserva sull'app Companion dopo 5 min.",
+        "nl": "Een verzoek wacht op de telefoon van de beslisser zolang het open is; na 5 min via de Companion-app."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Capteur « Demandes en attente » ; les notifications des demandes reviennent après un redémarrage.",
+        "en": "“Pending requests” sensor; request notifications come back after a restart.",
+        "de": "Sensor „Offene Anfragen“; Benachrichtigungen zu Anfragen kommen nach einem Neustart zurück.",
+        "es": "Sensor «Solicitudes pendientes»; las notificaciones de solicitudes vuelven tras un reinicio.",
+        "it": "Sensore «Richieste in attesa»; le notifiche delle richieste tornano dopo un riavvio.",
+        "nl": "Sensor ‘Openstaande verzoeken’; meldingen van verzoeken komen terug na een herstart."
+      }
+    }
+  ]
+}

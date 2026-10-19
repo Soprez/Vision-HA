@@ -416,5 +416,8 @@
   "moi.groupe_sites_other": "{n} sites blocked with it:",
   "moi.demander_pour": "Ask for access for {nom}",
   "moi.tentatives_one": "{n} attempt",
-  "moi.tentatives_other": "{n} attempts"
+  "moi.tentatives_other": "{n} attempts",
+  "demande.en_route": "Request on its way…",
+  "demande.en_route_detail": "It's being sent; Vision will tell you when it has arrived.",
+  "agent.demande_non_envoyee": "Your request for {nom} could not be sent. Try again later."
 }

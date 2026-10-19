@@ -74,15 +74,19 @@ def _libelle(cle: str, langue: str) -> str:
     }[cle]
 
 
-async def envoyer(hass: HomeAssistant, store, pc: dict[str, Any], demande: dict[str, Any], texte: str) -> int:
-    """Envoie la demande aux téléphones des Décideurs. Rend le nombre de téléphones prévenus."""
+async def envoyer(hass: HomeAssistant, store, pc: dict[str, Any], demande: dict[str, Any], texte: str,
+                  services: list[str] | None = None) -> int:
+    """Envoie la demande aux téléphones des Décideurs. Rend le nombre de téléphones prévenus.
+
+    `services` : ceux-là plutôt que les téléphones ayant choisi l'appli Compagnon (le secours de
+    demandes_livraison, qui prévient tous les Décideurs)."""
     langue = textes.ha(hass)
     # FAILLE DE SÉCURITÉ (l'auteur, 16/10) : accorder exige l'empreinte ou le code à chaque fois, ce qu'un bouton de
     # l'appli Compagnon ne demande pas : seul « Refuser » reste ; toucher la notification ouvre Vision.
     actions = [{"action": f"{PREFIXE}|{pc['id']}|{demande['id']}|{cle}", "title": _libelle(cle, langue)}
                for cle, *_ in CHOIX if cle == "non"]
     n = 0
-    for service in services_notif(hass, store):
+    for service in (services if services is not None else services_notif(hass, store)):
         try:
             await hass.services.async_call("notify", service, {
                 "title": textes.t("dem.titre_ha", langue), "message": texte,

@@ -416,5 +416,8 @@
   "moi.groupe_sites_other": "{n} sitios bloqueados con él:",
   "moi.demander_pour": "Pedir acceso para {nom}",
   "moi.tentatives_one": "{n} intento",
-  "moi.tentatives_other": "{n} intentos"
+  "moi.tentatives_other": "{n} intentos",
+  "demande.en_route": "Solicitud en camino…",
+  "demande.en_route_detail": "Se está enviando; Vision te dirá cuando haya llegado.",
+  "agent.demande_non_envoyee": "Tu solicitud para {nom} no se pudo enviar. Inténtalo más tarde."
 }

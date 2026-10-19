@@ -7,6 +7,7 @@ Rien n'est automatique : sans réponse, rien ne s'ouvre.
 """
 from __future__ import annotations
 
+import logging
 import secrets
 import time
 from typing import Any
@@ -25,6 +26,8 @@ from .coordinator import PcParentalCoordinator
 from .store import _nom_app, _nom_site, domaine_principal
 
 URL_DEMANDE = "/api/pc_parental/demande"
+_LOGGER = logging.getLogger(__name__)
+
 MAX_EN_ATTENTE = 12
 # Une même demande n'est renvoyée aux parents qu'une fois par période.
 REPOS_S = 15 * 60
@@ -87,9 +90,11 @@ def deposer(
                 d["sites"] = list(dict.fromkeys(list(d.get("sites") or []) + sites))
                 return d
             liste.remove(d)
+            persistent_notification.async_dismiss(hass, "{}_acces_{}_{}".format(DOMAIN, pc["id"], d.get("id")))
             break
     if len(liste) >= MAX_EN_ATTENTE:
-        liste.pop(0)
+        vieille = liste.pop(0)
+        persistent_notification.async_dismiss(hass, "{}_acces_{}_{}".format(DOMAIN, pc["id"], vieille.get("id")))
     qui = prenom(hass, pc)
     joli = libelle.strip() or cle
     try:
@@ -178,6 +183,11 @@ def deposer(
             msg = coord.store.add_message(pid, texte_en(langue_p), titre=textes.t("dem.titre", langue_p))
         except ValueError:
             continue
+        # Livraison (demandes_livraison) : le message attend l'appareil Décideur tant que la demande est ouverte,
+        # même s'il est hors ligne plus de 15 min ; sa remise au relevé vaut accusé de réception.
+        from . import demandes_livraison as _livraison
+
+        msg["expire"] = _livraison.expiration(d)
         msg["acces"] = {
             "id": d["id"], "pc": pc["id"], "prenom": qui, "genre": genre,
             "nom": nom, "libelle": joli, "lien": lien[:300], "motif": motif[:120],
@@ -215,21 +225,28 @@ class PcParentalDemandeView(HomeAssistantView):
         self.hass = hass
 
     async def post(self, request: web.Request) -> web.Response:
+        # Diagnostic du 19/10 (demandes perdues) : chaque refus est écrit au journal, avec sa raison et l'appelant.
+        appelant = request.remote or "?"
         try:
             corps: dict[str, Any] = await request.json()
         except ValueError:
+            _LOGGER.warning("Vision : demande d'accès illisible (JSON) depuis %s.", appelant)
             return self.json({"ok": False, "error": "json"}, status_code=400)
         entrees = list(self.hass.data.get(DOMAIN, {}).values())
         coord: PcParentalCoordinator | None = entrees[0] if entrees else None
         if coord is None:
+            _LOGGER.warning("Vision : demande d'accès reçue pendant le démarrage depuis %s : 503, l'agent réessaiera.", appelant)
             return self.json({"ok": False, "error": "loading"}, status_code=503)
         pc = coord.store.by_secret(str(corps.get("id") or ""), str(corps.get("secret") or ""))
         if pc is None:
+            _LOGGER.warning("Vision : demande d'accès d'un appareil inconnu (identifiant %s) depuis %s : 401.",
+                            str(corps.get("id") or "?")[:16], appelant)
             return self.json({"ok": False, "error": "auth"}, status_code=401)
         textes.noter_langue(pc, corps)
         langue = textes.pour(self.hass, pc)
         # 1.82.0 : module « Demandes » coupé : refusé proprement, personne n'est prévenu.
         if refus := modules.refus(self, coord.store, "demandes", langue=langue):
+            _LOGGER.warning("Vision : demande d'accès de « %s » refusée : module Demandes coupé (403).", pc.get("name"))
             return refus
         nom = str(corps.get("nom") or "").strip()[:120]
         # 2.3.4 : « app:… » est un logiciel ; sans genre, le catalogue tranche au lieu de « sites » par défaut.
@@ -244,15 +261,22 @@ class PcParentalDemandeView(HomeAssistantView):
         motif = str(corps.get("motif") or "").strip()[:120]
         duree = str(corps.get("duree") or "").strip()
         if not nom:
+            _LOGGER.warning("Vision : demande d'accès de « %s » sans nom (400) : %s.", pc.get("name"),
+                            {k: str(v)[:60] for k, v in corps.items() if k not in ("secret",)})
             return self.json({"ok": False, "error": "nom"}, status_code=400)
         sites = [str(x) for x in corps.get("sites") or [] if isinstance(x, str)] if isinstance(corps.get("sites"), list) else []
         d = deposer(self.hass, coord, pc, genre, nom, libelle, lien, motif, duree, sites)
         if d is None:
+            _LOGGER.warning("Vision : demande d'accès de « %s » pour « %s » (%s) : nom non reconnu (400).",
+                            pc.get("name"), nom[:60], genre)
             return self.json({"ok": False, "error": "nom"}, status_code=400)
         if d.get("refus"):
+            _LOGGER.warning("Vision : demande d'accès de « %s » pour « %s » : refusée il y a peu, pas renvoyée.",
+                            pc.get("name"), d.get("libelle"))
             return self.json({
                 "ok": False, "error": "refus", "jusqua": int(d["refus"]),
                 "retour": textes.t("dem.refusee", langue, nom=d["libelle"], heure=textes.heure(float(d["refus"]), langue)),
             })
         await coord.store.async_save()
+        _LOGGER.info("Vision : demande d'accès de « %s » pour « %s » enregistrée (%s).", pc.get("name"), d.get("libelle"), d["id"])
         return self.json({"ok": True, "demande": d["id"], "attente": len(en_attente(pc))})

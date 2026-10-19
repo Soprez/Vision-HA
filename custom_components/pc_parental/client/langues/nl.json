@@ -416,5 +416,8 @@
   "moi.groupe_sites_other": "{n} sites samen ermee geblokkeerd:",
   "moi.demander_pour": "Toegang vragen voor {nom}",
   "moi.tentatives_one": "{n} poging",
-  "moi.tentatives_other": "{n} pogingen"
+  "moi.tentatives_other": "{n} pogingen",
+  "demande.en_route": "Verzoek onderweg…",
+  "demande.en_route_detail": "Het wordt verstuurd; Vision laat weten wanneer het is aangekomen.",
+  "agent.demande_non_envoyee": "Je verzoek voor {nom} kon niet worden verstuurd. Probeer het later opnieuw."
 }

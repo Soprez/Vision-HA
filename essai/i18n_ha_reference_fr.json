@@ -123,6 +123,10 @@
   "number.vision_attente_apres_un_refus",
   "Vision Attente après un refus"
  ],
+ "pc_parental_demandes_en_attente": [
+  "sensor.vision_demandes_en_attente",
+  "Vision Demandes en attente"
+ ],
  "pc_parental_desinstallation": [
   "switch.vision_desinstallation_par_l_agent",
   "Vision Désinstallation par l'agent"

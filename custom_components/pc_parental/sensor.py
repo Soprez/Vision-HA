@@ -45,6 +45,7 @@ async def async_setup_entry(
         entites.append(PcTempsEcranSensor(coordinator, pc_id))
         entites.append(PcPlagesSensor(coordinator, pc_id))
     entites.append(AClasserSensor(coordinator))
+    entites.append(DemandesEnAttenteSensor(coordinator))
     entites.append(MusiqueDerniereCommandeSensor(coordinator))
     entites.append(ExceptionsSensor(coordinator))
     entites.append(ListeNoireSensor(coordinator))
@@ -80,6 +81,7 @@ async def async_setup_entry(
         for p in coordinator.store.personnes_suivies()
     } | {
         f"{DOMAIN}_a_classer",
+        f"{DOMAIN}_demandes_en_attente",
         f"{DOMAIN}_exceptions",
         f"{DOMAIN}_liste_noire_etat",
         f"{DOMAIN}_bloques",
@@ -949,3 +951,29 @@ class MicrosActifsSensor(PcEntity, SensorEntity):
 
         e = self._etat()
         return {"liste": list(e.get("micros_liste") or []), "micros_ecoutes": e.get("micros"), "par_micro": son.par_micro(e)}
+
+
+class DemandesEnAttenteSensor(HubEntity, SensorEntity):
+    """Les demandes d'accès ouvertes (SPEC-1.94, §3 bis, point 5) : leur nombre, et la liste en attribut avec, pour
+    chacune, les appareils Décideurs qui l'ont reçue et si le secours est parti (demandes_livraison)."""
+
+    _unrecorded_attributes = frozenset({MATCH_ALL})
+    _attr_translation_key = "demandes_en_attente"
+    _attr_icon = "mdi:hand-back-right-outline"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator: PcParentalCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{DOMAIN}_demandes_en_attente"
+
+    @property
+    def native_value(self) -> int:
+        from . import demandes_livraison
+
+        return len(demandes_livraison.ouvertes(self.coordinator.store))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        from . import demandes_livraison
+
+        return {"demandes": demandes_livraison.pour_capteur(self.coordinator.hass, self.coordinator.store)}

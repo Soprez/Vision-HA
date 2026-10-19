@@ -6,11 +6,11 @@ from datetime import timedelta
 
 DOMAIN = "pc_parental"
 
-VERSION = "2.5.12.7"
+VERSION = "2.5.12.8"
 
 # Version du client PowerShell hébergé par cette intégration. Les agents
 # installés sur les PC se mettent à jour tout seuls quand elle change.
-CLIENT_VERSION = "1.93.5"
+CLIENT_VERSION = "1.93.6"
 CLIENT_DIR = "client"
 
 # Nom du produit. Le domaine technique reste « pc_parental » : le changer
