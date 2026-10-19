@@ -60,3 +60,6 @@ Thumbs.db
 REMISE-*
 BACKLOG*
 NOTES-REPRISE-*
+
+# Sortie de outils/fabriquer_release.py (vision.zip et APK à joindre à la release).
+/release/

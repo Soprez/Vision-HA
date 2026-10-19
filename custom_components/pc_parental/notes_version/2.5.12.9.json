@@ -1,0 +1,46 @@
+{
+  "version": "2.5.12.9",
+  "date": "2026-10-19",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Version publique qui réunit le niveau sonore gradué (2.5.12.7) et les demandes d'accès fiabilisées (2.5.12.8).",
+        "en": "Public release bringing together graded sound levels (2.5.12.7) and reliable access requests (2.5.12.8).",
+        "de": "Öffentliche Version mit abgestuftem Lautstärkepegel (2.5.12.7) und zuverlässigen Zugriffsanfragen (2.5.12.8).",
+        "es": "Versión pública que reúne el nivel sonoro gradual (2.5.12.7) y las solicitudes de acceso fiables (2.5.12.8).",
+        "it": "Versione pubblica che riunisce il livello sonoro graduale (2.5.12.7) e le richieste di accesso affidabili (2.5.12.8).",
+        "nl": "Openbare versie met het getrapte geluidsniveau (2.5.12.7) en betrouwbare toegangsverzoeken (2.5.12.8)."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Le fichier d'installation de chaque version se fabrique depuis le dépôt lui-même (outils/fabriquer_release.py).",
+        "en": "Each release's install file is built from the repository itself (outils/fabriquer_release.py).",
+        "de": "Die Installationsdatei jeder Version wird aus dem Repository selbst gebaut (outils/fabriquer_release.py).",
+        "es": "El archivo de instalación de cada versión se genera desde el propio repositorio (outils/fabriquer_release.py).",
+        "it": "Il file di installazione di ogni versione si genera dal repository stesso (outils/fabriquer_release.py).",
+        "nl": "Het installatiebestand van elke versie wordt vanuit de repository zelf gebouwd (outils/fabriquer_release.py)."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Application inchangée : 1.93.06.3.",
+        "en": "App unchanged: 1.93.06.3.",
+        "de": "App unverändert: 1.93.06.3.",
+        "es": "Aplicación sin cambios: 1.93.06.3.",
+        "it": "App invariata: 1.93.06.3.",
+        "nl": "App ongewijzigd: 1.93.06.3."
+      }
+    }
+  ]
+}
