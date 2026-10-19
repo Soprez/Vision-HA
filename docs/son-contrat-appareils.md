@@ -44,6 +44,11 @@ ou, quand le module est allumé ET la mesure activée pour cet appareil :
   `micros_liste` (leurs noms, 16 au plus, 80 caractères chacun). `micros_actifs: 0` = aucun micro allumé : Home
   Assistant oublie le niveau et le capteur « Niveau sonore » passe à indisponible (jamais 0). Absent (l'appli) :
   comportement d'avant.
+- **Agent 1.93.5**, facultatif : `micros_detail`, chaque micro ouvert
+  `{"nom": "...", "etat": "actif|muet|silence|sous_plancher|fige|sans_donnees", "niveau": 55.0}` (dB relatifs sur les 5 dernières
+  secondes ; absent pour un micro muet, silencieux ou sans données). Home Assistant en garde 16, noms de 80
+  caractères, état inconnu = `sans_donnees`, et les montre dans l'attribut `par_micro` (`niveau_dbfs`) des capteurs
+  « Niveau sonore » et « Micros actifs ».
 - `depassements` : ceux qui n'ont pas encore été remis (`ts` en millisecondes). Home Assistant ignore un
   dépassement déjà reçu : l'appareil peut renvoyer la liste tant qu'un relevé n'a pas abouti.
 - Tout autre champ est ignoré par Home Assistant.
@@ -85,9 +90,16 @@ ou, quand le module est allumé ET la mesure activée pour cet appareil :
   **moyenne (en énergie) des seuls micros allumés**, et n'écrit que des nombres dans `niveau-son.json` (moyenne et
   maximum de la minute, pic des 10 s, instant, nombre de micros, micros pris en compte et leurs noms, dépassements).
   Le tampon d'échantillons est remis à zéro après chaque calcul.
+- **1.93.5** : la **composante continue** (DC) de chaque canal est retirée avant le RMS (sa moyenne sur la lecture
+  est soustraite) : un micro décalé ne gonfle plus le plancher d'une pièce vide (référence l'auteur du 19/10 : −45 dBFS
+  pièce vide sur le PC de Charlie avec l'agent 1.93.4). Un signal purement continu compte comme un silence
+  numérique. Le niveau et l'état de chaque micro remontent dans `micros_detail`.
 - Exclus de la moyenne (ils ne la tirent jamais vers le bas) : un micro **muet** dans Windows, un **silence
   numérique** (paquets marqués SILENT ou échantillons tous exactement à 0, soit −inf dBFS), un micro au niveau
   **figé** depuis plus de `micro_fige_s` secondes (10 par défaut, réglable par appareil, il revient dès qu'il bouge).
+  **1.93.5 (retour d'essai)** : un micro sous `micro_plancher_dbfs` (−90 dBFS par défaut, avant calibration, réglable de −120 à
+  −40 par appareil, service `son_regler`) ne capte rien et compte comme éteint (`sous_plancher`) ; constaté le 19/10
+  sur PC-SAM (deux micros à −99 dBFS). Aucun micro au-dessus : capteur indisponible.
   Désactivé ou débranché : il n'est plus énuméré (réouverture toutes les 60 s, ou aussitôt s'il tombe en panne).
   Aucun micro actif pendant 5 s : la minute est oubliée et aucun niveau n'est écrit (`micros_actifs: 0`).
 - Les réglages (seuil du moment, sensibilité, calibration, micro figé, plages) lui sont déposés par l'agent dans

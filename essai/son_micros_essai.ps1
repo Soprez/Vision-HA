@@ -1,4 +1,4 @@
-﻿# Niveau sonore (2.5.12.3, précision de l'auteur) : seuls les micros vraiment allumés comptent dans la moyenne.
+﻿# Niveau sonore (2.5.12.3, précision de l'auteur ; agent 1.93.5 : composante continue retirée, détail par micro) : seuls les micros vraiment allumés comptent dans la moyenne.
 # Lit la VRAIE sonde dans l'agent (bloc $script:SonSource), en charge Mesurer-Tranche et Micros-Pris, et les fait
 # tourner sur de faux micros : muet, silence numérique, niveau figé, débranché, aucun micro actif.
 # Lancé par essai/son_pc_test.py ; sort avec le code 1 au premier écart.
@@ -10,7 +10,7 @@ if ($err.Count) { Write-Output "Agent illisible : $($err[0].Message)"; exit 1 }
 $aff = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and
                      $n.Left.Extent.Text -eq '$script:SonSource' }, $true) | Select-Object -First 1
 $sonde = [System.Management.Automation.Language.Parser]::ParseInput($aff.Right.Expression.Value, [ref]$tok, [ref]$err)
-foreach ($nom in @('Mesurer-Tranche', 'Micros-Pris')) {
+foreach ($nom in @('Mesurer-Tranche', 'Micros-Pris', 'Detail-Micros', 'Niveau-Relatif')) {
     $f = $sonde.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq $nom }, $true) |
         Select-Object -First 1
     if ($null -eq $f) { Write-Output "Fonction $nom absente de la sonde."; exit 1 }
@@ -87,6 +87,80 @@ $a = Faux-Micro 'a' @(0.1); $b = Faux-Micro 'b' @(0.2)
 $pris = @(Micros-Pris -Micros @($a) -Figes $figes -VusActifs $vus -Maintenant $t0.AddSeconds(1))
 Verifier 'micro débranché retiré' $pris.Count 1
 if ($pris[0] -ne 'a' -or $vus['a'].nom -ne 'Micro a') { Write-Output "ÉCART liste : $($pris -join ',')"; $ecarts++ }
+
+# 7. (1.93.5) La composante continue est retirée, canal par canal, par la vraie fonction C# de la sonde.
+$typeDef = $sonde.FindAll({ param($n) $n -is [System.Management.Automation.Language.CommandAst] -and
+                           $n.GetCommandName() -eq 'Add-Type' }, $true) | Select-Object -First 1
+$code = ($typeDef.CommandElements | Where-Object { $_ -is [System.Management.Automation.Language.StringConstantExpressionAst] -or
+                                                   $_ -is [System.Management.Automation.Language.ExpandableStringExpressionAst] } |
+         Select-Object -Last 1).Value
+Add-Type -TypeDefinition $code
+function Rms-De([double[][]]$Canaux) {
+    # Des échantillons entrelacés comme WASAPI : somme et carrés par canal, puis RmsSansContinu.
+    $k = $Canaux.Count; $s = New-Object double[] $k; $c = New-Object double[] $k; $n = 0
+    for ($i = 0; $i -lt $Canaux[0].Count; $i++) { for ($j = 0; $j -lt $k; $j++) { $v = $Canaux[$j][$i]; $s[$j] += $v; $c[$j] += $v * $v; $n++ } }
+    return [VisionSon.Micro]::RmsSansContinu($s, $c, $n)
+}
+$sinus = @(0..4799 | ForEach-Object { 0.01 * [math]::Sin(2 * [math]::PI * 440 * $_ / 48000) })
+Verifier 'sinus seul : RMS = amplitude / racine de 2' (Rms-De @(,[double[]]$sinus)) (0.01 / [math]::Sqrt(2))
+Verifier 'sinus + continu 0,2 : le continu ne compte pas' ([math]::Round((Rms-De @(,[double[]]@($sinus | ForEach-Object { $_ + 0.2 }))), 6)) ([math]::Round(0.01 / [math]::Sqrt(2), 6))
+Verifier 'continu seul : silence numérique (0)' (Rms-De @(,[double[]]@(1..4800 | ForEach-Object { 0.3 }))) 0
+Verifier 'zéros : silence numérique (0)' (Rms-De @(,[double[]]@(1..4800 | ForEach-Object { 0.0 }))) 0
+$g = [double[]]@($sinus | ForEach-Object { $_ - 0.1 }); $d = [double[]]@($sinus | ForEach-Object { $_ + 0.25 })
+Verifier 'deux canaux, continus différents : chacun retiré' ([math]::Round((Rms-De @($g, $d)), 6)) ([math]::Round(0.01 / [math]::Sqrt(2), 6))
+
+# 8. (1.93.5) Chaque micro : son état et son niveau sur la fenêtre, y compris ceux exclus de la moyenne.
+$figes = @{}; $vus = @{}; $par = @{}
+$micros = @((Faux-Micro 'a' @(0.01, 0.01)), (Faux-Micro 'm' @(0.5, 0.5) $true), (Faux-Micro 'z' @(0.0, 0.0)), (Faux-Micro 'r' @()))
+for ($k = 0; $k -lt 2; $k++) {
+    [void](Mesurer-Tranche -Micros $micros -Figes $figes -VusActifs $vus -Maintenant $t0.AddMilliseconds(100 * $k) -Fige 10 -ParMicro $par)
+}
+$det = @(Detail-Micros -Micros $micros -ParMicro $par -Calibration 0)
+$par_nom = @{}; foreach ($x in $det) { $par_nom[$x.nom] = $x }
+Verifier 'détail : un élément par micro' $det.Count 4
+if ($par_nom['Micro a'].etat -ne 'actif' -or $par_nom['Micro m'].etat -ne 'muet' -or $par_nom['Micro z'].etat -ne 'silence' -or $par_nom['Micro r'].etat -ne 'sans_donnees') {
+    Write-Output "ÉCART états : $(($det | ForEach-Object { "$($_.nom)=$($_.etat)" }) -join ', ')"; $ecarts++
+} else { Write-Output 'ok   détail : actif, muet, silence, sans_donnees' }
+Verifier 'détail : niveau du micro actif (-40 dBFS = 60 relatif)' $par_nom['Micro a'].niveau 60
+if ($par_nom['Micro m'].PSObject.Properties['niveau']) { Write-Output 'ÉCART : un micro muet a un niveau'; $ecarts++ } else { Write-Output 'ok   détail : pas de niveau pour un micro muet' }
+$det2 = @(Detail-Micros -Micros @($micros[0]) -ParMicro $par -Calibration 0)
+Verifier 'détail : la fenêtre repart de zéro et oublie les micros fermés' $det2.Count 1
+if ($det2[0].PSObject.Properties['niveau']) { Write-Output 'ÉCART : niveau gardé d''une fenêtre à l''autre'; $ecarts++ } else { Write-Output 'ok   détail : fenêtre remise à zéro' }
+# Un micro figé est exclu de la moyenne mais garde son niveau dans le détail.
+$figes = @{}; $vus = @{}; $par = @{}
+$fige = Faux-Micro 'f' (@(0.2) * 200)
+for ($k = 0; $k -le 110; $k++) {
+    [void](Mesurer-Tranche -Micros @($fige) -Figes $figes -VusActifs $vus -Maintenant $t0.AddMilliseconds(100 * $k) -Fige 10 -ParMicro $par)
+}
+$det = @(Detail-Micros -Micros @($fige) -ParMicro $par -Calibration 0)
+if ($det[0].etat -ne 'fige') { Write-Output "ÉCART : état $($det[0].etat) au lieu de fige"; $ecarts++ } else { Write-Output 'ok   détail : micro figé signalé' }
+Verifier 'détail : niveau du micro figé (-14 dBFS)' $det[0].niveau ([math]::Round(20 * [math]::Log10(0.2) + 100, 1))
+
+# 9. (1.93.5) Un micro sous le plancher (-90 dBFS par défaut) ne capte rien : il compte comme éteint.
+$figes = @{}; $vus = @{}; $par = @{}
+$bas = Faux-Micro 'b' @(0.00001)     # -100 dBFS
+$bon = Faux-Micro 'a' @(0.01)        # -40 dBFS
+$r = Mesurer-Tranche -Micros @($bas, $bon) -Figes $figes -VusActifs $vus -Maintenant $t0 -Fige 10 -ParMicro $par
+Verifier 'micro sous le plancher exclu de la moyenne' $r 0.01
+Verifier 'micro sous le plancher absent de la liste' $vus.Count 1
+$det = @(Detail-Micros -Micros @($bas, $bon) -ParMicro $par -Calibration 0)
+$b = $det | Where-Object { $_.nom -eq 'Micro b' }
+if ($b.etat -ne 'sous_plancher') { Write-Output "ÉCART : état $($b.etat) au lieu de sous_plancher"; $ecarts++ } else { Write-Output 'ok   détail : micro sous le plancher signalé' }
+Verifier 'détail : son niveau reste visible (-100 dBFS = 0 relatif)' $b.niveau 0
+# Seulement des micros sous le plancher (cas du PC d'Sam, -99 dBFS) : aucun niveau, capteur indisponible.
+$figes = @{}; $vus = @{}
+$r = Mesurer-Tranche -Micros @((Faux-Micro 'c' @(0.00001)), (Faux-Micro 'd' @(0.00002))) -Figes $figes -VusActifs $vus -Maintenant $t0 -Fige 10
+Verifier 'tous sous le plancher : pas de niveau' $r -1
+$pris = @(Micros-Pris -Micros @() -Figes $figes -VusActifs $vus -Maintenant $t0)
+Verifier 'tous sous le plancher : aucun micro pris' $pris.Count 0
+# Le plancher est réglable : à -110 dBFS, le même micro compte.
+$figes = @{}; $vus = @{}
+$r = Mesurer-Tranche -Micros @((Faux-Micro 'c' @(0.00001))) -Figes $figes -VusActifs $vus -Maintenant $t0 -Fige 10 -PlancherDbfs -110
+Verifier 'plancher réglé à -110 : le micro à -100 compte' $r 0.00001
+# Juste au-dessus du plancher : compte.
+$figes = @{}; $vus = @{}
+$r = Mesurer-Tranche -Micros @((Faux-Micro 'e' @(0.0000317))) -Figes $figes -VusActifs $vus -Maintenant $t0 -Fige 10
+Verifier 'à -89,98 dBFS : compté' $r 0.0000317
 
 if ($ecarts) { Write-Output "$ecarts écart(s)."; exit 1 }
 Write-Output 'Tout est conforme.'

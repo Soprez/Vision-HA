@@ -2070,6 +2070,10 @@
         "micro_fige_s": {
           "name": "Micro figé",
           "description": "Un micro dont le niveau ne bouge plus pendant ce nombre de secondes est exclu de la moyenne."
+        },
+        "micro_plancher_dbfs": {
+          "name": "Plancher d'un micro",
+          "description": "Un micro plus bas que ce niveau (dBFS, avant calibration) ne capte rien : il compte comme éteint."
         }
       }
     }

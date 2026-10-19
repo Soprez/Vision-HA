@@ -2070,6 +2070,10 @@
         "micro_fige_s": {
           "name": "Eingefrorenes Mikrofon",
           "description": "Ein Mikrofon, dessen Pegel sich so viele Sekunden nicht ändert, wird aus dem Mittelwert ausgeschlossen."
+        },
+        "micro_plancher_dbfs": {
+          "name": "Mikrofon-Untergrenze",
+          "description": "Ein Mikrofon leiser als dieser Pegel (dBFS, vor Kalibrierung) nimmt nichts auf und gilt als aus."
         }
       }
     }

@@ -62,14 +62,16 @@ REGLAGES_DEFAUT: dict[str, Any] = {
     "plages": [],                # [{"debut": "HH:MM", "fin": "HH:MM"}] ; vide = toute la journée
     "calibration_db": 0,         # ajouté à la mesure de l'appareil (micros très différents)
     "micro_fige_s": 10,          # un micro dont le niveau ne bouge plus pendant ce temps est exclu de la moyenne (2.5.12.3)
+    "micro_plancher_dbfs": -90,  # un micro plus bas que ça (avant calibration) ne capte rien : compté comme éteint (l'auteur, agent 1.93.5)
 }
 # Un PC (agent Windows, 2.5.12.3) : des alertes et des messages, jamais de coupure par défaut ; 3 s suffisent.
 DEFAUTS_PC: dict[str, Any] = {"alertes_avant_coupure": 0, "sensibilite_s": 3, "repos_min": 2}
 BORNES: dict[str, tuple[float, float]] = {
     "seuil_db": (30, 100), "seuil_nuit_db": (30, 100), "sensibilite_s": (1, 120), "repos_min": (0, 120),
     "ferme_apres_min": (1, 120), "alertes_avant_coupure": (0, 10), "coupure_min": (1, 240), "calme_min": (1, 240),
-    "calibration_db": (-30, 30), "micro_fige_s": (2, 300),
+    "calibration_db": (-30, 30), "micro_fige_s": (2, 300), "micro_plancher_dbfs": (-120, -40),
 }
+ETATS_MICRO = ("actif", "muet", "silence", "sous_plancher", "fige", "sans_donnees")  # état d'un micro (agent 1.93.5)
 MAX_DEPASSEMENTS = 20  # par relevé : un appareil qui s'emballe ne remplit pas le journal
 
 
@@ -131,6 +133,7 @@ def etat(pc: dict[str, Any]) -> dict[str, Any]:
     # 2.5.12.3 (l'auteur, précision) : seuls les micros vraiment allumés comptent ; aucun = capteur indisponible.
     e.setdefault("micros_actifs", None)  # micros pris en compte (None : l'appareil ne le dit pas, ex. l'appli)
     e.setdefault("micros_liste", [])     # leurs noms
+    e.setdefault("micros_detail", [])    # chaque micro : nom, état, niveau relatif (agent 1.93.5)
     return e
 
 
@@ -200,7 +203,7 @@ def pour_releve(store, pc: dict[str, Any]) -> dict[str, Any]:
     return {
         "actif": True, "seuil_db": int(r["seuil_nuit_db"] if nuit else r["seuil_db"]), "nuit": nuit,
         "sensibilite_s": r["sensibilite_s"], "plages": r["plages"], "calibration_db": r["calibration_db"],
-        "micro_fige_s": r["micro_fige_s"],
+        "micro_fige_s": r["micro_fige_s"], "micro_plancher_dbfs": r["micro_plancher_dbfs"],
         "alertes": int(e["alertes"]), "alertes_avant_coupure": r["alertes_avant_coupure"],
     }
 
@@ -217,6 +220,12 @@ def dbfs(niveau: Any) -> float | None:
     """dB relatifs (0 à 100) → dBFS (−100 à 0), pour le capteur et les réglages de Home Assistant."""
     n = _nombre(niveau)
     return None if n is None else round(n - 100.0, 1)
+
+
+def par_micro(e: dict[str, Any]) -> list[dict[str, Any]]:
+    """Agent 1.93.5 : chaque micro pour les capteurs, niveau en dBFS (None : muet, silence ou sans données)."""
+    return [{"nom": d.get("nom"), "etat": d.get("etat"), "niveau_dbfs": dbfs(d.get("niveau"))}
+            for d in (e.get("micros_detail") or []) if isinstance(d, dict)]
 
 
 def _message(hass: HomeAssistant, store, pc: dict[str, Any], cle: str, **champs: Any) -> None:
@@ -283,6 +292,14 @@ def recevoir(hass: HomeAssistant, store, pc: dict[str, Any], bloc: Any, maintena
             micros = _nombre(bloc.get("micros"), 0, 64)
             e["micros"] = int(micros) if micros is not None else None
             e["maj"] = t
+    # Agent 1.93.5 : chaque micro, avec son état et son niveau (dB relatifs) ; bornés, rien d'autre n'est gardé.
+    if "micros_detail" in bloc:
+        detail = bloc.get("micros_detail") if isinstance(bloc.get("micros_detail"), list) else []
+        e["micros_detail"] = [
+            {"nom": d["nom"][:80], "etat": d.get("etat") if d.get("etat") in ETATS_MICRO else "sans_donnees",
+             "niveau": _nombre(d.get("niveau"))}
+            for d in detail[:64] if isinstance(d, dict) and isinstance(d.get("nom"), str)
+        ][:16]
     if niveau is not None:
         e["niveau"] = niveau
         e["maximum"] = _nombre(bloc.get("maximum"))

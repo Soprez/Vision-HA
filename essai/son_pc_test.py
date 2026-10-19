@@ -56,7 +56,7 @@ async def _monter(hass, hass_storage, plages=True, module=True):
 
 
 async def _releve(client, **corps):
-    r = await client.post("/api/pc_parental/poll", json={**PC, "host": "PC-PL", "user": "pl", "version": "1.93.4", **corps})
+    r = await client.post("/api/pc_parental/poll", json={**PC, "host": "PC-PL", "user": "pl", "version": "1.93.5", **corps})
     assert r.status == 200, await r.text()
     return await r.json()
 
@@ -249,3 +249,64 @@ def test_sonde_agent_exclut_micros_muets_silencieux_figes():
     r = subprocess.run(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(essai)],
                        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
     assert r.returncode == 0, r.stdout[-3000:] + r.stderr[-2000:]
+
+
+async def test_detail_par_micro(hass, hass_storage, hass_client):
+    """Agent 1.93.5 : chaque micro remonte avec son état et son niveau ; HA les montre en dBFS, bornés."""
+    coord = await _monter(hass, hass_storage)
+    from custom_components.pc_parental import son
+    pc = coord.store.pcs["pc1"]
+    son.regler(pc, {"actif": True})
+    client = await hass_client()
+    detail = [{"nom": "Microphone (Cirrus Logic)", "etat": "actif", "niveau": 55.0},
+              {"nom": "Micro casque (Corsair)", "etat": "silence"},
+              {"nom": "Micro figé", "etat": "fige", "niveau": 30.0}]
+    await _releve(client, son={"niveau": 55, "micros": 3, "micros_actifs": 1, "micros_liste": ["Microphone (Cirrus Logic)"],
+                               "micros_detail": detail, "depassements": []})
+    await hass.async_block_till_done()
+    attendu = [{"nom": "Microphone (Cirrus Logic)", "etat": "actif", "niveau_dbfs": -45.0},
+               {"nom": "Micro casque (Corsair)", "etat": "silence", "niveau_dbfs": None},
+               {"nom": "Micro figé", "etat": "fige", "niveau_dbfs": -70.0}]
+    assert hass.states.get("sensor.pc_pl_niveau_sonore").attributes["par_micro"] == attendu
+    assert hass.states.get("sensor.pc_pl_micros_actifs").attributes["par_micro"] == attendu
+    # Aucun micro actif : le niveau est indisponible, mais « Micros actifs » dit encore micro par micro pourquoi.
+    await _releve(client, son={"micros": 1, "micros_actifs": 0, "micros_liste": [],
+                               "micros_detail": [{"nom": "Micro casque (Corsair)", "etat": "muet"}], "depassements": []})
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.pc_pl_niveau_sonore").state == "unavailable"
+    assert hass.states.get("sensor.pc_pl_micros_actifs").attributes["par_micro"] == [
+        {"nom": "Micro casque (Corsair)", "etat": "muet", "niveau_dbfs": None}]
+    # Bornes : 16 micros au plus, noms de 80 caractères, état inconnu = « sans_donnees », rien d'autre gardé.
+    son.recevoir(hass, coord.store, pc, {"micros_actifs": 1, "micros_detail": [
+        {"nom": "x" * 200, "etat": "pirate", "niveau": 50, "audio": "AAAA"}, "texte", {"etat": "actif"},
+        *[{"nom": f"m{i}", "etat": "actif"} for i in range(30)]]})
+    d = son.etat(pc)["micros_detail"]
+    assert len(d) == 16 and d[0] == {"nom": "x" * 80, "etat": "sans_donnees", "niveau": 50.0}
+    assert "audio" not in str(pc.get("son"))
+
+
+async def test_plancher_micro_reglable(hass, hass_storage, hass_client):
+    """l'auteur : un micro sous le plancher (-90 dBFS par défaut, réglable) ne capte rien et compte comme éteint ; l'agent
+    reçoit le plancher, et l'état « sous_plancher » remonte dans le détail par micro."""
+    coord = await _monter(hass, hass_storage)
+    from custom_components.pc_parental import son
+    pc = coord.store.pcs["pc1"]
+    son.regler(pc, {"actif": True})
+    client = await hass_client()
+    d = await _releve(client, son={"micros": 2, "micros_actifs": 0, "micros_liste": [], "depassements": [],
+                                   "micros_detail": [{"nom": "Réseau de micros (Realtek)", "etat": "sous_plancher", "niveau": 1.0},
+                                                     {"nom": "Casque (Corsair)", "etat": "sous_plancher", "niveau": 0.5}]})
+    assert d["son"]["micro_plancher_dbfs"] == -90
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.pc_pl_niveau_sonore").state == "unavailable"
+    m = hass.states.get("sensor.pc_pl_micros_actifs")
+    assert m.state == "0" and m.attributes["par_micro"] == [
+        {"nom": "Réseau de micros (Realtek)", "etat": "sous_plancher", "niveau_dbfs": -99.0},
+        {"nom": "Casque (Corsair)", "etat": "sous_plancher", "niveau_dbfs": -99.5}]
+    # Réglable par appareil, borné entre -120 et -40 dBFS.
+    rep = await hass.services.async_call(DOMAIN, "son_regler", {"pc": "PC-PL", "micro_plancher_dbfs": -100},
+                                         blocking=True, return_response=True)
+    assert rep["reglages"]["micro_plancher_dbfs"] == -100
+    assert (await _releve(client, son={"depassements": []}))["son"]["micro_plancher_dbfs"] == -100
+    assert son.regler(pc, {"micro_plancher_dbfs": -10})["micro_plancher_dbfs"] == -40
+    assert son.regler(pc, {"micro_plancher_dbfs": -500})["micro_plancher_dbfs"] == -120

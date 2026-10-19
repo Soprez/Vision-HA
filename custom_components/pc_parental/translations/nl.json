@@ -2070,6 +2070,10 @@
         "micro_fige_s": {
           "name": "Bevroren microfoon",
           "description": "Een microfoon waarvan het niveau zoveel seconden niet verandert, telt niet mee in het gemiddelde."
+        },
+        "micro_plancher_dbfs": {
+          "name": "Ondergrens microfoon",
+          "description": "Een microfoon zachter dan dit niveau (dBFS, vóór kalibratie) vangt niets op en telt als uit."
         }
       }
     }

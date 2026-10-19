@@ -81,7 +81,7 @@ async def test_reglages_par_appareil_et_bornes(hass, hass_storage, hass_client):
     bloc = (await _releve(client, ENFANT))["son"]
     assert isinstance(bloc.pop("nuit"), bool)  # 2.5.12.3 : le relevé dit si c'est la nuit (seuil du moment)
     assert bloc == {"actif": True, "seuil_db": 80, "sensibilite_s": 4, "plages": [{"debut": "08:00", "fin": "20:00"}],
-                    "calibration_db": 0, "micro_fige_s": 10, "alertes": 0, "alertes_avant_coupure": 3}
+                    "calibration_db": 0, "micro_fige_s": 10, "micro_plancher_dbfs": -90, "alertes": 0, "alertes_avant_coupure": 3}
     assert (await _releve(client, ENFANT2))["son"] == {"actif": False}  # l'autre appareil n'est pas concerné
 
 
@@ -140,7 +140,7 @@ async def test_que_des_nombres_et_plages(hass, hass_storage, hass_client):
     assert vus == []
     e = son.etat(coord.store.get("e1"))
     assert set(e) == {"alertes", "dernier", "vu_jusqua", "niveau", "maximum", "maj", "pic", "instant", "micros", "jour", "aujourd_hui",
-                      "niveau_alerte", "micros_actifs", "micros_liste"} and e["niveau"] == 55.0
+                      "niveau_alerte", "micros_actifs", "micros_liste", "micros_detail"} and e["niveau"] == 55.0
     # Rien d'audio n'est gardé dans la fiche de l'appareil.
     assert "audio" not in str(coord.store.get("e1").get("son")) and "extrait" not in str(coord.store.get("e1").get("son"))
 

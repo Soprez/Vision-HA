@@ -2070,6 +2070,10 @@
         "micro_fige_s": {
           "name": "Micrófono congelado",
           "description": "Un micrófono cuyo nivel no cambia durante estos segundos se excluye de la media."
+        },
+        "micro_plancher_dbfs": {
+          "name": "Umbral mínimo del micrófono",
+          "description": "Un micrófono por debajo de este nivel (dBFS, antes de calibrar) no capta nada y cuenta como apagado."
         }
       }
     }

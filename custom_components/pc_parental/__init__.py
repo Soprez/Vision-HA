@@ -1308,6 +1308,7 @@ def _async_register_services(hass: HomeAssistant) -> None:
         vol.Optional("ferme_apres_min"): vol.All(vol.Coerce(int), vol.Range(min=1, max=120)),
         vol.Optional("prevenir_responsable"): cv.boolean,
         vol.Optional("micro_fige_s"): vol.All(vol.Coerce(int), vol.Range(min=2, max=300)),
+        vol.Optional("micro_plancher_dbfs"): vol.All(vol.Coerce(int), vol.Range(min=-120, max=-40)),
     }), supports_response=SupportsResponse.OPTIONAL)
 
     # Module Réveil — services pc_parental.reveil_* (droits du Réveil, pas « administrateurs seulement »).

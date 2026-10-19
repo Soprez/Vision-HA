@@ -2070,6 +2070,10 @@
         "micro_fige_s": {
           "name": "Microfono bloccato",
           "description": "Un microfono il cui livello non cambia per questi secondi viene escluso dalla media."
+        },
+        "micro_plancher_dbfs": {
+          "name": "Soglia minima del microfono",
+          "description": "Un microfono sotto questo livello (dBFS, prima della calibrazione) non capta nulla e conta come spento."
         }
       }
     }

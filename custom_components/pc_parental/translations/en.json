@@ -2070,6 +2070,10 @@
         "micro_fige_s": {
           "name": "Frozen microphone delay",
           "description": "A microphone whose level does not change for this many seconds is left out of the average."
+        },
+        "micro_plancher_dbfs": {
+          "name": "Microphone floor",
+          "description": "A microphone quieter than this (dBFS, before calibration) picks up nothing and counts as off."
         }
       }
     }

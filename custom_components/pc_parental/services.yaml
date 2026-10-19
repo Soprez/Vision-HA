@@ -1142,3 +1142,10 @@ son_regler:
           max: 300
           unit_of_measurement: s
           mode: box
+    micro_plancher_dbfs:
+      selector:
+        number:
+          min: -120
+          max: -40
+          unit_of_measurement: dBFS
+          mode: box

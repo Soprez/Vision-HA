@@ -24,7 +24,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$script:Version           = '1.93.4'
+$script:Version           = '1.93.5'
 $script:Racine            = Split-Path -Parent $ConfigPath
 $script:JournalPath       = Join-Path $script:Racine 'agent.log'
 $script:EtatPath          = Join-Path $script:Racine 'etat.json'
@@ -1028,14 +1028,19 @@ param([string]$Sortie, [string]$Reglages, [int]$DureeS = 0)
 # Tourne dans la session de l'utilisateur. Ecoute TOUS les micros actifs (WASAPI, mode partage : les autres
 # programmes gardent le micro), calcule un niveau RMS toutes les 100 ms, et n'ecrit que des NOMBRES dans $Sortie :
 # moyenne de la derniere minute, maximum, pic des 10 dernieres secondes, instant, nombre de micros, depassements,
-# plus le nombre et les noms des micros pris en compte.
+# plus le nombre et les noms des micros pris en compte, et pour CHAQUE micro son niveau et son etat (1.93.5).
+# 1.93.5 : la composante continue (DC) de chaque canal est retiree avant le RMS (on soustrait sa moyenne sur la
+# lecture) : un micro decale ne gonfle plus le plancher de la piece vide.
 # Le niveau d'une tranche est la moyenne (en energie) des SEULS micros allumes (retour d'essai) : un micro muet dans Windows, un
 # silence numerique (drapeau SILENT ou echantillons tous a 0) ou un niveau fige plus de micro_fige_s secondes est
 # exclu et ne tire jamais le niveau vers le bas ; desactive ou debranche, il n'est plus enumere (re-ouverture 60 s).
+# 1.93.5 (retour d'essai) : un micro sous micro_plancher_dbfs (-90 par defaut, avant calibration) ne capte rien : il compte
+# comme eteint (etat sous_plancher).
 # Aucun micro actif : pas de niveau du tout (Home Assistant affiche « indisponible », jamais 0).
 # Aucun echantillon n'est garde ni envoye : le tampon est remis a zero apres chaque calcul.
 # Echelle : dB relatifs 0..100 = dBFS + 100 + calibration (la meme que l'appli Android, NiveauSonoreCalcul).
-# $Reglages (JSON ecrit par l'agent) : { seuil_db, sensibilite_s, calibration_db, micro_fige_s, plages:[{debut,fin}] }.
+# $Reglages (JSON ecrit par l'agent) : { seuil_db, sensibilite_s, calibration_db, micro_fige_s, micro_plancher_dbfs,
+# plages:[{debut,fin}] }.
 # $DureeS > 0 : essai, s'arrete apres ce delai (banc).
 
 $verrou = New-Object Threading.Mutex($false, 'Local\VisionSon')
@@ -1143,7 +1148,8 @@ namespace VisionSon
     }
 
     /// Un micro ouvert en capture partagee. LireRms() vide ce qui attend et rend le RMS (0..1) des echantillons lus,
-    /// 0 pour un silence numerique (drapeau SILENT ou echantillons tous exactement a 0), ou -1 s'il n'y avait rien.
+    /// composante continue retiree canal par canal (1.93.5), 0 pour un silence numerique (drapeau SILENT,
+    /// echantillons tous exactement a 0, ou rien d'autre qu'un niveau continu), ou -1 s'il n'y avait rien.
     /// Rien n'est garde : le tampon de Windows est rendu aussitot.
     public class Micro
     {
@@ -1247,7 +1253,9 @@ namespace VisionSon
         public double LireRms()
         {
             if (capture == null) return -1;
-            double somme = 0; long n = 0; long silencieux = 0;
+            // Par canal : somme et somme des carres, pour retirer la moyenne (composante continue) a la fin.
+            double[] somme = new double[Math.Max(1, canaux)], carres = new double[Math.Max(1, canaux)];
+            long n = 0; long silencieux = 0;
             uint paquet;
             while (true)
             {
@@ -1262,19 +1270,19 @@ namespace VisionSon
                     if (flottant && bits == 32)
                     {
                         float[] e = new float[total]; Marshal.Copy(data, e, 0, total);
-                        for (int i = 0; i < total; i++) somme += (double)e[i] * e[i];
+                        for (int i = 0; i < total; i++) { double v = e[i]; int c = i % canaux; somme[c] += v; carres[c] += v * v; }
                         Array.Clear(e, 0, total);
                     }
                     else if (!flottant && bits == 16)
                     {
                         short[] e = new short[total]; Marshal.Copy(data, e, 0, total);
-                        for (int i = 0; i < total; i++) { double v = e[i] / 32768.0; somme += v * v; }
+                        for (int i = 0; i < total; i++) { double v = e[i] / 32768.0; int c = i % canaux; somme[c] += v; carres[c] += v * v; }
                         Array.Clear(e, 0, total);
                     }
                     else if (!flottant && bits == 32)
                     {
                         int[] e = new int[total]; Marshal.Copy(data, e, 0, total);
-                        for (int i = 0; i < total; i++) { double v = e[i] / 2147483648.0; somme += v * v; }
+                        for (int i = 0; i < total; i++) { double v = e[i] / 2147483648.0; int c = i % canaux; somme[c] += v; carres[c] += v * v; }
                         Array.Clear(e, 0, total);
                     }
                     n += total;
@@ -1284,7 +1292,23 @@ namespace VisionSon
                 capture.ReleaseBuffer(frames);
             }
             if (n == 0) return silencieux > 0 ? 0.0 : -1.0;
-            return Math.Sqrt(somme / n); // 0 exactement : des echantillons tous nuls, un silence numerique
+            return RmsSansContinu(somme, carres, n);
+        }
+
+        /// RMS sans composante continue : par canal, variance = moyenne des carres - carre de la moyenne ; puis la
+        /// moyenne des variances. Rien d'autre qu'un niveau continu (ou des zeros) : 0, un silence numerique.
+        public static double RmsSansContinu(double[] somme, double[] carres, long n)
+        {
+            int k = somme.Length; double par = (double)n / k, total = 0;
+            if (par <= 0) return 0.0;
+            for (int c = 0; c < k; c++)
+            {
+                double q = carres[c] / par, m = somme[c] / par, v = q - m * m;
+                // Sous 1e-10 de l energie du canal (100 dB sous le continu) : un reste d arrondi, pas du son.
+                if (v > 1e-10 * q) total += v;
+            }
+            double r = Math.Sqrt(total / k);
+            return r < 1e-9 ? 0.0 : r; // sous -180 dBFS : arrondis de calcul, pas du son
         }
 
         public void Fermer()
@@ -1300,7 +1324,7 @@ namespace VisionSon
 
 function Lire-Config {
     param([string]$Chemin)
-    $c = @{ seuil = 75; sensibilite = 3; calibration = 0; fige = 10; plages = @() }
+    $c = @{ seuil = 75; sensibilite = 3; calibration = 0; fige = 10; plancher = -90; plages = @() }
     if (-not $Chemin -or -not (Test-Path $Chemin)) { return $c }
     try {
         $j = Get-Content -LiteralPath $Chemin -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -1308,6 +1332,7 @@ function Lire-Config {
         if ($j.PSObject.Properties['sensibilite_s']) { $c.sensibilite = [double]$j.sensibilite_s }
         if ($j.PSObject.Properties['calibration_db']) { $c.calibration = [double]$j.calibration_db }
         if ($j.PSObject.Properties['micro_fige_s']) { $c.fige = [math]::Max(2.0, [double]$j.micro_fige_s) }
+        if ($j.PSObject.Properties['micro_plancher_dbfs']) { $c.plancher = [math]::Min(-40.0, [math]::Max(-120.0, [double]$j.micro_plancher_dbfs)) }
         if ($j.PSObject.Properties['plages'] -and $null -ne $j.plages) {
             $c.plages = @(@($j.plages) | ForEach-Object {
                 $d = ([string]$_.debut).Split(':'); $f = ([string]$_.fin).Split(':')
@@ -1340,23 +1365,49 @@ function Niveau-Relatif {
 function Mesurer-Tranche {
     <# Une tranche de 100 ms : le RMS moyen (en energie) des seuls micros allumes, ou -1 s'il n'y en a aucun.
        Exclus : muet dans Windows, silence numerique (0 exact, -inf dBFS), niveau fige depuis plus de $Fige secondes.
-       Un micro sans donnees cette tranche ne compte pas non plus. $Figes et $VusActifs (par Id) sont tenus a jour. #>
-    param($Micros, [hashtable]$Figes, [hashtable]$VusActifs, [datetime]$Maintenant, [double]$Fige)
+       Un micro sans donnees cette tranche ne compte pas non plus. $Figes et $VusActifs (par Id) sont tenus a jour.
+       1.93.5 : $ParMicro (par Id) recoit l'etat de chaque micro (actif, muet, silence, sous_plancher, fige,
+       sans_donnees) et son energie (actif, sous_plancher ou fige), pour le niveau par micro. Un micro sous
+       $PlancherDbfs (avant calibration) ne capte rien : il compte comme eteint (retour d'essai). #>
+    param($Micros, [hashtable]$Figes, [hashtable]$VusActifs, [datetime]$Maintenant, [double]$Fige, [hashtable]$ParMicro = @{},
+          [double]$PlancherDbfs = -90)
     $sommeCarres = 0.0; $nActifs = 0
     foreach ($m in @($Micros)) {
+        $p = $ParMicro[$m.Id]
+        if ($null -eq $p) { $p = @{ nom = [string]$m.Nom; energie = 0.0; n = 0; etat = 'sans_donnees' }; $ParMicro[$m.Id] = $p }
         try { $r = [double]$m.LireRms() } catch { $r = -1.0 }
         if ($r -lt 0) { continue }
         $muet = $false; try { $muet = [bool]$m.Muet() } catch { }
-        if ($muet -or $r -le 0) { $Figes.Remove($m.Id); continue }
+        if ($muet -or $r -le 0) { $Figes.Remove($m.Id); $p.etat = $(if ($muet) { 'muet' } else { 'silence' }); continue }
+        $p.energie += $r * $r; $p.n++
         $dbm = 20.0 * [math]::Log10($r)
+        if ($dbm -lt $PlancherDbfs) { $Figes.Remove($m.Id); $p.etat = 'sous_plancher'; continue }
         $f = $Figes[$m.Id]
         if ($null -eq $f -or [math]::Abs($f.db - $dbm) -gt 0.01) { $Figes[$m.Id] = @{ db = $dbm; depuis = $Maintenant } }
-        elseif (($Maintenant - $f.depuis).TotalSeconds -ge $Fige) { continue }
+        elseif (($Maintenant - $f.depuis).TotalSeconds -ge $Fige) { $p.etat = 'fige'; continue }
+        $p.etat = 'actif'
         $sommeCarres += $r * $r; $nActifs++
         $VusActifs[$m.Id] = @{ quand = $Maintenant; nom = [string]$m.Nom }
     }
     if ($nActifs -eq 0) { return -1.0 }
     return [math]::Sqrt($sommeCarres / $nActifs)
+}
+
+function Detail-Micros {
+    <# 1.93.5 : pour chaque micro encore ouvert, son nom, son etat et son niveau relatif (0..100, calibre) sur la
+       fenetre ecoulee ; puis la fenetre repart de zero. Oublie les micros fermes. #>
+    param($Micros, [hashtable]$ParMicro, [double]$Calibration)
+    $ouverts = @{}; foreach ($m in @($Micros)) { $ouverts[$m.Id] = $true }
+    foreach ($id in @($ParMicro.Keys)) { if (-not $ouverts.ContainsKey($id)) { $ParMicro.Remove($id) } }
+    $sortie = @()
+    foreach ($id in @($ParMicro.Keys)) {
+        $p = $ParMicro[$id]
+        $d = [ordered]@{ nom = $p.nom; etat = $p.etat }
+        if ($p.n -gt 0) { $d.niveau = [math]::Round((Niveau-Relatif -Rms ([math]::Sqrt($p.energie / $p.n)) -Calibration $Calibration), 1) }
+        $sortie += [pscustomobject]$d
+        $p.energie = 0.0; $p.n = 0
+    }
+    return @($sortie | Sort-Object nom)
 }
 
 function Micros-Pris {
@@ -1379,6 +1430,7 @@ $derniereOuverture = [datetime]::MinValue
 $micros = @()
 $figes = @{}        # par micro (Id) : dernier niveau (dB) et depuis quand il ne bouge plus
 $vusActifs = @{}    # par micro (Id) : derniere fois qu'il a compte dans la moyenne, et son nom
+$parMicro = @{}     # par micro (Id) : etat et energie de la fenetre en cours (niveau par micro, 1.93.5)
 $auDessusDepuis = $null   # depuis quand le niveau depasse le seuil sans interruption
 $armee = $true            # une alerte par passage au-dessus du seuil
 $debut = Get-Date
@@ -1396,7 +1448,7 @@ while ($true) {
     if (($maintenant - $derniereConfig).TotalSeconds -ge 10) { $config = Lire-Config $Reglages; $derniereConfig = $maintenant }
 
     # Une tranche de 100 ms : la moyenne des seuls micros allumes (Mesurer-Tranche).
-    $rmsMoyen = Mesurer-Tranche -Micros $micros -Figes $figes -VusActifs $vusActifs -Maintenant $maintenant -Fige $config.fige
+    $rmsMoyen = Mesurer-Tranche -Micros $micros -Figes $figes -VusActifs $vusActifs -Maintenant $maintenant -Fige $config.fige -ParMicro $parMicro -PlancherDbfs $config.plancher
     if ($rmsMoyen -ge 0) {
         $db = Niveau-Relatif -Rms $rmsMoyen -Calibration $config.calibration
         $energies[$pos] = [math]::Pow(10.0, $db / 10.0); $niveaux[$pos] = $db
@@ -1424,7 +1476,8 @@ while ($true) {
             if ($pris.Count -eq 0) { $rempli = 0; $pos = 0; $auDessusDepuis = $null; $armee = $true }
             $n = $rempli
             $sortieObj = @{ pid = $PID; micros = @($micros).Count; micros_actifs = $pris.Count
-                            micros_liste = @($pris | ForEach-Object { $vusActifs[$_].nom } | Sort-Object) }
+                            micros_liste = @($pris | ForEach-Object { $vusActifs[$_].nom } | Sort-Object)
+                            micros_detail = @(Detail-Micros -Micros $micros -ParMicro $parMicro -Calibration $config.calibration) }
             if ($n -gt 0) {
                 $sommeE = 0.0; $max = 0.0
                 for ($i = 0; $i -lt $n; $i++) { $sommeE += $energies[$i]; if ($niveaux[$i] -gt $max) { $max = $niveaux[$i] } }
@@ -4364,6 +4417,7 @@ function Sync-Son {
         sensibilite_s  = [double](Get-PropOrDefault $bloc 'sensibilite_s' 3)
         calibration_db = [double](Get-PropOrDefault $bloc 'calibration_db' 0)
         micro_fige_s   = [double](Get-PropOrDefault $bloc 'micro_fige_s' 10)
+        micro_plancher_dbfs = [double](Get-PropOrDefault $bloc 'micro_plancher_dbfs' -90)
         plages         = $plages
     } | ConvertTo-Json -Compress -Depth 4
     if ($reglages -ne $script:SonReglagesJson) {
@@ -4393,6 +4447,14 @@ function Get-ReleveSon {
         }
         if ($lu.PSObject.Properties['micros_liste'] -and $null -ne $lu.micros_liste) {
             $son['micros_liste'] = @(@($lu.micros_liste) | ForEach-Object { [string]$_ })
+        }
+        if ($lu.PSObject.Properties['micros_detail'] -and $null -ne $lu.micros_detail) {
+            # 1.93.5 : niveau et etat de chaque micro (des nombres et des noms, rien d'autre).
+            $son['micros_detail'] = @(@($lu.micros_detail) | ForEach-Object {
+                $d = @{ nom = [string]$_.nom; etat = [string]$_.etat }
+                if ($_.PSObject.Properties['niveau'] -and $null -ne $_.niveau) { $d.niveau = [double]$_.niveau }
+                $d
+            })
         }
         $dep = @()
         if ($lu.PSObject.Properties['depassements'] -and $null -ne $lu.depassements) {
