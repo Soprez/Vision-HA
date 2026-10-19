@@ -105,8 +105,8 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.17")
     testImplementation("io.github.takahirom.roborazzi:roborazzi:1.32.2")
     // Les flux HLS des caméras (segments fMP4 de Home Assistant) : le MediaPlayer du système ne les lit pas.
-    implementation("androidx.media3:media3-exoplayer:1.4.1")
-    implementation("androidx.media3:media3-exoplayer-hls:1.4.1")
+    implementation("androidx.media3:media3-exoplayer:1.11.1")
+    implementation("androidx.media3:media3-exoplayer-hls:1.11.1")
     // Le QR de l'appairage : affiché (encodage) et scanné (décodage des images de la caméra).
     implementation("com.google.zxing:core:3.5.3")
     // La caméra, seulement pour scanner le QR de Home Assistant (sans services Google).
@@ -118,7 +118,7 @@ dependencies {
     // et de l'appairage (Android ne les a qu'à partir des API 28 à 33).
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // Sa MediaSession (télécommande, système) : même version que media3-exoplayer.
-    implementation("androidx.media3:media3-session:1.4.1")
+    implementation("androidx.media3:media3-session:1.11.1")
     implementation("org.bouncycastle:bcprov-jdk18on:1.86")
 }
 
