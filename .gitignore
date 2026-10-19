@@ -25,6 +25,10 @@ id_ed25519*
 home-assistant_v2.db*
 *.log
 captures/
+# 2.5.12.5 : « captures/ » vise les images produites ; le paquet d'essais du même nom (recette calculée, Recette.kt,
+# FauxHa.kt) est du code source, suivi comme le reste (OkFocusPartyTest s'en sert).
+!android/src/app/src/test/java/org/soprez/vision/captures/
+!android/src/app/src/test/resources/captures/
 
 # --- Construit : APK, archives, caches
 *.apk
