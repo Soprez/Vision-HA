@@ -1,0 +1,46 @@
+{
+  "version": "2.5.12.6",
+  "date": "2026-10-19",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Vision se développe désormais directement dans son dépôt public : chaque version y est construite et vérifiée.",
+        "en": "Vision is now developed directly in its public repository: every release is built and checked there.",
+        "de": "Vision wird jetzt direkt im öffentlichen Repository entwickelt: jede Version wird dort gebaut und geprüft.",
+        "es": "Vision se desarrolla ahora directamente en su repositorio público: cada versión se construye y verifica allí.",
+        "it": "Vision ora si sviluppa direttamente nel suo repository pubblico: ogni versione vi è costruita e verificata.",
+        "nl": "Vision wordt nu rechtstreeks in de openbare repository ontwikkeld: elke versie wordt daar gebouwd en gecontroleerd."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Contrôle automatique à chaque envoi : aucune donnée personnelle ni adresse de réseau local dans le code.",
+        "en": "Automatic check on every push: no personal data and no local network address in the code.",
+        "de": "Automatische Prüfung bei jedem Upload: keine persönlichen Daten und keine lokale Netzwerkadresse im Code.",
+        "es": "Control automático en cada envío: ningún dato personal ni dirección de red local en el código.",
+        "it": "Controllo automatico a ogni invio: nessun dato personale né indirizzo di rete locale nel codice.",
+        "nl": "Automatische controle bij elke upload: geen persoonsgegevens en geen lokaal netwerkadres in de code."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Application 1.93.06.3 : même fonctionnement que 1.93.06.2, construite depuis le dépôt public.",
+        "en": "App 1.93.06.3: works the same as 1.93.06.2, built from the public repository.",
+        "de": "App 1.93.06.3: funktioniert wie 1.93.06.2, gebaut aus dem öffentlichen Repository.",
+        "es": "App 1.93.06.3: funciona igual que 1.93.06.2, construida desde el repositorio público.",
+        "it": "App 1.93.06.3: funziona come la 1.93.06.2, costruita dal repository pubblico.",
+        "nl": "App 1.93.06.3: werkt hetzelfde als 1.93.06.2, gebouwd vanuit de openbare repository."
+      }
+    }
+  ]
+}

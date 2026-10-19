@@ -55,7 +55,7 @@ class EtatLecteurDecaleTest {
     }
 
     /**
-     * La boucle vue dans Music Assistant (17-10, 18:20, music_assistant.get_queue sur la file 16:c5:f4:17:73:61) :
+     * La boucle vue dans Music Assistant (17-10, 18:20, music_assistant.get_queue sur la file 02:00:00:00:00:0a) :
      * 29 titres, repeat all, current_index bloqué à 2 (« Burning Ambition », temps écoulé figé à 5 s) alors que le son
      * jouait « Bad Times » (index 3) ; chaque suite redonnait « Bad Times », les ajouts (index 4 et +) ne passaient jamais.
      * Journal de la télé : chaque relance de MA est « strm f, q, s (démarrage 2), u » — chargé sans démarrer, puis « u ».

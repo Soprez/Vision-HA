@@ -35,9 +35,9 @@ async def _maison(hass, hass_storage, hass_client, monkeypatch, salon_etat: str)
     widgets._recentes.clear()
     coord, appels, files = await _monter(hass, hass_storage, monkeypatch)
     reg = er.async_get(hass)
-    reg.async_get_or_create("media_player", "music_assistant", "16:c5:f4:17:73:61", suggested_object_id="televiseur_du_salon_vision")
+    reg.async_get_or_create("media_player", "music_assistant", "02:00:00:00:00:0a", suggested_object_id="televiseur_du_salon_vision")
     reg.async_get_or_create("media_player", "music_assistant", "up0d4adac9", suggested_object_id="tele_du_bureau_vision_2")
-    hass.states.async_set(SALON_VISION, salon_etat, {"friendly_name": "Téléviseur du salon · Vision", "active_queue": "16:c5:f4:17:73:61"})
+    hass.states.async_set(SALON_VISION, salon_etat, {"friendly_name": "Téléviseur du salon · Vision", "active_queue": "02:00:00:00:00:0a"})
     hass.states.async_set(PARENTS_VISION, "idle", {"friendly_name": "Télé du bureau · Vision", "active_queue": "up0d4adac9"})
     client = await hass_client()
     s, r = await _post(client, "commande", PARENT, action="lancer", ecran="t2", lecteur=PARENTS_VISION)
@@ -56,7 +56,7 @@ async def test_le_lecteur_de_la_tele_revient_pendant_le_lancement(hass, hass_sto
 
     async def retour():
         await asyncio.sleep(0.4)
-        hass.states.async_set(SALON_VISION, "off", {"friendly_name": "Téléviseur du salon · Vision", "active_queue": "16:c5:f4:17:73:61"})
+        hass.states.async_set(SALON_VISION, "off", {"friendly_name": "Téléviseur du salon · Vision", "active_queue": "02:00:00:00:00:0a"})
     tache = hass.async_create_task(retour())
     s, r = await _post(client, "commande", TELE, action="lancer_ici")
     await tache

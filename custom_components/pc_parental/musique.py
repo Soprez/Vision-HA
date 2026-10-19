@@ -489,7 +489,7 @@ def _file_id(hass: HomeAssistant, lecteur: str) -> str:
     if q or (s is not None and s.state != "unavailable"):
         return q
     # 2.5.8 : un lecteur hors ligne n'a plus d'attribut ; sa file porte l'identifiant du lecteur dans Music Assistant
-    # (ex. « 16:c5:f4:17:73:61 » pour un lecteur Classique) : on le lit dans le registre des entités.
+    # (ex. « 02:00:00:00:00:0a » pour un lecteur Classique) : on le lit dans le registre des entités.
     e = er.async_get(hass).async_get(lecteur)
     return str(e.unique_id) if e is not None and e.platform == MA and e.unique_id else ""
 

@@ -1,4 +1,4 @@
-"""2.5.8 — test réel de l'auteur (16/10), partie Musique.
+"""2.5.8 — essai réel (16/10), partie Musique.
 
 - Sendspin choisi sur la télé : l'ancien lecteur « · Vision » (Classique) passe hors ligne ; la soirée passe sur son
   jumeau prêt et la file le suit (avant : Music Assistant jouait dans le vide, « Lancement… » sans fin) ;
@@ -7,7 +7,7 @@
 - invités : mode « jouer après » ; « Vos titres » dit où en est chaque titre ; la page prend le thème de l'appareil
   qui affiche le code (couleurs dans l'adresse, vérifiées), sinon celui de Home Assistant.
 
-    bash lancer.sh musique_test_ja_test.py
+    bash lancer.sh musique_essai_reel_test.py
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ async def _preparer(hass, hass_storage, hass_client, monkeypatch):
     widgets._recentes.clear()
     coord, appels, files = await _monter(hass, hass_storage, monkeypatch)
     reg = er.async_get(hass)
-    for uid, obj in (("16:c5:f4:17:73:61", "televiseur_du_salon_vision"), ("up1234", "televiseur_du_salon_vision_2")):
+    for uid, obj in (("02:00:00:00:00:0a", "televiseur_du_salon_vision"), ("up1234", "televiseur_du_salon_vision_2")):
         reg.async_get_or_create("media_player", "music_assistant", uid, suggested_object_id=obj)
     hass.states.async_set(CLASSIQUE, "idle", {"friendly_name": NOM, "active_queue": "q-classique"})
     hass.states.async_set(SENDSPIN, "unavailable", {"friendly_name": NOM})
@@ -47,7 +47,7 @@ async def test_la_soiree_suit_le_moteur_de_la_tele(hass, hass_storage, hass_clie
     assert party.etat(hass)["lecteur"] == SENDSPIN
     jeu = [a[1] for a in appels if a[0] == "play_media"][-1]
     assert jeu["entity_id"] in (SENDSPIN, [SENDSPIN]), jeu
-    assert ("transfert", "16:c5:f4:17:73:61", "q-sendspin") in files.supprimes  # file du lecteur hors ligne : son identifiant
+    assert ("transfert", "02:00:00:00:00:0a", "q-sendspin") in files.supprimes  # file du lecteur hors ligne : son identifiant
     # Le relevé d'état montre la même enceinte.
     s, r = await _post(client, "etat", PARENT)
     assert r["lecteur"] == SENDSPIN

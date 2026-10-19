@@ -1,4 +1,4 @@
-# Validation officielle à chaque envoi : hassfest (Home Assistant) et HACS.
+# Validation officielle à chaque envoi : hassfest (Home Assistant), HACS, et la garde anti-fuite (job Garde).
 name: Validation
 
 on:
@@ -29,3 +29,27 @@ jobs:
           category: integration
           # Aucun contrôle ignoré (exigence du catalogue par défaut de HACS) : l'icône vient du dossier
           # brand/ de l'intégration (custom_components/pc_parental/brand/icon.png).
+
+  garde:
+    # Garde anti-fuite (deuxième barrière après les hooks locaux) : vocabulaire neutre, réseau local réel,
+    # liste privée connue seulement par empreintes HMAC (secrets du dépôt ; jamais affichée). outils/garde_ci.py
+    name: Garde
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Fichiers, messages et identités des commits
+        env:
+          VISION_GARDE_CLE: ${{ secrets.VISION_GARDE_CLE }}
+          VISION_GARDE_EMPREINTES: ${{ secrets.VISION_GARDE_EMPREINTES }}
+          AVANT: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -n "$BASE" ]; then plage="$BASE..HEAD"
+          elif [ -n "$AVANT" ] && [ "$AVANT" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$AVANT" 2>/dev/null; then plage="$AVANT..HEAD"
+          else plage="HEAD~1..HEAD"; fi
+          python outils/garde_ci.py --commits "$plage"
