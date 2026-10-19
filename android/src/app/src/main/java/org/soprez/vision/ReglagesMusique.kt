@@ -77,6 +77,27 @@ object ReglagesMusique {
             }
             if (voixPossible(act)) ligne(act.getString(R.string.musrech_voix), oui(act, voix(act)), "mus_voix") { voix(act, !voix(act)); repeindre() }
         }
+        // 1.93.06 (retour d'essai) : la musique face au son des autres applis (FocusMusique) ; aussi réglable depuis HA (musique_regler).
+        val modes = FocusMusique.MODES.map { ChoixAdaptatif.Option(it, nomFocus(act, it)) }
+        if (vue != null) {
+            val th = theme ?: Local.themeEffectif(act, Palette.APPLI)
+            val bloc = android.widget.LinearLayout(act).apply { orientation = android.widget.LinearLayout.VERTICAL; setPadding(Ui.dp(act, 4f), Ui.dp(act, 6f), 0, Ui.dp(act, 10f)); this.tag = "mus_focus" }
+            bloc.addView(Ui.sansCesure(android.widget.TextView(act).apply { text = act.getString(R.string.focus_titre); textSize = tailleSp + 1f; setTextColor(th.encre); typeface = Polices.moyen(act); setPadding(0, 0, 0, Ui.dp(act, 6f)) }))
+            bloc.addView(Ui.choix(act, act.getString(R.string.focus_titre), modes, FocusMusique.mode(act), th, tailleSp) { m -> FocusMusique.poserMode(act, m); repeindre() })
+            vue(bloc)
+        } else ligne(act.getString(R.string.focus_titre), nomFocus(act, FocusMusique.mode(act)), "mus_focus") {
+            val i = FocusMusique.MODES.indexOf(FocusMusique.mode(act))
+            FocusMusique.poserMode(act, FocusMusique.MODES[(i + 1) % FocusMusique.MODES.size]); repeindre()
+        }
+        if (FocusMusique.mode(act) == FocusMusique.APPLIS) {
+            val k = FocusMusique.applis(act).size
+            ligne(act.getString(R.string.focus_applis_titre), if (k == 0) act.getString(R.string.focus_applis_aucune) else act.resources.getQuantityString(R.plurals.focus_applis_n, k, k), "mus_focus_applis") {
+                choisirApplisFocus(act, repeindre)
+            }
+        }
+        if (FocusMusique.mode(act) != FocusMusique.JAMAIS) ligne(act.getString(R.string.focus_reprise), oui(act, FocusMusique.reprise(act)), "mus_focus_reprise") {
+            FocusMusique.poserReprise(act, !FocusMusique.reprise(act)); repeindre()
+        }
         val n = RechercheMusique.recents(act).size
         ligne(act.getString(R.string.musrech_recents), if (n == 0) act.getString(R.string.musrech_recents_aucune) else act.resources.getQuantityString(R.plurals.musrech_recents_n, n, n), "mus_recents") {
             // 1.93.05 (l'auteur, retour 32 : « Recherches récentes » effaçait tout dès le clic) : l'entrée dit ce qu'elle fait
@@ -88,6 +109,28 @@ object ReglagesMusique {
                     RechercheMusique.effacerRecents(act); Ui.toast(act, act.getString(R.string.musrech_recents_effaces), court = true); repeindre()
                 }.show()
         }
+    }
+
+    fun nomFocus(ctx: Context, m: String): String = ctx.getString(when (m) {
+        FocusMusique.APPLIS -> R.string.focus_applis
+        FocusMusique.JAMAIS -> R.string.focus_jamais
+        else -> R.string.focus_toujours
+    })
+
+    /** Les applis qui mettent la musique en pause (mode « Seulement pour certaines applis ») : celles du lanceur, cochées. */
+    fun choisirApplisFocus(act: Activity, apres: () -> Unit) {
+        val pm = act.packageManager
+        val toutes = Accueil.applicationsInstallees(act).filter { it.activityInfo.packageName != act.packageName }
+        val choisies = FocusMusique.applis(act).toMutableSet()
+        // 1.93.06 (point 6a) : sur la télé, « Entrées de la télé (HDMI, TV en direct) » en tête de liste (SourcesTele).
+        val paquets = (if (ReglagesTvActivity.estTele(act)) listOf(SourcesTele.JETON) else emptyList()) + toutes.map { it.activityInfo.packageName }
+        val noms = ((if (ReglagesTvActivity.estTele(act)) listOf(act.getString(R.string.focus_entrees_tele)) else emptyList()) +
+            toutes.map { it.loadLabel(pm).toString() }).toTypedArray()
+        val coches = paquets.map { it in choisies }.toBooleanArray()
+        Ui.dialogue(act).setTitle(act.getString(R.string.focus_applis_titre))
+            .setMultiChoiceItems(noms, coches) { _, k, on -> val p = paquets[k]; if (on) choisies.add(p) else choisies.remove(p) }
+            .setPositiveButton(act.getString(R.string.commun_lot2_garder)) { _, _ -> FocusMusique.poserApplis(act, choisies); apres() }
+            .setNegativeButton(act.getString(R.string.commun_lot2_annuler), null).show()
     }
 
     /**

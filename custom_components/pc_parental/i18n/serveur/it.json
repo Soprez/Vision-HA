@@ -950,5 +950,11 @@
   "inv.mes_en_cours": "In riproduzione",
   "inv.mes_ensuite": "Parte subito dopo il brano in corso",
   "inv.mes_position": "In coda, n. {pos}",
-  "inv.mes_joue": "Già riprodotto"
+  "inv.mes_joue": "Già riprodotto",
+  "musique.paquet_invalide": "«{nom}» non è un nome di app Android (per esempio com.google.android.youtube.tv).",
+  "dev.initiative": "{par} ha sbloccato «{nom}» per {minutes} min (accesso completo: impostazioni, installazioni); si blocca di nuovo da solo alla fine.",
+  "prot.titre": "Protezione disattivata",
+  "prot.titre_retablie": "Protezione ripristinata",
+  "prot.coupee": "Protezione disattivata su «{nom}»: il servizio di accessibilità di Vision è spento, Vision non vi protegge più nulla. Sul dispositivo: Impostazioni › Accessibilità › Vision › Attivo.",
+  "prot.retablie": "Protezione ripristinata su «{nom}»: l'accessibilità di Vision è di nuovo attiva."
 }

@@ -89,6 +89,8 @@ object Anim {
     // ------------------------------------------------------------------ Android
 
     private val interEntree: Interpolator by lazy { PathInterpolator(COURBE_ENTREE[0], COURBE_ENTREE[1], COURBE_ENTREE[2], COURBE_ENTREE[3]) }
+    /** 1.93.06 : la courbe d'entrée (ease-out), pour les petites animations d'interaction (focus, fondu de pochette). */
+    val interpolateurEntree: Interpolator get() = interEntree
     private val interSortie: Interpolator by lazy { PathInterpolator(COURBE_SORTIE[0], COURBE_SORTIE[1], COURBE_SORTIE[2], COURBE_SORTIE[3]) }
 
     /** Les vues en train de sortir : un second appel ne relance rien et `fin` ne passe qu'une fois. */

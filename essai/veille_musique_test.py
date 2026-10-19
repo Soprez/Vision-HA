@@ -294,3 +294,60 @@ async def test_suite_sans_lecteur_ou_refusee_ne_fait_rien(hass, hass_storage, ha
     monkeypatch.setattr(musique, "lecteurs_ma", lambda _h: {AUTRE, "media_player.salon"})
     s, r = await _post(client, TELE, action="suite")
     assert s == 200 and r["relance"] is False
+
+
+async def test_reprise_a_la_main_jamais_arretee_ni_videe(hass, hass_storage, hass_client, monkeypatch):
+    """Incidents du salon (18/10, 10:43 et 19:46) : une veille joue, l'appli est relancée sans dire « fin »
+    (réinstallation), puis on écoute la même file à la main (« suivant »). 6 min plus tard, l'expiration arrêtait le
+    lecteur et VIDAIT sa file. Désormais la musique reprise à la main est lâchée par la veille : rien n'est arrêté."""
+    from homeassistant.core import Context
+    from custom_components.pc_parental import veille_musique
+
+    _c, appels = await _veille(hass, hass_storage, monkeypatch)
+
+    async def noter(call):
+        appels.append((call.domain, call.service, dict(call.data)))
+    for s in ("media_next_track", "volume_set", "media_play"):
+        hass.services.async_register("media_player", s, noter)
+    client = await hass_client()
+    await _post(client, TELE, action="debut", uri="library://playlist/7")
+    v = dict(veille_musique._EN_COURS["t1"])
+    # L'appli est relancée (le lecteur disparaît puis revient), sans « fin » ni « maintenir ».
+    hass.states.async_set(PROPRE, "unavailable", {"friendly_name": "Téléviseur du salon · Vision"})
+    hass.states.async_set(PROPRE, "playing", {"friendly_name": "Téléviseur du salon · Vision", "repeat": "all"})
+    # Le volume ne compte pas, ni une commande sur un autre lecteur : la veille tient encore.
+    await hass.services.async_call("media_player", "volume_set", {"entity_id": PROPRE, "volume_level": 0.3}, blocking=True)
+    await hass.services.async_call("media_player", "media_next_track", {"entity_id": AUTRE}, blocking=True)
+    assert "t1" in veille_musique._EN_COURS
+    # « Suivant » à la main sur ce lecteur (le lecteur de l'appli, la carte, une automatisation) : reprise.
+    await hass.services.async_call("media_player", "media_next_track", {"entity_id": PROPRE}, blocking=True,
+                                   context=Context(user_id="ja"))
+    await hass.async_block_till_done()
+    assert "t1" not in veille_musique._EN_COURS
+    # 6 min plus tard : rien n'est arrêté, la file n'est pas vidée.
+    assert await veille_musique.tour(hass, v["vu"] + veille_musique.EXPIRE_S + 1) == []
+    assert not _de(appels, "media_stop") and not _de(appels, "clear_playlist")
+    # La sortie de veille n'arrête plus cette musique non plus.
+    s, r = await _post(client, TELE, action="fin")
+    assert r["arrete"] is False and not _de(appels, "media_stop")
+
+
+async def test_le_titre_suivant_de_vision_n_est_pas_une_reprise(hass, hass_storage, hass_client, monkeypatch):
+    """Le « suivant » demandé par Vision elle-même (lecteur Classique, fin de titre) garde la veille : sans nouvelles,
+    elle s'arrête toujours (le filet de sûreté reste)."""
+    from custom_components.pc_parental import veille_musique
+
+    _c, appels = await _veille(hass, hass_storage, monkeypatch)
+
+    async def noter(call):
+        appels.append((call.domain, call.service, dict(call.data)))
+    hass.services.async_register("media_player", "media_next_track", noter)
+    client = await hass_client()
+    await _post(client, TELE, action="debut", uri="library://playlist/7")
+    v = dict(veille_musique._EN_COURS["t1"])
+    s, r = await _post(client, TELE, action="suite")
+    assert s == 200 and _de(appels, "media_next_track") == [{"entity_id": PROPRE}]
+    await hass.async_block_till_done()
+    assert "t1" in veille_musique._EN_COURS
+    assert await veille_musique.tour(hass, v["vu"] + veille_musique.EXPIRE_S + 1) == [PROPRE]
+    assert _de(appels, "media_stop") == [{"entity_id": PROPRE}]

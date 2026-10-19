@@ -65,9 +65,12 @@ class VueWidgetHa(
     private var historique: WidgetsHa.Historique? = null
     private var historiqueCle = ""
     private var historiqueEchec = false
+    /** 1.93.06 (l'auteur, 19/10) : l'heure du chargement de [historique], pour le recharger quand il est périmé. */
+    private var historiqueChargeA = 0L
+    @Volatile private var historiqueEnCours = false
 
     init {
-        if (historiqueInitial != null) { historique = historiqueInitial; historiqueCle = reglage.entites.first() + "|" + reglage.periode }
+        if (historiqueInitial != null) { historique = historiqueInitial; historiqueCle = reglage.entites.first() + "|" + reglage.periode; historiqueChargeA = System.currentTimeMillis() }
         background = GradientDrawable().apply { cornerRadius = dp(24f); setColor(theme.carte); setStroke(dp(1f).toInt(), theme.carteBord) }
         clipToPadding = false
         maj()
@@ -594,6 +597,13 @@ class VueWidgetHa(
         cadre.addView(Jauge(context, if (v == null) 0f else WidgetsHa.fraction(v, mi, ma), theme), LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         cadre.addView(texte(valeur, tailleValeur(e, if (petit()) 15f else 22f), theme.encre, Polices.outfit(context)).apply { gravity = Gravity.CENTER; tag = "widget_valeur" }, LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
         c.addView(cadre, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f).apply { topMargin = dp(4f).toInt() })
+        // 1.93.06 (audit des widgets) : l'échelle de la jauge, ses deux bornes sous l'arc, quand le widget a la place.
+        if (!petit()) {
+            val bornes = LinearLayout(context).apply { tag = "widget_bornes" }
+            bornes.addView(texte(WidgetsHa.nombre(mi), 10.5f, theme.encre3), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            bornes.addView(texte(WidgetsHa.valeurAffichee(WidgetsHa.nombre(ma).replace(',', '.'), e.unite, e.domaine, e.deviceClass), 10.5f, theme.encre3).apply { gravity = Gravity.END })
+            c.addView(bornes, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        }
     }
 
     private fun graphique(c: LinearLayout, e: WidgetsHa.Entite, valeur: String) {
@@ -609,31 +619,62 @@ class VueWidgetHa(
         val fin = System.currentTimeMillis()
         val cle = e.entityId + "|" + reglage.periode
         if (cle != historiqueCle) { historiqueCle = cle; historique = null; historiqueEchec = false; chargerHistorique(e.entityId, reglage.periode) }
+        // 1.93.06 (l'auteur, 19/10, « T. Ambiante » plate depuis 16 h) : un historique périmé se recharge ; l'ancien reste à
+        // l'écran jusqu'à l'arrivée du nouveau.
+        else if (historique != null && WidgetsHa.historiquePerime(historiqueChargeA, fin, reglage.periode)) chargerHistorique(e.entityId, reglage.periode)
+        planifierCourbe()
         val h = historique ?: if (exemple || historiqueEchec && exempleSiEchec) WidgetsHa.historiqueExemple(fin, reglage.periode) else null
         if (h == null) {
             ressort(c)
             c.addView(texte(if (historiqueEchec) context.getString(R.string.vuewidget_historique_indisponible) else context.getString(R.string.vuewidget_historique_chargement), 12f, theme.encre3))
             return
         }
-        c.addView(Courbe(context, h, reglage.variante == "barres", reglage.periode, fin, theme), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f).apply { topMargin = dp(6f).toInt() })
-        c.addView(texte(if (reglage.periode == "7j") context.getString(R.string.vuewidget_7_jours) else context.getString(R.string.vuewidget_24_heures), 10.5f, theme.encre3).apply { setPadding(0, dp(3f).toInt(), 0, 0) })
+        c.addView(Courbe(context, Debit.historique(h), reglage.variante == "barres", reglage.periode, fin, theme, Debit.unite(e.unite)),LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f).apply { topMargin = dp(6f).toInt() })
+        // 1.93.06 (retour d'essai) : les repères min et max de ce que montre la courbe, sous elle, sur téléphone comme sur télé.
+        val periodeTexte = if (reglage.periode == "7j") context.getString(R.string.vuewidget_7_jours) else context.getString(R.string.vuewidget_24_heures)
+        val bornes = (Debit.historique(h) as? WidgetsHa.Historique.Nombres)?.takeIf { reglage.variante != "barres" }
+            ?.let { WidgetsHa.minMaxFenetre(it.points, fin - WidgetsHa.dureePeriode(reglage.periode), fin) }
+        val u = Debit.unite(e.unite).let { if (it.isEmpty() || it == "%" || it.startsWith("°")) it else " $it" }
+        // Étroit (2 colonnes ou moins) : la plage seule, sur une ligne, pour laisser la hauteur à la courbe (recette 360 dp, 130 %).
+        val pied = when {
+            bornes == null -> periodeTexte
+            reglage.w <= 2 -> context.getString(R.string.vuewidget_plage, WidgetsHa.nombre(bornes.first), WidgetsHa.nombre(bornes.second) + u)
+            else -> context.getString(R.string.vuewidget_min_max, periodeTexte, WidgetsHa.nombre(bornes.first) + u, WidgetsHa.nombre(bornes.second) + u)
+        }
+        c.addView(texte(pied, 10.5f, theme.encre3).apply { setPadding(0, dp(3f).toInt(), 0, 0) })
     }
 
     /** Dans l'éditeur, un historique introuvable laisse place à l'exemple (l'aperçu montre toujours la forme). */
     var exempleSiEchec = false
 
     private fun chargerHistorique(entite: String, periode: String) {
-        if (exemple) return
+        if (exemple || historiqueEnCours) return
+        historiqueEnCours = true
         val cle = "$entite|$periode"
         Thread {
             val h = try { WidgetsHaStock.historique(context, entite, periode) } catch (_: Exception) { null }
             main.post {
+                historiqueEnCours = false
                 if (historiqueCle != cle) return@post
-                historique = h; historiqueEchec = h == null
+                // Un rechargement raté garde la courbe d'avant (et réessaie au pas suivant) ; un premier chargement raté le dit.
+                if (h != null) { historique = h; historiqueEchec = false; historiqueChargeA = System.currentTimeMillis() }
+                else if (historique == null) historiqueEchec = true
                 maj()
             }
         }.also { it.isDaemon = true }.start()
     }
+
+    /** 1.93.06 (retour d'essai) : une courbe à l'écran se redessine (et se recharge si besoin) toutes les 5 min, même sans changement. */
+    private val courbePas = Runnable { if (isAttachedToWindow && reglage.style == WidgetsHa.GRAPHIQUE) maj() }
+
+    private fun planifierCourbe() {
+        // Téléphone et télé (sur la télé, les widgets de l'accueil sont en lecture seule) ; jamais pour un widget système
+        // (dessiné hors de l'écran : courbePas ne fait rien tant que la vue n'est pas attachée).
+        if (exemple) return
+        main.removeCallbacks(courbePas); main.postDelayed(courbePas, WidgetsHa.PERIME_24H_MS)
+    }
+
+    override fun onDetachedFromWindow() { main.removeCallbacks(courbePas); super.onDetachedFromWindow() }
 
     private fun meteo(c: LinearLayout, e: WidgetsHa.Entite, st: WidgetsHa.EtatEntite) {
         val r = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
@@ -823,13 +864,65 @@ class VueWidgetHa(
     }
 
     /** Le graphique : ligne (avec un voile) ou barres pour les nombres, bande colorée pour les états. */
-    private class Courbe(ctx: Context, private val h: WidgetsHa.Historique, private val barres: Boolean, private val periode: String, private val finMs: Long, private val th: Theme) : View(ctx) {
+    private class Courbe(ctx: Context, private val h: WidgetsHa.Historique, private val barres: Boolean, private val periode: String, private val finMs: Long, private val th: Theme,
+                         private val unite: String = "") : View(ctx) {
         private val p = Paint(Paint.ANTI_ALIAS_FLAG)
         private val chemin = Path()
+        private val dens = ctx.resources.displayMetrics.density
+        private val echelleTexte = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 9.5f * ctx.resources.displayMetrics.scaledDensity; color = Palette.melanger(th.carte, th.encre, 0.6f) }
+        /** Les bornes de l'axe des valeurs (posées par [echelleDe]). */
+        private var bornesY = 0.0 to 1.0
+
         override fun onDraw(c: Canvas) {
-            val w = width.toFloat(); val ht = height.toFloat()
-            if (w <= 0 || ht <= 0) return
+            val wTotal = width.toFloat(); val htTotal = height.toFloat()
+            if (wTotal <= 0 || htTotal <= 0) return
             val debut = finMs - WidgetsHa.dureePeriode(periode)
+            // 1.93.06 (audit, graphique de la box) : l'échelle des valeurs à gauche et des repères de temps dessous, quand le
+            // widget a la place ; sinon la courbe seule, comme avant.
+            val assezHaut = htTotal >= 56f * dens; val assezLarge = wTotal >= 140f * dens
+            val hautTexte = echelleTexte.textSize
+            val bas = if (assezHaut) hautTexte + 4f * dens else 0f
+            val grads = if (assezHaut && assezLarge && h is WidgetsHa.Historique.Nombres) echelleDe(h) else emptyList()
+            val etiquettes = grads.mapIndexed { k, g -> WidgetsHa.nombre(g) + if (k == grads.size - 1 && unite.isNotEmpty()) (if (unite == "%" || unite.startsWith("°")) unite else " $unite") else "" }
+            val gauche = if (grads.isEmpty()) 0f else (etiquettes.maxOf { echelleTexte.measureText(it) } + 5f * dens).coerceAtMost(wTotal * 0.4f)
+            val w = wTotal - gauche; val ht = (htTotal - bas).coerceAtLeast(htTotal * 0.5f)
+            c.save(); c.translate(gauche, 0f)
+            dessiner(c, w, ht, debut, if (grads.isEmpty()) null else bornesY)
+            c.restore()
+            if (grads.isNotEmpty()) {
+                val (mi, ma) = bornesY
+                p.style = Paint.Style.STROKE; p.strokeWidth = 1f * dens; p.color = Palette.melanger(th.carte, th.encre, 0.12f); p.alpha = 255
+                echelleTexte.textAlign = Paint.Align.RIGHT
+                grads.forEachIndexed { k, g ->
+                    val y = ht - ((g - mi) / (ma - mi)).toFloat() * ht
+                    c.drawLine(gauche, y, wTotal, y, p)
+                    c.drawText(etiquettes[k], gauche - 4f * dens, (y + hautTexte / 3f).coerceIn(hautTexte, ht), echelleTexte)
+                }
+            }
+            if (bas > 0f) {
+                val fmt = java.text.SimpleDateFormat(if (periode == "7j") "EEE" else "HH:mm", Tr.locale())
+                val tz = java.util.TimeZone.getDefault()
+                echelleTexte.textAlign = Paint.Align.CENTER
+                for (t in WidgetsHa.reperesTemps(debut, finMs, periode) { tz.getOffset(it).toLong() }) {
+                    val x = gauche + ((t - debut).toFloat() / (finMs - debut).coerceAtLeast(1L)) * w
+                    val l = fmt.format(java.util.Date(t)).trimEnd('.')
+                    val demi = echelleTexte.measureText(l) / 2f
+                    if (x - demi < gauche || x + demi > wTotal) continue
+                    c.drawText(l, x, htTotal - 2f * dens, echelleTexte)
+                }
+            }
+        }
+
+        private fun echelleDe(n: WidgetsHa.Historique.Nombres): List<Double> {
+            val vals = if (barres) WidgetsHa.barres(n.points, periode, finMs).filterNotNull() + 0.0
+                else WidgetsHa.courbe(n.points, finMs - WidgetsHa.dureePeriode(periode), finMs).second.map { it.v }
+            if (vals.isEmpty()) return emptyList()
+            bornesY = WidgetsHa.echelle(vals)
+            return WidgetsHa.graduations(bornesY.first, bornesY.second, 3)
+        }
+
+        /** La courbe ou les barres dans [w] × [ht] ; [bornes] : celles de l'échelle montrée (sinon celles des points). */
+        private fun dessiner(c: Canvas, w: Float, ht: Float, debut: Long, bornes: Pair<Double, Double>?) {
             when (h) {
                 is WidgetsHa.Historique.Etats -> {
                     val y0 = ht * 0.3f; val y1 = ht * 0.7f
@@ -843,7 +936,7 @@ class VueWidgetHa(
                 is WidgetsHa.Historique.Nombres -> {
                     if (barres) {
                         val vals = WidgetsHa.barres(h.points, periode, finMs)
-                        val (mi, ma) = WidgetsHa.echelle(vals.filterNotNull() + 0.0)
+                        val (mi, ma) = bornes ?: WidgetsHa.echelle(vals.filterNotNull() + 0.0)
                         val n = vals.size; val pas = w / n
                         p.style = Paint.Style.FILL; p.color = th.or
                         vals.forEachIndexed { k, v ->
@@ -857,7 +950,7 @@ class VueWidgetHa(
                         val pts = WidgetsHa.reduire(traces, (w / 3f).toInt().coerceAtLeast(2)).let { r ->
                             if (r.isEmpty()) r else (listOf(traces.first()) + r.drop(1).dropLast(1) + traces.last()).distinctBy { it.ts } }
                         if (pts.size < 2) return
-                        val (mi, ma) = WidgetsHa.echelle(pts.map { it.v })
+                        val (mi, ma) = bornes ?: WidgetsHa.echelle(pts.map { it.v })
                         val (t0, t1) = fenetre
                         fun x(t: Long) = (((t - t0).toFloat() / (t1 - t0).coerceAtLeast(1L)) * w).coerceIn(0f, w)
                         fun y(v: Double) = ht - ((v - mi) / (ma - mi)).toFloat() * ht

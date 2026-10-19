@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import json
 import logging
 
@@ -444,3 +445,141 @@ async def test_ecrans_configurer(hass, integrations, hass_storage, hass_client, 
     # Même par le code, une serrure ou une alarme ne devient jamais pilotable.
     w.regler_actions(hass, store, {"lock.porte": ["unlock"], "alarm_control_panel.maison": ["alarm_disarm"]}, "essai")
     assert w.services_proposes("lock.porte") == [] and w.services_proposes("alarm_control_panel.maison") == []
+
+
+# 2.5.12 (l'auteur, 19/10 à 07:45, widget « T. Ambiante » plat sur 16 h) : les 105 états réels de la chaudière, horodatages
+# anonymisés (secondes depuis le début de la fenêtre de 24 h), dont 5 couples « unavailable » / « unknown ».
+TEMPERATURE_AMBIANTE = [
+    (0, "19.6"),
+    (67, "19.5"),
+    (217, "19.6"),
+    (368, "19.5"),
+    (1351, "unavailable"),
+    (1352, "unknown"),
+    (1352, "19.5"),
+    (2316, "19.4"),
+    (8467, "19.5"),
+    (8916, "19.6"),
+    (9066, "19.7"),
+    (9366, "19.8"),
+    (9516, "19.9"),
+    (9818, "20.0"),
+    (10867, "20.1"),
+    (11916, "20.2"),
+    (12218, "20.3"),
+    (12366, "20.4"),
+    (12816, "20.5"),
+    (13266, "20.6"),
+    (14616, "20.7"),
+    (14766, "20.6"),
+    (14813, "unavailable"),
+    (14813, "unknown"),
+    (14813, "20.6"),
+    (15216, "20.7"),
+    (15517, "20.6"),
+    (16076, "unavailable"),
+    (16076, "unknown"),
+    (16076, "20.6"),
+    (16416, "20.5"),
+    (16896, "unavailable"),
+    (16897, "unknown"),
+    (16897, "20.5"),
+    (18218, "20.4"),
+    (18516, "20.5"),
+    (19718, "20.6"),
+    (20167, "20.7"),
+    (20767, "20.8"),
+    (21367, "20.9"),
+    (21518, "20.8"),
+    (21668, "20.9"),
+    (23617, "20.8"),
+    (26469, "20.7"),
+    (27967, "20.6"),
+    (28117, "20.7"),
+    (28267, "20.6"),
+    (29167, "20.5"),
+    (30367, "20.4"),
+    (31568, "20.3"),
+    (31717, "20.4"),
+    (31869, "20.3"),
+    (32768, "20.2"),
+    (34118, "20.1"),
+    (34267, "20.2"),
+    (34867, "20.1"),
+    (35317, "20.2"),
+    (35467, "20.1"),
+    (48067, "20.2"),
+    (48367, "20.3"),
+    (48517, "20.4"),
+    (48967, "20.5"),
+    (49267, "20.6"),
+    (49719, "20.7"),
+    (50768, "20.8"),
+    (51968, "20.7"),
+    (52867, "20.6"),
+    (54368, "20.5"),
+    (55270, "20.4"),
+    (56115, "unavailable"),
+    (56116, "unknown"),
+    (56117, "20.4"),
+    (56768, "20.3"),
+    (57818, "20.2"),
+    (57968, "20.3"),
+    (58118, "20.2"),
+    (59318, "20.1"),
+    (62918, "20.0"),
+    (64418, "19.9"),
+    (64718, "20.0"),
+    (64868, "19.9"),
+    (66068, "19.8"),
+    (66218, "19.9"),
+    (66518, "19.8"),
+    (69968, "19.7"),
+    (70118, "19.8"),
+    (70418, "19.7"),
+    (72818, "19.6"),
+    (72968, "19.7"),
+    (73118, "19.6"),
+    (75068, "19.5"),
+    (76118, "19.6"),
+    (76568, "19.7"),
+    (76868, "19.8"),
+    (77018, "19.9"),
+    (77318, "20.0"),
+    (77768, "20.1"),
+    (78368, "20.2"),
+    (78968, "20.3"),
+    (79568, "20.4"),
+    (80318, "20.5"),
+    (81068, "20.6"),
+    (82118, "20.5"),
+    (82268, "20.6"),
+    (83618, "20.7"),
+]
+
+
+async def test_historique_reel_105_etats_sur_24_h(recorder_mock, hass, integrations, hass_storage, monkeypatch):
+    """Ce que HA envoie au widget : des nombres seulement, couvrant les 24 h, triés, de 19,4 à 20,9 °C."""
+    from types import SimpleNamespace
+
+    from homeassistant.util import dt as dt_util
+
+    await _monter(hass, hass_storage)
+    w = _w()
+    fin = dt_util.utcnow()
+    debut = fin - w.PERIODES["24h"]
+    etats = [SimpleNamespace(state=v, last_updated=debut + datetime.timedelta(seconds=s),
+                             last_changed=debut + datetime.timedelta(seconds=s)) for s, v in TEMPERATURE_AMBIANTE]
+    monkeypatch.setattr(w, "_lire_historique", lambda _h, _e, _d, _f: etats)
+    hass.states.async_set("sensor.temp", "20.7", ETATS["sensor.temp"][1])
+    rep = await w.historique(hass, "sensor.temp", "24h")
+    assert rep["type"] == "nombre"
+    pts = rep["points"]
+    valeurs = [v for _t, v in pts]
+    assert all(isinstance(v, float) for v in valeurs)
+    assert min(valeurs) >= 19.4 and max(valeurs) <= 20.9 and max(valeurs) - min(valeurs) > 1.0
+    assert [t for t, _ in pts] == sorted(t for t, _ in pts)
+    # Les 24 h : des points dans chaque tranche de 4 h où le capteur a parlé, jusqu'à la dernière heure.
+    d = debut.timestamp()
+    tranches = {int((t - d) // (4 * 3600)) for t, _ in pts}
+    assert tranches >= {0, 1, 2, 3, 4, 5}, tranches

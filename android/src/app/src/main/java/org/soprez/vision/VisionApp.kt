@@ -20,8 +20,9 @@ class VisionApp : Application() {
     override fun onCreate() {
         super.onCreate()
         Tr.installer(this)
-        // 1.90.2 : les pochettes d'une Party précédente ne restent pas sur le disque.
-        CachePochettes.vider(this)
+        // 1.93.06 (l'auteur, « un vrai cache ») : les pochettes restent sur disque d'un lancement à l'autre (bornées à 20 Mo et
+        // 120 images, les plus anciennes partent d'abord) ; elles ne se vident qu'à la fin de la Party (avant : à chaque
+        // démarrage de l'appli, 1.90.2).
         Etat.charger(this)
         Vocabulaire.charger(this)
         // Installations et désinstallations : accueil, tiroir et Home Assistant suivent aussitôt.
@@ -67,21 +68,24 @@ class VisionApp : Application() {
         private val pleinEcran = setOf("LanceurActivity", "VeilleActivity", "RetourActivity")
 
         override fun onActivityStarted(a: Activity) {
-            if (Build.VERSION.SDK_INT < 35) return
+            // 1.93.06 : la zone de la télé (bord réglé + marge de confort) sur le conteneur racine des écrans pleins qui
+            // ne la placent pas eux-mêmes (ZoneSure.Geree) ; refaite à chaque retour (le réglage a pu changer).
+            if (Build.VERSION.SDK_INT < 35) { try { ZoneSure.poserRacine(a) } catch (_: Exception) {}; return }
             try {
                 val contenu = a.findViewById<View>(android.R.id.content) ?: return
                 val plein = a.javaClass.simpleName in pleinEcran
                 if (!plein) a.window.setBackgroundDrawable(ColorDrawable(Ui.FOND))
-                if (contenu.getTag(R.id.bords_poses) == true) return
+                if (contenu.getTag(R.id.bords_poses) == true) { contenu.requestApplyInsets(); return }
                 contenu.setTag(R.id.bords_poses, true)
                 contenu.setOnApplyWindowInsetsListener { v, insets ->
                     val barres = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
                     val clavier = insets.getInsets(WindowInsets.Type.ime())
                     // 1.90.1 (l'auteur, Pixel en paysage) : l'accueil s'écarte aussi de la barre de navigation à gauche ou à droite
                     // (et de l'encoche) ; la veille et le retour restent bord à bord sur les côtés.
-                    if (plein && a is LanceurActivity) v.setPadding(barres.left, 0, barres.right, barres.bottom)
-                    else if (plein) v.setPadding(0, 0, 0, barres.bottom)
-                    else v.setPadding(barres.left, barres.top, barres.right, maxOf(barres.bottom, clavier.bottom))
+                    val base = if (plein && a is LanceurActivity) android.graphics.Rect(barres.left, 0, barres.right, barres.bottom)
+                        else if (plein) android.graphics.Rect(0, 0, 0, barres.bottom)
+                        else android.graphics.Rect(barres.left, barres.top, barres.right, maxOf(barres.bottom, clavier.bottom))
+                    ZoneSure.poserRacine(a, base)
                     insets
                 }
                 contenu.requestApplyInsets()

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item name="bords_poses" type="id" />
+    <!-- 1.93.06 : un cadre de l'accueil de la télé (mode Modification) ; un cadre de widget (mode Utilisation). -->
+    <item name="cadre_tele" type="id" />
+    <item name="cadre_widget" type="id" />
 </resources>

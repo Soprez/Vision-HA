@@ -14,6 +14,8 @@ import org.json.JSONObject
  *   masqué ; [logo] : l'œil de Vision dans un coin (en bas à gauche, sa place d'avant), ou masqué. Deux éléments ne
  *   partagent jamais un coin : le choix qui en prendrait un déjà pris est refusé ([poserQr], [poserLogo]) ; des
  *   valeurs en conflit (anciennes) se résolvent par [effectifs] (le logo garde sa place, le QR prend un coin libre).
+ * - 1.93.06 (retour d'essai) [qrTaille] : la taille du QR des invités, sur la veille et sur le lecteur ([QrInvites] : petit par
+ *   défaut, moyen, grand).
  * Le dernier qui règle gagne : un réglage venu de Home Assistant s'applique quand il est plus récent que le dernier reçu
  * (« depuis ») ; un choix fait ensuite sur la télé reste jusqu'au prochain réglage de Home Assistant.
  */
@@ -60,6 +62,13 @@ object OptionsVeille {
     }
     fun poserLecteur(ctx: Context, oui: Boolean) { p(ctx).edit().putBoolean("lecteur", oui).apply(); Local.toucher() }
 
+    /** 1.93.06 : la taille du QR des invités sur cet appareil (veille et lecteur). */
+    fun qrTaille(ctx: Context): String = p(ctx).getString("qr_taille", null)?.takeIf { QrInvites.valide(it) } ?: QrInvites.DEFAUT
+    fun poserQrTaille(ctx: Context, taille: String): Boolean {
+        if (!QrInvites.valide(taille)) return false
+        p(ctx).edit().putString("qr_taille", taille).apply(); Local.toucher(); return true
+    }
+
     /** Le bloc « veille_options » du relevé ; rend vrai si un réglage a changé. Bloc absent (HA plus ancien) : rien. */
     fun releve(ctx: Context, o: JSONObject?): Boolean {
         if (o == null) return false
@@ -67,6 +76,7 @@ object OptionsVeille {
         if (depuis <= 0L || depuis <= p(ctx).getLong("depuis_ha", 0L)) return false
         val e = p(ctx).edit().putLong("depuis_ha", depuis)
         if (o.has("lecteur")) e.putBoolean("lecteur", o.optBoolean("lecteur", false))
+        o.optString("qr_taille").takeIf { QrInvites.valide(it) }?.let { e.putString("qr_taille", it) }
         // Home Assistant refuse déjà deux éléments dans un coin ; par prudence, un conflit garde le logo à sa place.
         val qr = o.optString("qr").takeIf { valide(it) }
         val logo = o.optString("logo").takeIf { valide(it) }

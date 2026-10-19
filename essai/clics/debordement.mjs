@@ -25,6 +25,9 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+// Linux (CI) : Chromium refuse de démarrer sans bac à sable utilisable (conteneur, runner Ubuntu à espaces de noms
+// restreints) ; /dev/shm y est petit. Sous Windows, rien ne change.
+const OPTIONS_LINUX = process.platform === "linux" ? ["--no-sandbox", "--disable-dev-shm-usage"] : [];
 
 const [, , DOSSIER, NAVIGATEUR, CAPTURES, OPTIONS_BRUTES] = process.argv;
 const OPTIONS = JSON.parse(OPTIONS_BRUTES || "{}");
@@ -37,6 +40,8 @@ const BUDGET = (OPTIONS.budget_mo ?? 140) * 1024 * 1024;
 const CARTES = [
   { id: "maison", fichier: "vision-maison-card", el: "vision-maison-card", donnees: "maison", config: { mode: "maison", chemin: "/vision-maison" } },
   { id: "personne", fichier: "vision-maison-card", el: "vision-maison-card", donnees: "maison", config: { mode: "personne", personne: "person.lou", chemin: "/vision-maison" } },
+  // 2.5.12 (Déverrouillage simplifié) : l'onglet Protection et sa ligne « Déverrouiller : 15 · 30 · 60 min » par appareil.
+  { id: "protections", fichier: "vision-maison-card", el: "vision-maison-card", donnees: "maison", config: { mode: "protections", chemin: "/vision-maison" } },
   { id: "etiquettes", fichier: "vision-etiquettes-card", el: "vision-etiquettes-card", donnees: "catalogue", config: {} },
   { id: "messages", fichier: "vision-messages-card", el: "vision-messages-card", donnees: "messages", config: {} },
   { id: "planning", fichier: "vision-planning-card", el: "vision-planning-card", donnees: "planning", config: { entity: "__auto" } },
@@ -292,7 +297,7 @@ async function main() {
   if (CAPTURES && !existsSync(CAPTURES)) mkdirSync(CAPTURES, { recursive: true });
   const profil = mkdtempSync(join(tmpdir(), "vision-debordement-"));
   // Un seul navigateur, sobre : pas d'extensions, pas de GPU, un seul processus de rendu.
-  const nav = spawn(NAVIGATEUR, ["--headless=new", "--disable-gpu", "--disable-extensions", "--renderer-process-limit=1",
+  const nav = spawn(NAVIGATEUR, ["--headless=new", "--disable-gpu", ...OPTIONS_LINUX, "--disable-extensions", "--renderer-process-limit=1",
     "--disable-features=Translate,OptimizationHints,MediaRouter", "--no-first-run", "--mute-audio", "--hide-scrollbars",
     `--user-data-dir=${profil}`, `--remote-debugging-port=${PORT_CDP}`, "--window-size=1920,1080", "about:blank"], { stdio: "ignore" });
   let totalDefauts = 0, nCas = 0, octets = 0, capturesSautees = 0;

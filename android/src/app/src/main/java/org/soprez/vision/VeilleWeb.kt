@@ -236,7 +236,7 @@ object PageVeille {
      */
     internal fun coinsPage(ctx: Context, w: Float = 1000f, h: Float = 562.5f): String {
         val qr = OptionsVeille.qr(ctx); val logo = OptionsVeille.logo(ctx); val lecteur = OptionsVeille.lecteur(ctx)
-        fun decalage(coin: String): String = CoinsVeille.Coins.occupant(coin, qr, logo, lecteur, w, h)
+        fun decalage(coin: String): String = CoinsVeille.Coins.occupant(coin, qr, logo, lecteur, w, h, CoinsVeille.coteQr(ctx, h), CoinsVeille.largeurLegende(ctx, h))
             ?.let { String.format(java.util.Locale.ROOT, "%.1f", (w - it.left + w * 0.015f) / w * 100f) } ?: ""
         return "&logo=$logo&adroite=${decalage(OptionsVeille.BD)}&pdroite=${decalage(OptionsVeille.HD)}"
     }

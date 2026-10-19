@@ -1,0 +1,76 @@
+{
+  "version": "2.5.12",
+  "date": "2026-10-18",
+  "points": [
+    {
+      "cibles": [
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Musique : jamais par-dessus une autre appli ou l'HDMI ; pause, reprise au choix ; fondu entre titres.",
+        "en": "Music: never over another app or HDMI; pause, optional resume; crossfade between tracks.",
+        "de": "Musik: nie über einer anderen App oder HDMI; Pause, Fortsetzen wählbar; Überblendung zwischen Titeln.",
+        "es": "Música: nunca encima de otra app o del HDMI; pausa, reanudar opcional; fundido entre canciones.",
+        "it": "Musica: mai sopra un'altra app o l'HDMI; pausa, ripresa a scelta; dissolvenza tra i brani.",
+        "nl": "Muziek: nooit over een andere app of HDMI heen; pauze, hervatten naar keuze; overvloeien tussen nummers."
+      }
+    },
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "Lecteur télé : la file monte en douceur, la bonne pochette tout de suite ; marge sur tous les écrans ; QR à 3 tailles.",
+        "en": "TV player: the queue moves up smoothly, the right cover at once; a margin on every screen; QR code in 3 sizes.",
+        "de": "TV-Player: Warteschlange rückt sanft nach, sofort das richtige Cover; Rand auf allen Bildschirmen; QR in 3 Größen.",
+        "es": "Reproductor TV: la cola sube suave, la carátula correcta al momento; margen en todas las pantallas; QR en 3 tamaños.",
+        "it": "Lettore TV: la coda sale dolcemente, subito la copertina giusta; margine su tutti gli schermi; QR in 3 dimensioni.",
+        "nl": "Tv-speler: de wachtrij schuift zacht op, meteen de juiste hoes; marge op elk scherm; QR-code in 3 formaten."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Déverrouiller à distance 15, 30 ou 60 min, depuis un mobile ou Home Assistant ; bandeau Reverrouiller ; Code oublié ?",
+        "en": "Unlock remotely for 15, 30 or 60 min, from a phone or Home Assistant; Lock again banner; Forgot the code?",
+        "de": "Aus der Ferne 15, 30 oder 60 Min. entsperren, per Handy oder Home Assistant; Wieder-sperren-Leiste; Code vergessen?",
+        "es": "Desbloquear a distancia 15, 30 o 60 min, desde un móvil o Home Assistant; barra Volver a bloquear; ¿Código olvidado?",
+        "it": "Sblocca a distanza per 15, 30 o 60 min, da telefono o Home Assistant; barra Blocca di nuovo; Codice dimenticato?",
+        "nl": "Op afstand ontgrendelen 15, 30 of 60 min, via telefoon of Home Assistant; balk Weer vergrendelen; Code vergeten?"
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Sécurité : alerte « Protection désactivée » aux responsables si l'accessibilité de Vision est coupée sur un appareil.",
+        "en": "Security: a “Protection turned off” alert to the responsible people if Vision's accessibility is off on a device.",
+        "de": "Sicherheit: Warnung „Schutz deaktiviert“ an die Verantwortlichen, wenn die Bedienungshilfe von Vision aus ist.",
+        "es": "Seguridad: aviso «Protección desactivada» a los responsables si la accesibilidad de Vision está apagada.",
+        "it": "Sicurezza: avviso «Protezione disattivata» ai responsabili se l'accessibilità di Vision è spenta su un dispositivo.",
+        "nl": "Beveiliging: melding „Bescherming uitgeschakeld” aan de verantwoordelijken als Vision-toegankelijkheid uit staat."
+      }
+    },
+    {
+      "cibles": [
+        "ha",
+        "tele",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Home Assistant : Autorisations plus rapide ; débits en Mbit/s ; une musique de veille reprise à la main reste en place.",
+        "en": "Home Assistant: faster Permissions tab; rates in Mbit/s; screensaver music taken over by hand stays as it is.",
+        "de": "Home Assistant: schnellerer Reiter Berechtigungen; Raten in Mbit/s; übernommene Bildschirmschoner-Musik bleibt.",
+        "es": "Home Assistant: pestaña Permisos más rápida; velocidades en Mbit/s; la música del salvapantallas retomada se queda.",
+        "it": "Home Assistant: scheda Autorizzazioni più veloce; velocità in Mbit/s; la musica del salvaschermo ripresa resta.",
+        "nl": "Home Assistant: snellere tab Machtigingen; snelheden in Mbit/s; overgenomen schermbeveiligingsmuziek blijft staan."
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.93.06 (retour d'essai) : la musique face au son des autres applis (FocusMusique), section Musique des réglages. -->
+<resources>
+    <string name="focus_titre">Als een andere app of een tv-ingang geluid afspeelt</string>
+    <string name="focus_toujours">Muziek pauzeren</string>
+    <string name="focus_applis">Alleen bij sommige bronnen of apps</string>
+    <string name="focus_jamais">Muziek laten doorspelen</string>
+    <string name="focus_applis_titre">Bronnen en apps die de muziek pauzeren</string>
+    <string name="focus_applis_aucune">Geen</string>
+    <plurals name="focus_applis_n">
+        <item quantity="one">%d app</item>
+        <item quantity="other">%d apps</item>
+    </plurals>
+    <string name="focus_reprise">Vanzelf hervatten</string>
+    <string name="focus_reprise_note">De muziek speelt verder als het andere geluid stopt of als je terugkomt van de tv-ingang.</string>
+    <string name="focus_entrees_tele">Tv-ingangen (HDMI, live-tv)</string>
+</resources>

@@ -24,7 +24,7 @@ async def async_setup_entry(
     valides = {
         f"{DOMAIN}_{cle}_{pc}"
         for pc in coordinator.pcs
-        for cle in ("agent", "compte_admin")
+        for cle in ("agent", "compte_admin", "protection")
     }
     valides.add(f"{DOMAIN}_pause_generale")
     valides.add(f"{DOMAIN}_fenetre_reveil")
@@ -36,6 +36,7 @@ async def async_setup_entry(
     for pc_id in coordinator.pcs:
         entites.append(AgentOnline(coordinator, pc_id))
         entites.append(CompteAdministrateur(coordinator, pc_id))
+        entites.append(ProtectionDesactivee(coordinator, pc_id))
     async_add_entities(entites)
 
 
@@ -109,3 +110,35 @@ class PauseGeneraleEnCours(EntityIdFige, HubEntity, BinarySensorEntity):
         brut = self.coordinator.store.pause_generale or {}
         return {"fin": dt_util.utc_from_timestamp(etat["fin"]).isoformat(), "fin_heure": pause_generale.heure(etat["fin"]),
                 "appareils": sorted(brut.get("appareils") or {})}
+
+
+class ProtectionDesactivee(PcEntity, BinarySensorEntity):
+    """2.5.12 (point de sécurité) : allumé quand l'accessibilité de Vision est coupée sur un appareil Android
+    (un force-stop de Vision suffit) : Vision n'y protège plus rien. Les protections manquantes en attribut.
+    Indisponible tant que l'appareil ne l'a pas dit (PC, ancienne appli)."""
+
+    _attr_translation_key = "protection_desactivee"
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_icon = "mdi:shield-off-outline"
+
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
+        super().__init__(coordinator, pc_id)
+        self._attr_unique_id = f"{DOMAIN}_protection_{pc_id}"
+
+    @property
+    def available(self) -> bool:
+        from . import protection
+
+        return protection.coupee(self.pc) is not None
+
+    @property
+    def is_on(self) -> bool:
+        from . import protection
+
+        return bool(protection.coupee(self.pc))
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        from . import protection
+
+        return {"manquantes": protection.manquantes(self.pc)}

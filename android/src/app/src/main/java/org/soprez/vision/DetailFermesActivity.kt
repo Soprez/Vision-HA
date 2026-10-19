@@ -168,7 +168,7 @@ class DetailFermesActivity : Activity() {
                         ok = true
                         rep.optString("retour").ifEmpty { getString(R.string.commun_lot2_c_est_fait) }
                     } catch (e: Net.Echec) { Geste.messageEchec(e.code) }
-                    catch (_: Exception) { getString(R.string.commun_lot2_injoignable) }
+                    catch (e: Exception) { ReseauLocal.message(this@DetailFermesActivity, e) }
                     runOnUiThread {
                         if (ok) { retirer(x); remplir() } else Geste.relacher()
                         Ui.toast(this, texte, genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)

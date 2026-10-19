@@ -20,7 +20,8 @@ object Marges {
                  zoneX: Int = ZoneSure.DEFAUT, zoneY: Int = ZoneSure.DEFAUT): Valeurs {
         fun dp(v: Float) = Math.round(v * densite)
         if (tele) {
-            val zc = ZoneSure.marge(largeurPx, ZONE_SURE, zoneX); val zh = ZoneSure.marge(hauteurPx, ZONE_SURE, zoneY)
+            val zc = ZoneSure.marge(largeurPx, ZONE_SURE, zoneX, dp(ZoneSure.CONFORT_X_DP))
+            val zh = ZoneSure.marge(hauteurPx, ZONE_SURE, zoneY, dp(ZoneSure.CONFORT_Y_DP))
             val utile = largeurPx - 2 * zc
             val cote = maxOf(dp(16f), (utile - dp(LARGEUR_MAX_DP * 1.4f)) / 2)
             return Valeurs(cote, dp(12f), dp(12f), zc, zh)

@@ -43,12 +43,36 @@ def langue_appareil(hass: Any, pc: dict[str, Any] | None) -> str:
     return normaliser((pc or {}).get("langue")) or langue_hass(hass)
 
 
-def _lire(chemin: str) -> dict[str, Any]:
+def _lire_disque(chemin: str) -> dict[str, Any]:
     try:
         with open(chemin, encoding="utf-8") as f:
             return json.load(f)
     except (OSError, ValueError):
         return {}
+
+
+def _tout_lire() -> dict[str, dict[str, Any]]:
+    """Tous les fichiers JSON de `i18n/`, lus d'un coup, à l'import de ce module.
+
+    2.5.12 : un catalogue (`Catalogue("tableau")`…) se crée à l'import du module qui s'en sert. Quand ce module
+    était importé dans une fonction (`from .dashboard import …` au démarrage), la lecture se faisait dans la boucle
+    d'événements et HA le signalait (« Detected blocking call to open … langues.py, line 48 »). Ce module-ci est
+    importé hors de la boucle, avec l'intégration : la lecture se fait là, une seule fois (26 fichiers, 0,5 Mo)."""
+    tout: dict[str, dict[str, Any]] = {}
+    for racine, _dossiers, fichiers in os.walk(DOSSIER):
+        for nom in fichiers:
+            if nom.endswith(".json"):
+                chemin = os.path.join(racine, nom)
+                tout[os.path.normcase(os.path.abspath(chemin))] = _lire_disque(chemin)
+    return tout
+
+
+_FICHIERS = _tout_lire()
+
+
+def _lire(chemin: str) -> dict[str, Any]:
+    """Le contenu d'un fichier de `i18n/`, depuis la copie faite à l'import : jamais d'accès disque ici."""
+    return _FICHIERS.get(os.path.normcase(os.path.abspath(chemin)), {})
 
 
 class Catalogue:

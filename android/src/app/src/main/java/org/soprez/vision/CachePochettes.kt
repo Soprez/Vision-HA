@@ -8,8 +8,8 @@ import java.security.MessageDigest
 /**
  * 1.90.2 (l'auteur : « il faudrait les précharger, et quand la partie est terminée ou qu'on ferme l'appli, ça décharge
  * automatiquement ») : les pochettes de la Party gardées aussi sur disque, dans le cache de l'appli, bornées
- * ([MAX_OCTETS], [MAX_FICHIERS], les plus anciennes partent d'abord). Vidé à la fin de la Party, à la fermeture de
- * l'écran Party et au démarrage de l'appli (rien ne traîne d'une fois sur l'autre).
+ * ([MAX_OCTETS], [MAX_FICHIERS], les plus anciennes partent d'abord). Vidé à la fin de la Party. 1.93.06 (l'auteur, « un vrai
+ * cache ») : plus vidé à la fermeture de l'écran Party ni au démarrage de l'appli ; les bornes suffisent.
  */
 object CachePochettes {
     const val MAX_OCTETS = 20L * 1024 * 1024

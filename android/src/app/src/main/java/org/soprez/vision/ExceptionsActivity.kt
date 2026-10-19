@@ -204,7 +204,7 @@ class ExceptionsActivity : Activity() {
                 r.optString("retour").ifEmpty { getString(R.string.commun_lot2_c_est_fait) }
             } catch (x: Net.Echec) {
                 when (x.code) { 404 -> { x404 = true; getString(R.string.exceptions_plus_dans_liste) }; else -> Geste.messageEchec(x.code) }
-            } catch (_: Exception) { getString(R.string.commun_lot2_injoignable) }
+            } catch (e: Exception) { ReseauLocal.message(this@ExceptionsActivity, e) }
             runOnUiThread {
                 Ui.toast(this, texte, court = true, genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)
                 if (!ok && !x404) Geste.relacher()

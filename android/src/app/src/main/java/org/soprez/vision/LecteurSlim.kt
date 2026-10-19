@@ -45,12 +45,21 @@ object LecteurSlim {
     /** 1.91.0 : où commence le flux en cours après un saut (le flux, lui, repart de zéro). */
     private val recalage = Saut.Recalage()
     private var suivant: MediaPlayer? = null
+    /** 1.93.06 : pendant un fondu enchaîné, le titre qui finit (il descend pendant que le suivant monte). */
+    private var sortant: MediaPlayer? = null
+    /** 1.93.06 : la transition demandée par Music Assistant pour le titre préparé (durée, ms ; type, '0' à '4'). */
+    @Volatile private var transitionMs = 0
+    @Volatile private var transitionType = '0'
+    /** Le titre préparé partira en fondu enchaîné (pas d'enchaînement sans blanc par Android). */
+    private var suivantEnFondu = false
     private var volume = 1f
     /** Banc Musique : le volume logiciel appliqué au lecteur Android (règle du projet : toujours 1,0 sur un lecteur Vision). */
-    val volumeApplique: Float get() = if (allume) volume else 0f
+    val volumeApplique: Float get() = if (allume) volume * facteurFocus else 0f
     /** Banc Musique : la position du titre en cours (ms), comme l'envoie le lecteur à Music Assistant. */
     val positionCourante: Int get() = positionMs()
     private var allume = true
+    /** 1.93.06 : le volume baissé pendant un son bref d'une autre appli (focus audio, [FocusMusique]) ; 1 sinon. */
+    @Volatile private var facteurFocus = 1f
     private var depuisFlush = true
     private var decodeurPret = false
     private var ctxApp: Context? = null
@@ -98,6 +107,12 @@ object LecteurSlim {
         if (fil?.isAlive == true) return
         ctxApp = ctx.applicationContext
         if (fond == null) fond = HandlerThread("VisionLecteurSon").also { it.start(); h = Handler(it.looper) }
+        if (suiviReseau == null) {
+            // Le premier avis est l'état au lancement : pas un retour du réseau (pas d'attente au démarrage).
+            var premier = true
+            suiviReseau = ReseauLocal.Suivi(ctx.applicationContext) { n -> if (premier) premier = false else reseauChange(n != null) }
+                .also { it.demarrer() }
+        }
         val t = Thread { boucle(ctx.applicationContext, hote) }
         t.isDaemon = true; fil = t; t.start()
     }
@@ -105,13 +120,44 @@ object LecteurSlim {
     @Synchronized
     fun arreter() {
         fil?.interrupt(); fil = null
-        try { socket?.close() } catch (_: Exception) {}
+        // 1.93.06 : fermée proprement (« BYE! », puis fermeture), hors du fil principal (écriture réseau).
+        socket?.let { s -> Thread { fermer(s) }.apply { isDaemon = true; start() } }
         h?.post { liberer() }
+        FocusMusique.lacher()
+    }
+
+    /**
+     * 1.93.06 : ce que [FocusMusique] demande quand une autre appli joue du son. La pause est locale et dite à Music
+     * Assistant (STMp, comme une pause qu'il aurait demandée) ; la reprise aussi (STMr). Tout passe par le fil du lecteur.
+     */
+    private val moteurFocus = object : FocusMusique.Moteur {
+        override fun pauseFocus() { h?.post { if (etat == "lecture" && lecteur != null) { mettreEnPause(); Log.i(TAG, "pause : une autre appli joue du son") } } }
+        override fun repriseFocus() { h?.post {
+            if (etat == "pause" && lecteur != null) { reprendre(); Log.i(TAG, "reprise après le son d'une autre appli") }
+            // 1.93.06 (point 6a) : après une longue pause (une partie sur HDMI), Music Assistant a arrêté le lecteur
+            // (30 s) : la reprise passe par Home Assistant, pour la seule soirée de cet appareil.
+            else if (etat == "arrêt") ctxApp?.let { relancerParHa(it) }
+        } }
+        override fun volumeFocus(facteur: Float) { h?.post { facteurFocus = facteur; appliquerVolume() } }
+    }
+
+    private fun mettreEnPause() {
+        try { lecteur?.pause() } catch (_: Exception) {}
+        if (horlogePause == 0L) horlogePause = SystemClock.elapsedRealtime()
+        etat = "pause"; stat("STMp")
+    }
+
+    private fun reprendre() {
+        try { lecteur?.start() } catch (_: Exception) {}
+        if (horlogePause > 0L && horlogeDebut > 0L) { horlogeDebut += SystemClock.elapsedRealtime() - horlogePause; horlogePause = 0L }
+        etat = "lecture"; stat("STMr")
     }
 
     private fun boucle(ctx: Context, hoteForce: String?) {
         val moi = Thread.currentThread()
         while (!moi.isInterrupted && fil === moi) {
+            val reste = attenteAvantLiaison(SystemClock.elapsedRealtime() - retourReseauA, attenteRetourMs)
+            if (retourReseauA > 0L && reste > 0L) try { Thread.sleep(reste) } catch (_: InterruptedException) { return }
             val hote = hoteForce ?: serveur(ctx)
             if (hote != null) try { session(ctx, hote) } catch (e: Exception) { Log.i(TAG, "liaison coupée : ${e.message}") }
             connecte = false
@@ -120,14 +166,81 @@ object LecteurSlim {
         }
     }
 
+    /**
+     * 1.93.06 (TV du salon, après une coupure réseau) : jamais deux connexions vers Music Assistant. Une seconde
+     * connexion avec la même adresse (« Duplicate connection ») faisait éjecter le lecteur par MA, qui le
+     * réenregistrait sous son nom brut, file vide. Donc :
+     * - l'ancienne connexion est fermée (« BYE! », puis fermeture) AVANT d'en ouvrir une nouvelle ;
+     * - une tentative qui aboutit après un [arreter] (fil remplacé) est refermée sans rien envoyer ;
+     * - quand le réseau validé change ou revient ([ReseauLocal.Suivi]), la connexion est fermée tout de suite (BYE!
+     *   passe si le réseau est là), et la suivante attend [attenteRetourMs] : le temps que MA abandonne une
+     *   ancienne connexion dont la fermeture s'est perdue pendant la coupure (son battement reçoit alors un refus).
+     */
     private fun session(ctx: Context, hote: String) {
+        socket?.let { fermer(it) }
         val s = Socket()
-        s.connect(InetSocketAddress(hote, PORT), 8_000)
-        s.tcpNoDelay = true
-        socket = s
-        synchronized(verrou) { sortie = s.getOutputStream() }
-        envoyer("HELO", helo(ctx))
-        connecte = true
+        try {
+            s.connect(InetSocketAddress(hote, PORT), 8_000)
+            s.tcpNoDelay = true
+            s.keepAlive = true
+            synchronized(verrou) {
+                if (fil !== Thread.currentThread()) return  // arrêté (ou remplacé) pendant la connexion : rien n'est envoyé
+                socket = s
+                sortie = s.getOutputStream()
+            }
+            liaisons++
+            relieA = SystemClock.elapsedRealtime()
+            gardeDepart = true
+            // 1.93.06 (banc, coupure réseau) : une reconnexion en pleine lecture se dit comme squeezelite (bit 0x4000
+            // du HELO) ; sinon Music Assistant voit un lecteur neuf, éteint, et la musique ne reprend pas.
+            val reconnexion = liaisons > 1 && lecteur != null && (etat == "lecture" || etat == "pause")
+            val jouait = reconnexion && etat == "lecture"
+            envoyer("HELO", helo(ctx, reconnexion))
+            if (jouait) relancerApresCoupure(ctx, s)
+            connecte = true
+            lireCommandes(ctx, s, hote)
+        } finally {
+            connecte = false
+            fermer(s)
+        }
+    }
+
+    /** Ferme une connexion : « BYE! » si elle est encore ouverte (comme squeezelite à l'arrêt), puis fermeture. */
+    private fun fermer(s: Socket) {
+        synchronized(verrou) {
+            if (socket === s) {
+                if (!s.isClosed && s.isConnected) try {
+                    val b = ByteBuffer.allocate(9); b.put("BYE!".toByteArray(Charsets.US_ASCII)); b.putInt(1); b.put(0)
+                    s.getOutputStream().apply { write(b.array()); flush() }
+                } catch (_: Exception) {}
+                socket = null
+                sortie = null
+            }
+        }
+        try { s.shutdownOutput() } catch (_: Exception) {}
+        try { s.close() } catch (_: Exception) {}
+    }
+
+    /** 1.93.06 : après un changement ou un retour du réseau, attente avant de se reconnecter (ms) ; réglable pour les essais. */
+    @Volatile var attenteRetourMs = 10_000L
+    @Volatile private var retourReseauA = 0L
+    private var suiviReseau: ReseauLocal.Suivi? = null
+
+    /** Pur : combien attendre encore avant de se reconnecter, [depuisRetourMs] après le retour du réseau. */
+    fun attenteAvantLiaison(depuisRetourMs: Long, attenteMs: Long): Long =
+        if (depuisRetourMs < 0) 0L else (attenteMs - depuisRetourMs).coerceAtLeast(0L)
+
+    /** Le réseau validé a changé (ou est revenu) : on ferme la connexion actuelle ; la boucle se reconnecte après l'attente. */
+    fun reseauChange(present: Boolean) {
+        if (!present) return  // coupé : rien ne passe ; on attend le retour
+        retourReseauA = SystemClock.elapsedRealtime()
+        socket?.let { s -> Thread { fermer(s) }.apply { isDaemon = true; start() } }
+    }
+    /** 1.93.06 : nombre de connexions ouvertes depuis le lancement (essais) et heure de la dernière (elapsedRealtime). */
+    @Volatile var liaisons = 0; private set
+    @Volatile private var relieA = 0L
+
+    private fun lireCommandes(ctx: Context, s: Socket, hote: String) {
         // 1.90.4 (télé d'essai : lecteur « squeezeplay: 5a:7a:… » sans nom dans Music Assistant) : MA enregistre le
         // lecteur en tâche de fond juste après le HELO, et ignore le nom s'il arrive avant la fin (course selon la
         // vitesse de l'appareil). Le nom est donc renvoyé, sans qu'on le demande, une fois le lecteur connu de MA.
@@ -142,6 +255,12 @@ object LecteurSlim {
             h?.post { try { traiter(ctx, c, data, hote) } catch (e: Exception) { Log.w(TAG, "commande $c ignorée : $e") } }
         }
     }
+
+    /**
+     * 1.93.06 : un flux qui échoue juste après une (re)connexion (réseau tout juste revenu) est rouvert une fois, 2 s
+     * plus tard, au lieu de dire tout de suite « pas de son » (STMn) à Music Assistant. Pur (testé en JVM).
+     */
+    fun rouvrirFlux(essai: Int, depuisLiaisonMs: Long): Boolean = essai == 0 && depuisLiaisonMs in 0 until 30_000
 
     // --------------------------------------------------------------- messages vers Music Assistant
 
@@ -160,13 +279,76 @@ object LecteurSlim {
         synchronized(verrou) { try { sortie?.write(b.array()); sortie?.flush() } catch (_: Exception) {} }
     }
 
-    private fun helo(ctx: Context): ByteArray {
+    /**
+     * 1.93.06 (banc, coupure réseau) : Music Assistant éteint un lecteur Squeezelite qui se reconnecte (même avec le bit
+     * de reconnexion) ; la file et le titre restent, mais la musique ne reprend pas. Si ce lecteur jouait, et seulement
+     * si la soirée tourne sur CET appareil avec CE lecteur ([relancePermise]), on la relance par Home Assistant, 8 s plus
+     * tard (le temps que MA ait repris le lecteur). Jamais un autre lecteur : la commande agit sur celui de la soirée.
+     */
+    private fun relancerApresCoupure(ctx: Context, s: Socket) {
+        h?.postDelayed({
+            if (socket !== s || !connecte) return@postDelayed
+            relancerParHa(ctx)
+        }, 8_000)
+    }
+
+    /** La relance par Home Assistant, gardée par [relancePermise] (jamais un autre lecteur que celui-ci). */
+    private fun relancerParHa(ctx: Context) {
+        Thread {
+            try {
+                val cfg = Config(ctx)
+                val e = Party.analyser(Net.post(ctx, cfg, "/api/pc_parental/party/etat", org.json.JSONObject().put("id", cfg.id).put("secret", cfg.secret), 8_000))
+                // 1.93.06 (incident du salon) : jamais par-dessus une autre appli ou une entrée de la télé.
+                if (relancePermise(e.actif, e.ici, e.lecteurNom, e.maintenant.etat, nom(ctx)) && !FocusMusique.autreSonEnCours(ctx)) {
+                    Net.post(ctx, cfg, "/api/pc_parental/party/commande", org.json.JSONObject().put("id", cfg.id).put("secret", cfg.secret).put("action", "lecture"), 9_000)
+                    Log.i(TAG, "lecture relancée par Home Assistant")
+                }
+            } catch (e: Exception) { Log.i(TAG, "relance par Home Assistant : ${e.message}") }
+        }.apply { isDaemon = true; start() }
+    }
+
+    // ------------------------------------------------------------ départ après une liaison (incident du salon, 18/10)
+
+    /**
+     * 1.93.06 (incident du 18/10, 17:50 : après une réinstallation, Music Assistant a relancé la soirée sur la télé du
+     * salon pendant qu'on y regardait une appli de replay) : le PREMIER départ dans les [GARDE_MS] qui suivent une liaison (démarrage
+     * de l'appli, reconnexion) n'a lieu que si rien d'autre ne joue sur la télé (son d'une autre appli, entrée HDMI ou TV
+     * en direct au premier plan). Sinon Vision reste en pause et le dit à Music Assistant (STMp). « Jouait-elle juste
+     * avant la coupure » est la règle de Home Assistant (reprise de soirée) : ici, un « lecture » demandé juste après
+     * l'ouverture de l'appli doit passer. Un départ demandé plus tard n'est pas concerné.
+     */
+    const val GARDE_MS = 20_000L
+    @Volatile private var gardeDepart = false
+
+    /** Pur : le premier départ après une liaison est-il permis ? */
+    fun departApresLiaisonPermis(autreSon: Boolean): Boolean = !autreSon
+
+    private fun departPermis(): Boolean {
+        if (!gardeDepart) return true
+        gardeDepart = false
+        if (SystemClock.elapsedRealtime() - relieA > GARDE_MS) return true
+        val ctx = ctxApp ?: return true
+        // Le son qui sort encore de Vision (reconnexion en pleine lecture) n'est pas « autre chose ».
+        if (try { lecteur?.isPlaying == true } catch (_: Exception) { false }) return true
+        val ok = departApresLiaisonPermis(FocusMusique.autreSonEnCours(ctx))
+        if (!ok) Log.i(TAG, "départ refusé après la liaison : autre chose joue sur l'appareil")
+        return ok
+    }
+
+    /** Pur : relancer seulement la soirée de cet appareil, jouée par ce lecteur, et qui ne joue pas déjà (« lecture » bascule). */
+    fun relancePermise(actif: Boolean, ici: Boolean, lecteurNom: String, etatMa: String, nomCeLecteur: String): Boolean =
+        actif && ici && lecteurNom == nomCeLecteur && etatMa != "playing"
+
+    /** Pur : le champ « wlan » du HELO — 0x4000 quand le lecteur se reconnecte en pleine lecture (comme squeezelite). */
+    fun champReconnexion(reconnexion: Boolean): Short = if (reconnexion) 0x4000 else 0
+
+    private fun helo(ctx: Context, reconnexion: Boolean = false): ByteArray {
         val mac = adresse(ctx)
         val caps = "Model=squeezelite,ModelName=Vision,Firmware=Vision-${BuildConfigCompat.version(ctx)},MaxSampleRate=48000,mp3"
         val b = ByteBuffer.allocate(36 + caps.length)
         b.put(12.toByte()); b.put(0.toByte()); b.put(mac)
         b.put(ByteArray(16))          // uuid
-        b.putShort(0)                 // wlan
+        b.putShort(champReconnexion(reconnexion))  // wlan
         b.putLong(0)                  // octets reçus
         b.put("fr".toByteArray())     // langue
         b.put(caps.toByteArray(Charsets.US_ASCII))
@@ -255,6 +437,9 @@ object LecteurSlim {
         // « !cc5sBcBcBBBLHL » : commande, démarrage, codec (5), seuil, spdif, durée et type de transition, drapeaux,
         // seuil de sortie, réservé, battement / gain (4), port (2), adresse (4), puis la requête HTTP.
         val drapeaux = d[11].toInt()
+        // 1.93.06 (retour d'essai) : la transition entre les titres (réglage « fondu enchaîné » du lecteur dans Music Assistant).
+        val transitionS = d[9].toInt() and 0xFF
+        val transitionT = d[10].toInt().toChar()
         b.position(14)
         val battement = b.int
         val port = b.short.toInt() and 0xFFFF
@@ -262,12 +447,12 @@ object LecteurSlim {
         if (commande != 't') Log.d(TAG, "strm $commande (démarrage $autostart, position ${positionMs()} ms)")
         when (commande) {
             't' -> stat("STMt", battement)
-            'p' -> {
-                try { lecteur?.pause() } catch (_: Exception) {}
-                if (horlogePause == 0L) horlogePause = SystemClock.elapsedRealtime()
-                etat = "pause"; stat("STMp")
-            }
+            'p' -> { FocusMusique.gesteUtilisateur(); mettreEnPause() }
             'u' -> {
+                // 1.93.06 (incident du salon, 17:50) : premier départ juste après une liaison, refusé si autre chose
+                // joue sur la télé : on reste en pause (STMp).
+                if (!departPermis()) { if (lecteur != null && horlogePause == 0L) horlogePause = SystemClock.elapsedRealtime(); etat = "pause"; stat("STMp"); return }
+                FocusMusique.gesteUtilisateur(); ctxApp?.let { FocusMusique.demander(it, moteurFocus) }
                 try { lecteur?.start() } catch (_: Exception) {}
                 val reprise = horlogePause > 0L && horlogeDebut > 0L
                 val nouveau = reponseAuDemarrage(chargeSansDemarrage = horlogeDebut == 0L && lecteur != null, enPause = reprise) == "STMs"
@@ -281,7 +466,7 @@ object LecteurSlim {
                 // jamais le titre commencer, gardait l'index d'avant (position figée à 5 s) et redonnait le même titre.
                 stat(if (nouveau) "STMs" else "STMr")
             }
-            'q' -> { h?.removeCallbacks(finSansSuite); h?.removeCallbacks(sansRelance); fonduSortie(); liberer(); depuisFlush = true; etat = "arrêt"; stat("STMf") }
+            'q' -> { h?.removeCallbacks(finSansSuite); h?.removeCallbacks(sansRelance); fonduSortie(); liberer(); depuisFlush = true; etat = "arrêt"; stat("STMf"); FocusMusique.lacher() }
             'f' -> { fonduSortie(); liberer(); depuisFlush = true; stat("STMf") }
             's' -> {
                 val requete = String(d, 24, d.size - 24, Charsets.ISO_8859_1)
@@ -292,6 +477,7 @@ object LecteurSlim {
                 val hoteHttp = if (ip != 0) "%d.%d.%d.%d".format(ip ushr 24 and 255, ip ushr 16 and 255, ip ushr 8 and 255, ip and 255) else hote
                 val https = (drapeaux and 0x20) != 0
                 val url = (if (https) "https://" else "http://") + hoteHttp + (if (port != 0 && port != 80 && port != 443) ":$port" else "") + chemin
+                transitionMs = transitionS * 1000; transitionType = transitionT
                 ouvrir(url, autostart == '1' || autostart == '3')
             }
             else -> {}
@@ -307,7 +493,7 @@ object LecteurSlim {
             sources[this] = src
             setDataSource(src)
         } else setDataSource(url)
-        setVolume(if (allume) volume else 0f, if (allume) volume else 0f)
+        setVolume(volumeApplique, volumeApplique)
     }
 
     /** Libère un lecteur et ferme son tampon de flux. */
@@ -317,26 +503,46 @@ object LecteurSlim {
     }
 
     /** Un nouveau flux : remplace (après un « flush ») ou se met à la suite du titre en cours (enchaînement sans blanc). */
-    private fun ouvrir(url: String, auto: Boolean) {
+    private var fluxDemandes = 0
+
+    private fun ouvrir(url: String, auto: Boolean, essai: Int = 0) {
         h?.removeCallbacks(finSansSuite); h?.removeCallbacks(sansRelance)  // la suite est arrivée : pas de « plus de son »
         stat("STMc")
-        val enchainer = !depuisFlush && lecteur != null && etat == "lecture"
+        val enchainer = enchaineALaSuite(depuisFlush, lecteur != null, etat)
         depuisFlush = false
         try {
             val mp = nouveauLecteur(url)
             mp.setOnPreparedListener { p ->
                 if (enchainer && lecteur != null && lecteur !== p) {
-                    try { lecteur?.setNextMediaPlayer(p) } catch (_: Exception) {}
+                    // 1.93.06 : fondu enchaîné si Music Assistant le demande et si la fin du titre est connue (durée de
+                    // HA ou du lecteur) ; sinon l'enchaînement sans blanc d'Android, comme avant.
+                    suivantEnFondu = fonduEnchaine(transitionType, transitionMs, dureeConnueMs())
+                    if (!suivantEnFondu) try { lecteur?.setNextMediaPlayer(p) } catch (_: Exception) {}
                     suivant = p
+                    // En pause (suite envoyée quand même) : on le redit à Music Assistant, qui se croirait sinon en lecture.
+                    if (etat == "pause") stat("STMp")
                 } else {
                     lecteur = p
                     decodeurPret = false
-                    if (auto) { fonduEntree(p); p.start(); debutTitre(); etat = "lecture"; stat("STMs") } else stat("STMl")
+                    if (auto && !departPermis()) {
+                        // 1.93.06 (incident du salon) : chargé mais muet, comme une pause ; « u » le lancera.
+                        debutTitre(); horlogePause = SystemClock.elapsedRealtime(); etat = "pause"; stat("STMs"); stat("STMp")
+                    } else if (auto) { ctxApp?.let { FocusMusique.demander(it, moteurFocus) }; fonduEntree(p); p.start(); debutTitre(); etat = "lecture"; stat("STMs") } else stat("STMl")
                     surveillerFin()
                 }
             }
             mp.setOnCompletionListener { fini -> fin(fini) }
-            mp.setOnErrorListener { _, quoi, extra -> Log.w(TAG, "lecture impossible ($quoi/$extra) : $url"); stat("STMn"); true }
+            val numero = ++fluxDemandes
+            mp.setOnErrorListener { m, quoi, extra ->
+                Log.w(TAG, "lecture impossible ($quoi/$extra) : $url")
+                if (rouvrirFlux(essai, SystemClock.elapsedRealtime() - relieA)) {
+                    // Rouvert seulement si aucun autre flux n'a été demandé entre-temps.
+                    if (lecteur === m) lecteur = null
+                    relacher(m)
+                    h?.postDelayed({ if (fluxDemandes == numero && connecte) { depuisFlush = true; ouvrir(url, auto, essai = 1) } }, 2_000)
+                } else stat("STMn")
+                true
+            }
             mp.prepareAsync()
             if (!enchainer) { liberer(except = mp) }
         } catch (e: Exception) {
@@ -419,7 +625,7 @@ object LecteurSlim {
         } catch (_: Exception) { false }
     }
 
-    private val sansRelance = Runnable { if (lecteur == null && etat == "arrêt") stat("STMu") }
+    private val sansRelance = Runnable { if (lecteur == null && etat == "arrêt") { stat("STMu"); FocusMusique.lacher() } }
 
     private val finSansSuite = Runnable {
         if (lecteur != null || etat != "arrêt") return@Runnable
@@ -428,7 +634,7 @@ object LecteurSlim {
             val relance = demanderSuite(c)
             h?.post {
                 if (lecteur != null || etat != "arrêt") return@post
-                if (relance) { h?.removeCallbacks(sansRelance); h?.postDelayed(sansRelance, ATTENTE_RELANCE_MS) } else stat("STMu")
+                if (relance) { h?.removeCallbacks(sansRelance); h?.postDelayed(sansRelance, ATTENTE_RELANCE_MS) } else { stat("STMu"); FocusMusique.lacher() }
             }
         }.apply { isDaemon = true }.start()
     }
@@ -440,7 +646,11 @@ object LecteurSlim {
                 if (lecteur !== mp) return
                 val duree = try { mp.duration } catch (_: Exception) { -1 }
                 val position = try { mp.currentPosition } catch (_: Exception) { 0 }
-                if (decodeurPretMaintenant(decodeurPret, duree, position, (sources[mp] as? FluxUnique)?.telecharge == true, dureeHaMs)) { decodeurPret = true; stat("STMd") }
+                // 1.93.06 (endurance du banc) : jamais pendant une pause. Music Assistant enverrait la suite et se croirait
+                // « en lecture » : la reprise ne partait plus. La suite est demandée juste après la reprise.
+                if (stmdPermis(etat) && decodeurPretMaintenant(decodeurPret, duree, position, (sources[mp] as? FluxUnique)?.telecharge == true, dureeHaMs)) { decodeurPret = true; stat("STMd") }
+                val fin = dureeConnueMs()
+                if (suivantEnFondu && suivant != null && etat == "lecture" && fin > 0 && debutFondu(fin - (positionMs() + recalage.decalageMs), transitionMs)) { lancerFondu(); return }
                 if (etat == "lecture") stat("STMt")
                 h?.postDelayed(this, 1_000)
             }
@@ -448,6 +658,7 @@ object LecteurSlim {
     }
 
     private fun fin(fini: MediaPlayer) {
+        if (fini === sortant) { sortant = null; relacher(fini); return }  // fin du titre qui descendait (fondu enchaîné)
         if (fini !== lecteur) return
         derniereFinMs = SystemClock.elapsedRealtime()
         val n = suivant
@@ -465,8 +676,71 @@ object LecteurSlim {
         }
     }
 
+    /** La fin du titre en cours (ms dans le titre), d'après HA ou le lecteur d'Android ; 0 si inconnue. */
+    private fun dureeConnueMs(): Long {
+        if (dureeHaMs > 0L) return dureeHaMs
+        val d = try { lecteur?.duration ?: -1 } catch (_: Exception) { -1 }
+        return if (d > 0) d.toLong() else 0L
+    }
+
+    /**
+     * 1.93.06 (l'auteur : « appliquer réellement la transition de 4 s ») : le titre suivant part [transitionMs] avant la fin,
+     * monte pendant que l'autre descend (puissance constante : pas de creux au milieu), puis l'ancien est libéré. Music
+     * Assistant apprend le nouveau titre au moment où il part (STMs), comme avec squeezelite.
+     */
+    private fun lancerFondu() {
+        val ancien = lecteur ?: return
+        val n = suivant ?: return
+        suivant = null; suivantEnFondu = false
+        val duree = transitionMs.toLong().coerceAtLeast(PAS_FONDU_MS)
+        try { n.setVolume(0f, 0f); n.start() } catch (_: Exception) { relacher(n); return }
+        sortant?.let { relacher(it) }
+        sortant = ancien
+        lecteur = n; decodeurPret = false; debutTitre(); etat = "lecture"
+        stat("STMs"); surveillerFin()
+        Log.i(TAG, "fondu enchaîné de ${duree} ms")
+        val debut = SystemClock.elapsedRealtime()
+        h?.post(object : Runnable {
+            override fun run() {
+                val t = ((SystemClock.elapsedRealtime() - debut).toFloat() / duree).coerceIn(0f, 1f)
+                val (sortie, entree) = volumesFondu(t)
+                val v = volumeApplique
+                if (sortant === ancien) try { ancien.setVolume(v * sortie, v * sortie) } catch (_: Exception) {}
+                if (lecteur === n) try { n.setVolume(v * entree, v * entree) } catch (_: Exception) {}
+                if (t < 1f) h?.postDelayed(this, PAS_FONDU_MS)
+                else if (sortant === ancien) { sortant = null; relacher(ancien) }
+            }
+        })
+    }
+
+    /**
+     * 1.93.06 (endurance du banc) : un nouveau flux sans « flush » est la suite du titre en cours — en lecture, ET en
+     * pause. Avant, en pause, il remplaçait le titre et partait aussitôt : mis en pause près de la fin d'un titre, le
+     * lecteur annonçait « décodeur prêt », Music Assistant envoyait la suite, et la musique repartait toute seule sur le
+     * titre suivant, en pleine pause. Comme squeezelite : la suite attend la reprise. Pur.
+     */
+    fun stmdPermis(etat: String): Boolean = etat == "lecture"
+
+    fun enchaineALaSuite(depuisFlush: Boolean, aUnLecteur: Boolean, etat: String): Boolean =
+        !depuisFlush && aUnLecteur && (etat == "lecture" || etat == "pause")
+
+    /** Le pas du fondu enchaîné (ms). */
+    const val PAS_FONDU_MS = 50L
+
+    /** Fondu enchaîné : seulement le type « 1 » (crossfade) avec une durée, et une fin de titre connue. Pur. */
+    fun fonduEnchaine(type: Char, transitionMs: Int, finConnueMs: Long): Boolean = type == '1' && transitionMs > 0 && finConnueMs > 0L
+
+    /** Le fondu commence quand il reste au plus la durée de la transition (une seconde de tic d'avance au plus). Pur. */
+    fun debutFondu(restantMs: Long, transitionMs: Int): Boolean = transitionMs > 0 && restantMs <= transitionMs
+
+    /** Les volumes (sortant, entrant) à l'instant [t] du fondu (0 → 1), à puissance constante. Pur. */
+    fun volumesFondu(t: Float): Pair<Float, Float> {
+        val x = t.coerceIn(0f, 1f) * (Math.PI.toFloat() / 2f)
+        return Math.cos(x.toDouble()).toFloat() to Math.sin(x.toDouble()).toFloat()
+    }
+
     private fun appliquerVolume() {
-        val v = if (allume) volume else 0f
+        val v = volumeApplique
         try { lecteur?.setVolume(v, v) } catch (_: Exception) {}
         try { suivant?.setVolume(v, v) } catch (_: Exception) {}
     }
@@ -478,18 +752,20 @@ object LecteurSlim {
     private fun fonduSortie() {
         val m = lecteur ?: return
         if (etat != "lecture") return
-        val cible = if (allume) volume else 0f
+        val cible = volumeApplique
         for (k in 3 downTo 0) { try { m.setVolume(cible * k / 4f, cible * k / 4f) } catch (_: Exception) { return }; SystemClock.sleep(15) }
     }
 
     private fun fonduEntree(p: MediaPlayer) {
-        val cible = if (allume) volume else 0f
+        val cible = volumeApplique
         try { p.setVolume(0f, 0f) } catch (_: Exception) { return }
         for (k in 1..5) h?.postDelayed({ if (lecteur === p) try { p.setVolume(cible * k / 5f, cible * k / 5f) } catch (_: Exception) {} }, k * 30L)
     }
 
     private fun liberer(except: MediaPlayer? = null) {
-        for (m in listOf(lecteur, suivant)) if (m != null && m !== except) relacher(m)
+        for (m in listOf(lecteur, suivant, sortant)) if (m != null && m !== except) relacher(m)
+        if (sortant !== except) sortant = null
+        suivantEnFondu = false
         if (lecteur !== except) { lecteur = null; horlogeDebut = 0L; horlogePause = 0L }
         if (suivant !== except) suivant = null
     }

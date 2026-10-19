@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.93.06 : réseau coupé (cause connue) ou Home Assistant qui ne répond pas. -->
+<resources>
+    <string name="reseau_coupe_tele">The TV\'s network is down (check the cable or Wi-Fi).</string>
+    <string name="reseau_coupe_appareil">This device\'s network is down (check the Wi-Fi).</string>
+    <string name="reseau_ha_muet">Home Assistant isn\'t responding: nothing was changed. This device\'s network is working.</string>
+</resources>

@@ -30,8 +30,14 @@ jobs:
           python-version: "3.14"
           cache: pip
           cache-dependency-path: essai/requirements.txt
+      # Essais à navigateur (clics, débordement) : Node 22 (WebSocket intégré) et Chrome, déjà sur le runner.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      # Roboto : la police de Home Assistant (et du banc Windows) ; sans elle, Chrome prend DejaVu Sans, plus
+      # large, et l'essai anti-débordement voit des textes coupés qui ne le sont pas dans Home Assistant.
       - name: Paquets système
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libturbojpeg ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libturbojpeg ffmpeg fonts-roboto
       - name: Dépendances
         run: pip install -r essai/requirements.txt
       - name: Essais

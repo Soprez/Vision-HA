@@ -787,4 +787,23 @@
     <string name="manifeste_fermes">Cosa è bloccato</string>
     <string name="manifeste_maison">Da decidere</string>
     <string name="manifeste_musique">Musica</string>
+    <!-- 1.93.06 : Déverrouillage simplifié -->
+    <string name="dev_deverrouille_total">%1$s ha sbloccato questo dispositivo per %2$d min: accesso completo. Alla fine si blocca di nuovo da solo.</string>
+    <string name="bandeau_deverrouille">Sbloccato, restano %1$d min</string>
+    <string name="bandeau_reverrouiller">Blocca di nuovo</string>
+    <string name="bandeau_reverrouille">Dispositivo di nuovo bloccato.</string>
+    <string name="parents_deverrouiller">Sblocca…</string>
+    <string name="parents_deverrouiller_titre">Sblocca «%1$s»: accesso completo per…</string>
+    <string name="parents_deverrouiller_min">%1$d min</string>
+    <string name="parents_deverrouiller_raison">Sblocca «%1$s» per %2$d min</string>
+    <string name="parents_deverrouiller_fait">«%1$s» sarà sbloccato per %2$d min al prossimo contatto.</string>
+    <string name="garde_code_oublie">Codice dimenticato?</string>
+    <string name="code_oublie_titre">Codice dimenticato</string>
+    <string name="code_oublie_texte">Nessuno può ridarti il vecchio codice: Vision non lo conserva da nessuna parte. Due soluzioni: un %1$s sblocca questo dispositivo a distanza (su tua richiesta, o di sua iniziativa dal telefono o da Home Assistant), oppure un amministratore di Home Assistant sceglie un nuovo codice: Impostazioni › Dispositivi e servizi › Vision › Configura › Sicurezza.</string>
+    <string name="code_oublie_demander">Chiedi a un %1$s</string>
+    <string name="setup_parametres_appareil">Impostazioni del dispositivo</string>
+    <string name="setup_parametres_appareil_raison">Apri le impostazioni del dispositivo</string>
+    <string name="setup_parametres_appareil_impossible">Le impostazioni del dispositivo non si aprono qui.</string>
+    <string name="vuewidget_min_max">%1$s · min %2$s · max %3$s</string>
+    <string name="vuewidget_plage">%1$s – %2$s</string>
 </resources>

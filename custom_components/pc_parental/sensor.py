@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
+from homeassistant.const import MATCH_ALL
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -14,7 +16,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from . import langues
+from . import langues, listes
 from .const import (
     DOMAIN,
     ORIGINE_JAMAIS,
@@ -94,6 +96,8 @@ async def async_setup_entry(
 
 class PcStateSensor(PcEntity, SensorEntity):
     """Ouvert ou fermé, et pourquoi."""
+    # 2.5.12 (étude des menus, L.3) : attributs hors de l'historique (la base ne grossit plus à chaque relevé).
+    _unrecorded_attributes = frozenset({MATCH_ALL})
 
     _attr_translation_key = "etat"
     _attr_icon = "mdi:monitor-shimmer"
@@ -125,13 +129,18 @@ class PcStateSensor(PcEntity, SensorEntity):
             # Les catégories fermées en plus par une règle (planning, automatisation) :
             # l'interrupteur de l'étiquette est à « non », et pourtant c'est coupé.
             "categories_coupees": self._categories_coupees(),
-            # Ce que l'agent applique vraiment, une fois les étiquettes et
-            # les exceptions résolues. Les deux champs de saisie de la carte
-            # disent ce qu'on a **demandé** ; ceci dit ce qui **arrive**.
+            # Ce que l'agent applique vraiment, une fois les étiquettes et les exceptions résolues : des
+            # nombres seulement. 2.5.12 : la liste se lit à la demande (listes.py), quand on ouvre la carte.
             **self._effectif(),
         }
 
     def _categories_coupees(self) -> list[str]:
+        # 2.5.12 : gardé jusqu'à la minute suivante (et oublié à chaque écriture), comme `effectif` : la lecture des attributs revient
+        # à chaque mise à jour du coordinateur, toutes les 15 s et à chaque relevé.
+        cle = ("categories_coupees", self.pc_id, int(time.time() // 60))
+        return list(self.coordinator.store._memo(cle, 60.0, self._categories_coupees_calc))
+
+    def _categories_coupees_calc(self) -> list[str]:
         magasin = self.coordinator.store
         hass = self.coordinator.hass
         pc = self.pc
@@ -165,42 +174,20 @@ class PcStateSensor(PcEntity, SensorEntity):
         return sortie
 
     def _effectif(self) -> dict[str, Any]:
-        """Ce qui est bloqué **sur cette machine seulement**.
+        """Ce qui est bloqué **sur cette machine seulement**, en nombres, et l'empreinte de la liste.
 
-        Ce qui vaut pour toute la maison — les décisions de la maison, et
-        surtout les cent cinquante mille domaines de la liste noire — n'a
-        rien à faire ici : c'est identique sur les quatre cartes, et ça
-        noyait la seule information qu'on vient y chercher, à savoir ce
-        que **cette** machine a de particulier.
+        2.5.12 : plus les listes (`bloques_sites`, `bloques_logiciels`, `exceptions`, `lignes_bloques`). Elles
+        pesaient 30 Ko par appareil et leur calcul (le catalogue entier, nom par nom) prenait 0,5 à 0,7 s dans la
+        boucle d'événements, à chaque mise à jour. La carte « Ce qui est réellement bloqué » les lit à la demande
+        (`GET /api/pc_parental/listes?liste=bloques_appareil&pc=…`) et ne les relit que si `revision` change.
         """
         magasin = self.coordinator.store
-        hass = self.coordinator.hass
         applique = magasin.effectif(self.pc)
-        lignes = []
-        for entree in magasin.bloques(self.pc):
-            # La raison vient du magasin (lot A2), en français : c'est elle qui dit « sur cet appareil ».
-            if "sur cet appareil" not in entree["raison"]:  # i18n-ok : marqueur du magasin, pas un texte affiché
-                continue
-            lignes.append(
-                f"| 🚫 | {entree['genre']} | **{entree['nom']}** "
-                f"| {entree['raison'].replace(', sur cet appareil', '')} |"  # i18n-ok : raison du magasin (lot A2)
-            )
-        # Les portes ouvertes se lisent au même endroit que les murs : une
-        # exception qu'on ne voit pas est une exception qu'on oublie. Et
-        # celles-là sont bien propres à la machine.
-        for adresse in magasin.exceptions(self.pc):
-            lignes.append(texte(hass, "ligne_adresse_epargnee", adresse=adresse))
-        for domaine, fin in magasin.laissez_passer_actifs(self.pc):
-            heure = dt_util.as_local(dt_util.utc_from_timestamp(fin)).strftime(
-                "%H:%M"
-            )
-            lignes.append(texte(hass, "ligne_laissez_passer", domaine=domaine, heure=heure))
         return {
-            "bloques_logiciels": applique["apps"],
-            "bloques_sites": applique["sites"],
-            "entete_bloques": texte(hass, "entete_bloques_appareil"),
-            "lignes_bloques": lignes,
-            "exceptions": applique["exceptions"],
+            "nb_logiciels_bloques": len(applique.get("apps") or []),
+            "nb_sites_bloques": len(applique.get("sites") or []),
+            "nb_exceptions": len(applique.get("exceptions") or []),
+            "revision": listes.revision_appareil(magasin, self.pc),
         }
 
     def _raison(self, genre: str, nom: str) -> str:
@@ -399,6 +386,8 @@ class AClasserSensor(HubEntity, SensorEntity):
     la maison a utilisé a été tranché — et le chiffre remonte tout seul dès
     qu'un nouveau logiciel ou un nouveau site apparaît.
     """
+    # 2.5.12 (étude des menus, L.3) : attributs hors de l'historique (la base ne grossit plus à chaque relevé).
+    _unrecorded_attributes = frozenset({MATCH_ALL})
 
     _attr_translation_key = "a_classer"
     _attr_icon = "mdi:tray-full"
@@ -431,6 +420,8 @@ class ExceptionsSensor(HubEntity, SensorEntity):
     Les voir ensemble évite la dérive silencieuse — une exception posée un
     soir de devoirs et jamais rouverte au grand jour.
     """
+    # 2.5.12 (étude des menus, L.3) : attributs hors de l'historique (la base ne grossit plus à chaque relevé).
+    _unrecorded_attributes = frozenset({MATCH_ALL})
 
     _attr_translation_key = "exceptions"
     _attr_icon = "mdi:door-open"
@@ -486,6 +477,8 @@ class ListeNoireSensor(HubEntity, SensorEntity):
     qui tient dans le fichier hosts. Le reste est bloqué par le résolveur
     filtrant — le dire évite de croire à une protection qui n'existe pas.
     """
+    # 2.5.12 (étude des menus, L.3) : attributs hors de l'historique (la base ne grossit plus à chaque relevé).
+    _unrecorded_attributes = frozenset({MATCH_ALL})
 
     _attr_translation_key = "liste_noire"
     _attr_icon = "mdi:shield-alert-outline"
@@ -536,6 +529,8 @@ class AlertesSensor(PcEntity, SensorEntity):
     savoir *qu'on a essayé*, et quand, vaut souvent plus que le blocage
     lui-même.
     """
+    # 2.5.12 (étude des menus, L.3) : attributs hors de l'historique (la base ne grossit plus à chaque relevé).
+    _unrecorded_attributes = frozenset({MATCH_ALL})
 
     _attr_translation_key = "sites_dangereux_bloques"
     _attr_icon = "mdi:shield-alert"
@@ -591,6 +586,8 @@ class BloquesSensor(HubEntity, SensorEntity):
     propres décisions est un autre geste : il ne doit demander ni de changer
     un filtre, ni de chercher un nom.
     """
+    # 2.5.12 (étude des menus, L.3) : attributs hors de l'historique (la base ne grossit plus à chaque relevé).
+    _unrecorded_attributes = frozenset({MATCH_ALL})
 
     _attr_translation_key = "bloques_sur_cet_appareil"
     _attr_icon = "mdi:cancel"
@@ -636,6 +633,8 @@ class RechercheNoireSensor(HubEntity, SensorEntity):
     recherche on montre un extrait — de quoi voir que la liste existe et à
     quoi elle ressemble ; avec un morceau de nom, tout ce qui correspond.
     """
+    # 2.5.12 (étude des menus, L.3) : attributs hors de l'historique (la base ne grossit plus à chaque relevé).
+    _unrecorded_attributes = frozenset({MATCH_ALL})
 
     _attr_translation_key = "dans_la_liste_noire"
     _attr_icon = "mdi:shield-search"

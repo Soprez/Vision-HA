@@ -3825,8 +3825,14 @@ class PcStore:
 
     def effectif(self, pc: dict[str, Any]) -> dict[str, list[str]]:
         # Demandé par le relevé de l'agent, le capteur et l'espace parents dans la même
-        # seconde : calculé une fois par PC toutes les 5 s (et à chaque écriture).
-        return copy.deepcopy(self._memo(("effectif", (pc or {}).get("id") or ""), 5.0, lambda: self._effectif_calc(pc)))
+        # seconde : calculé une fois par PC et par minute, et à nouveau à chaque écriture.
+        # 2.5.12 : la minute plutôt que 5 s. Le coordinateur repasse toutes les 15 s : avec 5 s, chaque passage
+        # refaisait le catalogue entier pour chaque appareil (0,5 à 0,7 s par appareil sur le NUC). Les plages se
+        # règlent à la minute, et les laissez-passer actifs font partie de la clé : un laissez-passer qui se
+        # termine refait le calcul tout de suite. Une limite de temps du jour atteinte se voit à la minute suivante.
+        cle = ("effectif", (pc or {}).get("id") or "", int(time.time() // 60),
+               tuple(d for d, _ in self.laissez_passer_actifs(pc or {})))
+        return copy.deepcopy(self._memo(cle, 60.0, lambda: self._effectif_calc(pc)))
 
     def _effectif_calc(self, pc: dict[str, Any]) -> dict[str, list[str]]:
         """Ce que l'agent doit réellement appliquer.

@@ -97,7 +97,8 @@ object DispositionAccueil {
 
     /** Pur (essais) : (code, publics, module visible) → les codes permis pour [profil] et les données du lieu [donnees]. */
     fun widgetsVisionPermis(widgets: List<Triple<String, Set<String>, Boolean>>, profil: String, donnees: Set<String>?): List<String> =
-        widgets.filter { (code, publics, visible) -> code != ZoneHaut.HORLOGE && visible && (publics.isEmpty() || profil in publics) && Accueil.disponible(code, donnees) }
+        // 1.93.06 : la règle du catalogue commun (CatalogueWidgets), sans l'horloge stylisée (déjà au catalogue des zones).
+        widgets.filter { (code, publics, visible) -> code != ZoneHaut.HORLOGE && CatalogueWidgets.permet(code, publics, visible, profil, donnees) }
             .map { it.first }
 
     /**

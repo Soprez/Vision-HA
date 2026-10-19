@@ -12,6 +12,8 @@ class BootReceiver : BroadcastReceiver() {
             MiseAJour.notifier(ctx, ctx.getString(R.string.boot_titre),
                 ctx.getString(R.string.boot_texte, BuildConfigCompat.version(ctx)), null)
         }
+        // 1.93.06 (Déverrouillage simplifié) : un redémarrage reverrouille toujours (jamais une mise à jour de Vision).
+        if (i.action != Intent.ACTION_MY_PACKAGE_REPLACED) Deverrouillage.reverrouiller(ctx, "boot")
         if (Config(ctx).inscrit) {
             Etat.charger(ctx)
             AgentService.demarrer(ctx)

@@ -29,8 +29,10 @@ import org.json.JSONObject
  * Chaque touche change l'écran tout de suite (« En cours… »), puis
  * l'état relu de Home Assistant ; un échec s'explique en français et rien ne reste bloqué (10 s au plus).
  */
-class PartyActivity : Activity() {
+class PartyActivity : Activity(), ZoneSure.Geree {
     companion object {
+        /** 1.93.06 (point 2) : essais seulement (FileMonteeTest) — chaque position posée sur la file de la télé. */
+        @Volatile internal var suiviFile: ((Int) -> Unit)? = null
         private val AIDE_TELE: String get() = Tr.s(R.string.mus_aide_tele)
         private val AIDE_DEPLACER: String get() = Tr.s(R.string.mus_aide_deplacer)
         /** 1.86.2 (retour d'essai) : vrai tant que l'écran Party est devant ; l'écran de veille de Vision ne vient pas pendant ce temps. */
@@ -50,6 +52,24 @@ class PartyActivity : Activity() {
     private var auPremierPlan = false
     private var chargement = false
     private var defilement: ScrollView? = null
+    /** 1.93.06 : la position de la file (télé) et le titre en cours quand elle a été prise. */
+    private var defilFile = -1
+    /** 1.93.06 (point 2, TCL) : le haut de la ligne « En cours » quand [defilFile] a été pris ; la position gardée suit
+     *  cette ligne si les titres passés au-dessus changent (HA les envoie un état sur deux). */
+    private var defilRef = 0
+    private var titreDefilFile = ""
+    /** 1.93.06 (point 2) : la montée d'une ligne de la file au titre suivant (la seule animation de la file). */
+    private var monteeFile: MonteeFile? = null
+    private var svFile: ScrollView? = null
+    /** 1.93.06 (point 2, TCL) : les titres passés affichés (Party.passesStables) et le titre en cours affiché. */
+    private var passesFile: List<Party.Titre> = emptyList()
+    private var courantFile: Party.Titre? = null
+    /** La ligne « En cours » de la file à l'écran : la montée se mesure depuis elle (des lignes au-dessus peuvent changer). */
+    private var ligneFileCourante: View? = null
+    /** 1.93.06 (point 6e) : le titre d'avant le dernier changement, quand il a changé, et le dernier « précédent » demandé ici. */
+    private var titrePrecedent = ""
+    private var titreChangeA = 0L
+    private var precedentDemandeA = 0L
     private var barre: BarreLecture? = null
     /** 1.91.0 : le fond animé (style, intensité, couleurs de la pochette : FondLecteur). */
     private var fond: FondLecteurVue? = null
@@ -105,14 +125,18 @@ class PartyActivity : Activity() {
         FluxMusique.ecouter(this, "party") { if (auPremierPlan && !chargement) charger() }
         JournalEcran.annuler()
         main.removeCallbacks(relire); main.removeCallbacks(tic)
+        // 1.93.06 (retour d'essai) : au retour au premier plan, l'état lecture / pause est relu tel quel : une demande faite avant de
+        // partir (lecture / pause « voulue », position figée) ne doit plus masquer ce qui s'est passé entre-temps.
+        voulu = ""; positionFigee = null
         charger()
         main.post(tic)
     }
 
     override fun onDestroy() {
-        // 1.90.2 (retour d'essai) : l'écran Party fermé, ses pochettes sont déchargées (mémoire et disque) — sauf si un autre écran
-        // Musique est déjà ouvert (Pochettes.ecranFerme).
-        if (Pochettes.ecranFerme(isFinishing)) { Pochettes.vider(this); Vignettes.vider(this) }
+        // 1.90.2 (retour d'essai) : l'écran Party fermé, ses pochettes quittent la mémoire — sauf si un autre écran Musique est déjà
+        // ouvert (Pochettes.ecranFerme). 1.93.06 : le disque les garde (réouverture sans rechargement) ; il se vide à la
+        // fin de la Party.
+        if (Pochettes.ecranFerme(isFinishing)) { Pochettes.liberer(); Vignettes.liberer() }
         super.onDestroy()
     }
 
@@ -159,6 +183,17 @@ class PartyActivity : Activity() {
                 chargement = false
                 if (isFinishing) return@post
                 val avant = etat; val erreurAvant = erreur
+                // 1.93.06 (point 6e, vidéo sur la TCL) : juste après un changement de titre, Home Assistant renvoie
+                // parfois encore l'ancien titre (le lecteur n'a pas fini de suivre) : l'écran faisait l'aller-retour.
+                // Un tel retour en arrière est ignoré (8 s au plus), sauf « précédent » demandé ici.
+                val nouveauTitre = e?.let { Party.cleTitre(it.maintenant.titre, it.maintenant.artiste) }.orEmpty()
+                val actuelTitre = avant?.let { Party.cleTitre(it.maintenant.titre, it.maintenant.artiste) }.orEmpty()
+                if (e != null && Party.retourEnArriere(titrePrecedent, actuelTitre, nouveauTitre, System.currentTimeMillis() - titreChangeA, precedentDemandeA > titreChangeA)) {
+                    chargement = false
+                    if (auPremierPlan) main.postDelayed(relire, 1_000L)
+                    return@post
+                }
+                if (nouveauTitre.isNotEmpty() && nouveauTitre != actuelTitre) { titrePrecedent = actuelTitre; titreChangeA = System.currentTimeMillis() }
                 // 1.93.06 (retour 40) : le bouton suit le lecteur réel de cet appareil (Party.corrigerParLocal).
                 val f = e?.let { tenirVoulu(filtrerFile(it, avant), avant) }?.let { Party.corrigerParLocal(this, it, voulu.isNotEmpty()) }
                 if (f != null) { etat = f; erreur = "" } else erreur = err
@@ -525,7 +560,9 @@ class PartyActivity : Activity() {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
         // 1.90.2 : en attendant la pochette du titre qui vient de passer, sa vignette (déjà chargée avec la file).
-        Pochettes.poser(this, img, lecteur, m.pochette, vignettesParTitre[Party.cleTitre(m.titre, m.artiste)]?.let { Vignettes.garde(it) })
+        // 1.93.06 (TCL) : jamais la pochette du titre d'avant pour un autre titre ; la vignette du titre, sinon la case vide.
+        Pochettes.poser(this, img, lecteur, m.pochette, vignetteDuTitre(m)?.let { Vignettes.gardeGrand(it) ?: Vignettes.garde(it) },
+            garderAncienne = false)
         img.layoutParams = LinearLayout.LayoutParams(px(cote), px(cote))
         return img
     }
@@ -661,13 +698,16 @@ class PartyActivity : Activity() {
 
     // ------------------------------------------------------------------ télé
 
-    private fun qrBitmap(contenu: String, cote: Int): android.graphics.Bitmap? = try {
-        val m = com.google.zxing.qrcode.QRCodeWriter().encode(contenu, com.google.zxing.BarcodeFormat.QR_CODE, cote, cote,
-            mapOf(com.google.zxing.EncodeHintType.MARGIN to 1))
-        val pts = IntArray(cote * cote)
-        for (y in 0 until cote) for (x in 0 until cote) pts[y * cote + x] = if (m[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE
-        android.graphics.Bitmap.createBitmap(pts, cote, cote, android.graphics.Bitmap.Config.RGB_565)
-    } catch (_: Exception) { null }
+    /**
+     * 1.93.06 (retour d'essai) : le QR des invités à la taille choisie pour cet appareil (Petit par défaut : la moitié d'avant), à un
+     * nombre entier de pixels par module (au moins 2), sans lissage, zone de silence de 4 modules ([QrInvites]).
+     * [coteAvantDp] : sa taille d'avant (« Grand »). Rend l'image et son côté en px.
+     */
+    private fun qrImage(contenu: String, coteAvantDp: Float): Pair<android.graphics.drawable.BitmapDrawable, Int>? {
+        val bmp = QrInvites.matrice(contenu) ?: return null
+        val cote = QrInvites.cotePx(px(coteAvantDp * QrInvites.facteur(OptionsVeille.qrTaille(this))).toFloat(), bmp.width).toInt()
+        return android.graphics.drawable.BitmapDrawable(resources, bmp).apply { isFilterBitmap = false } to cote
+    }
 
     // 1.86.0 (retours d'essai, photos du salon) : la zone sûre de la télé (5 % de chaque côté, overscan), des tailles
     // qui suivent la hauteur de l'écran, un focus qui ne change jamais la géométrie, aucun texte coupé ni empilé.
@@ -814,6 +854,10 @@ class PartyActivity : Activity() {
 
     /** Titre → vignette de la file, pour l'image d'attente du titre qui devient le titre en cours. */
     private val vignettesParTitre = HashMap<String, String>()
+
+    /** La vignette de la file pour le titre en cours : clé exacte, sinon la clé large (HA l'écrit autrement). */
+    private fun vignetteDuTitre(m: Party.Maintenant): String? =
+        vignettesParTitre[Party.cleTitre(m.titre, m.artiste)] ?: vignettesParTitre[Party.cleTitreLarge(m.titre, m.artiste)]
     private var partyActive = false
 
     /**
@@ -826,8 +870,14 @@ class PartyActivity : Activity() {
         partyActive = e.actif
         if (!e.actif) return
         val suivants = e.file.take(Party.PRECHARGE)
-        suivants.forEach { t -> t.image.takeIf { it.isNotEmpty() }?.let { vignettesParTitre[Party.cleTitre(t.titre, t.artiste)] = it } }
+        suivants.forEach { t -> t.image.takeIf { it.isNotEmpty() }?.let {
+            vignettesParTitre[Party.cleTitre(t.titre, t.artiste)] = it
+            vignettesParTitre.putIfAbsent(Party.cleTitreLarge(t.titre, t.artiste), it)  // 1.93.06 : HA l'écrit autrement
+        } }
         Vignettes.precharger(this, suivants.map { it.image }, px(if (tele) 56f else 48f) * 2)
+        // 1.93.06 (retour d'essai) : le titre qui vient ensuite, préchargé à la taille de la pochette du lecteur : au changement de
+        // titre, l'image d'attente est déjà nette (plus de vignette agrandie, ni de case vide).
+        suivants.firstOrNull()?.image?.takeIf { it.isNotEmpty() }?.let { Vignettes.prechargerGrand(this, it, px(if (tele) 220f else 260f)) }
     }
 
     /** Une petite pochette (ou sa place vide, sans saut) pour une ligne de liste. */
@@ -841,6 +891,24 @@ class PartyActivity : Activity() {
     }
 
     /** Un rond de commande à la télécommande (même anneau de focus que le reste). */
+    /** 1.93.06 : resserre une ligne de commandes de [k] (tailles, pictos, marges et textes), pour qu'elle tienne en largeur. */
+    private fun resserrer(ligne: LinearLayout, k: Float) {
+        val f = k.coerceIn(0.6f, 1f)
+        for (i in 0 until ligne.childCount) {
+            val v = ligne.getChildAt(i)
+            (v.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
+                if (lp.width > 0) lp.width = (lp.width * f).toInt()
+                if (lp.height > 0) lp.height = (lp.height * f).toInt()
+                lp.leftMargin = (lp.leftMargin * f).toInt(); lp.rightMargin = (lp.rightMargin * f).toInt()
+            }
+            if (v is TextView) v.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, v.textSize * f)
+            if (v is ViewGroup) for (j in 0 until v.childCount) v.getChildAt(j).layoutParams?.let { lp ->
+                if (lp.width > 0) lp.width = (lp.width * f).toInt()
+                if (lp.height > 0) lp.height = (lp.height * f).toInt()
+            }
+        }
+    }
+
     private fun rondTele(picto: String, desc: String, plein: Boolean, action: () -> Unit): View {
         val t = if (plein) 56f else 46f
         val f = FrameLayout(this).apply {
@@ -1083,6 +1151,11 @@ class PartyActivity : Activity() {
         if (sous.isNotEmpty()) haut.addView(texte(sous, 15f, theme.encre2).apply {
             gravity = Gravity.CENTER_HORIZONTAL; maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        // 1.93.06 (diagnostic de la 2.5.11.1 : la soirée jouait sur un autre lecteur que celui de la télé) : l'enceinte où
+        // joue la soirée, dite sous le titre (comme sur le téléphone, « En cours sur … »).
+        if (e.actif && e.lecteurNom.isNotEmpty()) haut.addView(texte(getString(R.string.partyecran_enceinte_nom, e.lecteurNom), 13f, theme.or, Polices.demiGras(this)).apply {
+            tag = "lecteur_enceinte"; gravity = Gravity.CENTER_HORIZONTAL; maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; setPadding(0, px(4f), 0, 0)
+        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         // 1.91.0 : la barre devient un curseur (focus, gauche / droite) quand on peut sauter dans le titre.
         val b = barreLecture(e, m).also { barre = it; it.tag = "lecteur_barre" }
         haut.addView(b, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, px(28f)).apply { topMargin = px(6f) })
@@ -1097,7 +1170,7 @@ class PartyActivity : Activity() {
         // Les commandes : précédent, lecture/pause, suivant, volume — centrées.
         val cmd = LinearLayout(this).apply { gravity = Gravity.CENTER; tag = "lecteur_commandes"; setPadding(0, px(14f), 0, 0) }
         val joue = m.etat == "playing"
-        cmd.addView(rondTele("precedent", getString(R.string.vuewidget_precedent), false) { commande("precedent") })
+        cmd.addView(rondTele("precedent", getString(R.string.vuewidget_precedent), false) { precedentDemandeA = System.currentTimeMillis(); commande("precedent") })
         val lecture = rondTele(if (joue) "pause" else "lecture", if (joue) getString(R.string.vuewidget_pause) else getString(R.string.vuewidget_lecture), true) {
             basculerLecture()
         }
@@ -1123,15 +1196,19 @@ class PartyActivity : Activity() {
         for (i in 0 until cmd.childCount) (cmd.getChildAt(i).layoutParams as? LinearLayout.LayoutParams)?.let { it.leftMargin = px(5f); it.rightMargin = px(5f) }
         // Sans Party ici, rien à piloter : les commandes restent visibles, éteintes.
         if (!ici) for (i in 0 until cmd.childCount) cmd.getChildAt(i).apply { alpha = 0.4f; isFocusable = false; isClickable = false }
+        // 1.93.06 (marge de confort + bord réglé + grande police) : la ligne se resserre si elle est plus large que la colonne.
+        val largeurGauche = ((resources.displayMetrics.widthPixels - 2 * margeX() - px(28f)) / 2.15f).toInt()
+        cmd.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        if (cmd.measuredWidth > largeurGauche) resserrer(cmd, largeurGauche.toFloat() / cmd.measuredWidth)
         gauche.addView(cmd, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
         if (retour.isNotEmpty()) gauche.addView(texte(retour, 14f, theme.encre2).apply { setPadding(0, px(8f), 0, 0) })
         gauche.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
         if (e.qr.isNotEmpty()) {
             val q = (h * if (grandePolice()) 0.22f else 0.26f).coerceIn(90f, 160f)
-            qrBitmap(Party.qrAvecTheme(e.qr, theme), px(q))?.let { bmp ->
+            qrImage(Party.qrAvecTheme(e.qr, theme), q)?.let { (image, coteQr) ->
                 val r = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL; background = fond(Palette.melanger(theme.fond, theme.carte, 0.7f), 14f); setPadding(px(10f), px(10f), px(14f), px(10f)) }
-                r.addView(ImageView(this).apply { setImageBitmap(bmp); contentDescription = getString(R.string.partyecran_qr_description) }, LinearLayout.LayoutParams(px(q), px(q)))
+                r.addView(ImageView(this).apply { setImageDrawable(image); scaleType = ImageView.ScaleType.FIT_XY; tag = "lecteur_qr"; contentDescription = getString(R.string.partyecran_qr_description) }, LinearLayout.LayoutParams(coteQr, coteQr))
                 val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(px(14f), 0, 0, 0) }
                 col.addView(texte(getString(R.string.partyecran_proposer_titre), 16f, theme.encre, Polices.demiGras(this)))
                 col.addView(texte(getString(R.string.partyecran_flashez_soiree), 13f, theme.encre2))
@@ -1150,6 +1227,14 @@ class PartyActivity : Activity() {
                 textSize = 13f; minHeight = px(36f); setPadding(px(14f), px(6f), px(14f), px(6f)); tag = "soiree_ouvrir"
             }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(8f) })
             gauche.addView(r, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        }
+        // 1.93.06 : la colonne tient dans la hauteur utile (bord réglé + marge de confort, grande police) : la pochette
+        // rétrécit de ce qui dépasse, jamais sous 64 dp.
+        gauche.measure(View.MeasureSpec.makeMeasureSpec(largeurGauche, View.MeasureSpec.EXACTLY), View.MeasureSpec.UNSPECIFIED)
+        val trop = gauche.measuredHeight - (resources.displayMetrics.heightPixels - 2 * margeY())
+        if (trop > 0) haut.findViewWithTag<View>("lecteur_pochette")?.let { p ->
+            val c = maxOf(px(64f), p.layoutParams.height - trop - px(2f))
+            p.layoutParams = p.layoutParams.apply { width = c; height = c }
         }
         grille.addView(gauche, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
 
@@ -1180,7 +1265,12 @@ class PartyActivity : Activity() {
             addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ -> v.pivotX = v.width.toFloat() }
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { leftMargin = px(10f) })
         droite.addView(tete)
-        val sv = ScrollView(this).apply { isVerticalScrollBarEnabled = false; clipToPadding = false; Ui.cadre(this) }
+        // 1.93.06 (photo de l'auteur, vue « File d'attente ») : la liste finit au-dessus de l'aide en fondu (haut et bas), jamais
+        // sur une ligne coupée net.
+        val sv = ScrollView(this).apply {
+            isVerticalScrollBarEnabled = false; clipToPadding = false; Ui.cadre(this)
+            isVerticalFadingEdgeEnabled = true; setFadingEdgeLength(px(28f)); tag = "lecteur_file"
+        }
         // 1.86.2 : de la marge en haut et en bas, pour que la première et la dernière ligne gardent leur anneau entier.
         val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(px(14f), px(10f), px(14f), px(14f)) }
         sv.addView(col)
@@ -1212,13 +1302,63 @@ class PartyActivity : Activity() {
             lignesPlaylistsTele(col)
         } else {
             // l'auteur (16/10) : les derniers titres joués au-dessus du titre en cours ; la file défile et le garde en vue.
-            e.filePasses.forEach { t -> ligneFile(t.titre, t.artiste, t.image, false, false, t); col.getChildAt(col.childCount - 1)?.alpha = 0.55f }
+            // 1.93.06 (point 2, TCL) : la liste des titres passés ne change plus de forme d'un état à l'autre.
+            val cleCourant = Party.cleTitre(m.titre, m.artiste)
+            passesFile = Party.passesStables(passesFile, e.filePasses, courantFile, cleCourant)
+            courantFile = Party.Titre(m.titre, m.artiste, "", false, vignetteDuTitre(m).orEmpty())
+            passesFile.forEach { t -> ligneFile(t.titre, t.artiste, t.image, false, false, t.takeIf { it.id.isNotEmpty() }); col.getChildAt(col.childCount - 1)?.alpha = 0.55f }
             ligneFile(Party.titreAffiche(m), m.artiste, "", true, false, null)
             ligneCourante = col.getChildAt(col.childCount - 1)
             if (e.file.isEmpty()) col.addView(texte(getString(R.string.partyecran_rien_dautre), 14f, theme.encre3).apply { setPadding(px(4f), px(10f), 0, 0) })
             e.file.forEach { t -> ligneFile(t.titre, t.artiste, t.image, false, t.invite, t) }
         }
-        ligneCourante?.let { lc -> sv.post { sv.scrollTo(0, maxOf(0, lc.top - px(8f))) } }
+        // 1.93.06 (l'auteur : « la liste ne doit plus sauter pendant la lecture ») : l'écran se rebâtit à chaque changement (lecture /
+        // pause, volume, pochette) ; la file ne revient sur le titre en cours que si ce titre a changé. Sinon elle reste
+        // là où on l'a fait défiler.
+        val courant = if (vide) "" else Party.cleTitre(m.titre, m.artiste)
+        // Un écran rebâti pendant la montée (pochette, pause, volume…) : la même montée continue sur la nouvelle file, là
+        // où elle en est (jamais de mi-chemin figé, jamais de saut au bout). Un autre titre entre-temps l'arrête.
+        val enRoute = monteeFile?.takeIf { it.enCours && courant == titreDefilFile }
+        if (enRoute == null) { monteeFile?.annuler(); monteeFile = null }
+        svFile = sv; ligneFileCourante = ligneCourante
+        val garder = courant.isNotEmpty() && courant == titreDefilFile && defilFile >= 0
+        val garde = defilFile
+        // 1.93.06 (point 2) : au titre suivant, « En cours » garde sa place en haut et la liste y monte d'une ligne,
+        // en douceur : on part de la ligne de l'ancien titre en cours (devenu le dernier passé) et on glisse jusqu'au
+        // nouveau. Seul le défilement bouge ; il ne fait que monter. Tout autre changement se pose d'un coup.
+        val dernierPasse = passesFile.takeIf { !vide }?.lastOrNull()?.let { Party.cleTitre(it.titre, it.artiste) }.orEmpty()
+        val depart = ligneCourante?.takeIf { enRoute == null && !garder && Party.monteeDUneLigne(titreDefilFile, courant, dernierPasse) }
+            ?.let { lc -> col.indexOfChild(lc).takeIf { it > 0 }?.let { col.getChildAt(it - 1) } }
+        // 1.93.06 (point 6e, vidéo sur la TCL) : la position est posée AVANT le premier dessin. Avec un post, l'écran
+        // rebâti se dessinait une image tout en haut (les titres passés), puis sautait sur le titre en cours.
+        sv.viewTreeObserver.addOnPreDrawListener(object : android.view.ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                if (sv.viewTreeObserver.isAlive) sv.viewTreeObserver.removeOnPreDrawListener(this)
+                val va = monteeFile
+                // La montée anime ce qui reste à monter jusqu'à « En cours » (et non une position) : un écran rebâti
+                // en route, avec plus ou moins de titres passés au-dessus, la continue sans saut.
+                if (va != null && va.enCours) ligneCourante?.let { lc -> sv.scrollTo(0, maxOf(0, lc.top - px(8f) - va.reste())) }
+                else if (garder) sv.scrollTo(0, maxOf(0, garde + ((ligneCourante?.top ?: defilRef) - defilRef))) else ligneCourante?.let { lc ->
+                    val cible = maxOf(0, lc.top - px(8f))
+                    val de = depart?.let { maxOf(0, it.top - px(8f)) } ?: cible
+                    sv.scrollTo(0, de)
+                    // 1.93.06 (2e vidéo de la TCL) : image par image (MonteeFile), jamais réglée sur le temps.
+                    if (cible > de) monteeFile = MonteeFile(cible - de, surPas = { reste ->
+                        // La file et sa ligne « En cours » à l'écran à cet instant (l'écran a pu être rebâti depuis le départ).
+                        val v = svFile?.takeIf { it.isAttachedToWindow }
+                        val l = ligneFileCourante
+                        if (v != null && l != null) { v.scrollTo(0, maxOf(v.scrollY, maxOf(0, l.top - px(8f) - reste))); suiviFile?.invoke(v.scrollY) }
+                    }, surFin = { svFile?.let { defilFile = it.scrollY; defilRef = ligneFileCourante?.top ?: 0 } }).also { it.demarrer() }
+                }
+                suiviFile?.invoke(sv.scrollY)
+                return true
+            }
+        })
+        if (courant != titreDefilFile) { titreDefilFile = courant; defilFile = -1 }
+        // Pendant la montée, la position n'est retenue qu'à l'arrivée.
+        sv.viewTreeObserver.addOnScrollChangedListener { if (sv.isAttachedToWindow && colFile === col && monteeFile?.enCours != true) { defilFile = sv.scrollY; defilRef = ligneCourante?.top ?: 0 } }
+        // Un doigt pendant la montée : elle s'arrête là où elle est, rien ne revient en arrière.
+        sv.setOnTouchListener { _, _ -> monteeFile?.annuler(); false }
         droite.addView(sv, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         // 1.86.4 (photo de l'auteur) : l'aide a sa zone à elle, sous la file, sur une seule ligne, au-dessus de tout.
         // Campagne Musique (15-10) : Home Assistant injoignable alors que l'écran montre encore la soirée : la phrase
@@ -1268,7 +1408,7 @@ class PartyActivity : Activity() {
                 ToucheMedia.Action.LECTURE -> if (!joue) basculerLecture()
                 ToucheMedia.Action.PAUSE, ToucheMedia.Action.ARRET -> if (joue) basculerLecture()
                 ToucheMedia.Action.SUIVANT -> commande("suivant")
-                ToucheMedia.Action.PRECEDENT -> commande("precedent")
+                ToucheMedia.Action.PRECEDENT -> { precedentDemandeA = System.currentTimeMillis(); commande("precedent") }
                 ToucheMedia.Action.AVANCER, ToucheMedia.Action.RECULER -> if (Saut.permis(e)) {
                     val p = sautCible ?: Party.positionAffichee(this, e, System.currentTimeMillis() / 1000.0)
                     if (p != null) sauter(p + if (a == ToucheMedia.Action.AVANCER) ToucheMedia.SAUT_S else -ToucheMedia.SAUT_S)
@@ -1509,7 +1649,7 @@ class PartyActivity : Activity() {
             if ((e.piloter || (e.participer && e.actif)) && e.lecteur.isNotEmpty()) {
                 val r = LinearLayout(this).apply { gravity = Gravity.CENTER; setPadding(0, px(14f), 0, 0) }
                 val joue = m.etat == "playing"
-                r.addView(rond("precedent", getString(R.string.vuewidget_precedent), false, true) { commande("precedent") })
+                r.addView(rond("precedent", getString(R.string.vuewidget_precedent), false, true) { precedentDemandeA = System.currentTimeMillis(); commande("precedent") })
                 r.addView(rond(if (joue) "pause" else "lecture", if (joue) getString(R.string.vuewidget_pause) else getString(R.string.vuewidget_lecture), true, true) {
                     basculerLecture()
                 })

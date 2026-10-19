@@ -950,5 +950,11 @@
   "inv.mes_en_cours": "Läuft gerade",
   "inv.mes_ensuite": "Läuft direkt nach dem aktuellen Titel",
   "inv.mes_position": "In der Warteschlange, Nr. {pos}",
-  "inv.mes_joue": "Schon gespielt"
+  "inv.mes_joue": "Schon gespielt",
+  "musique.paquet_invalide": "„{nom}“ ist kein Android-App-Name (zum Beispiel com.google.android.youtube.tv).",
+  "dev.initiative": "{par} hat „{nom}“ für {minutes} Min. entsperrt (voller Zugriff: Einstellungen, Installationen); danach sperrt es sich selbst wieder.",
+  "prot.titre": "Schutz deaktiviert",
+  "prot.titre_retablie": "Schutz wiederhergestellt",
+  "prot.coupee": "Schutz auf „{nom}“ deaktiviert: Der Bedienungshilfe-Dienst von Vision ist aus, Vision schützt dort nichts mehr. Auf dem Gerät: Einstellungen › Bedienungshilfen › Vision › An.",
+  "prot.retablie": "Schutz auf „{nom}“ wiederhergestellt: Die Bedienungshilfe von Vision ist wieder aktiv."
 }

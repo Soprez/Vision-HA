@@ -17,10 +17,12 @@ import android.view.View
  *
  * Un cadre doré et quatre flèches, posés à la zone sûre du moment. On les aligne sur les bords VISIBLES de la télé :
  * ◀ ▶ règlent les côtés, ▲ ▼ le haut et le bas (▶ et ▲ agrandissent le cadre, ◀ et ▼ le resserrent), 1 % par appui.
- * OK enregistre (ZoneSure, propre à cet appareil) ; Retour annule ; appui long sur OK : revenir à 5 %.
+ * OK enregistre (ZoneSure, propre à cet appareil) ; Retour annule ; appui long sur OK : revenir aux bords (0 %).
  * Toute l'interface de la télé suit ensuite : accueil, veille, lecteur, menus et réglages.
+ * 1.93.06 (retour d'essai) : le cadre dit seulement où sont les bords visibles ; Vision garde en plus sa marge de confort, montrée
+ * en pointillés à l'intérieur du cadre.
  */
-class AjusterEcranActivity : Activity() {
+class AjusterEcranActivity : Activity(), ZoneSure.Geree {
     companion object {
         fun ouvrir(ctx: Context) = ctx.startActivity(Intent(ctx, AjusterEcranActivity::class.java))
 
@@ -87,6 +89,15 @@ class AjusterEcranActivity : Activity() {
             val r = RectF(gx, gy, w - gx, h - gy)
             trait.strokeWidth = h * 0.006f
             c.drawRect(r, trait)
+            // La marge que Vision garde toujours en plus, à l'intérieur du cadre.
+            val d = resources.displayMetrics.density
+            val confort = RectF(r.left + ZoneSure.CONFORT_X_DP * d, r.top + ZoneSure.CONFORT_Y_DP * d, r.right - ZoneSure.CONFORT_X_DP * d, r.bottom - ZoneSure.CONFORT_Y_DP * d)
+            val n = c.save()
+            trait.strokeWidth = h * 0.002f; trait.alpha = 110
+            trait.pathEffect = android.graphics.DashPathEffect(floatArrayOf(h * 0.012f, h * 0.012f), 0f)
+            c.drawRect(confort, trait)
+            trait.pathEffect = null; trait.alpha = 255
+            c.restoreToCount(n)
             // Les flèches : pointe sur le bord du cadre, vers l'extérieur.
             val f = h * 0.045f
             fun fleche(px: Float, py: Float, dx: Float, dy: Float) {

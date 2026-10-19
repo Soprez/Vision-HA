@@ -4,6 +4,7 @@ package org.soprez.vision
 import android.content.Context
 import android.net.Uri
 import android.util.Base64
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import java.security.KeyFactory
@@ -145,6 +146,93 @@ object Deverrouillage {
 
     fun estQr(texte: String): Boolean = texte.trim().startsWith("vision://deverrouillage", ignoreCase = true)
 
+    // ------------------------------------------------------------------ 2 bis. À l'initiative d'un responsable (1.93.06)
+
+    /**
+     * 1.93.06 (Déverrouillage simplifié) : un responsable déverrouille cet appareil depuis son mobile, la carte ou
+     * un service de HA, sans demande d'ici. L'approbation arrive par le relevé, signée en version [VERSION_INITIATIVE]
+     * (jamais confondue avec celle d'une demande, version 1), liée à CET appareil et à un identifiant « init-… » à usage
+     * unique : il est retenu jusqu'à son expiration, une approbation rejouée est refusée.
+     */
+    const val VERSION_INITIATIVE = "2"
+    const val DEFI_INITIATIVE = "initiative"
+    val MINUTES_INITIATIVE = setOf(15, 30, 60)
+
+    fun estInitiative(a: JSONObject?): Boolean = a != null && a.optString("demande").startsWith("init-")
+
+    /** Pur : le message signé (8 lignes, sans retour final ; docs/deverrouillage.md §4). */
+    fun message(version: String, appareil: String, demande: String, action: String, minutes: Int, expire: Long, defi: String): ByteArray =
+        listOf("vision-deverrouillage", version, appareil, demande, action, minutes.toString(), expire.toString(), defi)
+            .joinToString("\n").toByteArray(Charsets.UTF_8)
+
+    private fun signatureBonne(pub: String, msg: ByteArray, signature: String): Boolean = try {
+        val cle = KeyFactory.getInstance("EC").generatePublic(X509EncodedKeySpec(Base64.decode(pub, Base64.DEFAULT)))
+        Signature.getInstance("SHA256withECDSA").run {
+            initVerify(cle); update(msg)
+            verify(Base64.decode(signature, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP))
+        }
+    } catch (_: Exception) { false }
+
+    /** Les identifiants d'initiative déjà appliqués, avec leur expiration (secondes) : jamais deux fois le même. */
+    private fun vus(ctx: Context): JSONObject = try { JSONObject(prefs(ctx).getString("init_vus", "{}") ?: "{}") } catch (_: Exception) { JSONObject() }
+
+    /** Vérifie une approbation à l'initiative d'un responsable ; null si elle est bonne, sinon pourquoi. */
+    fun verifierInitiative(ctx: Context, a: JSONObject, maintenantS: Long = System.currentTimeMillis() / 1000): String? {
+        val p = prefs(ctx)
+        val k = p.getString("k", "") ?: ""; val pub = p.getString("pub", "") ?: ""
+        if (k.isEmpty() || a.optString("k") != k) return ctx.getString(R.string.dev_cle_inconnue)
+        val moi = Config(ctx).id
+        if (a.optString("appareil") != moi) return ctx.getString(R.string.dev_autre_appareil)
+        val id = a.optString("demande")
+        if (!id.startsWith("init-") || vus(ctx).has(id)) return ctx.getString(R.string.dev_autre_demande)
+        val minutes = a.optInt("minutes"); val expire = a.optLong("expire")
+        val msg = message(VERSION_INITIATIVE, moi, id, a.optString("action"), minutes, expire, DEFI_INITIATIVE)
+        if (!signatureBonne(pub, msg, a.optString("signature"))) return ctx.getString(R.string.dev_signature_refusee)
+        if (maintenantS > expire) return ctx.getString(R.string.dev_expire)
+        if (a.optString("action") != "parent" || minutes !in MINUTES_INITIATIVE) return ctx.getString(R.string.dev_action_inconnue)
+        return null
+    }
+
+    /** Vérifie puis applique l'accès total ; renvoie le message à montrer. */
+    fun accepterInitiative(ctx: Context, a: JSONObject): String {
+        verifierInitiative(ctx, a)?.let { throw Echec(it) }
+        val id = a.optString("demande")
+        val o = vus(ctx)
+        val maintenantS = System.currentTimeMillis() / 1000
+        o.keys().asSequence().toList().forEach { if (o.optLong(it) < maintenantS) o.remove(it) }
+        o.put(id, a.optLong("expire"))
+        prefs(ctx).edit().putString("init_vus", o.toString()).commit()
+        val maintenant = System.currentTimeMillis()
+        appliquer(ctx, "parent", a.optInt("minutes"), maintenant)
+        BandeauDeverrouille.maintenant()
+        Log.i("VisionDeverrouillage", "accès total ${a.optInt("minutes")} min, à l'initiative de ${a.optString("par")}")
+        consommerPlusTard(ctx, id, maintenant / 1000)
+        Thread { envoyerConsommations(ctx) }.start()
+        val qui = a.optString("par").ifEmpty { ctx.getString(R.string.dev_un_gestionnaire, Vocabulaire.decideur(ctx)) }
+        return ctx.getString(R.string.dev_deverrouille_total, qui, a.optInt("minutes"))
+    }
+
+    // ------------------------------------------------------------------ 2 ter. Accès total, bandeau, reverrouiller
+
+    /** 1.93.06 : l'accès total est-il ouvert (déverrouillage d'un responsable, ou pause par le code) ? */
+    fun accesTotal(ctx: Context): Boolean = Config(ctx).modeParent
+
+    /** Les minutes qui restent (arrondies au-dessus), 0 si verrouillé. */
+    fun minutesRestantes(ctx: Context, maintenant: Long = System.currentTimeMillis()): Int {
+        val fin = Config(ctx).parentJusqua
+        return if (fin <= maintenant) 0 else (((fin - maintenant) + 59_999L) / 60_000L).toInt()
+    }
+
+    /** « Reverrouiller » (bandeau, réglages de Vision) et le redémarrage de l'appareil : tout se referme. */
+    fun reverrouiller(ctx: Context, pourquoi: String) {
+        val cfg = Config(ctx)
+        val etait = cfg.modeParent || reglagesOuverts(ctx)
+        cfg.parentJusqua = 0L
+        prefs(ctx).edit().putLong("reglages_jusqua", 0L).apply()
+        if (etait) Log.i("VisionDeverrouillage", "reverrouillé ($pourquoi)")
+        BandeauDeverrouille.maintenant()
+    }
+
     /** Vérifie l'approbation dans l'ordre du contrat ; renvoie null si elle est bonne, sinon pourquoi. */
     fun verifier(ctx: Context, a: JSONObject): String? {
         val p = prefs(ctx)
@@ -193,7 +281,12 @@ object Deverrouillage {
                 // Le mode parent lève aussi les messages bloquants qui attendent un parent.
                 MessagesRiches.leverParent(ctx, "deverrouillage")
             }
-            action == "reglages" -> prefs(ctx).edit().putLong("reglages_jusqua", fin).apply()
+            // 1.93.06 (Déverrouillage simplifié) : déverrouillé par un responsable = accès TOTAL pour la durée.
+            action == "reglages" -> {
+                prefs(ctx).edit().putLong("reglages_jusqua", fin).apply()
+                val cfg = Config(ctx)
+                cfg.parentJusqua = maxOf(cfg.parentJusqua, fin)
+            }
             action.startsWith("app:") -> {
                 val o = permises(ctx); o.put(action.removePrefix("app:"), fin)
                 prefs(ctx).edit().putString("apps", o.toString()).apply()
@@ -252,6 +345,8 @@ object Deverrouillage {
     /** Approbation directe arrivée par le relevé. */
     fun directe(ctx: Context, a: JSONObject?): String? {
         a ?: return null
+        // 1.93.06 : à l'initiative d'un responsable, sans demande d'ici.
+        if (estInitiative(a)) return if (vus(ctx).has(a.optString("demande"))) null else try { accepterInitiative(ctx, a) } catch (e: Echec) { e.raison }
         val d = enCours ?: return null
         if (a.optString("demande") != d.id) return null
         return try { accepter(ctx, a) } catch (e: Echec) { e.raison }

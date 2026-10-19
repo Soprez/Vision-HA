@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.93.06 (retour d'essai) : l'accueil de la télé, modes Utilisation et Modification (ModeAccueilTele, LanceurActivity). -->
+<resources>
+    <string name="accueil_modifier">Modifier l\'accueil</string>
+    <string name="accueil_bandeau_choisir">Modification de l\'accueil · Flèches : choisir un cadre · OK : le saisir · Appui long : options · Retour : terminer</string>
+    <string name="accueil_bandeau_deplacer">Déplacer · Flèches : déplacer · OK : valider · Retour : annuler</string>
+    <string name="accueil_bandeau_deplacer_redim">Déplacer · Flèches : déplacer · OK : redimensionner · Retour : annuler</string>
+    <string name="accueil_bandeau_taille">Taille · ◄ ► largeur · ▲ ▼ hauteur · OK : valider · Retour : annuler</string>
+    <string name="accueil_modif_terminee">Modification de l\'accueil terminée.</string>
+    <string name="accueil_modifier_aide">Appui long sur OK dans l\'accueil pour le modifier.</string>
+</resources>

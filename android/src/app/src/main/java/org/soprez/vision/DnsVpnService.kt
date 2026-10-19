@@ -29,6 +29,8 @@ class DnsVpnService : VpnService() {
     @Volatile private var tunnel: ParcelFileDescriptor? = null
     @Volatile private var tourne = false
     private var pompe: Thread? = null
+    private var suivi: ReseauLocal.Suivi? = null
+    @Volatile private var amont: android.net.Network? = null
 
     override fun onStartCommand(i: Intent?, flags: Int, id: Int): Int {
         if (i?.action == STOP) { arreterTout(); return START_NOT_STICKY }
@@ -47,6 +49,11 @@ class DnsVpnService : VpnService() {
             .addDnsServer(DNS_VIRTUEL)
             .addRoute(DNS_VIRTUEL, 32)
             .setMtu(1500)
+        // 1.93.06 (Pixel 8a de Alex : Snapchat sans réseau depuis le 13/10, « APP_BACKGROUND|METERED_USER_RESTRICTED ») :
+        // depuis Android 10, un VPN est « facturé à l'usage » par défaut, et tun0 rendait facturé même le Wi-Fi. Les
+        // applis aux données d'arrière-plan limitées perdaient le réseau. Non facturé : le tunnel prend l'état du réseau
+        // sous-jacent (déclaré par setUnderlyingNetworks : le réseau validé, plus bas).
+        if (Build.VERSION.SDK_INT >= 29) b.setMetered(false)
         // On s'exclut nous-mêmes : l'agent parle à HA sans repasser par le tunnel.
         try { b.addDisallowedApplication(packageName) } catch (_: Exception) {}
         // Les applis de télé qui refusent tout réseau « VPN » (OQEE / Free TV sur Android 9 ne voit plus le Wi-Fi) :
@@ -60,10 +67,19 @@ class DnsVpnService : VpnService() {
         tunnel = t
         tourne = true
         actif = true
+        // 1.93.06 (TV du salon) : le DNS amont suit le réseau VALIDÉ (jamais un VPN, jamais un câble sans adresse) et
+        // rebascule seul quand il change. C'est aussi lui qu'on déclare sous le tunnel (filtré : jamais l'ancien tunnel).
+        suivi = ReseauLocal.Suivi(this) { n ->
+            amont = n
+            try { setUnderlyingNetworks(n?.let { arrayOf(it) }) } catch (_: Exception) {}
+        }.also { it.demarrer() }
         pompe = Thread { boucle(t) }.apply { isDaemon = true; start() }
     }
 
     private fun arreterTout() {
+        suivi?.arreter()
+        suivi = null
+        amont = null
         tourne = false
         actif = false
         pompe?.interrupt()
@@ -80,7 +96,8 @@ class DnsVpnService : VpnService() {
         val tampon = ByteArray(32767)
         while (tourne) {
             val n = try { entree.read(tampon) } catch (_: Exception) { break }
-            if (n <= 0) { Thread.sleep(5); continue }
+            // 1.93.06 (banc) : l'arrêt du VPN interrompt ce fil ; l'interruption pendant l'attente faisait planter l'appli.
+            if (n <= 0) { try { Thread.sleep(5) } catch (_: InterruptedException) { break }; continue }
             try { traiter(tampon, n, sortie) } catch (_: Exception) {}
         }
     }
@@ -140,6 +157,7 @@ class DnsVpnService : VpnService() {
             try {
                 DatagramSocket().use { sock ->
                     protect(sock)
+                    if (Build.VERSION.SDK_INT >= 23) amont?.let { n -> try { n.bindSocket(sock) } catch (_: Exception) {} }
                     sock.soTimeout = 4000
                     val adr = InetAddress.getByName(s)
                     sock.send(DatagramPacket(requete, requete.size, adr, 53))

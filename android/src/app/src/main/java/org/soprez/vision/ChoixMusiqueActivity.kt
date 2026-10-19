@@ -31,7 +31,7 @@ import org.json.JSONObject
  * (IconeSource), les filtres sont derrière un bouton « Filtre », la télé a son clavier (ClavierTele), et la voix
  * remplace la saisie quand l'appareil la propose. Les réglages vivent dans les paramètres Vision (ReglagesMusique).
  */
-open class ChoixMusiqueActivity : Activity() {
+open class ChoixMusiqueActivity : Activity(), ZoneSure.Geree {
     /**
      * l'auteur (16/10) : sur la télé, « Ajouter un titre » depuis le lecteur n'en cache plus rien — la recherche s'ouvre dans
      * la moitié droite (ChoixMusiqueTeleActivity, fenêtre translucide) ; le lecteur et le code invités restent à gauche.
@@ -121,7 +121,7 @@ open class ChoixMusiqueActivity : Activity() {
         programmee?.let { main.removeCallbacks(it) }
         annulation?.annuler()
         // Le choix de la musique ouvert seul (sans écran Party dessous) : fermé, ses vignettes sont déchargées.
-        if (Pochettes.ecranFerme(isFinishing)) { Pochettes.vider(this); Vignettes.vider(this) }
+        if (Pochettes.ecranFerme(isFinishing)) { Pochettes.liberer(); Vignettes.liberer() }  // 1.93.06 : le disque reste
         super.onDestroy()
     }
 

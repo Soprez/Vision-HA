@@ -1489,6 +1489,20 @@
       "name": "Nieuwe ontgrendelsleutel",
       "description": "Vervangt de sleutel die goedkeuringen voor ontgrendelen ondertekent; lopende goedkeuringen werken dan niet meer. De apparaten krijgen de nieuwe sleutel bij de volgende controle. Alleen voor beheerders."
     },
+    "deverrouiller_appareil": {
+      "name": "Apparaat ontgrendelen",
+      "description": "Ontgrendelt een apparaat meteen, zonder verzoek van het apparaat: volledige toegang (Android-instellingen, installaties, ontwikkelaarsopties) voor 15, 30 of 60 min, daarna vergrendelt het zichzelf weer. Alle verantwoordelijken krijgen een melding. Alleen beheerders.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Het apparaat dat ontgrendeld wordt (zijn Vision-ID)."
+        },
+        "minutes": {
+          "name": "Minuten",
+          "description": "Hoe lang: 15, 30 of 60 min."
+        }
+      }
+    },
     "pause_generale": {
       "name": "Alles blokkeren",
       "description": "Blokkeert in één keer alle gevolgde apparaten voor een tijdje; de apparaten van wie beslist blijven toegestaan. “Weer toestaan” staat ze vóór het einde toe. Alleen voor beheerders.",
@@ -1920,6 +1934,54 @@
         "logo": {
           "name": "Vision-logo",
           "description": "Hoek van het Vision-oog: dezelfde waarden; standaard linksonder (zijn gewone plek). De QR-code en het logo delen nooit een hoek."
+        },
+        "qr_taille": {
+          "name": "Grootte van de gasten-QR-code",
+          "description": "petit (klein, van dichtbij ≈ 1 m, standaard), moyen (middel, ≈ 1,5 m) of grand (groot, ≈ 2 m). Geldt ook voor de muziekspeler."
+        }
+      }
+    },
+    "musique_regler": {
+      "name": "Muziek — geluid van andere apps",
+      "description": "Wat de muziek van Vision op een apparaat doet als een andere app geluid afspeelt (alleen beheerders en automatiseringen). Het apparaat neemt de nieuwste instelling over, uit Home Assistant of van de tv zelf.",
+      "fields": {
+        "pc": {
+          "name": "Apparaat",
+          "description": "Naam van het apparaat."
+        },
+        "focus": {
+          "name": "Muziek pauzeren",
+          "description": "toujours (standaard): pauze zodra een andere app geluid afspeelt; applis: alleen voor de apps in de lijst; jamais: de muziek speelt door. Overschakelen naar een tv-ingang (HDMI, live-tv) telt als een andere app."
+        },
+        "applis": {
+          "name": "Apps die pauzeren",
+          "description": "Android-pakketnamen (bijvoorbeeld com.google.android.youtube.tv), voor „applis”. vision.entrees_tele staat voor de tv-ingangen (HDMI, live-tv)."
+        },
+        "reprise": {
+          "name": "Automatisch hervatten",
+          "description": "De muziek speelt vanzelf verder als het andere geluid stopt (standaard uit)."
+        }
+      }
+    },
+    "widget_regler": {
+      "name": "Widget — regel onder de waarde",
+      "description": "Stelt de widget van een entiteit in op alle apparaten (alleen beheerders en automatiseringen): de regel onder de waarde, de naam en het pictogram. Zoals de kaart Widgets HA.",
+      "fields": {
+        "entite": {
+          "name": "Entiteit van de widget",
+          "description": "De entiteit die de widget toont (bijvoorbeeld input_number.instelwaarde)."
+        },
+        "ligne": {
+          "name": "Regel onder de waarde",
+          "description": "Een andere entiteit waarvan de status onder de waarde staat (bijvoorbeeld sensor.verwarmingsmodus). Leeg: geen regel."
+        },
+        "nom": {
+          "name": "Naam",
+          "description": "De getoonde naam (leeg: die van Home Assistant)."
+        },
+        "icone": {
+          "name": "Pictogram",
+          "description": "Een mdi:-pictogram (leeg: dat van Home Assistant)."
         }
       }
     },
@@ -1973,6 +2035,9 @@
       },
       "compte_administrateur": {
         "name": "Beheerdersaccount"
+      },
+      "protection_desactivee": {
+        "name": "Bescherming uitgeschakeld"
       },
       "pause_generale_en_cours": {
         "name": "Alles geblokkeerd"

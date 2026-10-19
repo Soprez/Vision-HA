@@ -174,7 +174,7 @@ class CategoriesActivity : Activity() {
                     .put("pc", a.optString("id")).put("etiquette", nom).put("etat", etat)).optString("retour").ifEmpty { getString(R.string.cat_c_est_fait) }
                 ok = true
                 r
-            } catch (e: Net.Echec) { Geste.messageEchec(e.code) } catch (_: Exception) { getString(R.string.commun_ha_injoignable_rien) }
+            } catch (e: Net.Echec) { Geste.messageEchec(e.code) } catch (e: Exception) { ReseauLocal.message(this@CategoriesActivity, e) }
             runOnUiThread {
                 if (!ok) { if (avant != null) etats[nom] = avant else etats.remove(nom); remplir() }
                 Ui.toast(this, texte, court = true, genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)

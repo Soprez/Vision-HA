@@ -841,9 +841,13 @@ class VisionEtiquettesCard extends HTMLElement {
     if (!this._hass) return;
     if (!silencieux) this._charge = false;
     try {
-      const reponse = await this._hass.callApi("GET", "pc_parental/catalogue");
+      // 2.5.12 : la relecture des 30 s envoie l'empreinte connue ; si rien n'a changé, HA ne renvoie pas le catalogue.
+      const connue = minuteur && this._charge && !this._erreur && this._revision ? this._revision : "";
+      const reponse = await this._hass.callApi("GET", "pc_parental/catalogue" + (connue ? "?revision=" + encodeURIComponent(connue) : ""));
+      if (reponse && reponse.inchange) return;
       // 1.93.2 : la relecture des 30 s ne redessine rien si rien n'a changé (la page ne bouge pas sous les doigts).
       const empreinte = JSON.stringify(reponse);
+      this._revision = (reponse && reponse.revision) || "";
       if (minuteur && this._charge && !this._erreur && empreinte === this._empreinte) return;
       this._empreinte = empreinte;
       this._donnees = reponse;

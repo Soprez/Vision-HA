@@ -950,5 +950,11 @@
   "inv.mes_en_cours": "Joue en ce moment",
   "inv.mes_ensuite": "Passe juste après le titre en cours",
   "inv.mes_position": "Dans la file, n° {pos}",
-  "inv.mes_joue": "Déjà joué"
+  "inv.mes_joue": "Déjà joué",
+  "musique.paquet_invalide": "« {nom} » n'est pas un nom d'appli Android (par exemple com.google.android.youtube.tv).",
+  "dev.initiative": "{par} a déverrouillé « {nom} » pour {minutes} min (accès total : réglages, installations) ; il se reverrouille seul à la fin.",
+  "prot.titre": "Protection désactivée",
+  "prot.titre_retablie": "Protection rétablie",
+  "prot.coupee": "Protection désactivée sur « {nom} » : le service d'accessibilité de Vision est coupé, Vision n'y protège plus rien. Sur l'appareil : Paramètres › Accessibilité › Vision › Activé.",
+  "prot.retablie": "Protection rétablie sur « {nom} » : l'accessibilité de Vision est de nouveau active."
 }

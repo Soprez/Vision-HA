@@ -159,13 +159,25 @@
   "switch.google_pixel_8a_bloquer_jeux",
   "Google Pixel 8a Bloquer « Jeux »"
  ],
+ "pc_parental_etq_g1_toujours_autorise": [
+  "switch.google_pixel_8a_bloquer_toujours_autorise",
+  "Google Pixel 8a Bloquer « Toujours autorisé »"
+ ],
  "pc_parental_etq_j1_jeux": [
   "switch.pc_alex_bloquer_jeux",
   "PC-ALEX Bloquer « Jeux »"
  ],
+ "pc_parental_etq_j1_toujours_autorise": [
+  "switch.pc_alex_bloquer_toujours_autorise",
+  "PC-ALEX Bloquer « Toujours autorisé »"
+ ],
  "pc_parental_exceptions": [
   "sensor.vision_exceptions",
   "Vision Exceptions"
+ ],
+ "pc_parental_fenetre_reveil": [
+  "binary_sensor.vision_fenetre_reveil",
+  null
  ],
  "pc_parental_fermer_laissez_passer": [
   "button.vision_refermer_ce_site",
@@ -386,6 +398,14 @@
  "pc_parental_presence_j1": [
   "sensor.pc_alex_presence",
   "PC-ALEX Présence"
+ ],
+ "pc_parental_protection_g1": [
+  "binary_sensor.google_pixel_8a_protection_desactivee",
+  "Google Pixel 8a Protection désactivée"
+ ],
+ "pc_parental_protection_j1": [
+  "binary_sensor.pc_alex_protection_desactivee",
+  "PC-ALEX Protection désactivée"
  ],
  "pc_parental_rafraichir_liste_noire": [
   "button.vision_rafraichir_la_liste_noire",
@@ -618,9 +638,5 @@
  "pc_parental_virustotal": [
   "switch.vision_avis_virustotal",
   "Vision Avis VirusTotal"
- ],
- "pc_parental_fenetre_reveil": [
-  "binary_sensor.vision_fenetre_reveil",
-  null
  ]
 }

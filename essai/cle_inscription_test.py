@@ -139,6 +139,7 @@ async def test_cle_connue_ou_faible_regeneree_une_fois(hass, hass_storage, hass_
     r = await client.post("/api/pc_parental/poll", json={"id": "a1", "secret": secret})
     assert r.status == 200
     assert coord.store.pcs["a1"]["secret"] == secret
+    await hass.async_block_till_done()  # le relevé a pu programmer un rechargement de Vision : on l'attend
 
     # La nouvelle clé inscrit un nouvel appareil ; l'ancienne, jamais.
     r = await client.post("/api/pc_parental/enroll", json={"key": vieille, "host": "PC-NEUF", "uid": "uid-neuf"})

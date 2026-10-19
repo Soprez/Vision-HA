@@ -58,6 +58,12 @@ RE_ACTION = re.compile(r"^(app:[A-Za-z0-9._]{1,100}|reglages|parent)$")
 RE_DEFI = re.compile(r"^[A-Za-z0-9_-]{22}$")
 ENTETE = "vision-deverrouillage"
 VERSION_SIGNATURE = "1"
+# 2.5.12 (Déverrouillage simplifié) : un déverrouillage à l'initiative d'un Décideur, sans demande de l'appareil.
+# Version de signature à part (« 2 ») : une approbation de demande ne passe jamais pour une initiative, ni l'inverse.
+VERSION_INITIATIVE = "2"
+DEFI_INITIATIVE = "initiative"
+INITIATIVE_MINUTES = (15, 30, 60)
+INITIATIVE_S = 10 * 60  # le temps de la remettre à l'appareil (relevé) ; la durée choisie part de son application
 
 
 def _b64url(octets: bytes) -> str:
@@ -122,10 +128,11 @@ class Cle:
         return _b64url(self._privee.sign(message, ec.ECDSA(hashes.SHA256())))
 
 
-def message(appareil: str, demande: str, action: str, minutes: int, expire: int, defi: str) -> bytes:
+def message(appareil: str, demande: str, action: str, minutes: int, expire: int, defi: str,
+            version: str = VERSION_SIGNATURE) -> bytes:
     """Le message signé : 8 lignes, dans cet ordre, sans retour final (docs/deverrouillage.md §4)."""
     return "\n".join(
-        [ENTETE, VERSION_SIGNATURE, appareil, demande, action, str(int(minutes)), str(int(expire)), defi]
+        [ENTETE, version, appareil, demande, action, str(int(minutes)), str(int(expire)), defi]
     ).encode("utf-8")
 
 
@@ -431,6 +438,69 @@ def _signer(hass: HomeAssistant, coord, d: dict[str, Any], repli: bool = False) 
     return reponse
 
 
+def initiative(hass: HomeAssistant, coord, appareil: str, minutes: Any, par: str, voix: str = "") -> dict[str, Any]:
+    """2.5.12 (Déverrouillage simplifié) : un Décideur (son appli, le tableau, un service d'administrateur)
+    déverrouille un appareil pour 15, 30 ou 60 min, sans demande de l'appareil. Accès total (« parent ») pendant la
+    durée : réglages d'Android, installations, options pour les développeurs, plus aucun écran de blocage de Vision.
+
+    L'approbation est signée en version [VERSION_INITIATIVE], liée à l'appareil et à un identifiant tiré ici (à
+    usage unique : l'appareil le retient jusqu'à son expiration), remise par le relevé (« directe »). Tous les
+    Décideurs sont prévenus ; l'application est journalisée à la consommation, comme une approbation de demande."""
+    pc = coord.store.pcs.get(str(appareil or ""))
+    if pc is None:
+        raise Refus(404, "appareil")
+    # Seule l'appli Android sait appliquer cette approbation (l'agent d'un PC ne la lirait jamais).
+    if str(pc.get("platform") or "") != "android":
+        raise Refus(400, "appareil", raison="android")
+    try:
+        minutes = int(minutes)
+    except (TypeError, ValueError):
+        raise Refus(400, "minutes") from None
+    if minutes not in INITIATIVE_MINUTES:
+        raise Refus(400, "minutes", minutes_permises=list(INITIATIVE_MINUTES))
+    maintenant = time.time()
+    demandes = _demandes(hass)
+    # Une seule initiative en attente par appareil : la nouvelle remplace l'ancienne (jamais deux remises).
+    for vieille in demandes.values():
+        if vieille["pc"] == pc["id"] and vieille.get("initiative") and vieille["etat"] == "approuvee":
+            vieille["etat"] = "annulee"
+    ident = "init-" + secrets.token_urlsafe(12)
+    expire = int(maintenant) + INITIATIVE_S
+    signature = cle(hass).signer(message(pc["id"], ident, "parent", minutes, expire, DEFI_INITIATIVE, VERSION_INITIATIVE))
+    d = {
+        "id": ident, "pc": pc["id"], "action": "parent", "minutes": minutes, "motif": "", "defi": DEFI_INITIATIVE,
+        "cree": maintenant, "expire": expire, "etat": "approuvee", "requis": 1, "repli": None, "code": None,
+        "voix": {voix or par: {"par": par, "minutes": minutes, "remise": "directe", "t": maintenant}},
+        "initiative": True,
+        "approbation": {"k": cle(hass).k, "appareil": pc["id"], "demande": ident, "action": "parent",
+                        "minutes": minutes, "expire": expire, "signature": signature, "par": par,
+                        "remise": "directe", "version": VERSION_INITIATIVE},
+    }
+    demandes[ident] = d
+    nom, qui = str(pc.get("name") or pc["id"]), _qui(hass, pc)
+    _LOGGER.warning("%s : %s déverrouille « %s »%s pour %s min (à son initiative).", PRODUIT, par, nom,
+                    f" ({qui})" if qui else "", minutes)
+    hass.bus.async_fire("logbook_entry", {"name": PRODUIT, "domain": DOMAIN, "message": textes.t(
+        "dev.initiative", textes.ha(hass), par=par, nom=nom, minutes=minutes)})
+    hass.bus.async_fire(f"{DOMAIN}_deverrouillage_initiative", {"demande": ident, "appareil": pc["id"], "nom": nom,
+                                                                 "personne": qui, "minutes": minutes, "par": par})
+    _prevenir_parents(hass, coord, textes.Phrase("dev.initiative", par=par, nom=nom, minutes=minutes))
+    return {"ok": True, "demande": ident, "appareil": pc["id"], "minutes": minutes, "expire": expire}
+
+
+def annuler_initiative(hass: HomeAssistant, coord, appareil: str, par: str) -> dict[str, Any]:
+    """2.5.12 : un Décideur annule une initiative pas encore remise (l'appareil, lui, se reverrouille par son bandeau)."""
+    n = 0
+    for d in _demandes(hass).values():
+        if d["pc"] == appareil and d.get("initiative") and d["etat"] == "approuvee":
+            d["etat"] = "annulee"
+            n += 1
+    if n:
+        _LOGGER.warning("%s : %s annule le déverrouillage pas encore remis de « %s ».", PRODUIT, par,
+                        _nom(coord, {"pc": appareil}))
+    return {"ok": True, "annulees": n}
+
+
 def qr(a: dict[str, Any]) -> str:
     """Le QR d'approbation : tout sauf le défi (docs/deverrouillage.md §3)."""
     return (
@@ -651,6 +721,25 @@ class DecisionView(_VueAppareil):
         return reponse
 
 
+class InitiativeView(_VueAppareil):
+    """2.5.12 : l'appli d'un Décideur, Appareils › <appareil> › Déverrouiller 15/30/60 min (preuve exigée par
+    l'appli à chaque fois : Octroi.kt)."""
+
+    url = "/api/pc_parental/deverrouillage/initiative"
+    name = "api:pc_parental:deverrouillage_initiative"
+
+    async def traiter(self, coord, pc, corps):
+        par = _parent(self.hass, coord, pc)
+        cible = str(corps.get("appareil") or "")
+        if cible == pc["id"]:
+            raise Refus(403, "parent")  # on ne se déverrouille pas soi-même
+        if str(corps.get("decision") or "deverrouiller") == "annuler":
+            return annuler_initiative(self.hass, coord, cible, par)
+        reponse = initiative(self.hass, coord, cible, corps.get("minutes"), par, voix=roles.votant(pc))
+        await coord.async_refresh()
+        return reponse
+
+
 class ListeView(_VueAppareil):
     url = "/api/pc_parental/deverrouillage/liste"
     name = "api:pc_parental:deverrouillage_liste"
@@ -702,6 +791,19 @@ class AdminView(HomeAssistantView):
             return self.json({"ok": False, "error": "loading"}, status_code=503)
         if refus := modules.refus(self, coord.store, "deverrouillage"):
             return refus
+        if corps.get("initiative"):
+            # 2.5.12 : déverrouiller depuis la carte, sans demande ; le code du Décideur est exigé comme pour accorder.
+            from . import octroi
+            if (refus_code := await octroi.exiger(self.hass, coord, request, corps, True)) is not None:
+                return self.json(refus_code, status_code=403)
+            try:
+                reponse = initiative(self.hass, coord, str(corps["initiative"]), corps.get("minutes"),
+                                     str(request["hass_user"].name or textes.t("commun.un_administrateur", textes.ha(self.hass))),
+                                     voix=votant_admin(self.hass, request["hass_user"].id))
+            except Refus as refus:
+                return self.json({"ok": False, "error": refus.erreur, **refus.plus}, status_code=refus.statut)
+            await coord.async_refresh()
+            return self.json(reponse)
         try:
             reponse = decider(self.hass, coord, corps.get("demande"), str(corps.get("decision") or ""),
                               corps.get("minutes"), str(corps.get("remise") or ""),
@@ -765,6 +867,21 @@ def _enregistrer_services(hass: HomeAssistant) -> None:
     service_admin(hass, "refuser_deverrouillage", _refuser, schema=vol.Schema({vol.Required("demande"): cv.string}))
     service_admin(hass, "nouvelle_cle_deverrouillage", _tourner, schema=vol.Schema({}))
 
+    async def _initiative(call: ServiceCall):
+        coord = _coordinateur(hass)
+        try:
+            reponse = initiative(hass, coord, call.data["pc"], call.data.get("minutes", 15), await _par(call),
+                                 voix=votant_admin(hass, call.context.user_id))
+        except Refus as refus:
+            raise HomeAssistantError(textes.t("dev.erreur_service", textes.ha(hass), erreur=refus.erreur)) from refus
+        await coord.async_refresh()
+        return reponse
+
+    service_admin(hass, "deverrouiller_appareil", _initiative, schema=vol.Schema({
+        vol.Required("pc"): cv.string,
+        vol.Optional("minutes", default=15): vol.All(vol.Coerce(int), vol.In(INITIATIVE_MINUTES)),
+    }), supports_response=SupportsResponse.OPTIONAL)
+
 
 async def async_installer(hass: HomeAssistant) -> None:
     """La clé (créée au premier démarrage), les vues et les services, une seule fois."""
@@ -774,6 +891,6 @@ async def async_installer(hass: HomeAssistant) -> None:
     nouvelle = Cle(hass)
     await nouvelle.async_load()
     etat["cle"] = nouvelle
-    for vue in (DemandeView, EtatView, CodeView, ConsommerView, DecisionView, ListeView, AdminView):
+    for vue in (DemandeView, EtatView, CodeView, ConsommerView, DecisionView, InitiativeView, ListeView, AdminView):
         hass.http.register_view(vue(hass))
     _enregistrer_services(hass)

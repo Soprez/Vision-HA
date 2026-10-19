@@ -241,7 +241,9 @@ async def test_fabricant_vision_et_entity_id_inchanges(hass, hass_storage):
     from homeassistant.helpers import device_registry as dr
 
     await _monter_langue(hass, hass_storage, "fr")
-    appareils = [d for d in dr.async_get(hass).devices.values() if any(i[0] == DOMAIN for i in d.identifiers)]
+    # 2.5.12 : par l'entrée de configuration (« devices » comme dictionnaire est refusé par les HA récents, 2027.9).
+    entree = hass.config_entries.async_entries(DOMAIN)[0]
+    appareils = [d for d in dr.async_entries_for_config_entry(dr.async_get(hass), entree.entry_id) if any(i[0] == DOMAIN for i in d.identifiers)]
     assert len(appareils) >= 3
     assert {d.manufacturer for d in appareils} == {"Vision"}
     releve = _releve(hass)

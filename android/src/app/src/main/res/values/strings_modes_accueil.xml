@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.93.06 (retour d'essai) : l'accueil de la télé, modes Utilisation et Modification (ModeAccueilTele, LanceurActivity). -->
+<resources>
+    <string name="accueil_modifier">Edit the home screen</string>
+    <string name="accueil_bandeau_choisir">Editing the home screen · Arrows: choose a frame · OK: pick it up · Long press: options · Back: finish</string>
+    <string name="accueil_bandeau_deplacer">Move · Arrows: move · OK: done · Back: cancel</string>
+    <string name="accueil_bandeau_deplacer_redim">Move · Arrows: move · OK: resize · Back: cancel</string>
+    <string name="accueil_bandeau_taille">Size · ◄ ► width · ▲ ▼ height · OK: done · Back: cancel</string>
+    <string name="accueil_modif_terminee">Home screen editing finished.</string>
+    <string name="accueil_modifier_aide">Long press OK on the home screen to edit it.</string>
+</resources>

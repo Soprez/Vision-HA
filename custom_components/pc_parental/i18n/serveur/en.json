@@ -950,5 +950,11 @@
   "inv.mes_en_cours": "Playing now",
   "inv.mes_ensuite": "Plays right after the current song",
   "inv.mes_position": "In the queue, no. {pos}",
-  "inv.mes_joue": "Already played"
+  "inv.mes_joue": "Already played",
+  "musique.paquet_invalide": "“{nom}” is not an Android app name (for example com.google.android.youtube.tv).",
+  "dev.initiative": "{par} unlocked “{nom}” for {minutes} min (full access: settings, installs); it locks again by itself at the end.",
+  "prot.titre": "Protection turned off",
+  "prot.titre_retablie": "Protection restored",
+  "prot.coupee": "Protection turned off on “{nom}”: Vision's accessibility service is off, so Vision protects nothing there. On the device: Settings › Accessibility › Vision › On.",
+  "prot.retablie": "Protection restored on “{nom}”: Vision's accessibility is active again."
 }

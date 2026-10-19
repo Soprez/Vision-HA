@@ -58,7 +58,7 @@ class ReponseReceiver : BroadcastReceiver() {
                     }
                 } catch (e: Net.Echec) {
                     Geste.messageEchec(e.code)
-                } catch (_: Exception) { ctx.getString(R.string.commun_ha_injoignable_rien) }
+                } catch (e: Exception) { ReseauLocal.message(ctx, e) }
                 principal.post {
                     Ui.toast(ctx, texte)
                     apres?.invoke(Geste.Resultat(ok, texte))

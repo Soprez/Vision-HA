@@ -88,7 +88,10 @@ class WidgetsTeleEcranTest : InstrumentationTestCase() {
         WidgetsHaStock.ecrire(ctx, WidgetsHa.Reglage("tele_consigne", listOf("input_number.consigne"), WidgetsHa.REGLAGE, 2, 1))
         Accueil.ajouterALaGrille(ctx, WidgetsHa.cle("tele_consigne"), 2, 1)
         Accueil.ajouterALaGrille(ctx, Accueil.PREFIXE_WIDGET + "chauffage", 2, 2)
-        val a = instrumentation.startActivitySync(Intent(ctx, LanceurActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        val a = instrumentation.startActivitySync(Intent(ctx, LanceurActivity::class.java)
+            // 1.93.06 : sur la télé, Vision EST l'accueil (déjà ouvert, singleTask) : sans CLEAR_TASK, Android passe par
+            // onNewIntent et startActivitySync attend pour toujours une activité qui ne vient pas.
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         instrumentation.setInTouchMode(false)
         try {
             val nom = "Chauffage — température cible confort du séjour"

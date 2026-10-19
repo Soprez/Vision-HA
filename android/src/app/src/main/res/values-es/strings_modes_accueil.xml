@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.93.06 (retour d'essai) : l'accueil de la télé, modes Utilisation et Modification (ModeAccueilTele, LanceurActivity). -->
+<resources>
+    <string name="accueil_modifier">Editar la pantalla de inicio</string>
+    <string name="accueil_bandeau_choisir">Editando la pantalla de inicio · Flechas: elegir un marco · OK: tomarlo · Pulsación larga: opciones · Atrás: terminar</string>
+    <string name="accueil_bandeau_deplacer">Mover · Flechas: mover · OK: aceptar · Atrás: cancelar</string>
+    <string name="accueil_bandeau_deplacer_redim">Mover · Flechas: mover · OK: cambiar tamaño · Atrás: cancelar</string>
+    <string name="accueil_bandeau_taille">Tamaño · ◄ ► ancho · ▲ ▼ alto · OK: aceptar · Atrás: cancelar</string>
+    <string name="accueil_modif_terminee">Edición de la pantalla de inicio terminada.</string>
+    <string name="accueil_modifier_aide">Mantén pulsado OK en la pantalla de inicio para editarla.</string>
+</resources>

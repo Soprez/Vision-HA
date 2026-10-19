@@ -24,7 +24,7 @@ import android.widget.TextView
  * l'accès : la demande part chez un gestionnaire, qui répond depuis son
  * téléphone. L'écran se retire tout seul dès que l'accès rouvre.
  */
-class BlockActivity : Activity() {
+class BlockActivity : Activity(), ZoneSure.Geree {
     private val h = Handler(Looper.getMainLooper())
     private lateinit var titre: TextView
     private lateinit var pourquoi: TextView

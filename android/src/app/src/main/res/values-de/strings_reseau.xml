@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.93.06 : réseau coupé (cause connue) ou Home Assistant qui ne répond pas. -->
+<resources>
+    <string name="reseau_coupe_tele">Das Netzwerk des Fernsehers ist unterbrochen (Kabel oder WLAN prüfen).</string>
+    <string name="reseau_coupe_appareil">Das Netzwerk dieses Geräts ist unterbrochen (WLAN prüfen).</string>
+    <string name="reseau_ha_muet">Home Assistant antwortet nicht: Es wurde nichts geändert. Das Netzwerk dieses Geräts funktioniert.</string>
+</resources>

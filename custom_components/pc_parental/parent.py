@@ -1124,12 +1124,6 @@ async def agir(
             await coord.async_ecrire(structurel=True)
         except Exception:  # noqa: BLE001 - le geste est fait, les entités suivront au prochain rechargement
             pass
-    if action == "attribuer":
-        # Les pages des personnes suivent : le tableau de bord se refait s'il a changé.
-        try:
-            await coord.async_maj_tableau()
-        except Exception:  # noqa: BLE001 - le geste est fait, le tableau suivra
-            pass
     hass.bus.async_fire(
         "{}_parent_action".format(DOMAIN),
         {"action": action, "pc": cible["id"], "minutes": minutes, "par": qui},
@@ -1418,7 +1412,10 @@ class PcParentalMaisonView(HomeAssistantView):
         coord = _coordinateur(self.hass)
         if coord is None:
             return self.json({"ok": False, "error": "loading"}, status_code=503)
-        return self.json(etat_maison(self.hass, coord))
+        # 2.5.12 : la carte relit toutes les 30 s ; rien ne repart (ni ne se redessine) si rien n'a changé.
+        from . import listes
+
+        return listes.repondre(self, request, etat_maison(self.hass, coord))
 
     async def post(self, request: web.Request) -> web.Response:
         if refus := self._admin(request):

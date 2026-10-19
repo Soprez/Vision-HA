@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.93.06 (retour d'essai) : la taille du QR des invités (veille et lecteur), par appareil, avec la distance de scan. -->
+<resources>
+    <string name="qr_taille_titre">Taille du QR des invités</string>
+    <string name="qr_taille_petit">Petit — à scanner de près (≈ 1 m)</string>
+    <string name="qr_taille_moyen">Moyen — à scanner à ≈ 1,5 m</string>
+    <string name="qr_taille_grand">Grand — à scanner de loin (≈ 2 m)</string>
+</resources>

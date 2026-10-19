@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
+from homeassistant.const import MATCH_ALL
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -210,6 +211,8 @@ class EtiquettePcSwitch(PcEntity, SwitchEntity):
     dans Paramètres, elle reste le même interrupteur, avec le même
     historique. Le nom, lui, est relu à chaque affichage.
     """
+    # 2.5.12 (étude des menus, L.3) : attributs hors de l'historique (la base ne grossit plus à chaque relevé).
+    _unrecorded_attributes = frozenset({MATCH_ALL})
 
     _attr_icon = "mdi:tag-off-outline"
     _attr_entity_category = EntityCategory.CONFIG
@@ -252,10 +255,12 @@ class EtiquettePcSwitch(PcEntity, SwitchEntity):
         if not nom:
             return {}
         magasin = self.coordinator.store
+        # 2.5.12 : des nombres, plus les listes (une copie par appareil et par catégorie, jusqu'à des centaines de
+        # noms chacune). La liste d'une catégorie se lit dans l'onglet Autorisations.
         return {
             "etiquette": nom,
-            "logiciels": magasin.noms_par_etiquette("apps", nom),
-            "sites": magasin.noms_par_etiquette("sites", nom),
+            "nb_logiciels": len(magasin.noms_par_etiquette("apps", nom)),
+            "nb_sites": len(magasin.noms_par_etiquette("sites", nom)),
         }
 
     async def _basculer(self, actif: bool) -> None:

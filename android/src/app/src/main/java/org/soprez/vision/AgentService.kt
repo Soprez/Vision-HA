@@ -159,6 +159,7 @@ class AgentService : Service() {
         try { Party.releve(this, r.optJSONObject("party")) } catch (_: Exception) {}
         // 1.93.05 (retour 36) : les options de la veille de cet appareil, réglées depuis Home Assistant.
         try { OptionsVeille.releve(this, r.optJSONObject("veille_options")) } catch (_: Exception) {}
+        try { FocusMusique.releve(this, r.optJSONObject("musique_options")) } catch (_: Exception) {}  // 1.93.06 : focus audio
         // Réveil : les événements remontés sont reçus ; la liste à armer et les ordres arrivent (l'appareil sonne seul).
         try { Reveils.acquitter(this, corps.optJSONObject("reveils")); Reveils.releve(this, r) } catch (_: Exception) {}
         // Niveau sonore : dépassements remis, puis réglages de la mesure (« actif: false » arrête le micro).
@@ -255,6 +256,9 @@ class AgentService : Service() {
             put("user", cfg.utilisateur)
             put("locked", Etat.verrouilleEffectif())
             put("focus", Usage.dernierPaquet)
+            // 1.93.06 (incident du salon) : autre chose joue ici pendant que la musique de Vision ne joue pas ; HA ne
+            // relance alors pas la soirée après une coupure.
+            put("autre_son", LecteurMusique.etat != "lecture" && FocusMusique.autreSonEnCours(this@AgentService))
             put("idle_seconds", Usage.inactifSecondes(this@AgentService))
             // 1.88.0 (retour d'essai) : l'écran de l'appareil (DisplayManager, sans permission) ; éteint → HA met la musique en pause.
             put("ecran", ecranEteint()?.let { if (it) "eteint" else "allume" } ?: "")

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.93.06 (retour d'essai) : l'accueil de la télé, modes Utilisation et Modification (ModeAccueilTele, LanceurActivity). -->
+<resources>
+    <string name="accueil_modifier">Startbildschirm bearbeiten</string>
+    <string name="accueil_bandeau_choisir">Startbildschirm bearbeiten · Pfeile: Rahmen wählen · OK: aufnehmen · Lange drücken: Optionen · Zurück: fertig</string>
+    <string name="accueil_bandeau_deplacer">Verschieben · Pfeile: verschieben · OK: übernehmen · Zurück: abbrechen</string>
+    <string name="accueil_bandeau_deplacer_redim">Verschieben · Pfeile: verschieben · OK: Größe ändern · Zurück: abbrechen</string>
+    <string name="accueil_bandeau_taille">Größe · ◄ ► Breite · ▲ ▼ Höhe · OK: übernehmen · Zurück: abbrechen</string>
+    <string name="accueil_modif_terminee">Bearbeitung des Startbildschirms beendet.</string>
+    <string name="accueil_modifier_aide">Lange auf OK drücken, um den Startbildschirm zu bearbeiten.</string>
+</resources>

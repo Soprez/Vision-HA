@@ -21,8 +21,8 @@ from homeassistant.components import persistent_notification
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
 
-from . import android_maj, client_files, installation, labels, messages
-from . import lieu, messages_v2, modules, nouveautes, party, preavis, roles, soutien, textes, veille_options, veille_pc, widgets
+from . import android_maj, client_files, installation, labels, listes, messages
+from . import lieu, messages_v2, modules, musique_options, nouveautes, party, preavis, roles, soutien, textes, veille_options, veille_pc, widgets
 from .parent import PcParentalMaisonView, PcParentalParentView
 from .demandes import PcParentalDemandeView
 from .veille import PcParentalVeilleEntitesView, PcParentalVeilleFluxView, PcParentalVeilleImageView, PcParentalVeilleView
@@ -269,6 +269,10 @@ class PcParentalPollView(HomeAssistantView):
         _prot = corps.get("protections")
         if isinstance(_prot, dict):
             pc["agent"]["protections"] = {k: bool(v) for k, v in _prot.items()}
+            # 2.5.12 (point de sécurité) : « Protection désactivée sur <appareil> » quand l'accessibilité tombe.
+            from . import protection as _protection
+
+            _protection.releve(self.hass, coord, pc, maintenant_ts)
         # Matrice réglages × type d'appareil (1.72.0).
         from . import matrice as _matrice
 
@@ -277,7 +281,6 @@ class PcParentalPollView(HomeAssistantView):
             pc["type"] = _type
             await coord.store.async_save()
             _matrice.appliquer(self.hass, coord.store)
-            self.hass.async_create_task(coord.async_maj_tableau())  # sans les entités désactivées
         # Pauses de la protection (1.70.0) : journalisées une fois chacune.
         from . import pauses as _pauses
 
@@ -292,6 +295,10 @@ class PcParentalPollView(HomeAssistantView):
         coord.store.compter_usage(pc, presence, ecart)
 
         focus = str(corps.get("focus") or "")
+        # 2.5.12 (incident du salon) : autre chose joue sur l'appareil (pas de relance de soirée par-dessus).
+        from . import party as _party_son
+
+        _party_son.noter_autre_son(pc_id, bool(corps.get("autre_son")), maintenant_ts)
         if focus and presence == PRESENCE_ACTIF:
             # Le temps ne se compte que sur le logiciel réellement utilisé.
             coord.store.noter_app(pc, focus, ecart)
@@ -440,6 +447,8 @@ class PcParentalPollView(HomeAssistantView):
             "party": party.pour_releve(self.hass, coord.store, pc),
             # 1.93.05 (l'auteur, retour 36) : les options de la veille de cet appareil (pc_parental.veille_regler), si réglées.
             "veille_options": veille_options.pour_releve(pc),
+            # 1.93.06 : la musique de cet appareil face au son des autres applis (pc_parental.musique_regler), si réglé.
+            "musique_options": musique_options.pour_releve(pc),
             # Soutien du projet (docs/soutien.md) : badge et animation, rien d'autre.
             "soutien": soutien.pour_releve(coord.store),
             # L'agent reçoit le résultat, pas les règles : les étiquettes
@@ -1078,7 +1087,8 @@ class PcParentalCatalogueView(HomeAssistantView):
         coord: PcParentalCoordinator | None = entrees[0] if entrees else None
         if coord is None:
             return self.json({"ok": False, "error": "loading"}, status_code=503)
-        return self.json({"ok": True, **coord.store.catalogue_etiquetage()})
+        # 2.5.12 : la carte relit toutes les 30 s ; rien ne repart si le catalogue n'a pas changé.
+        return listes.repondre(self, request, {"ok": True, **coord.store.catalogue_etiquetage()})
 
     async def post(self, request: web.Request) -> web.Response:
         """Coche ou décoche des catégories : {"categories": {"Nom": true|false}}.
@@ -1127,6 +1137,7 @@ def async_register(hass: HomeAssistant) -> None:
     hass.http.register_view(PcParentalEnrollView(hass))
     hass.http.register_view(PcParentalClientView(hass))
     hass.http.register_view(PcParentalListeNoireView(hass))
+    listes.enregistrer(hass)  # 2.5.12 : les grandes listes, à la demande
     hass.http.register_view(PcParentalCatalogueView(hass))
     hass.http.register_view(PcParentalReponseView(hass))
     hass.http.register_view(PcParentalAndroidView(hass))

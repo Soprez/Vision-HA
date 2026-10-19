@@ -123,7 +123,7 @@ class CategorieActivity : Activity() {
                 r.optString("retour").ifEmpty { getString(R.string.cat_c_est_fait) }
             } catch (e: Net.Echec) {
                 e.corps?.optString("retour").orEmpty().ifEmpty { Geste.messageEchec(e.code) }
-            } catch (_: Exception) { getString(R.string.commun_ha_injoignable_rien) }
+            } catch (e: Exception) { ReseauLocal.message(this@CategorieActivity, e) }
             principal.post {
                 Ui.toast(this, texte, court = true, genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)
                 charger()

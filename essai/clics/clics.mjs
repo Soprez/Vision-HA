@@ -9,6 +9,9 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+// Linux (CI) : Chromium refuse de démarrer sans bac à sable utilisable (conteneur, runner Ubuntu à espaces de noms
+// restreints) ; /dev/shm y est petit. Sous Windows, rien ne change.
+const OPTIONS_LINUX = process.platform === "linux" ? ["--no-sandbox", "--disable-dev-shm-usage"] : [];
 
 const [, , DOSSIER, NAVIGATEUR] = process.argv;
 let PORT_HTTP = 0;
@@ -401,7 +404,7 @@ async function main() {
   await new Promise((ok) => serveur.listen(0, "127.0.0.1", ok));
   PORT_HTTP = serveur.address().port;
   const profil = mkdtempSync(join(tmpdir(), "vision-clics-"));
-  const nav = spawn(NAVIGATEUR, ["--headless=new", "--disable-gpu", `--user-data-dir=${profil}`, `--remote-debugging-port=${PORT_CDP}`,
+  const nav = spawn(NAVIGATEUR, ["--headless=new", "--disable-gpu", ...OPTIONS_LINUX, `--user-data-dir=${profil}`, `--remote-debugging-port=${PORT_CDP}`,
     "--no-first-run", "--window-size=1280,1600", "about:blank"], { stdio: "ignore" });
   let echecs = 0;
   try {

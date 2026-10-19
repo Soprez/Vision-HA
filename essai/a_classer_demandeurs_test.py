@@ -118,7 +118,7 @@ async def test_appareils_sans_personne_ignores_et_autorisation_comptee(hass, has
     store = await _magasin(hass, hass_storage, monkeypatch)
     for i in ("tele-sans-personne", "banc-sans-personne"):
         assert roles.a(store, store.pcs[i], "demander_acces"), "Demandeur par défaut, comme la télé du salon"
-    assert sorted(p["id"] for p in store.appareils_demandeurs()) == ["pc-alex", "pc-sam", "tel-alex"]
+    assert sorted(p["id"] for p in store.appareils_demandeurs()) == ["pc-sam", "pc-alex", "tel-alex"]
     assert store.classe(None, "sites", "adulte.example") == FILTRE_BLOQUES
     # Autorisé exprès sur les 3 appareils des Demandeurs (sans blocage) : décidé aussi, compté comme autorisé.
     for i in ("pc-alex", "tel-alex", "pc-sam"):

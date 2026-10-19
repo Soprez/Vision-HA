@@ -34,7 +34,7 @@ import kotlin.math.sin
  * pour tout l'appareil : lanceur, écran de veille et écrans de l'appli. À la
  * télécommande, ce qui a le focus grossit et prend un anneau doré.
  */
-class CouleursActivity : Activity() {
+class CouleursActivity : Activity(), ZoneSure.Geree {
     private val cible = Palette.APPLI
     private lateinit var racine: ScrollView
     private lateinit var colonne: LinearLayout

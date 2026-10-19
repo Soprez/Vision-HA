@@ -13,7 +13,7 @@ import android.widget.FrameLayout
  * L'écran de veille à la demande, depuis le lanceur : la même vue que le
  * service de rêve, en plein écran ; se feuillette et se retire sur Retour.
  */
-class VeilleActivity : Activity() {
+class VeilleActivity : Activity(), ZoneSure.Geree {
     companion object {
         /** Veille de repli lancée par l'accueil : le premier appui (touche ou toucher) la retire. */
         const val PREMIER_APPUI = "premier_appui"

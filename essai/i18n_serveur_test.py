@@ -101,11 +101,13 @@ FICHIERS_IDENTIFIANTS = {
 }
 EXCEPTIONS: dict[str, set[str]] = {
     # Noms propres et identifiants.
-    "__init__.py": {"Tous les jours", "Home Assistant"},  # clé de DAY_PRESETS ; auteur d'une action
+    "__init__.py": {"Tous les jours", "Home Assistant", "Toujours autorisé"},  # clé de DAY_PRESETS ; auteur d'une action ; étiquette (donnée)
     "messages_v2.py": {"Home Assistant"},
     "store.py": {"Tous les PC", "Home Assistant", "Program Files", "pub & traçage"},  # ancien destinataire accepté
     "http.py": {"pub & traçage", "système", "Toujours autorisé"},  # noms d'étiquettes (données, en minuscules)
     "parent.py": {"pub & traçage", "Toujours autorisé"},
+    # 2.5.12 : le marqueur de la raison venue du magasin (lot A2), comparé, jamais affiché (repris de sensor.py).
+    "listes.py": {"sur cet appareil", ", sur cet appareil"},
     "labels.py": {"toujours autorisé"},
     "musique.py": {"YouTube Music", "Apple Music", "Radio Browser", "Music Assistant",
                    "Déplacer ", "À la fin ",  # libellés d'une action, pour le journal (_LOGGER) seulement

@@ -39,7 +39,7 @@ import java.util.Locale
  * gauche et droite passent de l'une à l'autre, puis à la colonne de droite.
  * Sur un téléphone, une seule colonne.
  */
-class ReglagesTvActivity : Activity() {
+class ReglagesTvActivity : Activity(), ZoneSure.Geree {
     private val main = Handler(Looper.getMainLooper())
     private lateinit var cfg: Config
     private var theme: Theme = Themes.liste[0]
@@ -92,7 +92,8 @@ class ReglagesTvActivity : Activity() {
             cadreTv = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             rail = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
             // Le menu prend la largeur de son plus long nom (jamais un mot coupé), au moins un quart de l'écran.
-            rail.minimumWidth = (dm.widthPixels * 0.22f).toInt()
+            // 1.93.06 : plus le bord réglé (« Ajuster l'écran ») qu'il prend à gauche : les noms gardent la même place.
+            rail.minimumWidth = (dm.widthPixels * 0.22f).toInt() + ZoneSure.x(this, 0f) - ZoneSure.confortX(this)
             cadreTv.addView(rail, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT))
             cadreTv.addView(racine, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
             setContentView(cadreTv)
@@ -405,7 +406,15 @@ class ReglagesTvActivity : Activity() {
 
     private fun construirePageSansGarde() {
         contenu.removeAllViews()
-        contenu.setPadding(ZoneSure.x(this@ReglagesTvActivity, 0.035f), ZoneSure.y(this@ReglagesTvActivity, 0.06f), ZoneSure.x(this@ReglagesTvActivity, 0.05f), ZoneSure.y(this@ReglagesTvActivity, 0.06f))
+        if (tele) {
+            // 1.93.06 (retour d'essai) : la page défile DANS la zone (bord réglé + confort) et s'y efface en fondu ; avant, ses lignes
+            // passaient sous la marge du bas jusqu'au bord de l'écran.
+            contenu.setPadding(ZoneSure.x(this@ReglagesTvActivity, 0.035f), px(6f), ZoneSure.x(this@ReglagesTvActivity, 0.05f), px(10f))
+            racine.setPadding(0, ZoneSure.y(this@ReglagesTvActivity, 0.06f) - px(6f), 0, ZoneSure.y(this@ReglagesTvActivity, 0.06f))
+            // Gardée découpée (Ui.laisserDeborder ne la touche plus) ; 6 et 10 dp de marge intérieure gardent les anneaux entiers.
+            Ui.garderCoupe(racine); racine.clipToPadding = true
+            racine.isVerticalFadingEdgeEnabled = true; racine.setFadingEdgeLength(px(24f))
+        } else contenu.setPadding(ZoneSure.x(this@ReglagesTvActivity, 0.035f), ZoneSure.y(this@ReglagesTvActivity, 0.06f), ZoneSure.x(this@ReglagesTvActivity, 0.05f), ZoneSure.y(this@ReglagesTvActivity, 0.06f))
         when (sousPage) {
             "cartes" -> pageCartes()
             "tableaux" -> pageTableaux()
@@ -477,6 +486,8 @@ class ReglagesTvActivity : Activity() {
         })
         // 1.93.05 (l'auteur, retour 39) : le coin du QR des invités et celui du logo (ou masqués) ; un coin pris est refusé.
         contenu.addView(ligne(getString(R.string.veille_option_qr), nomCoin(OptionsVeille.qr(this)), "veille_qr") { choisirCoin(qr = true) })
+        // 1.93.06 (retour d'essai) : la taille du QR des invités (veille et lecteur), avec la distance de scan.
+        contenu.addView(ligne(getString(R.string.qr_taille_titre), QrInvites.libelle(this, OptionsVeille.qrTaille(this)), "veille_qr_taille") { choisirTailleQr() })
         contenu.addView(ligne(getString(R.string.veille_option_logo), nomCoin(OptionsVeille.logo(this)), "veille_logo") { choisirCoin(qr = false) })
         // Veille-lot (point 5) : la ligne dit le chemin de CETTE télé (déjà Vision, un appui, le réglage, ou la commande ADB).
         val vision = EconomiseurTv.plan(this).chemin == ReglesVeille.Chemin.DEJA_VISION
@@ -508,6 +519,16 @@ class ReglagesTvActivity : Activity() {
         OptionsVeille.BD -> R.string.veille_coin_bas_droite
         else -> R.string.veille_coin_cache
     })
+
+    /** 1.93.06 (retour d'essai) : Petit (par défaut), Moyen ou Grand ; [choix] pour les essais. */
+    internal fun choisirTailleQr(choix: Int? = null) {
+        val tailles = QrInvites.TAILLES
+        fun poser(k: Int) { OptionsVeille.poserQrTaille(this, tailles[k]); repeindre() }
+        if (choix != null) { poser(choix); return }
+        Ui.dialogue(this).setTitle(getString(R.string.qr_taille_titre))
+            .setSingleChoiceItems(tailles.map { QrInvites.libelle(this, it) }.toTypedArray(), tailles.indexOf(OptionsVeille.qrTaille(this))) { d, k -> d.dismiss(); poser(k) }
+            .setNegativeButton(getString(R.string.commun_lot2_annuler), null).show()
+    }
 
     /** 1.93.05 (retour 39) : le coin du QR ([qr]) ou du logo ; le coin de l'autre est marqué, et refusé s'il est choisi. */
     internal fun choisirCoin(qr: Boolean, choix: Int? = null) {
@@ -564,6 +585,11 @@ class ReglagesTvActivity : Activity() {
             AccueilDefaut.basculerForce(this) { repeindre() }
         })
         if (Modules.actif(this, Modules.VEILLE)) note(getString(R.string.reglagestv_deux_appuis))
+        // 1.93.06 (retour d'essai) : l'accueil s'ouvre en mode Modification (déplacer, redimensionner ; OK valide, Retour annule).
+        if (tele) contenu.addView(ligne(getString(R.string.accueil_modifier), getString(R.string.accueil_modifier_aide), "modifier_accueil") {
+            startActivity(Intent(this, LanceurActivity::class.java).putExtra(LanceurActivity.EXTRA_MODIFIER, true).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP))
+            finish()
+        })
         // l'auteur (13 octobre) : la disposition de l'accueil — rangées (d'avant) ou « Vertical » : une colonne d'applis à
         // gauche, au centre ou à droite, et de part et d'autre des zones de widgets, choisies et activées par un Décideur.
         val vertical = DispositionAccueil.disposTele(this) == DispositionAccueil.TELE_VERTICAL

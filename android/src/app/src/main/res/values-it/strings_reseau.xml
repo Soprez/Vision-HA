@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.93.06 : réseau coupé (cause connue) ou Home Assistant qui ne répond pas. -->
+<resources>
+    <string name="reseau_coupe_tele">La rete della TV è interrotta (controllate il cavo o il Wi-Fi).</string>
+    <string name="reseau_coupe_appareil">La rete di questo dispositivo è interrotta (controllate il Wi-Fi).</string>
+    <string name="reseau_ha_muet">Home Assistant non risponde: non è stato cambiato nulla. La rete di questo dispositivo funziona.</string>
+</resources>

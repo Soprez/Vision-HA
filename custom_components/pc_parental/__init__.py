@@ -357,6 +357,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.exception("Musique : arrêt automatique")
 
     entry.async_on_unload(async_track_time_interval(hass, _arret_auto, timedelta(seconds=30)))
+    # 2.5.12 (incidents du salon, 18/10) : une musique de veille reprise à la main n'est plus arrêtée à l'expiration.
+    from . import veille_musique as _veille_reprise
+    entry.async_on_unload(_veille_reprise.ecouter(hass))
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
     # Module Réveil — le moteur (évaluation, contrôle de synchronisation) existe avant les entités.
@@ -417,6 +420,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     from .entity import assurer_hub
 
     assurer_hub(hass, coordinator)
+    # 2.5.12 (essais instables de la suite complète) : « Toujours autorisé » déclarée avant de créer les entités. Avant,
+    # le premier relevé la déclarait : les étiquettes proposées changeaient et Vision se rechargeait (inutilement, à
+    # chaque installation neuve) ; pendant ce rechargement, hass.data[DOMAIN] était vide un instant.
+    try:
+        if "Toujours autorisé" not in store.toutes_etiquettes():  # i18n-ok : nom de l'étiquette (donnée), lu par le code
+            store.declarer_etiquette("Toujours autorisé")  # i18n-ok : idem
+    except Exception:  # noqa: BLE001 - jamais au prix du démarrage
+        _LOGGER.debug("Vision : étiquette « Toujours autorisé » non déclarée au démarrage.", exc_info=True)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     from . import matrice
 
@@ -1170,7 +1181,8 @@ def _async_register_services(hass: HomeAssistant) -> None:
     }), supports_response=SupportsResponse.OPTIONAL)
 
     async def _veille_regler(call: ServiceCall) -> dict:
-        """1.93.05 (l'auteur, retours 36 et 39) : la veille d'un appareil — bandeau « Lecteur musique », coins du QR et du logo."""
+        """1.93.05 (l'auteur, retours 36 et 39) : la veille d'un appareil — bandeau « Lecteur musique », coins du QR et du logo ;
+        1.93.06 : taille du QR des invités (petit, moyen, grand)."""
         from . import veille_options as _vo
 
         coord = _coordinator()
@@ -1183,6 +1195,43 @@ def _async_register_services(hass: HomeAssistant) -> None:
         await coord.store.async_save()
         coord.async_update_listeners()
         return {"pc": pc["id"], "reglages": reglages}
+
+    async def _musique_regler(call: ServiceCall) -> dict:
+        """1.93.06 (retour d'essai) : la musique d'un appareil face au son des autres applis (focus audio) et la reprise."""
+        from . import musique_options as _mo
+
+        coord = _coordinator()
+        pc = _pc(coord, call.data["pc"])
+        try:
+            reglages = _mo.regler(pc, {k: v for k, v in call.data.items() if k != "pc"})
+        except _mo.PaquetInvalide as exc:
+            raise HomeAssistantError(textes.t("musique.paquet_invalide", textes.ha(hass), nom=str(exc))) from exc
+        await coord.store.async_save()
+        coord.async_update_listeners()
+        return {"pc": pc["id"], "reglages": reglages}
+
+    async def _widget_regler(call: ServiceCall) -> dict:
+        """1.93.06 (retour d'essai) : la ligne sous la valeur d'un widget (une autre entité, « Réduit jusqu'à 12:00 »), son nom et son
+        icône, sans passer par la carte Widgets HA. ``ligne`` vide : plus de ligne."""
+        from . import widgets as _w
+
+        coord = _coordinator()
+        eid = call.data["entite"]
+        voulu: dict = {}
+        if "ligne" in call.data:
+            voulu["texte"] = call.data["ligne"] or ""
+        for cle in ("nom", "icone"):
+            if cle in call.data:
+                voulu[cle] = call.data[cle] or ""
+        try:
+            change = _w.regler_entite(hass, coord.store, eid, voulu, "service")
+        except textes.Erreur as exc:
+            raise HomeAssistantError(textes.erreur(exc, textes.ha(hass))) from exc
+        if change:
+            await coord.store.async_save()
+            coord.async_update_listeners()
+        r = _w.reglage(coord.store, eid)
+        return {"entite": eid, "ligne": r["texte"], "nom": r["nom"], "icone": r["icone"], "change": change}
 
     async def _son_regler(call: ServiceCall) -> dict:
         """Niveau sonore : les réglages d'un appareil (administrateurs et automatisations). Module coupé : erreur."""
@@ -1204,6 +1253,21 @@ def _async_register_services(hass: HomeAssistant) -> None:
         vol.Optional("lecteur"): cv.boolean,
         vol.Optional("qr"): vol.In(["haut_gauche", "haut_droite", "bas_gauche", "bas_droite", "cache"]),
         vol.Optional("logo"): vol.In(["haut_gauche", "haut_droite", "bas_gauche", "bas_droite", "cache"]),
+        vol.Optional("qr_taille"): vol.In(["petit", "moyen", "grand"]),
+    }), supports_response=SupportsResponse.OPTIONAL)
+
+    service_admin(hass, "musique_regler", _musique_regler, schema=vol.Schema({
+        vol.Required("pc"): cv.string,
+        vol.Optional("focus"): vol.In(["toujours", "applis", "jamais"]),
+        vol.Optional("applis"): vol.Any(cv.string, [cv.string]),
+        vol.Optional("reprise"): cv.boolean,
+    }), supports_response=SupportsResponse.OPTIONAL)
+
+    service_admin(hass, "widget_regler", _widget_regler, schema=vol.Schema({
+        vol.Required("entite"): cv.entity_id,
+        vol.Optional("ligne"): vol.Any(None, "", cv.entity_id),
+        vol.Optional("nom"): vol.Any(None, cv.string),
+        vol.Optional("icone"): vol.Any(None, cv.string),
     }), supports_response=SupportsResponse.OPTIONAL)
 
     service_admin(hass, "son_regler", _son_regler, schema=vol.Schema({

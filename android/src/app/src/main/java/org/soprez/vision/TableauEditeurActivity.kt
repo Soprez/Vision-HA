@@ -25,7 +25,7 @@ import java.util.Locale
  * rendu (automatique, valeur, jauge, courbe 24 h, état, texte). Le tableau
  * reste sur l'appareil ; Home Assistant ne fait que fournir les valeurs.
  */
-class TableauEditeurActivity : Activity() {
+class TableauEditeurActivity : Activity(), ZoneSure.Geree {
     private val main = Handler(Looper.getMainLooper())
     private lateinit var cfg: Config
     private var theme: Theme = Themes.liste[0]

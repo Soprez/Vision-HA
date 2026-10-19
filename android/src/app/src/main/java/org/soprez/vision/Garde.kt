@@ -163,8 +163,25 @@ object Garde {
                 }
             }
             .setNegativeButton(R.string.commun_annuler) { _, _ -> annule() }
+            .setNeutralButton(R.string.garde_code_oublie) { _, _ -> codeOublie(act); annule() }
             .setOnCancelListener { annule() }
             .show()
+    }
+
+    /**
+     * 1.93.06 (Déverrouillage simplifié) : « Code oublié ? ». Jamais l'ancien code : il n'est gardé nulle part en
+     * clair (HA n'en a que l'empreinte). Deux chemins : un responsable déverrouille cet appareil à distance (sur demande
+     * d'ici, ou de lui-même depuis son mobile ou HA), ou un administrateur de Home Assistant pose un nouveau code
+     * (Configurer › Sécurité › Code de déverrouillage des Décideurs).
+     */
+    fun codeOublie(act: Activity) {
+        if (act.isFinishing) return
+        val d = Ui.dialogue(act).setTitle(R.string.code_oublie_titre)
+            .setMessage(act.getString(R.string.code_oublie_texte, Vocabulaire.decideur(act)))
+            .setNegativeButton(R.string.commun_fermer, null)
+        if (Config(act).inscrit && Modules.actif(act, Modules.DEVERROUILLAGE))
+            d.setPositiveButton(act.getString(R.string.code_oublie_demander, Vocabulaire.decideur(act))) { _, _ -> DeverrouillageActivity.ouvrir(act, "parent") }
+        d.show()
     }
 
     /** Pas encore de code sur cet appareil : on le choisit maintenant (deux fois), avant le premier geste. */

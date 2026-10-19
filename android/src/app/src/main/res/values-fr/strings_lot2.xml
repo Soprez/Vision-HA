@@ -787,4 +787,23 @@
     <string name="manifeste_fermes">Ce qui est fermé</string>
     <string name="manifeste_maison">À décider</string>
     <string name="manifeste_musique">Musique</string>
+    <!-- 1.93.06 : Déverrouillage simplifié -->
+    <string name="dev_deverrouille_total">%1$s a déverrouillé cet appareil pour %2$d min : accès total. Il se reverrouille seul à la fin.</string>
+    <string name="bandeau_deverrouille">Déverrouillé, reste %1$d min</string>
+    <string name="bandeau_reverrouiller">Reverrouiller</string>
+    <string name="bandeau_reverrouille">Appareil reverrouillé.</string>
+    <string name="parents_deverrouiller">Déverrouiller…</string>
+    <string name="parents_deverrouiller_titre">Déverrouiller « %1$s » : accès total pendant…</string>
+    <string name="parents_deverrouiller_min">%1$d min</string>
+    <string name="parents_deverrouiller_raison">Déverrouiller « %1$s » pendant %2$d min</string>
+    <string name="parents_deverrouiller_fait">« %1$s » sera déverrouillé %2$d min dès son prochain relevé.</string>
+    <string name="garde_code_oublie">Code oublié ?</string>
+    <string name="code_oublie_titre">Code oublié</string>
+    <string name="code_oublie_texte">Personne ne peut te redonner l\'ancien code : Vision ne le garde nulle part. Deux solutions : un %1$s déverrouille cet appareil à distance (à ta demande, ou de lui-même depuis son mobile ou Home Assistant), ou un administrateur de Home Assistant choisit un nouveau code : Paramètres › Appareils et services › Vision › Configurer › Sécurité.</string>
+    <string name="code_oublie_demander">Demander à un %1$s</string>
+    <string name="setup_parametres_appareil">Paramètres de l\'appareil</string>
+    <string name="setup_parametres_appareil_raison">Ouvrir les paramètres de l\'appareil</string>
+    <string name="setup_parametres_appareil_impossible">Les paramètres de l\'appareil ne s\'ouvrent pas ici.</string>
+    <string name="vuewidget_min_max">%1$s · min %2$s · max %3$s</string>
+    <string name="vuewidget_plage">%1$s – %2$s</string>
 </resources>

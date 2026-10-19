@@ -166,7 +166,7 @@ object Acces {
                 }
             } catch (e: Net.Echec) {
                 Geste.messageEchec(e.code)
-            } catch (_: Exception) { ctx.getString(R.string.commun_lot2_injoignable) }
+            } catch (e: Exception) { ReseauLocal.message(ctx, e) }
             principal.post { Ui.toast(ctx, texte, genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR); apres?.invoke(Geste.Resultat(ok, texte)) }
         }.start()
     }

@@ -65,6 +65,9 @@ object FluxMusique {
         try {
             c.outputStream.use { it.write(JSONObject().put("id", cfg.id).put("secret", cfg.secret).toString().toByteArray(Charsets.UTF_8)) }
             if (c.responseCode !in 200..299) return
+            // 1.93.06 (retour d'essai) : relié (ou relié de nouveau après une coupure) : l'écran relit tout de suite l'état lecture /
+            // pause, au lieu de garder celui d'avant la coupure jusqu'au prochain changement.
+            prevenir()
             c.inputStream.bufferedReader(Charsets.UTF_8).use { r ->
                 while (!Thread.currentThread().isInterrupted) {
                     val l = r.readLine() ?: break

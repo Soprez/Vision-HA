@@ -647,7 +647,8 @@ async def rejouer_element(hass: HomeAssistant, lecteur: str, id_element: str) ->
     """2.5.11 (l'auteur, 18/10, 1.93.05 : « je ne peux pas rejouer un morceau passé de la file », « ça n'a pas marché »).
 
     Depuis que le lecteur de Vision dit enfin à Music Assistant qu'un titre commence (STMs, 1.93.04.1), MA sait ce qui
-    est joué : il refuse de déplacer un titre déjà joué ou en tampon (« 23 is already played/buffered »). Pour un tel titre, on y revient avec ``play_index`` : revenir EN ARRIÈRE ne marque rien comme
+    est joué : il refuse de déplacer un titre déjà joué ou en tampon (« 23 is already played/buffered », journal de MA
+    du 18/10 à 01:25). Pour un tel titre, on y revient avec ``play_index`` : revenir EN ARRIÈRE ne marque rien comme
     joué (le souci de la 2.5.8 venait des sauts en avant). Un titre à venir garde la manière de la 2.5.8
     (``move_next`` puis « suivant »).
 

@@ -385,7 +385,9 @@ class GestesTest : InstrumentationTestCase() {
                 val t = textes(a.window.decorView).map { it.text.toString() }
                 // Fini en clair : délai de Vision (10 s) ou abandon de la connexion (8 s), le bouton revenu.
                 ok = t.none { it == Geste.EN_COURS } && t.contains("Accepter") &&
-                    t.any { it.contains("Pas de réponse de Home Assistant") || it.contains("rien n'a changé") || it.contains("injoignable") }
+                    t.any { it.contains("Pas de réponse de Home Assistant") || it.contains("rien n'a changé") || it.contains("injoignable") ||
+                        // 1.93.06 : la cause est dite (ReseauLocal) — HA muet ou réseau de l'appareil coupé.
+                        it.contains("ne répond pas") || it.contains("est coupé") }
             }
             SystemClock.sleep(200)
         }

@@ -356,11 +356,6 @@ class PcParentalOptionsFlow(_Assistant, OptionsFlow):
                                     PRODUIT_AFFICHE, c["decideurs"] or "aucun", qui)
                 if roles_changes:
                     await coord.async_ecrire()
-                if mots_changes:
-                    try:
-                        await coord.async_maj_tableau()
-                    except Exception:  # noqa: BLE001 - le réglage est enregistré ; le tableau suivra au démarrage
-                        _LOGGER.exception("%s : tableau de bord après l'assistant", PRODUIT_AFFICHE)
                 voulus = set(c["modules"]) if "modules" in c else modules.actifs(store)
                 if voulus != modules.actifs(store):
                     self._voulus = voulus

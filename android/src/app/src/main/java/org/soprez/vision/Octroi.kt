@@ -63,6 +63,8 @@ object Octroi {
             }
             c.endsWith("/api/pc_parental/reponse") -> minutes > 0
             c.endsWith("/api/pc_parental/deverrouillage/decision") -> decision !in setOf("non", "refuser", "refus", "")
+            // 1.93.06 (Déverrouillage simplifié) : déverrouiller à son initiative accorde ; annuler, non.
+            c.endsWith("/api/pc_parental/deverrouillage/initiative") -> decision != "annuler"
             c.endsWith("/api/pc_parental/appairage/decideur/decision") -> decision !in setOf("refuser", "non", "")
             else -> false
         }

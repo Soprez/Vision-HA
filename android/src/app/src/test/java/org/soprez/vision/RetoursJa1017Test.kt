@@ -12,23 +12,34 @@ import java.io.File
 /** Retours de l'auteur du 17/10 (lot 1) : zone sûre « Ajuster l'écran », pluie de la veille. */
 class RetoursJa1017Test {
     @Test fun zone_sure_au_defaut_rien_ne_bouge() {
-        // Chaque écran garde son dessin au défaut (5 %) : la marge est exactement l'ancienne.
-        assertEquals((1920 * 0.05f).toInt(), ZoneSure.marge(1920, 0.05f, ZoneSure.DEFAUT))
-        assertEquals((1080 * 0.06f).toInt(), ZoneSure.marge(1080, 0.06f, ZoneSure.DEFAUT))
-        // Une télé qui rogne davantage : tout s'écarte de l'écart (9 % : +4 % de la largeur).
-        assertEquals((1920 * 0.09f).toInt(), ZoneSure.marge(1920, 0.05f, 9))
-        assertEquals((1920 * 0.04f).toInt(), ZoneSure.marge(1920, 0f, 9))
-        // Une télé qui ne rogne pas : jamais de marge négative.
-        assertEquals(0, ZoneSure.marge(1920, 0f, 0))
+        // 1.93.06 : le défaut est 0 % (rien de rogné) et la marge de confort remplace l'ancien 5 % : sans réglage,
+        // chaque écran garde exactement sa marge d'avant.
+        assertEquals(0, ZoneSure.DEFAUT)
+        assertEquals((1920 * 0.05f).toInt(), ZoneSure.marge(1920, 0.05f, ZoneSure.DEFAUT, confortPx = 96))
+        assertEquals((1080 * 0.06f).toInt(), ZoneSure.marge(1080, 0.06f, ZoneSure.DEFAUT, confortPx = 54))
+        // Une télé qui rogne 9 % : le bord réglé, PLUS le confort.
+        assertEquals((1920 * 0.09f).toInt() + 96, ZoneSure.marge(1920, 0.05f, 9, confortPx = 96))
+        // Réglé au ras des bords (photo de l'auteur) : jamais moins que la marge de confort, même pour un écran dessiné à 0.
+        assertEquals(96, ZoneSure.marge(1920, 0f, 0, confortPx = 96))
+        assertEquals(54, ZoneSure.marge(1080, 0.035f, 0, confortPx = 54))
         // Une valeur d'une autre version (ou corrompue) reste dans les bornes.
         assertEquals(ZoneSure.MAX, ZoneSure.borner(40)); assertEquals(ZoneSure.MIN, ZoneSure.borner(-3))
+        // Mise à jour : une valeur d'avant (la marge entière) devient le bord rogné ; la mise en page ne bouge pas, sauf
+        // sous 5 % (au ras des bords), qui gagne la marge de confort.
+        assertEquals(4, ZoneSure.migre(9)); assertEquals(0, ZoneSure.migre(5)); assertEquals(0, ZoneSure.migre(0))
+        assertEquals((1920 * 0.09f).toInt(), ZoneSure.marge(1920, 0.05f, ZoneSure.migre(9), confortPx = 96))
     }
 
     @Test fun zone_sure_echelle_de_la_veille() {
-        assertEquals(1f, ZoneSure.echelle(5, 5), 0.0001f)
-        assertEquals(0.92f, ZoneSure.echelle(9, 7), 0.0001f)   // la plus serrée des deux, sans déformer
-        assertEquals(0.86f, ZoneSure.echelle(12, 12), 0.0001f)
-        assertEquals(0.75f, ZoneSure.echelle(25, 25), 0.0001f) // bornée
+        // 1.93.06 : jamais d'agrandissement (au ras des bords, la veille agrandie à 110 % sortait le logo de l'écran) ;
+        // un bord réglé resserre la veille pour que sa marge de 5 % tombe au bord plus le confort.
+        assertEquals(1f, ZoneSure.echelle(0, 0), 0.0001f)
+        assertEquals(1f - 5 / 45f, ZoneSure.echelle(5, 5), 0.0001f)
+        assertEquals(1f - 9 / 45f, ZoneSure.echelle(9, 7), 0.0001f)   // la plus serrée des deux, sans déformer
+        assertEquals(0.7f, ZoneSure.echelle(25, 25), 0.0001f)          // bornée
+        // La marge de 5 % du dessin, une fois resserrée autour du centre, tombe au bord réglé + 5 %.
+        val e = ZoneSure.echelle(5, 5)
+        assertEquals(0.10f, 0.5f - (0.5f - 0.05f) * e, 0.0001f)
     }
 
     @Test fun ajuster_l_ecran_aux_fleches() {

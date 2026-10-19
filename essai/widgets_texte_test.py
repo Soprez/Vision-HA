@@ -66,3 +66,37 @@ async def test_ligne_sous_la_valeur(hass, integrations, hass_storage, hass_clien
     st, d = await _admin(client, op="reglage", entite="climate.salon", texte="")
     st, d = await _post(client, "/etats", PARENT, entites=["climate.salon"])
     assert "texte" not in d["etats"]["climate.salon"]
+
+
+async def test_service_widget_regler(hass, integrations, hass_storage, hass_client):
+    """1.93.06 (retour d'essai) : la ligne sous la valeur se règle aussi par un service (automatisations, Outils de développement),
+    sans passer par la carte : pc_parental.widget_regler. Mêmes contrôles que la carte ; réservé aux administrateurs."""
+    from homeassistant.core import Context
+    from homeassistant.exceptions import HomeAssistantError, Unauthorized
+
+    _, coord = await _monter(hass, hass_storage)
+    client = await hass_client()
+    hass.states.async_set("sensor.mode_essai", "Réduit jusqu'à 12:00")
+    rep = await hass.services.async_call(DOMAIN, "widget_regler", {"entite": "climate.salon", "ligne": "sensor.mode_essai",
+                                                                  "nom": "Consigne"}, blocking=True, return_response=True)
+    assert rep == {"entite": "climate.salon", "ligne": "sensor.mode_essai", "nom": "Consigne", "icone": "", "change": True}
+    st, d = await _post(client, "/etats", PARENT, entites=["climate.salon"])
+    assert d["etats"]["climate.salon"]["texte"] == "Réduit jusqu'à 12:00"
+    # Rien de changé : « change » faux, rien d'enregistré.
+    rep = await hass.services.async_call(DOMAIN, "widget_regler", {"entite": "climate.salon", "ligne": "sensor.mode_essai"},
+                                         blocking=True, return_response=True)
+    assert rep["change"] is False
+    # Mêmes refus que la carte : la ligne ne peut pas être l'entité elle-même, ni une entité interdite.
+    for ligne in ("climate.salon", "lock.porte"):
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(DOMAIN, "widget_regler", {"entite": "climate.salon", "ligne": ligne}, blocking=True)
+    assert coord.store.entites_reglages["climate.salon"]["texte"] == "sensor.mode_essai"
+    # Ligne vide : plus de ligne.
+    await hass.services.async_call(DOMAIN, "widget_regler", {"entite": "climate.salon", "ligne": ""}, blocking=True)
+    st, d = await _post(client, "/etats", PARENT, entites=["climate.salon"])
+    assert "texte" not in d["etats"]["climate.salon"]
+    # Un compte qui n'est pas administrateur : refusé.
+    lecteur = await hass.auth.async_create_user("Lecteur", group_ids=["system-read-only"])
+    with pytest.raises(Unauthorized):
+        await hass.services.async_call(DOMAIN, "widget_regler", {"entite": "climate.salon", "ligne": "sensor.mode_essai"},
+                                       blocking=True, context=Context(user_id=lecteur.id))

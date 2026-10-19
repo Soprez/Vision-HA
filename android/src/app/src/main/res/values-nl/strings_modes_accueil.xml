@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1.93.06 (retour d'essai) : l'accueil de la télé, modes Utilisation et Modification (ModeAccueilTele, LanceurActivity). -->
+<resources>
+    <string name="accueil_modifier">Startscherm bewerken</string>
+    <string name="accueil_bandeau_choisir">Startscherm bewerken · Pijlen: kies een kader · OK: oppakken · Lang indrukken: opties · Terug: klaar</string>
+    <string name="accueil_bandeau_deplacer">Verplaatsen · Pijlen: verplaatsen · OK: bevestigen · Terug: annuleren</string>
+    <string name="accueil_bandeau_deplacer_redim">Verplaatsen · Pijlen: verplaatsen · OK: formaat wijzigen · Terug: annuleren</string>
+    <string name="accueil_bandeau_taille">Formaat · ◄ ► breedte · ▲ ▼ hoogte · OK: bevestigen · Terug: annuleren</string>
+    <string name="accueil_modif_terminee">Bewerken van het startscherm klaar.</string>
+    <string name="accueil_modifier_aide">Houd OK ingedrukt op het startscherm om het te bewerken.</string>
+</resources>

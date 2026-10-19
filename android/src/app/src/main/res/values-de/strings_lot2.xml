@@ -787,4 +787,23 @@
     <string name="manifeste_fermes">Was gesperrt ist</string>
     <string name="manifeste_maison">Zu entscheiden</string>
     <string name="manifeste_musique">Musik</string>
+    <!-- 1.93.06 : Déverrouillage simplifié -->
+    <string name="dev_deverrouille_total">%1$s hat dieses Gerät für %2$d Min. entsperrt: voller Zugriff. Danach sperrt es sich selbst wieder.</string>
+    <string name="bandeau_deverrouille">Entsperrt, noch %1$d Min.</string>
+    <string name="bandeau_reverrouiller">Wieder sperren</string>
+    <string name="bandeau_reverrouille">Gerät wieder gesperrt.</string>
+    <string name="parents_deverrouiller">Entsperren…</string>
+    <string name="parents_deverrouiller_titre">„%1$s“ entsperren: voller Zugriff für…</string>
+    <string name="parents_deverrouiller_min">%1$d Min.</string>
+    <string name="parents_deverrouiller_raison">„%1$s“ für %2$d Min. entsperren</string>
+    <string name="parents_deverrouiller_fait">„%1$s“ wird bei seiner nächsten Meldung für %2$d Min. entsperrt.</string>
+    <string name="garde_code_oublie">Code vergessen?</string>
+    <string name="code_oublie_titre">Code vergessen</string>
+    <string name="code_oublie_texte">Niemand kann dir den alten Code zurückgeben: Vision speichert ihn nirgends. Zwei Wege: Ein %1$s entsperrt dieses Gerät aus der Ferne (auf deine Anfrage oder selbst über sein Handy oder Home Assistant), oder ein Administrator von Home Assistant legt einen neuen Code fest: Einstellungen › Geräte &amp; Dienste › Vision › Konfigurieren › Sicherheit.</string>
+    <string name="code_oublie_demander">Einen %1$s fragen</string>
+    <string name="setup_parametres_appareil">Geräteeinstellungen</string>
+    <string name="setup_parametres_appareil_raison">Die Geräteeinstellungen öffnen</string>
+    <string name="setup_parametres_appareil_impossible">Die Geräteeinstellungen lassen sich hier nicht öffnen.</string>
+    <string name="vuewidget_min_max">%1$s · Min. %2$s · Max. %3$s</string>
+    <string name="vuewidget_plage">%1$s – %2$s</string>
 </resources>

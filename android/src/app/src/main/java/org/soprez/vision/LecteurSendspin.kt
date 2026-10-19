@@ -65,6 +65,7 @@ object LecteurSendspin {
         actif = false
         main.removeCallbacksAndMessages(null)
         client?.liberer(); client = null
+        lisait = false; FocusMusique.lacher()
         main.post { session?.release(); session = null; joueur = null }
     }
 
@@ -169,9 +170,33 @@ object LecteurSendspin {
         pinMontre = null; gesteMontre = false
     }
 
+    /** 1.93.06 : la pause et la reprise demandées par [FocusMusique] passent par Music Assistant ; jamais de volume. */
+    private val moteurFocus = object : FocusMusique.Moteur {
+        override fun pauseFocus() { if (etat == "lecture") { commande("pause"); Log.i(TAG, "pause : une autre appli joue du son") } }
+        override fun repriseFocus() { if (etat == "pause") { commande("play"); Log.i(TAG, "reprise après le son d'une autre appli") } }
+        override fun volumeFocus(facteur: Float) {}
+    }
+    private var lisait = false
+    private var etaitConnecte = false
+    private var connecteA = 0L
+    private var autreSonALaLiaison = false
+
     private fun majSession(e: SendspinClient.Etat) {
         val ctx = ctxApp ?: return
         if (!actif) return
+        // 1.93.06 (incident du salon) : à la liaison, ce qui joue déjà sur l'appareil est noté AVANT le premier son de
+        // Vision ; si Music Assistant relance alors la lecture d'elle-même, Vision la remet aussitôt en pause.
+        val maintenant = android.os.SystemClock.elapsedRealtime()
+        if (e.connecte && !etaitConnecte) { connecteA = maintenant; autreSonALaLiaison = !lisait && FocusMusique.autreSonEnCours(ctx) }
+        etaitConnecte = e.connecte
+        if (e.lit && !lisait && maintenant - connecteA < LecteurSlim.GARDE_MS && autreSonALaLiaison) {
+            autreSonALaLiaison = false
+            commande("pause"); Log.i(TAG, "départ refusé après la liaison : autre chose joue sur l'appareil")
+        }
+        // 1.93.06 : le focus audio suit la lecture (demandé quand le son part, rendu à l'arrêt).
+        else if (e.lit && !lisait) FocusMusique.demander(ctx, moteurFocus)
+        else if (!e.lit && lisait && etat == "arrêt") FocusMusique.lacher(ctx)
+        lisait = e.lit
         dernierEtat = e
         appairageAuto(ctx, e)
         // L'appairage à l'écran : seulement à la main (Réglages › Décideurs 🔒), jamais pendant l'automatique (1.90.2).

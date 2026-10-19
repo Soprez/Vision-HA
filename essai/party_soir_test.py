@@ -9,6 +9,8 @@
 """
 from __future__ import annotations
 
+import time
+
 from homeassistant.helpers import entity_registry as er
 
 from party_musique_test import (  # noqa: F401  (fixtures du banc)
@@ -606,3 +608,34 @@ async def test_mode_soiree_ouvrir_fermer(hass, hass_storage, hass_client, monkey
     assert s == 200, r
     s, r = await _post(client, "etat", TELE)
     assert r["qr"] == "" and party.etat(hass)["jeton"] is None
+
+
+async def test_pas_de_relance_si_autre_chose_joue_sur_la_tele(hass, hass_storage, hass_client, monkeypatch):
+    """Incident du salon (2026-10-18) : une appli de replay jouait sur la télé de la soirée quand le lecteur « · Vision » s'est
+    reconnecté (réinstallation) ; la soirée est repartie par-dessus. Désormais : la télé dit au relevé qu'autre chose
+    joue chez elle (« autre_son ») et HA ne relance rien ; sans ce signal (ou s'il est périmé), la relance a lieu."""
+    from custom_components.pc_parental import party
+    _c, _appels, _files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
+    monkeypatch.setattr(party, "REPRISE_DELAI_S", 0)
+    v = "media_player.salon_vision"
+    party.etat(hass).update({"actif": True, "lecteur": v, "ecran": "t1"})
+    vus = []
+
+    async def service(_hass, domaine, nom, eid, donnees=None):
+        vus.append((nom, eid))
+    monkeypatch.setattr(party, "_service", service)
+    r = await client.post("/api/pc_parental/poll", json={**TELE, "platform": "android", "type": "tv", "autre_son": True,
+                                                         "focus": "fr.tf1.mytf1"})
+    assert r.status == 200
+    assert party.autre_son_recent("t1", time.time())
+    hass.states.async_set(v, "off", {"friendly_name": "Salon · Vision", "active_queue": "qv"})
+    await party.reprendre_apres_coupure(hass, v)
+    assert vus == []
+    # La télé ne joue plus rien : la relance est permise.
+    r = await client.post("/api/pc_parental/poll", json={**TELE, "platform": "android", "type": "tv", "autre_son": False})
+    assert r.status == 200
+    await party.reprendre_apres_coupure(hass, v)
+    assert vus == [("turn_on", v), ("media_play", v)]
+    # Un signal trop ancien ne bloque plus.
+    party.noter_autre_son("t1", True, time.time() - party.AUTRE_SON_MAX_S - 5)
+    assert not party.autre_son_recent("t1", time.time())

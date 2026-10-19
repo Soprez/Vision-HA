@@ -950,5 +950,11 @@
   "inv.mes_en_cours": "Sonando ahora",
   "inv.mes_ensuite": "Suena justo después de la actual",
   "inv.mes_position": "En la cola, n.º {pos}",
-  "inv.mes_joue": "Ya sonó"
+  "inv.mes_joue": "Ya sonó",
+  "musique.paquet_invalide": "«{nom}» no es un nombre de app de Android (por ejemplo com.google.android.youtube.tv).",
+  "dev.initiative": "{par} ha desbloqueado «{nom}» durante {minutes} min (acceso total: ajustes, instalaciones); se vuelve a bloquear solo al final.",
+  "prot.titre": "Protección desactivada",
+  "prot.titre_retablie": "Protección restablecida",
+  "prot.coupee": "Protección desactivada en «{nom}»: el servicio de accesibilidad de Vision está apagado y Vision ya no protege nada allí. En el dispositivo: Ajustes › Accesibilidad › Vision › Activado.",
+  "prot.retablie": "Protección restablecida en «{nom}»: la accesibilidad de Vision vuelve a estar activa."
 }

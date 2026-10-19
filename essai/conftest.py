@@ -15,6 +15,12 @@
   Vision fabrique ses textes dans la langue de Home Assistant ou de l'appareil destinataire (pc_parental/textes.py) :
   les essais qui vérifient des textes français tournent donc avec Home Assistant réglé en français. Un essai qui veut
   une autre langue la règle lui-même (`hass.config.language = "de"`, ou le champ « langue » d'un relevé).
+- Rechargements attendus : un relevé, une inscription ou une demande peut programmer un rechargement de Vision
+  (`async_schedule_reload` : appareil créé, étiquettes nouvelles…). La réponse part avant ; la requête suivante
+  tombait alors en plein rechargement (503 « loading », `hass.data` vide). Sous Windows, le rechargement finissait
+  presque toujours avant ; sous Linux (CI), non. Après une requête du client d'essai qui a programmé un
+  rechargement, et seulement dans ce cas, on attend qu'il soit fini (`hass.async_block_till_done()`), comme un
+  appareil qui réessaie.
 """
 from __future__ import annotations
 
@@ -38,6 +44,7 @@ def pytest_configure(config: pytest.Config) -> None:
     from aiohttp import web_urldispatcher
 
     web_urldispatcher.UrlDispatcher.freeze = lambda self: None  # comme Home Assistant en vrai
+    _attendre_les_rechargements()
 
     global _DOSSIER_SESSION
     if _DOSSIER_SESSION is None:
@@ -45,6 +52,38 @@ def pytest_configure(config: pytest.Config) -> None:
         tempfile.tempdir = _DOSSIER_SESSION
         for nom in ("TMPDIR", "TMP", "TEMP"):
             os.environ[nom] = _DOSSIER_SESSION
+
+
+_RECHARGEMENTS = [0]
+
+
+def _attendre_les_rechargements() -> None:
+    """Après une requête du client d'essai qui a programmé un rechargement, on attend ce rechargement (voir plus haut)."""
+    from aiohttp import test_utils
+    from homeassistant import config_entries
+    from homeassistant.helpers.http import KEY_HASS
+
+    if getattr(test_utils.TestClient._request, "_vision", False):
+        return
+    programmer = config_entries.ConfigEntries.async_schedule_reload
+
+    def async_schedule_reload(self, entry_id):
+        _RECHARGEMENTS[0] += 1
+        return programmer(self, entry_id)
+
+    config_entries.ConfigEntries.async_schedule_reload = async_schedule_reload
+    requete = test_utils.TestClient._request
+
+    async def _request(self, *args, **kwargs):
+        avant = _RECHARGEMENTS[0]
+        reponse = await requete(self, *args, **kwargs)
+        hass = self.app.get(KEY_HASS) if self.app is not None else None
+        if hass is not None and _RECHARGEMENTS[0] != avant:
+            await hass.async_block_till_done()
+        return reponse
+
+    _request._vision = True
+    test_utils.TestClient._request = _request
 
 
 def pytest_unconfigure(config: pytest.Config) -> None:

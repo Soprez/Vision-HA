@@ -44,6 +44,16 @@ object Vignettes {
 
     fun garde(url: String): Bitmap? = if (url.isEmpty()) null else cache.get(url)
 
+    /** 1.93.06 : la même image, décodée en grand (pochette du lecteur) : le titre suivant, préchargé pour l'attente. */
+    fun gardeGrand(url: String): Bitmap? = if (url.isEmpty()) null else cache.get(GRAND + url)
+    private const val GRAND = "grand|"
+
+    /** 1.93.06 (retour d'essai) : précharge en grand le titre qui vient ensuite, pour que la pochette du lecteur soit prête. */
+    fun prechargerGrand(ctx: Context, url: String, cotePx: Int) {
+        if (!chargeable(url) || cache.get(GRAND + url) != null) return
+        charger(ctx.applicationContext, url, cotePx, GRAND + url) {}
+    }
+
     private fun chargeable(url: String) = url.startsWith(RELAIS) || url.startsWith("https://")
 
     private fun peutEssayer(url: String): Boolean {
@@ -75,10 +85,10 @@ object Vignettes {
         urls.filter { chargeable(it) && cache.get(it) == null }.distinct().forEach { charger(app, it, cotePx) {} }
     }
 
-    private fun charger(app: Context, url: String, cotePx: Int, fin: (Bitmap?) -> Unit) {
-        if (!peutEssayer(url)) return
-        synchronized(attentes) { attentes.getOrPut(url) { ArrayList() }.add(fin) }
-        if (!enCours.add(url)) return  // déjà en chargement : [fin] sera rappelé avec les autres
+    private fun charger(app: Context, url: String, cotePx: Int, cle: String = url, fin: (Bitmap?) -> Unit) {
+        if (!peutEssayer(cle)) return
+        synchronized(attentes) { attentes.getOrPut(cle) { ArrayList() }.add(fin) }
+        if (!enCours.add(cle)) return  // déjà en chargement : [fin] sera rappelé avec les autres
         pool.execute {
             val bmp = try {
                 CachePochettes.lire(app, url)?.let { decoder(it, cotePx) } ?: run {
@@ -87,12 +97,12 @@ object Vignettes {
                 }
             } catch (_: Exception) { null }
             if (bmp != null) {
-                echecs.remove(url); cache.put(url, bmp)
+                echecs.remove(cle); cache.put(cle, bmp)
             } else {
-                val n = (echecs[url]?.first ?: 0) + 1
-                echecs[url] = n to (System.currentTimeMillis() + (ATTENTES_MS.getOrNull(n - 1) ?: Long.MAX_VALUE / 2))
+                val n = (echecs[cle]?.first ?: 0) + 1
+                echecs[cle] = n to (System.currentTimeMillis() + (ATTENTES_MS.getOrNull(n - 1) ?: Long.MAX_VALUE / 2))
             }
-            val fins = synchronized(attentes) { enCours.remove(url); attentes.remove(url).orEmpty() }
+            val fins = synchronized(attentes) { enCours.remove(cle); attentes.remove(cle).orEmpty() }
             main.post { fins.forEach { it(bmp) } }
         }
     }
@@ -136,7 +146,10 @@ object Vignettes {
         return sortie.toByteArray()
     }
 
-    /** Fin de la Party, fermeture de l'écran Party : tout est déchargé (mémoire et disque). */
+    /** 1.93.06 : fermeture du dernier écran Musique : la mémoire est rendue, le disque reste. */
+    fun liberer() { cache.evictAll() }
+
+    /** Fin de la Party : tout est déchargé (mémoire et disque). */
     fun vider(ctx: Context) {
         // Les vues qui attendent une image en cours de chargement restent prévenues (avant, elles ne l'étaient plus jamais).
         cache.evictAll(); echecs.clear()

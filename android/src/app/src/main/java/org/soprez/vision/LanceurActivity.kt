@@ -63,7 +63,7 @@ import java.util.Locale
  * Tous les réglages sont ceux de l'appareil (Local) ; Home Assistant fournit
  * les données.
  */
-class LanceurActivity : Activity() {
+class LanceurActivity : Activity(), ZoneSure.Geree {
     private val main = Handler(Looper.getMainLooper())
     private lateinit var cfg: Config
     private var theme: Theme = Themes.liste[0]
@@ -107,6 +107,8 @@ class LanceurActivity : Activity() {
     }
 
     companion object {
+        /** 1.93.06 : « Modifier l'accueil » (réglages de la télé) : l'accueil s'ouvre en mode Modification. */
+        const val EXTRA_MODIFIER = "modifier_accueil"
         private const val PREFS = "lanceur"
         /** 1.90.1 : en paysage, la part de la largeur pour l'en-tête (heure, date, météo, lecteur). */
         private const val PART_TETE_PAYSAGE = 0.36f
@@ -169,6 +171,8 @@ class LanceurActivity : Activity() {
         }
         setContentView(racine)
         construire()
+        // 1.93.06 : « Modifier l'accueil » des réglages, l'accueil n'étant pas encore ouvert.
+        if (tele && intent?.getBooleanExtra(EXTRA_MODIFIER, false) == true) entrerModification(null)
         Paquets.abonner(surPaquet)
         Bulle.verifier(this)
         // APP-03 : l'accueil ne contacte plus le serveur trouvé ; « Relier » (bandeau) mène à la question « Se relier à … ? ».
@@ -266,6 +270,8 @@ class LanceurActivity : Activity() {
         // Sur téléphone, Accueil ramène à l'accueil : le tiroir, un dossier ou le panneau ouverts se referment.
         // Sur télé aussi : Accueil ramène toujours à l'accueil de Vision, dossier et tiroir refermés.
         tirerTiroir(0f); try { dossierOuvert?.dismiss() } catch (_: Exception) {}; cacherPanneau()
+        if (tele && intent?.getBooleanExtra(EXTRA_MODIFIER, false) == true) { entrerModification(null); return }
+        if (tele && modeTele.modification) { annulerEtape?.invoke(); quitterModification() }
         if (!tele) pageur?.aller(0) else selectionnerPremiere()
         val now = SystemClock.uptimeMillis()
         if (tele && now - dernierAccueilMs < 1500) { Veille.ouvrir(this, demande = true); dernierAccueilMs = 0 } else dernierAccueilMs = now
@@ -407,7 +413,272 @@ class LanceurActivity : Activity() {
         if (event.action == KeyEvent.ACTION_DOWN && !toucheEnfoncee) toucheDepuis = SystemClock.uptimeMillis()
         toucheEnfoncee = event.action == KeyEvent.ACTION_DOWN
         if (event.action == KeyEvent.ACTION_UP && reconstructionEnAttente) { reconstructionEnAttente = false; main.postDelayed({ construire() }, 150) }
+        if (tele && toucheModes(event)) return true
         return super.dispatchKeyEvent(event)
+    }
+
+    // ------------------------------------------------------------------ télé : modes Utilisation et Modification (1.93.06)
+
+    private val modeTele = ModeAccueilTele { SystemClock.uptimeMillis() }
+    /** OK enfoncé, retenu le temps de savoir si c'est un appui court (rejoué aux vues) ou long (Modification). */
+    private var okRetenu: KeyEvent? = null
+    private var okLongTraite = false
+    /** Pour annuler l'étape en cours (le cadre revient où il était). */
+    private var annulerEtape: (() -> Unit)? = null
+    private var bandeauMontre = false
+
+    /** Ce que la télécommande fait aux modes ; vrai si la touche est prise ici. */
+    private fun toucheModes(ev: KeyEvent): Boolean {
+        val ok = ev.keyCode == KeyEvent.KEYCODE_DPAD_CENTER || ev.keyCode == KeyEvent.KEYCODE_ENTER || ev.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER
+        if (modeTele.modification) { modeTele.toucher(); armerSortieModif() }
+        if (ok && dossierOuvert == null && cadreDe(currentFocus) != null) {
+            when (ev.action) {
+                KeyEvent.ACTION_DOWN -> {
+                    if (ev.repeatCount == 0) { okRetenu = KeyEvent(ev); okLongTraite = false; return true }
+                    if (!okLongTraite && ModeAccueilTele.appuiLong(ev.repeatCount, ev.eventTime - ev.downTime)) { okLongTraite = true; appuiLongOk() }
+                    return true
+                }
+                KeyEvent.ACTION_UP -> {
+                    val bas = okRetenu; okRetenu = null
+                    if (okLongTraite) { okLongTraite = false; return true }
+                    // Certaines télécommandes ne répètent pas OK : la durée de l'appui suffit.
+                    if (bas != null && ModeAccueilTele.appuiLong(1, ev.eventTime - bas.downTime)) { appuiLongOk(); return true }
+                    if (modeTele.modification) { okModif(); return true }
+                    // Appui court : rejoué aux vues tel quel (le cadre ou la commande agit, comme avant).
+                    if (bas != null) super.dispatchKeyEvent(bas)
+                    return super.dispatchKeyEvent(ev)
+                }
+            }
+        }
+        if (!modeTele.modification) return false
+        if (ev.action != KeyEvent.ACTION_DOWN) return ev.keyCode == KeyEvent.KEYCODE_BACK || (modeTele.etape != ModeAccueilTele.Etape.CHOISIR && fleche(ev.keyCode) != null)
+        if (ev.keyCode == KeyEvent.KEYCODE_BACK) { retourModif(); return true }
+        val f = fleche(ev.keyCode) ?: return false
+        if (modeTele.etape == ModeAccueilTele.Etape.CHOISIR) return false  // on va de cadre en cadre (recherche du focus)
+        flecheModif(f.first, f.second)
+        return true
+    }
+
+    /** ◄ ▲ ► ▼ : (dx, dy). */
+    private fun fleche(code: Int): Pair<Int, Int>? = when (code) {
+        KeyEvent.KEYCODE_DPAD_LEFT -> -1 to 0
+        KeyEvent.KEYCODE_DPAD_RIGHT -> 1 to 0
+        KeyEvent.KEYCODE_DPAD_UP -> 0 to -1
+        KeyEvent.KEYCODE_DPAD_DOWN -> 0 to 1
+        else -> null
+    }
+
+    /** Un cadre de l'accueil (appli, widget, carte d'une zone) : ce qu'on choisit en Modification. */
+    private data class CadreTele(val cle: String, val sorte: Sorte, val zone: String = "") { enum class Sorte { APPLI, WIDGET, ZONE } }
+
+    private fun cadreDe(v: View?): CadreTele? {
+        var x: View? = v
+        while (x != null && x !== racine) { (x.getTag(R.id.cadre_tele) as? CadreTele)?.let { return it }; x = x.parent as? View }
+        return null
+    }
+
+    private fun cadreVue(cle: String): View? {
+        fun cherche(v: View): View? {
+            if ((v.getTag(R.id.cadre_tele) as? CadreTele)?.cle == cle) return v
+            if (v is ViewGroup) for (i in 0 until v.childCount) cherche(v.getChildAt(i))?.let { return it }
+            return null
+        }
+        return cherche(racine)
+    }
+
+    private fun appuiLongOk() {
+        val c = cadreDe(currentFocus)
+        if (!modeTele.modification) { entrerModification(c?.cle); return }
+        // En Modification, l'appui long ouvre les options du cadre (retirer, détail…) : la télécommande du Chromecast
+        // n'a pas de touche Menu.
+        if (c == null || modeTele.etape != ModeAccueilTele.Etape.CHOISIR) return
+        if (c.sorte == CadreTele.Sorte.ZONE) { personnaliserZoneTele(c.zone); return }
+        val v = cadreVue(c.cle) ?: return
+        val t = SystemClock.uptimeMillis()
+        v.dispatchKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MENU, 0))
+        v.dispatchKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MENU, 0))
+    }
+
+    /** « Modifier l'accueil » (menu, réglages) ou appui long sur OK : on choisit d'abord un cadre. */
+    private fun entrerModification(cle: String?) {
+        if (!tele) return
+        modeTele.entrer(); annulerEtape = null; bandeauMontre = false
+        android.util.Log.i("VisionAccueil", "modification de l'accueil")
+        construire()
+        cle?.let { k -> racine.post { cadreVue(k)?.requestFocus() } }
+        armerSortieModif()
+    }
+
+    private fun quitterModification(dire: Int? = null) {
+        modeTele.quitter(); annulerEtape = null; deplacement = null
+        main.removeCallbacks(sortieModif)
+        val cle = cadreDe(currentFocus)?.cle
+        construire()
+        cle?.let { k -> racine.post { cadreVue(k)?.let { v -> ((v as? ViewGroup)?.getFocusables(View.FOCUS_DOWN)?.firstOrNull() ?: v).requestFocus() } } }
+        dire?.let { Ui.toast(this, getString(it), court = true) }
+    }
+
+    private val sortieModif = Runnable {
+        if (!modeTele.expire()) { armerSortieModif(); return@Runnable }
+        annulerEtape?.invoke(); annulerEtape = null
+        quitterModification(R.string.accueil_modif_terminee)
+    }
+
+    private fun armerSortieModif() { main.removeCallbacks(sortieModif); if (modeTele.modification) main.postDelayed(sortieModif, ModeAccueilTele.INACTIVITE_MS) }
+
+    private fun redimensionnable(c: CadreTele): Boolean = c.sorte == CadreTele.Sorte.WIDGET
+
+    private fun okModif() {
+        val c = cadreDe(currentFocus)
+        val cle = modeTele.saisi ?: c?.cle
+        when (modeTele.ok(c?.cle, c != null && redimensionnable(c))) {
+            ModeAccueilTele.Effet.SAISIR -> { if (c != null) saisir(c) }
+            ModeAccueilTele.Effet.VALIDER -> { annulerEtape = null; deplacement = null; rebatirModif(cle) }
+            ModeAccueilTele.Effet.VERS_REDIM -> rebatirModif(cle)
+            else -> {}
+        }
+    }
+
+    private fun retourModif() {
+        val cle = modeTele.saisi ?: cadreDe(currentFocus)?.cle
+        when (modeTele.retour()) {
+            ModeAccueilTele.Effet.ANNULER -> { annulerEtape?.invoke(); annulerEtape = null; deplacement = null; rebatirModif(cle) }
+            ModeAccueilTele.Effet.QUITTER -> quitterModification()
+            else -> {}
+        }
+    }
+
+    /** Saisir un cadre : on garde de quoi le remettre en place (Retour). */
+    private fun saisir(c: CadreTele) {
+        when (c.sorte) {
+            CadreTele.Sorte.APPLI -> {
+                val avant = Accueil.ordre(this)
+                annulerEtape = { Accueil.ecrireOrdre(this, avant) }
+                deplacement = c.cle
+            }
+            CadreTele.Sorte.WIDGET -> {
+                val avant = Accueil.disposition(this).map { Accueil.Place(it.cle, it.col, it.row, it.w, it.h) }
+                val tailles = avant.filter { WidgetsHa.estHa(it.code) }.mapNotNull { pl -> WidgetsHaStock.reglage(this, WidgetsHa.id(pl.code)) }
+                annulerEtape = { Accueil.ecrireDisposition(this, avant); tailles.forEach { WidgetsHaStock.ecrire(this, it) } }
+            }
+            CadreTele.Sorte.ZONE -> {
+                val avant = DispositionAccueil.widgetsZone(this, c.zone)
+                annulerEtape = { DispositionAccueil.poserWidgetsZone(this, c.zone, avant) }
+            }
+        }
+        rebatirModif(c.cle)
+    }
+
+    private fun rebatirModif(cle: String?) {
+        construire()
+        cle?.let { k -> racine.post { cadreVue(k)?.let { v -> v.requestFocus(); v.parent?.requestChildFocus(v, v) } } }
+    }
+
+    /** Une flèche sur le cadre saisi : il se déplace (◄▲ avant, ►▼ après) ou change de taille (◄► largeur, ▲▼ hauteur). */
+    private fun flecheModif(dx: Int, dy: Int) {
+        val cle = modeTele.saisi ?: return
+        val c = cadreVue(cle)?.let { cadreDe(it) } ?: return
+        val sens = if (dx != 0) dx else dy
+        if (modeTele.etape == ModeAccueilTele.Etape.DEPLACER) when (c.sorte) {
+            CadreTele.Sorte.APPLI -> { glisserTele(cle, sens); return }
+            CadreTele.Sorte.WIDGET -> {
+                val l = Accueil.disposition(this)
+                val ordre = l.filter { it.estWidget && !WidgetsAndroid.estAndroid(it.code) }.sortedWith(compareBy({ it.row }, { it.col })).map { it.cle }
+                val nouvel = ModeAccueilTele.deplacer(ordre, cle, sens)
+                if (nouvel == ordre) return
+                nouvel.forEachIndexed { i, k -> l.firstOrNull { it.cle == k }?.let { p -> p.col = i; p.row = 0 } }
+                Accueil.ecrireDisposition(this, l)
+            }
+            CadreTele.Sorte.ZONE -> {
+                val l = DispositionAccueil.widgetsZone(this, c.zone)
+                val nouvel = ModeAccueilTele.deplacer(l, cle, sens)
+                if (nouvel == l) return
+                DispositionAccueil.poserWidgetsZone(this, c.zone, nouvel)
+            }
+        } else {
+            val pl = Accueil.disposition(this).firstOrNull { it.cle == cle } ?: return
+            val b = bornesDe(pl)
+            // Télé : 4 cases de large et 2 de haut au plus (la rangée des widgets).
+            val (w, h) = ModeAccueilTele.redimensionner(pl.w, pl.h, dx, dy, b.minW, b.minH, minOf(b.maxW, 4), minOf(b.maxH, 2))
+            if (w == pl.w && h == pl.h) return
+            Accueil.poserPlace(this, cle, pl.col, pl.row, w, h)
+            if (WidgetsHa.estHa(pl.code)) WidgetsHaStock.reglage(this, WidgetsHa.id(pl.code))?.let { WidgetsHaStock.ecrire(this, it.copy(w = w, h = h)) }
+        }
+        rebatirModif(cle)
+    }
+
+    /**
+     * Après chaque construction de la télé : en UTILISATION, un cadre de widget qui contient des commandes ne prend plus
+     * le focus (les flèches vont droit sur elles) ; en MODIFICATION, seuls les cadres le prennent (pas leurs commandes),
+     * le cadre saisi est mis en avant, et le bandeau dit quoi faire.
+     */
+    private fun appliquerModeTele() {
+        fun parcourir(v: View) {
+            val cadre = v.getTag(R.id.cadre_tele) as? CadreTele
+            if (modeTele.modification && cadre != null && v is ViewGroup) {
+                v.isFocusable = true; v.isClickable = true
+                v.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+                val saisi = cadre.cle == modeTele.saisi
+                // Les cadres de widget (FrameLayout) : anneau d'or au focus, pourpre quand le cadre est saisi. Les applis
+                // gardent leur anneau (caseTele, ligneTele) et leur mise en avant du déplacement.
+                if (v is FrameLayout) {
+                    fun anneau(focus: Boolean) = if (saisi) fondCarte(28f, couleur = 0, bord = theme.pourpre, epaisseurDp = 3f)
+                        else if (focus) fondCarte(28f, couleur = 0, bord = theme.or, epaisseurDp = 2f) else null
+                    v.foreground = anneau(v.isFocused)
+                    v.setOnFocusChangeListener { x, a -> (x as FrameLayout).foreground = anneau(a); if (!saisi) x.animate().scaleX(if (a) 1.04f else 1f).scaleY(if (a) 1.04f else 1f).setDuration(Anim.duree(140, Anim.actif(this))).setInterpolator(Anim.interpolateurEntree).start() }
+                    if (saisi) { v.scaleX = 1.06f; v.scaleY = 1.06f }
+                }
+                return
+            }
+            if (!modeTele.modification && v.getTag(R.id.cadre_widget) == true && v is ViewGroup) {
+                // Le cadre reste focalisable, mais il passe aussitôt le focus à sa première commande (comme − d'une consigne
+                // depuis le 16-10). Android ne prend jamais pour cible un parent qui contient la vue de départ : depuis la
+                // commande, les flèches vont vers les commandes voisines ou les autres cadres, jamais « dans » le cadre.
+                premiereCommande(v)?.let { premiere ->
+                    val avant = v.onFocusChangeListener
+                    v.setOnFocusChangeListener { x, a ->
+                        if (a && !modeTele.modification && premiere.isAttachedToWindow && premiere.isShown) { premiere.requestFocus(); return@setOnFocusChangeListener }
+                        avant?.onFocusChange(x, a)
+                    }
+                }
+            }
+            if (v is ViewGroup) for (i in 0 until v.childCount) parcourir(v.getChildAt(i))
+        }
+        parcourir(racine)
+        if (modeTele.modification) poserBandeau()
+    }
+
+    /**
+     * La première commande d'un cadre : une vue focalisable qui ne contient pas elle-même d'autre vue focalisable (le
+     * bouton, la case, pas la carte qui les porte). Toutes, même en mode tactile (une souris ou un essai l'y mettent).
+     */
+    private fun premiereCommande(cadre: ViewGroup): View? {
+        val l = ArrayList<View>()
+        for (i in 0 until cadre.childCount) cadre.getChildAt(i).addFocusables(l, View.FOCUS_DOWN, View.FOCUSABLES_ALL)
+        return l.firstOrNull { c -> c !is ViewGroup || ArrayList<View>().also { s -> for (k in 0 until c.childCount) c.getChildAt(k).addFocusables(s, View.FOCUS_DOWN, View.FOCUSABLES_ALL) }.isEmpty() }
+    }
+
+    /** Le bandeau du mode Modification, en haut de l'écran (dans la zone sûre). */
+    private fun poserBandeau() {
+        val texteBandeau = getString(when (modeTele.etape) {
+            ModeAccueilTele.Etape.CHOISIR -> R.string.accueil_bandeau_choisir
+            ModeAccueilTele.Etape.DEPLACER -> if (modeTele.saisi?.let { cadreVue(it) }?.let { cadreDe(it) }?.let { redimensionnable(it) } == true) R.string.accueil_bandeau_deplacer_redim else R.string.accueil_bandeau_deplacer
+            ModeAccueilTele.Etape.REDIMENSIONNER -> R.string.accueil_bandeau_taille
+        })
+        val b = texte(texteBandeau, tv(22f), theme.encre, Polices.demiGras(this)).apply {
+            tag = "bandeau_modification"; gravity = Gravity.CENTER
+            background = fondCarte(40f, couleur = theme.carte, bord = theme.or, epaisseurDp = 2f)
+            setPadding(px(22f), px(10f), px(22f), px(10f))
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+            elevation = px(6f).toFloat()
+        }
+        if (!bandeauMontre) Anim.preparer(b, Anim.Sens.HAUT)
+        racine.addView(b, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply {
+            topMargin = ZoneSure.y(this@LanceurActivity, 0.05f); leftMargin = ZoneSure.x(this@LanceurActivity, 0.05f); rightMargin = leftMargin
+        })
+        // Il entre une fois (à l'entrée en Modification), puis ne bouge plus d'une étape à l'autre.
+        if (!bandeauMontre) { bandeauMontre = true; Anim.entrer(b, Anim.Sens.HAUT) }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -659,10 +930,23 @@ class LanceurActivity : Activity() {
         // 16-10 (parité) : un widget de Vision du téléphone (chauffage, école…), à sa taille, agrandi pour la télé.
         DispositionAccueil.estWidgetVision(code) -> Accueil.widget(DispositionAccueil.codeWidgetVision(code))?.let { w ->
             widgetIntegreTele(w.code, w.w, w.h) { DispositionAccueil.poserWidgetsZone(this, z, DispositionAccueil.widgetsZone(this, z) - code); construire() }
-                .apply { layoutParams = LinearLayout.LayoutParams(px(tv(200f)) * w.w, px(tv(124f)) * w.h) }
+                // 1.93.06 (recette) : dans une zone de côté, le widget prend la largeur de la zone (il s'y réduit sans se
+                // déformer) ; avant, un widget de 4 cases (Temps d'écran) gardait sa largeur de rangée et débordait.
+                .apply { layoutParams = LinearLayout.LayoutParams(if (z in DispositionAccueil.RANGEES) px(tv(200f)) * w.w else ViewGroup.LayoutParams.MATCH_PARENT, px(tv(124f)) * w.h) }
         }
         else -> widgetZone(code, tele = true, tailleTexte = tailleTexte, coteOeil = coteOeil, lierDate = lierDate, rangee = z in DispositionAccueil.RANGEES,
             souple = z !in DispositionAccueil.RANGEES)
+    }
+
+    /**
+     * La hauteur d'un widget Home Assistant sur la télé (zones et, 1.93.06, rangée des widgets) : un réglage (nom, valeur,
+     * − et +) prend au moins deux rangées, 2,6 avec la ligne de HA ; sinon sa hauteur en cases. 1.93.06 : la rangée des
+     * widgets ne suivait pas cette règle (consigne en 2 × 1 : − et + coupés par le bas).
+     */
+    private fun hauteurHaTele(r: WidgetsHa.Reglage): Int {
+        val ent = r.entites.firstOrNull()?.let { WidgetsHaStock.entite(this, it) }
+        val rangees = if (r.style == WidgetsHa.REGLAGE) maxOf(r.h.toFloat(), if (ent?.texte.isNullOrBlank()) 2f else 2.6f) else r.h.toFloat()
+        return (px(tv(124f)) * rangees).toInt()
     }
 
     /**
@@ -688,8 +972,7 @@ class LanceurActivity : Activity() {
         // pas — en 1 × 1 et 2 × 1, − et + étaient coupés sous le bord (le focus s'y posait, invisible). Deux rangées au moins.
         // l'auteur (17-10) : « le même widget que sur le mobile » — avec la ligne de HA, la hauteur d'une case du téléphone
         // (environ 160 dp en 2 × 2), pour montrer nom, valeur, − / + ET la ligne, comme sur le mobile.
-        val rangees = if (r.style == WidgetsHa.REGLAGE) maxOf(r.h.toFloat(), if (ent.texte.isNullOrBlank()) 2f else 2.6f) else r.h.toFloat()
-        v.layoutParams = LinearLayout.LayoutParams(px(tv(200f)) * r.w, (px(tv(124f)) * rangees).toInt())
+        v.layoutParams = LinearLayout.LayoutParams(px(tv(200f)) * r.w, hauteurHaTele(r))
         // 16-10 (retour d'essai) : sans cadre des widgets, la tuile Home Assistant n'a plus sa carte (dans une zone de la colonne).
         if (zoneTele != null && !DispositionAccueil.cadreWidgets(this)) (v as? ViewGroup)?.getChildAt(0)?.background = null
         return v
@@ -769,6 +1052,7 @@ class LanceurActivity : Activity() {
             else -> { construireTelephone(); poserTiroir() }
         }
         appsVues = try { appsAffichees() } catch (_: Exception) { "" }
+        if (tele) appliquerModeTele()
         Ui.laisserDeborder(racine)
         appliquerDonnees()
         brancherFluxHa()
@@ -791,12 +1075,14 @@ class LanceurActivity : Activity() {
         Accueil.initialiserTele(this)
         // 17-10 (l'auteur, points 10, 21) : 5 % en haut et en bas aussi (4 % : la roue sortait de la zone sûre) ; ZoneSure.
         val margeX = ZoneSure.x(this@LanceurActivity, 0.05f); val margeY = ZoneSure.y(this@LanceurActivity, 0.05f)
-        val colonne = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(margeX, margeY, margeX, margeY) }
+        val colonne = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(margeX, margeY, margeX, px(12f)) }
         // Recette lot 1 (TV 720p, grande police, bandeau « non reliée ») : quand tout ne tient pas en hauteur, l'accueil
         // défile (le focus de la télécommande l'emmène) au lieu d'écraser la rangée d'applis et la roue sous le bas de l'écran.
+        // 1.93.06 (recette de mise à jour avec des widgets de deux cases de haut) : la zone qui défile s'arrête à la zone sûre
+        // du bas ; avant, la roue des réglages dépassait au repos dans la marge que la télé rogne.
         val defileAccueil = ScrollView(this).apply { isFillViewport = true; isVerticalScrollBarEnabled = false; clipToPadding = false; tag = "defile_accueil" }
         defileAccueil.addView(colonne, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-        racine.addView(defileAccueil, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        racine.addView(defileAccueil, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT).apply { bottomMargin = margeY })
 
         // l'auteur (14 octobre) : plus d'en-tête « VISION » sur l'accueil de la télé, comme sur le téléphone.
         bandeauNonRelie(colonne, tv(34f))
@@ -879,11 +1165,12 @@ class LanceurActivity : Activity() {
                 defileW.addView(rangeeW)
                 integres.forEach { pl ->
                     val lp = LinearLayout.LayoutParams(px(tv(200f)) * pl.w, px(tv(124f)) * pl.h).apply { rightMargin = px(12f) }
-                    rangeeW.addView(widgetIntegreTele(pl.code, pl.w, pl.h) { Accueil.retirerDeLaGrille(this, pl.cle); construire() }, lp)
+                    rangeeW.addView(widgetIntegreTele(pl.code, pl.w, pl.h) { Accueil.retirerDeLaGrille(this, pl.cle); construire() }
+                        .apply { setTag(R.id.cadre_tele, CadreTele(pl.cle, CadreTele.Sorte.WIDGET)) }, lp)
                 }
                 has.forEach { (pl, r) ->
-                    val lp = LinearLayout.LayoutParams(px(tv(200f)) * pl.w, px(tv(124f)) * pl.h).apply { rightMargin = px(12f) }
-                    rangeeW.addView(widgetHaTele(pl, r), lp)
+                    val lp = LinearLayout.LayoutParams(px(tv(200f)) * pl.w, hauteurHaTele(r.copy(w = pl.w, h = pl.h))).apply { rightMargin = px(12f) }
+                    rangeeW.addView(widgetHaTele(pl, r).apply { setTag(R.id.cadre_tele, CadreTele(pl.cle, CadreTele.Sorte.WIDGET)) }, lp)
                 }
                 colonne.addView(defileW)
                 // 1.91.0 : bord à bord, comme la rangée des applications.
@@ -893,7 +1180,8 @@ class LanceurActivity : Activity() {
 
         // Le pied : l'aide du mode déplacement, et la roue des réglages à droite.
         val pied = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL or Gravity.END; setPadding(0, px(14f), 0, 0) }
-        pied.addView(texte(if (deplacement != null) getString(R.string.lanceur_aide_deplacement) else "", tv(20f), theme.encre2).apply { tag = "aide" }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        // 1.93.06 : en Modification, le bandeau du haut dit quoi faire ; sinon, discrètement, comment y entrer.
+        pied.addView(texte(if (modeTele.modification) "" else getString(R.string.accueil_modifier_aide), tv(18f), theme.encre3).apply { tag = "aide" }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         // Lot 1 (A7, APP-21) : la roue fait au moins 48 dp (avant : 28 dp sur une télé 1080p).
         val roue = maxOf(tv(96f), Ui.CIBLE_MIN)
         pied.addView(roueReglages(roue), LinearLayout.LayoutParams(px(roue), px(roue)))
@@ -953,15 +1241,17 @@ class LanceurActivity : Activity() {
         contenu.contentDescription = nom
         contenu.addView(libelle)
         contenu.isFocusable = true; contenu.isClickable = true
+        contenu.setTag(R.id.cadre_tele, CadreTele(c.cle, CadreTele.Sorte.APPLI))
         if (enDeplacement) { contenu.scaleX = 1.18f; contenu.scaleY = 1.18f; contenu.translationY = -px(10f).toFloat() }
         contenu.setOnFocusChangeListener { v, a ->
             if (deplacement != null) return@setOnFocusChangeListener
             anneau.visibility = if (a) View.VISIBLE else View.INVISIBLE
             libelle.setTextColor(if (a) theme.encre else theme.encre2); libelle.typeface = if (a) Polices.gras(this) else Polices.moyen(this)
-            v.animate().scaleX(if (a) 1.12f else 1f).scaleY(if (a) 1.12f else 1f).setDuration(140).start()
+            v.animate().scaleX(if (a) 1.12f else 1f).scaleY(if (a) 1.12f else 1f).setDuration(Anim.duree(140, Anim.actif(this))).setInterpolator(Anim.interpolateurEntree).start()
         }
         contenu.setOnClickListener { if (deplacement != null) { deplacement = null; construire() } else if (c.dossier != null) ouvrirDossier(c.dossier, cles) else ouvrir(c.pkg!!) }
-        contenu.setOnLongClickListener { if (deplacement == null) menuTele(c, cles); true }
+        // 1.93.06 : l'appui long sur OK fait entrer en Modification (LanceurActivity.toucheModes) ; le menu reste sur la
+        // touche Menu.
         // 1.78.0 : la touche Menu de la télécommande ouvre le même menu que l'appui long.
         contenu.setOnKeyListener { _, code, ev ->
             if (code == KeyEvent.KEYCODE_MENU && ev.action == KeyEvent.ACTION_UP && deplacement == null) { menuTele(c, cles); true } else false
@@ -980,7 +1270,7 @@ class LanceurActivity : Activity() {
         contenu.addView(cadre, LinearLayout.LayoutParams(px(taille + 16f), px(taille + 16f)))
         contenu.addView(texte(getString(R.string.exceptions_ajouter), tv(22f), theme.encre2, Polices.moyen(this)).apply { gravity = Gravity.CENTER; setPadding(0, px(8f), 0, 0) })
         contenu.isFocusable = true; contenu.isClickable = true
-        contenu.setOnFocusChangeListener { v, a -> rond.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(if (a) theme.carte else 0); setStroke(px(if (a) 2f else 1.5f), if (a) theme.or else theme.encre2, px(10f).toFloat(), px(8f).toFloat()) }; v.animate().scaleX(if (a) 1.12f else 1f).scaleY(if (a) 1.12f else 1f).setDuration(140).start() }
+        contenu.setOnFocusChangeListener { v, a -> rond.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(if (a) theme.carte else 0); setStroke(px(if (a) 2f else 1.5f), if (a) theme.or else theme.encre2, px(10f).toFloat(), px(8f).toFloat()) }; v.animate().scaleX(if (a) 1.12f else 1f).scaleY(if (a) 1.12f else 1f).setDuration(Anim.duree(140, Anim.actif(this))).setInterpolator(Anim.interpolateurEntree).start() }
         contenu.setOnClickListener { ajouterTele() }
         return contenu
     }
@@ -1019,7 +1309,12 @@ class LanceurActivity : Activity() {
         val nom = if (c.dossier != null) c.dossier.nom else Accueil.etiquette(this, c.pkg!!)
         val choix = ArrayList<Pair<String, () -> Unit>>()
         choix.add(getString(R.string.lanceur_ouvrir) to { if (c.dossier != null) ouvrirDossier(c.dossier, cles) else ouvrir(c.pkg!!) })
-        choix.add(getString(R.string.partyecran_deplacer) to { deplacement = c.cle; construire(); racine.post { trouverParTag(racine, c.cle)?.requestFocus() }; Unit })
+        choix.add(getString(R.string.partyecran_deplacer) to {
+            entrerModification(c.cle)
+            racine.post { cadreVue(c.cle)?.let { v -> cadreDe(v)?.let { cad -> modeTele.ok(cad.cle, false); saisir(cad) } } }
+            Unit
+        })
+        choix.add(getString(R.string.accueil_modifier) to { entrerModification(c.cle) })
         if (c.pkg != null) {
             choix.add(getString(R.string.lanceur_retirer_accueil) to { Accueil.cacher(this, c.pkg, true); construire() })
             // 1.78.0 : pour une appli qui bugue. Lot accueil (point 7) : arrêt et cache sans code (page restreinte), Infos avec code.
@@ -1114,10 +1409,22 @@ class LanceurActivity : Activity() {
         zone.addView(defile, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         racine.addView(zone, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT).apply { bottomMargin = hauteurBas })
         // Tout le bas de l'écran ouvre le tiroir d'un glissement vers le haut, même en partant d'une icône du dock.
+        // 1.93.06 (l'auteur : « en glissant sur toute la barre ») : la barre suit le doigt sur toute sa surface. Avant, un
+        // écouteur de toucher posé sur elle (appui long → panneau) prenait tout : partie d'un bord vide, ou reprise après
+        // un départ sur la poignée ou le dock, elle ne suivait plus le doigt (seul un geste vif de 40 dp ouvrait).
+        val appuiLongBas = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onLongPress(e: MotionEvent) { if (enDrag == null && enDragNouveau == null && enDragAppli == null && panneau == null && tiroirP < 0.01f) montrerPanneau() }
+            override fun onDown(e: MotionEvent) = true
+        })
         val bas = object : LinearLayout(this) {
             private val geste = GesteTiroir(ouvre = true)
             override fun onInterceptTouchEvent(e: MotionEvent): Boolean = geste.suivre(e, this)
-            override fun onTouchEvent(e: MotionEvent): Boolean { geste.suivre(e, this); return true }
+            override fun onTouchEvent(e: MotionEvent): Boolean {
+                val tire = geste.suivre(e, this)
+                // Le doigt tire le tiroir : l'appui long (panneau) est annulé.
+                if (tire) MotionEvent.obtain(e).also { c -> c.action = MotionEvent.ACTION_CANCEL; appuiLongBas.onTouchEvent(c); c.recycle() } else appuiLongBas.onTouchEvent(e)
+                return true
+            }
         }.apply { orientation = LinearLayout.VERTICAL; setPadding(px(16f), 0, px(16f), px(8f)) }
         racine.addView(bas, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, hauteurBas, Gravity.BOTTOM))
 
@@ -1227,8 +1534,14 @@ class LanceurActivity : Activity() {
         }
 
         // La poignée du tiroir : un trait, comme Android ; toucher ou glisser vers le haut ouvre toutes les applications.
-        val poignee = LinearLayout(this).apply { gravity = Gravity.CENTER; setPadding(0, px(16f), 0, px(12f)); contentDescription = getString(R.string.lanceur_toutes_applis) }
-        poignee.addView(View(this).apply { background = GradientDrawable().apply { cornerRadius = px(3f).toFloat(); setColor(theme.encre3) } }, LinearLayout.LayoutParams(px(56f), px(5f)))
+        // 1.93.06 (l'auteur : « une poignée visible ») : plus épaisse, à la couleur d'accent du thème (l'or), une zone d'appui de
+        // 48 dp de haut (avant : 33 dp, sous le minimum) ; un appui l'ouvre, TalkBack la dit et l'active comme un bouton.
+        val poignee = LinearLayout(this).apply {
+            gravity = Gravity.CENTER; minimumHeight = px(Ui.CIBLE_MIN); setPadding(0, px(14f), 0, px(12f)); tag = "poignee_tiroir"
+            contentDescription = getString(R.string.lanceur_toutes_applis); isClickable = true; isFocusable = true
+            setOnClickListener { tiroirApplis() }
+        }
+        poignee.addView(View(this).apply { background = GradientDrawable().apply { cornerRadius = px(3f).toFloat(); setColor(theme.or) } }, LinearLayout.LayoutParams(px(64f), px(6f)))
         brancherGestes(poignee, consomme = true, toucher = { tiroirApplis() })
         bas.addView(poignee)
 
@@ -1247,7 +1560,6 @@ class LanceurActivity : Activity() {
         dock.setOnLongClickListener { if (pkgs.size < Accueil.DOCK_MAX) choisirAppliDock(pkgs.size); true }
         dock.isLongClickable = true
         bas.addView(dock)
-        brancherGestes(bas, consomme = true)
 
         // La zone « retirer », visible pendant un glisser.
         zoneRetrait = LinearLayout(this).apply {
@@ -1476,8 +1788,7 @@ class LanceurActivity : Activity() {
         val profil = profil()
         val poses = Accueil.disposition(this).map { it.cle }.toSet()
         // 15-10 (retour d'essai) : seulement les widgets dont le lieu a les données (liste envoyée par Home Assistant) ; ceux déjà posés restent.
-        val donneesDuLieu = Accueil.disponibles(this)
-        val dispo = Accueil.WIDGETS.filter { (it.publics.isEmpty() || profil in it.publics) && Modules.widgetVisible(actifs, it.code) && Accueil.disponible(it.code, donneesDuLieu) }
+        val dispo = CatalogueWidgets.vision(this, profil)  // 1.93.06 : le catalogue commun au téléphone et à la télé
         val defilant = ScrollView(this).apply { isVerticalScrollBarEnabled = false }
         val liste = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false }
         defilant.addView(liste)
@@ -1900,7 +2211,7 @@ class LanceurActivity : Activity() {
      * Home Assistant qui le dit (actions de l'entité, rôle de l'appareil), comme pour le téléphone.
      */
     private fun widgetHaTele(pl: Accueil.Place, r: WidgetsHa.Reglage, modifier: (() -> Unit)? = null, retirer: (() -> Unit)? = null): View {
-        val cadre = FrameLayout(this).apply { setPadding(px(6f), px(6f), px(6f), px(6f)); isFocusable = true; isClickable = true; tag = pl.cle; clipChildren = false }
+        val cadre = FrameLayout(this).apply { setPadding(px(6f), px(6f), px(6f), px(6f)); isFocusable = true; isClickable = true; tag = pl.cle; clipChildren = false; setTag(R.id.cadre_widget, true) }
         var menuWidget: () -> Unit = {}
         val v = VueWidgetHa(this, theme, r.copy(w = pl.w, h = pl.h), lectureSeule = false, agir = { e, s -> agirHa(e, s) }, details = { t, m -> detailsHa(t, m) },
             agirAvec = { e, s, d -> agirHa(e, s, d) }, menu = { menuWidget() }).also { vuesHa.add(it) }
@@ -1908,24 +2219,26 @@ class LanceurActivity : Activity() {
         cadre.contentDescription = v.contentDescription
         cadre.setOnFocusChangeListener { x, a ->
             // Un réglage (− / +) : le focus passe tout de suite sur ses commandes.
-            if (a) v.commandes().firstOrNull()?.let { it.requestFocus(); return@setOnFocusChangeListener }
+            if (a && !modeTele.modification) v.commandes().firstOrNull()?.let { it.requestFocus(); return@setOnFocusChangeListener }
             x.background = if (a) fondCarte(28f, couleur = 0, bord = theme.or, epaisseurDp = 2f) else null
-            x.animate().scaleX(if (a) 1.05f else 1f).scaleY(if (a) 1.05f else 1f).setDuration(140).start()
+            x.animate().scaleX(if (a) 1.05f else 1f).scaleY(if (a) 1.05f else 1f).setDuration(Anim.duree(140, Anim.actif(this))).setInterpolator(Anim.interpolateurEntree).start()
         }
         val menu = {
-            val choix = arrayOf(getString(R.string.lanceur_voir_detail), getString(R.string.lanceur_modifier_points), getString(R.string.lanceur_retirer_accueil))
+            val choix = arrayOf(getString(R.string.lanceur_voir_detail), getString(R.string.lanceur_modifier_points), getString(R.string.lanceur_retirer_accueil), getString(R.string.accueil_modifier))
             Ui.dialogue(this).setTitle(titreHa(r)).setItems(choix) { _, k ->
                 when (k) {
                     0 -> v.voirDetails()
                     1 -> autoriserWidget { (modifier ?: { ouvrirEditeurHa(r.id) })() }
-                    else -> autoriserWidget { (retirer ?: { Accueil.retirerDeLaGrille(this, pl.cle); construire() })() }
+                    2 -> autoriserWidget { (retirer ?: { Accueil.retirerDeLaGrille(this, pl.cle); construire() })() }
+                    else -> entrerModification(pl.cle)
                 }
             }.show()
         }
         menuWidget = { menu() }
-        // OK : le widget agit s'il le peut (comme un toucher sur le téléphone), sinon le menu.
-        cadre.setOnClickListener { if (v.pilote) v.performClick() else menu() }
-        cadre.setOnLongClickListener { menu(); true }
+        // OK : comme un toucher sur le téléphone. 1.93.06 (parité) : il agit s'il le peut, sinon il suit « Au toucher »
+        // (détail, vue de Home Assistant, ou rien) ; avant, toujours le menu. Le menu : touche Menu, ou appui long en
+        // Modification.
+        cadre.setOnClickListener { v.performClick() }
         // 1.91.2 : le focus est sur le cadre ; haut / bas vont au widget (son contenu défile), puis le focus repart.
         cadre.setOnKeyListener { _, code, ev ->
             if (code == KeyEvent.KEYCODE_MENU) { if (ev.action == KeyEvent.ACTION_UP) menu(); return@setOnKeyListener true }
@@ -1951,17 +2264,17 @@ class LanceurActivity : Activity() {
         val cadre = FrameLayout(this).apply {
             setPadding(px(6f), px(6f), px(6f), px(6f)); isFocusable = true; isClickable = true; clipChildren = false
             contentDescription = Accueil.widget(code)?.nom ?: code; tag = "carte_widget_$code"
+            setTag(R.id.cadre_widget, true)
         }
         cadre.addView(base, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         cadre.setOnFocusChangeListener { x, a ->
             x.background = if (a) fondCarte(28f, couleur = 0, bord = theme.or, epaisseurDp = 2f) else null
-            x.animate().scaleX(if (a) 1.05f else 1f).scaleY(if (a) 1.05f else 1f).setDuration(140).start()
+            x.animate().scaleX(if (a) 1.05f else 1f).scaleY(if (a) 1.05f else 1f).setDuration(Anim.duree(140, Anim.actif(this))).setInterpolator(Anim.interpolateurEntree).start()
         }
         val menu = {
             Ui.dialogue(this).setTitle(Accueil.widget(code)?.nom ?: code).setItems(arrayOf(getString(R.string.lanceur_retirer_accueil))) { _, _ -> autoriserWidget(retirer) }.show()
         }
         cadre.setOnClickListener { val c = base.getChildAt(0); if (c != null && c.hasOnClickListeners()) c.performClick() else menu() }
-        cadre.setOnLongClickListener { menu(); true }
         cadre.setOnKeyListener { _, code2, ev -> if (code2 == KeyEvent.KEYCODE_MENU) { if (ev.action == KeyEvent.ACTION_UP) menu(); true } else false }
         return cadre
     }
@@ -1988,10 +2301,7 @@ class LanceurActivity : Activity() {
 
     /** 16-10 : les widgets de Vision qu'on peut poser ici (publics, modules, données du lieu), comme le panneau du téléphone. */
     private fun widgetsVisionPosables(): List<Accueil.Widget> {
-        val actifs = Modules.actifs(this)
-        val profil = profil()
-        val donneesDuLieu = Accueil.disponibles(this)
-        return Accueil.WIDGETS.filter { (it.publics.isEmpty() || profil in it.publics) && Modules.widgetVisible(actifs, it.code) && Accueil.disponible(it.code, donneesDuLieu) }
+        return CatalogueWidgets.vision(this, profil())  // 1.93.06 : le catalogue commun au téléphone et à la télé
     }
 
     /** 16-10 (télé, disposition « Rangées ») : « + › Un widget de Vision » — le choix, puis le widget dans la rangée des widgets. */
@@ -2185,11 +2495,13 @@ class LanceurActivity : Activity() {
     private inner class GesteTiroir(private val ouvre: Boolean, private val seuilFacteur: Float = 0.6f, private val si: () -> Boolean = { true }) {
         private var y0 = 0f; private var x0 = 0f; private var tire = false
         private var yAvant = 0f; private var tAvant = 0L; private var vitesse = 0f
+        /** 1.93.06 : où le doigt s'est posé (le chemin parcouru compte depuis là, seuil de départ compris). */
+        private var yPose = 0f
         private val seuil by lazy { ViewConfiguration.get(this@LanceurActivity).scaledTouchSlop * seuilFacteur }
 
         fun suivre(e: MotionEvent, v: View): Boolean {
             when (e.actionMasked) {
-                MotionEvent.ACTION_DOWN -> { y0 = e.rawY; x0 = e.rawX; tire = false; yAvant = e.rawY; tAvant = e.eventTime; vitesse = 0f }
+                MotionEvent.ACTION_DOWN -> { y0 = e.rawY; x0 = e.rawX; yPose = e.rawY; tire = false; yAvant = e.rawY; tAvant = e.eventTime; vitesse = 0f }
                 MotionEvent.ACTION_MOVE -> {
                     val dt = (e.eventTime - tAvant).coerceAtLeast(1)
                     vitesse = vitesse * 0.4f + ((e.rawY - yAvant) / dt * 1000f) * 0.6f
@@ -2206,8 +2518,9 @@ class LanceurActivity : Activity() {
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> if (tire) {
                     tire = false
-                    // L'élan décide ; sans élan, c'est la position.
-                    val monte = if (Math.abs(vitesse) > 450f) vitesse < 0f else tiroirP > (if (ouvre) 0.3f else 0.7f)
+                    // 1.93.06 (retour d'essai) : dès que le geste dépasse 0,11 dp/ms ou 48 dp, il décide (GesteMenuBas) ;
+                    // avant, 450 px/s, sinon 30 % de la course.
+                    val monte = GesteMenuBas.finitOuvert(vitesse / dm.density / 1000f, (yPose - e.rawY) / dm.density, ouvrant = ouvre)
                     animerTiroir(if (monte) 1f else 0f, vitesse)
                 }
             }
@@ -2227,6 +2540,7 @@ class LanceurActivity : Activity() {
             override fun onTouchEvent(e: MotionEvent): Boolean { geste.suivre(e, this); return true }
         }
         feuille.background = fondCarte(30f)
+        feuille.tag = "tiroir_feuille"
         // Les icônes qui défilent restent dans la feuille, coins arrondis compris.
         feuille.clipToOutline = true; feuille.clipChildren = true
         couche.addView(feuille, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (dm.heightPixels * 0.86f).toInt(), Gravity.BOTTOM))
@@ -2332,7 +2646,8 @@ class LanceurActivity : Activity() {
         val depart = tiroirP
         val distance = Math.abs(cible - depart)
         if (distance < 0.002f) { tirerTiroir(cible); return }
-        val duree = if (Math.abs(vitesse) > 450f) (distance * courseTiroir() / Math.abs(vitesse) * 1000f * 1.8f).toLong().coerceIn(150L, 360L) else (200 + 180 * distance).toLong()
+        // 1.93.06 (règles d'Emil Kowalski) : 280 ms au plus (avant : jusqu'à 380 ms), ease-out.
+        val duree = GesteMenuBas.duree(distance, courseTiroir(), vitesse)
         tiroirAnim = android.animation.ValueAnimator.ofFloat(depart, cible).apply {
             duration = duree
             interpolator = android.view.animation.DecelerateInterpolator(1.9f)
@@ -3142,6 +3457,7 @@ class LanceurActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL; setPadding(px(12f), px(8f), px(14f), px(8f)); tag = c?.cle ?: "plus"
             isFocusable = true; isClickable = true; contentDescription = nom; minimumHeight = px(Ui.CIBLE_MIN)
             background = fondLigneTele(focus = false, enDeplacement = enDeplacement)
+            if (c != null) setTag(R.id.cadre_tele, CadreTele(c.cle, CadreTele.Sorte.APPLI))
         }
         val icone: View = when {
             c == null -> FrameLayout(this).apply {
@@ -3163,7 +3479,7 @@ class LanceurActivity : Activity() {
             if (deplacement != null) return@setOnFocusChangeListener
             v.background = fondLigneTele(focus = a, enDeplacement = false)
             libelle.setTextColor(if (a) theme.encre else theme.encre2); libelle.typeface = if (a) Polices.gras(this) else Polices.moyen(this)
-            v.animate().scaleX(if (a) 1.04f else 1f).scaleY(if (a) 1.04f else 1f).setDuration(140).start()
+            v.animate().scaleX(if (a) 1.04f else 1f).scaleY(if (a) 1.04f else 1f).setDuration(Anim.duree(140, Anim.actif(this))).setInterpolator(Anim.interpolateurEntree).start()
         }
         l.setOnClickListener {
             when {
@@ -3173,7 +3489,6 @@ class LanceurActivity : Activity() {
                 else -> ouvrir(c.pkg!!)
             }
         }
-        if (c != null) l.setOnLongClickListener { if (deplacement == null) menuTele(c, cles); true }
         l.setOnKeyListener { _, code, ev ->
             // La touche Menu ouvre le même menu que l'appui long ; gauche et droite passent dans la zone voisine.
             if (c != null && code == KeyEvent.KEYCODE_MENU) {
@@ -3234,6 +3549,7 @@ class LanceurActivity : Activity() {
         val carte = FrameLayout(this).apply {
             isFocusable = !propre; isClickable = !propre; tag = "carte_zone_${z}_$code"; contentDescription = ZoneHaut.nom(this@LanceurActivity, code)
             background = fondCarteZone(focus = false); setPadding(px(18f), px(16f), px(18f), px(16f)); clipChildren = false
+            setTag(R.id.cadre_tele, CadreTele(code, CadreTele.Sorte.ZONE, z))
         }
         val lpC = contenu.layoutParams
         carte.addView(contenu, FrameLayout.LayoutParams(lpC?.width ?: ViewGroup.LayoutParams.WRAP_CONTENT, lpC?.height ?: ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
@@ -3246,7 +3562,7 @@ class LanceurActivity : Activity() {
         carte.setOnFocusChangeListener { v, a ->
             if (a) dernieresCartes[z] = v
             v.background = fondCarteZone(focus = a)
-            v.animate().scaleX(if (a) 1.03f else 1f).scaleY(if (a) 1.03f else 1f).setDuration(140).start()
+            v.animate().scaleX(if (a) 1.03f else 1f).scaleY(if (a) 1.03f else 1f).setDuration(Anim.duree(140, Anim.actif(this))).setInterpolator(Anim.interpolateurEntree).start()
         }
         // La colonne est à gauche de la zone de droite, et à droite de la zone de gauche.
         // Les rangées du haut et du bas : la recherche de focus d'Android (haut / bas) suffit.

@@ -38,3 +38,20 @@ async def test_reserve_aux_administrateurs(hass, hass_storage, hass_read_only_us
     await _monter(hass, hass_storage)
     with pytest.raises(Unauthorized):
         await _regler(hass, Context(user_id=hass_read_only_user.id), lecteur=True)
+
+
+async def test_taille_du_qr(hass, hass_storage, hass_client):
+    """1.93.06 (retour d'essai) : la taille du QR des invités (veille et lecteur) : petit par défaut, moyen ou grand ; autre chose
+    est refusé par le service."""
+    import voluptuous as vol
+
+    await _monter(hass, hass_storage)
+    client = await hass_client()
+    rep = await _regler(hass, lecteur=True)
+    assert rep["reglages"]["qr_taille"] == "petit"
+    rep = await _regler(hass, qr_taille="grand")
+    assert rep["reglages"]["qr_taille"] == "grand" and rep["reglages"]["lecteur"] is True
+    assert (await _releve(client, ENFANT))["veille_options"]["qr_taille"] == "grand"
+    with pytest.raises(vol.Invalid):
+        await _regler(hass, qr_taille="enorme")
+    assert (await _releve(client, ENFANT))["veille_options"]["qr_taille"] == "grand"

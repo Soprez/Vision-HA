@@ -1489,6 +1489,20 @@
       "name": "Nueva clave de desbloqueo",
       "description": "Sustituye la clave que firma las aprobaciones de desbloqueo; las que están en curso dejan de valer. Los dispositivos reciben la nueva clave en la próxima revisión. Solo para administradores."
     },
+    "deverrouiller_appareil": {
+      "name": "Desbloquear un dispositivo",
+      "description": "Desbloquea un dispositivo al momento, sin que lo pida: acceso total (ajustes de Android, instalaciones, opciones para desarrolladores) durante 15, 30 o 60 min; después se vuelve a bloquear solo. Se avisa a todos los responsables. Solo administradores.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "El dispositivo que se desbloquea (su identificador de Vision)."
+        },
+        "minutes": {
+          "name": "Minutos",
+          "description": "Cuánto tiempo: 15, 30 o 60 min."
+        }
+      }
+    },
     "pause_generale": {
       "name": "Bloquear todo",
       "description": "Bloquea de una vez todos los dispositivos supervisados durante un tiempo; los dispositivos de quienes deciden siguen permitidos. «Volver a permitir» los permite antes del final. Solo para administradores.",
@@ -1920,6 +1934,54 @@
         "logo": {
           "name": "Logo de Vision",
           "description": "Esquina del ojo de Vision: mismos valores; abajo a la izquierda (su sitio habitual) por defecto. El código QR y el logo nunca comparten esquina."
+        },
+        "qr_taille": {
+          "name": "Tamaño del QR de los invitados",
+          "description": "petit (pequeño, de cerca ≈ 1 m, por defecto), moyen (mediano, ≈ 1,5 m) o grand (grande, ≈ 2 m). También para el reproductor de música."
+        }
+      }
+    },
+    "musique_regler": {
+      "name": "Música — sonido de otras apps",
+      "description": "Qué hace la música de Vision en un dispositivo cuando otra app reproduce sonido (solo administradores y automatizaciones). El dispositivo aplica el ajuste más reciente, de Home Assistant o del propio televisor.",
+      "fields": {
+        "pc": {
+          "name": "Dispositivo",
+          "description": "Nombre del dispositivo."
+        },
+        "focus": {
+          "name": "Pausar la música",
+          "description": "toujours (predeterminado): pausa en cuanto otra app reproduce sonido; applis: solo con las apps de la lista; jamais: la música sigue. Cambiar a una entrada de la tele (HDMI, TV en directo) cuenta como otra app."
+        },
+        "applis": {
+          "name": "Apps que pausan",
+          "description": "Nombres de paquete de Android (por ejemplo com.google.android.youtube.tv), para «applis». vision.entrees_tele representa las entradas de la tele (HDMI, TV en directo)."
+        },
+        "reprise": {
+          "name": "Reanudar automáticamente",
+          "description": "La música vuelve a sonar sola cuando el otro sonido termina (desactivado por defecto)."
+        }
+      }
+    },
+    "widget_regler": {
+      "name": "Widget — línea bajo el valor",
+      "description": "Ajusta el widget de una entidad en todos los dispositivos (solo administradores y automatizaciones): la línea bajo el valor, su nombre y su icono. Como la tarjeta Widgets HA.",
+      "fields": {
+        "entite": {
+          "name": "Entidad del widget",
+          "description": "La entidad que muestra el widget (por ejemplo input_number.consigna)."
+        },
+        "ligne": {
+          "name": "Línea bajo el valor",
+          "description": "Otra entidad cuyo estado se escribe bajo el valor (por ejemplo sensor.modo_calefaccion). Vacío: sin línea."
+        },
+        "nom": {
+          "name": "Nombre",
+          "description": "El nombre mostrado (vacío: el de Home Assistant)."
+        },
+        "icone": {
+          "name": "Icono",
+          "description": "Un icono mdi: (vacío: el de Home Assistant)."
         }
       }
     },
@@ -1973,6 +2035,9 @@
       },
       "compte_administrateur": {
         "name": "Cuenta de administrador"
+      },
+      "protection_desactivee": {
+        "name": "Protección desactivada"
       },
       "pause_generale_en_cours": {
         "name": "Todo bloqueado"

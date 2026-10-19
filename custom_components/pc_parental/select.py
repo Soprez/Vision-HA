@@ -37,6 +37,7 @@ from .const import (
     SOUNDS,
     TOUS_LES_PC,
 )
+from . import listes
 from .coordinator import PcParentalCoordinator
 from .planner import days_label, jours_depuis_texte
 from .entity import HubEntity, PcEntity, appliquer, categorie, erreur, langue, nom_traduit, prune_stale, texte
@@ -543,6 +544,12 @@ class _ConstateSelect(HubEntity, SelectEntity):
     def _ligne(self, nom: str) -> str:
         raise NotImplementedError
 
+    def _cle_cache(self) -> tuple:
+        # 2.5.12 : le magasin fait partie de la clé. Un magasin neuf (rechargement de l'intégration, ou essai suivant)
+        # repart de version_cache 0 et relisait pendant 5 s les listes du précédent.
+        magasin = self.coordinator.store
+        return (id(magasin), self._genre, (self._pc() or {}).get("id") or "", getattr(magasin, "version_cache", 0))
+
     def _par_etat(self, etat: str) -> list[str]:
         """Les noms dans cet état — à classer, autorisés, ou bloqués.
 
@@ -556,7 +563,7 @@ class _ConstateSelect(HubEntity, SelectEntity):
         # listes et leurs attributs s'y servent, au lieu de reclasser des milliers de noms
         # à chaque relevé d'un appareil (ce qui bloquait la boucle d'événements).
         import time as _t
-        cle = (self._genre, (pc or {}).get("id") or "", getattr(magasin, "version_cache", 0))
+        cle = self._cle_cache()
         cache = _PAR_ETAT.get(cle)
         if cache is None or _t.monotonic() - cache[0] > 5:
             seaux: dict[str, list[str]] = {}
@@ -626,47 +633,43 @@ class _ConstateSelect(HubEntity, SelectEntity):
         """Seulement la page affichée : les boutons agissent sur ce qu'on voit."""
         return self._pagine()[0] or [AUCUN_CONSTAT]
 
-    @property
-    def extra_state_attributes(self) -> dict[str, object]:
-        # La colonne montre l'état de la **maison** : elle l'annonçait avec
-        # le nom du PC ciblé, ce qui promettait une information machine par
-        # machine que ce tableau n'a jamais donnée.
+    def entete(self) -> str:
+        """L'en-tête du tableau. La colonne montre l'état du **lieu** : elle l'annonçait avec le nom du PC ciblé, ce
+        qui promettait une information machine par machine que ce tableau n'a jamais donnée."""
         hass = self.coordinator.hass
         colonnes = [texte(hass, f"colonne_{c}") for c in self._colonnes] + [texte(hass, "colonne_etat_maison")]
-        entete = (
-            "| " + " | ".join(colonnes) + " |\n"
-            "|" + "|".join(["---"] * len(colonnes)) + "|"
-        )
+        return "| " + " | ".join(colonnes) + " |\n|" + "|".join(["---"] * len(colonnes)) + "|"
+
+    def lignes_completes(self) -> list[str]:
+        """Toute la liste de cet état, en lignes de tableau : lue à la demande (listes.py), jamais en attribut."""
+        return [self._ligne(nom) for nom in self._retenus()]
+
+    def revision(self) -> str:
+        """L'empreinte de la liste : elle ne change que si un nom entre ou sort (pas à chaque relevé, où seuls le
+        temps passé et les comptes bougent). La carte relit la liste quand elle change."""
+        return listes.empreinte(self._genre, self._etat, self._retenus())
+
+    @property
+    def extra_state_attributes(self) -> dict[str, object]:
+        # 2.5.12 (diagnostic du 17/10) : plus de listes ici. `lignes`, `lignes_autorises` et `lignes_bloques`
+        # pesaient 35 à 50 Ko par sélecteur, portées en double par les six sélecteurs et recalculées à chaque
+        # relevé. Les cartes les lisent à la demande (`GET /api/pc_parental/listes`), quand `revision` change.
         noms, page, pages, total = self._pagine()
-        taille = self._taille()
-        autorises = self._par_etat(FILTRE_AUTORISES)
-        bloques = self._par_etat(FILTRE_BLOQUES)
         return {
-            "pc": texte(hass, "tous_les_appareils"),
-            "entete": entete,
-            # La file, paginée : c'est là qu'on travaille.
-            "lignes": [self._ligne(nom) for nom in noms],
+            "pc": texte(self.coordinator.hass, "tous_les_appareils"),
             "total": total,
             "file": len(self._file()),
             "page": page,
             "pages": pages,
             "montres": len(noms),
-            # Les deux autres états, pour relire ce qu'on a décidé sans
-            # changer d'écran. Bornés eux aussi : un attribut d'entité ne
-            # doit jamais enfler sans limite.
-            "lignes_autorises": [
-                self._ligne(nom) for nom in autorises[:taille]
-            ],
-            "total_autorises": len(autorises),
-            "lignes_bloques": [self._ligne(nom) for nom in bloques[:taille]],
-            "total_bloques": len(bloques),
+            "total_autorises": len(self._par_etat(FILTRE_AUTORISES)),
+            "total_bloques": len(self._par_etat(FILTRE_BLOQUES)),
             "a_classer": self.coordinator.store.a_classer(self._pc()),
-            # Les étiquettes de l'élément choisi, pour les **lire** sans
-            # changer d'onglet. On les pose ailleurs — dans la carte —
-            # mais ne pas les voir ici, c'est décider à l'aveugle.
+            # Les étiquettes de l'élément choisi, pour les **lire** sans changer d'onglet.
             "etiquettes_choisi": self.coordinator.store.etiquettes_de(
                 self._genre, self.current_option or ""
             ),
+            "revision": self.revision(),
         }
 
     def _marque(self, nom: str) -> str:

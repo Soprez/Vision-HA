@@ -81,13 +81,16 @@ async def test_duree_max_par_appareil(hass, hass_storage, hass_client):
     coord = await _monter(hass, hass_storage)
     client = await hass_client()
     assert (await _releve(client, NOLAN))["pause_max"] == 60
+    await hass.async_block_till_done()  # le relevé a pu programmer un rechargement de Vision : on l'attend
     nombre = er.async_get(hass).async_get_entity_id("number", DOMAIN, f"{DOMAIN}_pause_max_p1")
     enfant = await hass.auth.async_create_user("Lou", group_ids=["system-users"])
     with pytest.raises(Unauthorized):
         await hass.services.async_call("number", "set_value", {"entity_id": nombre, "value": 240}, blocking=True,
                                        context=Context(user_id=enfant.id))
     await hass.services.async_call("number", "set_value", {"entity_id": nombre, "value": 240}, blocking=True)
-    coord = next(iter(hass.data[DOMAIN].values()))  # le premier relevé du banc a rechargé Vision
+    # 2.5.12 : le premier relevé ne recharge plus Vision (stabilite_releve_test) ; avant, l'entité « number » n'existait
+    # pas encore pendant ce rechargement et le refus ci-dessus ne se produisait pas toujours (« DID NOT RAISE »).
+    coord = next(iter(hass.data[DOMAIN].values()))
     assert coord.store.pcs["p1"]["pause_max"] == 240
     assert (await _releve(client, NOLAN))["pause_max"] == 240
 

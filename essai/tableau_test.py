@@ -141,6 +141,13 @@ async def test_retouche_de_l_utilisateur_survit_au_redemarrage_et_a_la_mise_a_jo
     await hass.async_block_till_done()
     assert vue("maison")["title"] == "Mon accueil" and tableau.ecritures == ecritures
 
+    # 2.5.12 (étude des menus, C1) : une attribution, un changement de type ou de vocabulaire ne reconstruisent plus
+    # rien sans « Régénérer » : l'appel sans force ne touche pas au tableau, même avec une nouvelle empreinte.
+    coord = next(iter(hass.data[DOMAIN].values()))
+    assert not await coord.async_maj_tableau()
+    await hass.async_block_till_done()
+    assert vue("maison")["title"] == "Mon accueil" and tableau.ecritures == ecritures
+
     # « Régénérer le tableau de bord » : l'ancien est sauvegardé (avec la retouche), puis le modèle revient.
     coord = next(iter(hass.data[DOMAIN].values()))
     assert await coord.async_maj_tableau(force=True)

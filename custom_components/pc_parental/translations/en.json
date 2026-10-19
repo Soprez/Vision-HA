@@ -1489,6 +1489,20 @@
       "name": "New unlock key",
       "description": "Replaces the key that signs unlock approvals; those in progress no longer work. Devices get the new key at their next check-in. Administrators only."
     },
+    "deverrouiller_appareil": {
+      "name": "Unlock a device",
+      "description": "Unlocks a device right away, without any request from it: full access (Android settings, installs, developer options) for 15, 30 or 60 min, then it locks again by itself. Every responsible person is notified. Administrators only.",
+      "fields": {
+        "pc": {
+          "name": "Device",
+          "description": "The device to unlock (its Vision identifier)."
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "How long: 15, 30 or 60 min."
+        }
+      }
+    },
     "pause_generale": {
       "name": "Block everything",
       "description": "Blocks all supervised devices at once for a while; the devices of the people who decide stay open. “Allow again” allows them before the end. Administrators only.",
@@ -1920,6 +1934,54 @@
         "logo": {
           "name": "Vision logo",
           "description": "Corner of the Vision eye: same values; bottom left (its usual place) by default. The QR code and the logo never share a corner."
+        },
+        "qr_taille": {
+          "name": "Guests' QR code size",
+          "description": "petit (small, scan up close ≈ 1 m, default), moyen (medium, ≈ 1.5 m) or grand (large, ≈ 2 m). Also used by the music player."
+        }
+      }
+    },
+    "musique_regler": {
+      "name": "Music — sound from other apps",
+      "description": "What Vision's music does on a device when another app plays sound (administrators and automations only). The device applies the most recent setting, from Home Assistant or from the TV itself.",
+      "fields": {
+        "pc": {
+          "name": "Device",
+          "description": "Name of the device."
+        },
+        "focus": {
+          "name": "Pause the music",
+          "description": "toujours (default): pause as soon as another app plays sound; applis: only for the apps in the list; jamais: the music keeps playing. Switching to a TV input (HDMI, live TV) counts as another app."
+        },
+        "applis": {
+          "name": "Apps that pause the music",
+          "description": "Android package names (for example com.google.android.youtube.tv), for “applis”. vision.entrees_tele stands for the TV inputs (HDMI, live TV)."
+        },
+        "reprise": {
+          "name": "Resume automatically",
+          "description": "The music starts again by itself when the other sound stops (off by default)."
+        }
+      }
+    },
+    "widget_regler": {
+      "name": "Widget — line under the value",
+      "description": "Sets the widget of an entity on every device (administrators and automations only): the line written under the value, its name and its icon. Same as the Widgets HA card.",
+      "fields": {
+        "entite": {
+          "name": "Widget entity",
+          "description": "The entity the widget shows (for example input_number.setpoint)."
+        },
+        "ligne": {
+          "name": "Line under the value",
+          "description": "Another entity whose state is written under the value (for example sensor.heating_mode). Empty: no line."
+        },
+        "nom": {
+          "name": "Name",
+          "description": "The name shown (empty: Home Assistant's)."
+        },
+        "icone": {
+          "name": "Icon",
+          "description": "An mdi: icon (empty: Home Assistant's)."
         }
       }
     },
@@ -1973,6 +2035,9 @@
       },
       "compte_administrateur": {
         "name": "Administrator account"
+      },
+      "protection_desactivee": {
+        "name": "Protection turned off"
       },
       "pause_generale_en_cours": {
         "name": "Everything blocked"

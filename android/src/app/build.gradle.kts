@@ -40,8 +40,8 @@ android {
         // 36 (Android 16) depuis la 1.34.2. Le service au premier plan déclare
         // foregroundServiceType="specialUse", exigé à partir de la cible 34.
         targetSdk = 36
-        versionCode = 189
-        versionName = "1.93.05"
+        versionCode = 190
+        versionName = "1.93.06"
         // Essais sur émulateur (androidTest) : le lanceur d'essais du système, sans bibliothèque à télécharger.
         testInstrumentationRunner = "android.test.InstrumentationTestRunner"
     }
@@ -71,12 +71,14 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions { jvmTarget = "17" }
 
     // Recette calculée (version suivante, 17/10) : captures d'écran sans émulateur (Robolectric, rendu natif, Roborazzi).
     // Les ressources de l'appli (textes, polices, couleurs) sont données aux essais JVM pour qu'ils dessinent pour de vrai.
     testOptions { unitTests.isIncludeAndroidResources = true }
 }
+
+// La cible JVM de Kotlin (DSL compilerOptions : kotlinOptions est une erreur depuis Kotlin 2.2).
+kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 
 // La recette calculée (essais du paquet org.soprez.vision.captures) est lente à démarrer : elle ne tourne qu'à la demande,
 //   gradle :app:testDebugUnitTest -Pcaptures --tests "org.soprez.vision.captures.*"
@@ -100,7 +102,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     // Recette calculée (captures sans émulateur) : Robolectric pour faire tourner les écrans sur la JVM, Roborazzi pour
     // les images. Seulement dans les essais : rien n'entre dans l'APK.
-    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("org.robolectric:robolectric:4.17")
     testImplementation("io.github.takahirom.roborazzi:roborazzi:1.32.2")
     // Les flux HLS des caméras (segments fMP4 de Home Assistant) : le MediaPlayer du système ne les lit pas.
     implementation("androidx.media3:media3-exoplayer:1.4.1")
@@ -117,7 +119,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // Sa MediaSession (télécommande, système) : même version que media3-exoplayer.
     implementation("androidx.media3:media3-session:1.4.1")
-    implementation("org.bouncycastle:bcprov-jdk18on:1.77")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.86")
 }
 
 // Les essais sur émulateur (androidTest) : mêmes versions d'androidx que l'appli (déjà en cache),

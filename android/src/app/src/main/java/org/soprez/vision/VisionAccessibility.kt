@@ -24,11 +24,14 @@ class VisionAccessibility : AccessibilityService() {
         AgentService.demarrer(this)
         // 1.90.5, prototype : l'œil sur le bouton Accueil (désactivé par défaut).
         OeilAccueil.connecter(this)
+        // 1.93.06 (Déverrouillage simplifié) : « Déverrouillé, reste X min · Reverrouiller » pendant l'accès total.
+        BandeauDeverrouille.connecter(this)
     }
 
     override fun onDestroy() {
         actif = false
         OeilAccueil.retirer(this)
+        BandeauDeverrouille.retirer(this)
         super.onDestroy()
     }
 
@@ -127,6 +130,8 @@ class VisionAccessibility : AccessibilityService() {
         if (pkg != "com.android.systemui" && !pkg.contains("inputmethod") && !pkg.contains("keyboard")) {
             if (pkg != Usage.dernierPaquet && Usage.dernierPaquet.isNotEmpty() && Usage.dernierPaquet != packageName) Usage.paquetQuitte = Usage.dernierPaquet
             Usage.dernierPaquet = pkg
+            // 1.93.06 (point 6a) : une entrée de la télé (HDMI, TV en direct) au premier plan met la musique en pause.
+            FocusMusique.premierPlan(this, pkg, e.className?.toString() ?: "")
         }
         // L'accueil du système vient de passer devant (démarrage, sortie d'une appli) : Vision prend sa place.
         if (pkg != packageName && pkg.contains("launcher") && (e.className?.toString() ?: "").contains("home", ignoreCase = true)

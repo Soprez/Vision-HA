@@ -24,7 +24,7 @@ async def test_coins_par_defaut_puis_regles(hass, hass_storage, hass_client):
     client = await hass_client()
     rep = await _regler(hass, lecteur=False)
     # Par défaut : le QR en bas à droite, le logo à sa place d'avant (en bas à gauche).
-    assert rep["reglages"] == {"lecteur": False, "qr": "bas_droite", "logo": "bas_gauche"}
+    assert rep["reglages"] == {"lecteur": False, "qr": "bas_droite", "logo": "bas_gauche", "qr_taille": "petit"}
     rep = await _regler(hass, qr="haut_gauche", logo="haut_droite")
     assert rep["reglages"]["qr"] == "haut_gauche" and rep["reglages"]["logo"] == "haut_droite"
     bloc = (await _releve(client, ENFANT))["veille_options"]

@@ -508,6 +508,16 @@ object Ui {
         d.window?.setBackgroundDrawable(android.graphics.drawable.InsetDrawable(
             fond(th.carte, dp(ctx, 22f).toFloat(), dp(ctx, 1f), th.carteBord), dp(ctx, 16f)))
         val decor = d.window?.decorView ?: return
+        // 1.93.06 (retour d'essai) : sur la télé, un dialogue tient toujours dans la zone (bord réglé + marge de confort) : au plus
+        // 640 dp de large, et jamais plus haut que la zone (sa liste défile alors).
+        if (ReglagesTvActivity.estTele(ctx)) d.window?.let { w ->
+            val dm = ctx.resources.displayMetrics
+            val z = ZoneSure.zone(ctx)
+            val l = minOf(dm.widthPixels - z.left - z.right, dp(ctx, 640f))
+            val hMax = dm.heightPixels - z.top - z.bottom
+            w.setLayout(l, ViewGroup.LayoutParams.WRAP_CONTENT)
+            decor.addOnLayoutChangeListener { _, _, t, _, b, _, _, _, _ -> if (b - t > hMax) w.setLayout(l, hMax) }
+        }
         habillerVue(decor, th)
         d.listView?.setOnHierarchyChangeListener(object : ViewGroup.OnHierarchyChangeListener {
             override fun onChildViewAdded(parent: View?, child: View?) { if (child != null) habillerVue(child, th) }

@@ -2,10 +2,10 @@
 <!-- 17-10 (l'auteur, point 12) : « Ajuster l'écran », la zone sûre de la télé (ZoneSure, AjusterEcranActivity). -->
 <resources>
     <string name="zonesure_titre">Ajuster l\'écran</string>
-    <string name="zonesure_aide_1">Aligne les flèches sur les bords visibles de la télé.</string>
+    <string name="zonesure_aide_1">Aligne les repères sur les bords de ta télé, Vision garde une marge automatiquement.</string>
     <string name="zonesure_aide_2">▶ et ▲ agrandissent le cadre, ◀ et ▼ le resserrent.</string>
     <string name="zonesure_valeurs" formatted="true">Côtés %1$d %% · haut et bas %2$d %%</string>
-    <string name="zonesure_touches" formatted="false">OK : enregistrer · Retour : annuler · Appui long sur OK : revenir à 5 %</string>
+    <string name="zonesure_touches" formatted="false">OK : enregistrer · Retour : annuler · Appui long sur OK : revenir aux bords de l\'écran (0 %)</string>
     <string name="zonesure_enregistre" formatted="true">Écran ajusté : côtés %1$d %%, haut et bas %2$d %%.</string>
     <string name="zonesure_court" formatted="true">Côtés %1$d %% · haut et bas %2$d %%</string>
 </resources>

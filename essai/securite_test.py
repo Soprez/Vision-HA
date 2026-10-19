@@ -658,6 +658,7 @@ async def test_qr_ne_prend_pas_la_fiche_d_un_autre(hass, hass_storage, hass_clie
     assert (await _scanner(admin, jeton, host="PIXEL-PARENT", uid="u-parent"))[0] == 409
     assert coord.store.pcs["a1"]["secret"] == vieux
     assert (await _scanner(admin, jeton))[0] == 200
+    await hass.async_block_till_done()  # un appareil créé : Vision se recharge, on l'attend
 
     # L'administrateur choisit de reprendre cet appareil : secret neuf, l'ancien ne vaut plus.
     inv = await (await admin.post("/api/pc_parental/appairage/invitation", json={"code_octroi": CODE_OCTROI, "appareil": "a1"})).json()

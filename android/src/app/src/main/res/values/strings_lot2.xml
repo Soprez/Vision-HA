@@ -787,4 +787,23 @@
     <string name="manifeste_fermes">What\'s blocked</string>
     <string name="manifeste_maison">To decide</string>
     <string name="manifeste_musique">Music</string>
+    <!-- 1.93.06 : Déverrouillage simplifié -->
+    <string name="dev_deverrouille_total">%1$s unlocked this device for %2$d min: full access. It locks again by itself at the end.</string>
+    <string name="bandeau_deverrouille">Unlocked, %1$d min left</string>
+    <string name="bandeau_reverrouiller">Lock again</string>
+    <string name="bandeau_reverrouille">Device locked again.</string>
+    <string name="parents_deverrouiller">Unlock…</string>
+    <string name="parents_deverrouiller_titre">Unlock “%1$s”: full access for…</string>
+    <string name="parents_deverrouiller_min">%1$d min</string>
+    <string name="parents_deverrouiller_raison">Unlock “%1$s” for %2$d min</string>
+    <string name="parents_deverrouiller_fait">“%1$s” will be unlocked for %2$d min at its next check-in.</string>
+    <string name="garde_code_oublie">Forgot the code?</string>
+    <string name="code_oublie_titre">Forgotten code</string>
+    <string name="code_oublie_texte">Nobody can give you the old code back: Vision does not keep it anywhere. Two ways out: a %1$s unlocks this device remotely (when you ask, or on their own from their phone or Home Assistant), or a Home Assistant administrator sets a new code: Settings › Devices &amp; services › Vision › Configure › Security.</string>
+    <string name="code_oublie_demander">Ask a %1$s</string>
+    <string name="setup_parametres_appareil">Device settings</string>
+    <string name="setup_parametres_appareil_raison">Open the device settings</string>
+    <string name="setup_parametres_appareil_impossible">The device settings cannot be opened here.</string>
+    <string name="vuewidget_min_max">%1$s · min %2$s · max %3$s</string>
+    <string name="vuewidget_plage">%1$s – %2$s</string>
 </resources>

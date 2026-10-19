@@ -529,7 +529,11 @@ object WidgetsHa {
     // ------------------------------------------------------------------ textes
 
     fun nombre(v: Double, decimales: Int = -1): String {
-        val d = if (decimales >= 0) decimales else when { abs(v) >= 100 -> 0; abs(v) >= 10 -> 1; v == Math.floor(v) -> 0; else -> 1 }
+        // 1.93.06 (audit des widgets) : sous 1, deux chiffres significatifs (« 0,035 Mbit/s » ; avant : « 0 Mbit/s »).
+        val d = if (decimales >= 0) decimales else when {
+            abs(v) >= 100 -> 0; abs(v) >= 10 -> 1; v == Math.floor(v) -> 0; abs(v) >= 1 -> 1
+            else -> (Math.ceil(-Math.log10(abs(v))).toInt() + 1).coerceIn(1, 4)
+        }
         // Les chiffres selon la langue de l'appareil (« 21,5 » en français, « 21.5 » en anglais).
         val l = Tr.locale()
         val virgule = java.text.DecimalFormatSymbols.getInstance(l).decimalSeparator
@@ -537,11 +541,14 @@ object WidgetsHa {
         return if (s.contains(virgule)) s.trimEnd('0').trimEnd(virgule) else s
     }
 
-    /** La valeur à montrer : nombre à la française avec son unité, ou l'état traduit. */
+    /** La valeur à montrer : nombre à la française avec son unité (un débit en Mbit/s, [Debit]), ou l'état traduit. */
     fun valeurAffichee(etat: String, unite: String, domaine: String, deviceClass: String): String {
         if (etat.isEmpty() || etat == "unavailable" || etat == "unknown") return "–"
-        val n = etat.trim().replace(',', '.').toDoubleOrNull()
-        if (n != null && domaine !in setOf("binary_sensor", "light", "switch")) return (nombre(n) + if (unite.isNotEmpty()) (if (unite == "%" || unite.startsWith("°")) unite else " $unite") else "").trim()
+        val brut = etat.trim().replace(',', '.').toDoubleOrNull()
+        if (brut != null && domaine !in setOf("binary_sensor", "light", "switch")) {
+            val (n, u) = Debit.normaliser(brut, unite)
+            return (nombre(n) + if (u.isNotEmpty()) (if (u == "%" || u.startsWith("°")) u else " $u") else "").trim()
+        }
         return libelleEtat(domaine, deviceClass, etat)
     }
 
@@ -656,6 +663,23 @@ object WidgetsHa {
         return (if (depart >= fin) (debut to fin) else (depart to fin)) to (if (l.size == 1) listOf(Point(debut, l[0].v), Point(fin, l[0].v)) else l)
     }
 
+    /**
+     * 1.93.06 (l'auteur, 19/10 à 07:45, widget « T. Ambiante ») : un historique chargé une fois ne se rechargeait jamais. La fin
+     * de la fenêtre avançait, et la dernière valeur connue était prolongée jusqu'à maintenant : une bosse, puis une ligne
+     * plate pendant 16 h. L'historique d'un widget est périmé après [PERIME_24H_MS] (24 h) ou [PERIME_7J_MS] (7 j). Pur.
+     */
+    const val PERIME_24H_MS = 5 * 60_000L
+    const val PERIME_7J_MS = 30 * 60_000L
+
+    fun historiquePerime(chargeA: Long, maintenant: Long, periode: String): Boolean =
+        maintenant - chargeA >= if (periode == "7j") PERIME_7J_MS else PERIME_24H_MS
+
+    /** 1.93.06 (retour d'essai) : les repères sous la courbe — le minimum et le maximum de ce qu'elle montre (null : rien). Pur. */
+    fun minMaxFenetre(points: List<Point>, debut: Long, fin: Long): Pair<Double, Double>? {
+        val v = courbe(points, debut, fin).second.map { it.v }
+        return if (v.isEmpty()) null else v.min() to v.max()
+    }
+
     /** Les barres : une par heure (24 h) ou par jour (7 j), moyenne des points ; null là où il n'y a rien. */
     fun barres(points: List<Point>, periode: String, finMs: Long): List<Double?> {
         val n = if (periode == "7j") 7 else 24
@@ -677,6 +701,38 @@ object WidgetsHa {
         if (ma - mi < 1e-9) return (mi - 1) to (ma + 1)
         val air = (ma - mi) * 0.08
         return (mi - air) to (ma + air)
+    }
+
+    /**
+     * 1.93.06 (audit, graphique de la box) : les graduations de l'axe des valeurs, en nombres « ronds » (1, 2, 2,5, 5 × 10ⁿ)
+     * compris entre [mi] et [ma], [n] environ. Pur.
+     */
+    fun graduations(mi: Double, ma: Double, n: Int = 3): List<Double> {
+        if (!(ma > mi) || n < 2) return emptyList()
+        val brut = (ma - mi) / (n - 1)
+        val p = Math.pow(10.0, Math.floor(Math.log10(brut)))
+        // Les pas « ronds » : le plus proche au-dessus du pas idéal, puis de plus petits, jusqu'à tenir deux traits.
+        val tous = listOf(0.1, 0.2, 0.25, 0.5, 1.0, 2.0, 2.5, 5.0, 10.0).map { it * p }
+        for (s in tous.filter { it >= brut * 0.999 } + tous.filter { it < brut * 0.999 }.reversed()) {
+            val sortie = ArrayList<Double>()
+            var v = Math.ceil(mi / s - 1e-9) * s
+            while (v <= ma + 1e-9 && sortie.size < 10) { sortie.add(if (abs(v) < s * 1e-6) 0.0 else v); v += s }
+            if (sortie.size >= 2) return sortie
+        }
+        return emptyList()
+    }
+
+    /**
+     * Les repères de temps sous un graphique : toutes les 6 h (heure locale) sur 24 h, chaque minuit sur 7 jours, entre
+     * [debutMs] et [finMs] ; [decalageMs] : l'écart de l'heure locale avec UTC à un instant donné. Pur.
+     */
+    fun reperesTemps(debutMs: Long, finMs: Long, periode: String, decalageMs: (Long) -> Long): List<Long> {
+        val pas = if (periode == "7j") 86_400_000L else 6 * 3_600_000L
+        val sortie = ArrayList<Long>()
+        val dec = decalageMs(debutMs)
+        var t = (Math.floorDiv(debutMs + dec, pas) + 1) * pas - dec
+        while (t < finMs && sortie.size < 12) { if (t > debutMs) sortie.add(t); t += pas }
+        return sortie
     }
 
     /** Les segments d'états ramenés à la période (fractions 0–1), pour une bande colorée. */

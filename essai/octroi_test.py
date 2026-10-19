@@ -309,6 +309,7 @@ async def test_le_releve_dit_si_le_code_est_dans_ha(hass, hass_storage, hass_cli
     await _monter(hass, hass_storage)
     r = await (await client.post("/api/pc_parental/poll", json={**PARENT})).json()
     assert r["code_deverrouillage"] is False
+    await hass.async_block_till_done()  # le relevé a pu programmer un rechargement de Vision : on l'attend
     _poser_code(hass)
     r = await (await client.post("/api/pc_parental/poll", json={**PARENT})).json()
     assert r["code_deverrouillage"] is True

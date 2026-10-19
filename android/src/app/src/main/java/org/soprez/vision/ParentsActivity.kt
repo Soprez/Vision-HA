@@ -506,9 +506,42 @@ class ParentsActivity : Activity() {
                 choisirConcentration(id, prenom.ifEmpty { a.optString("nom") }, conc)
             }, haut = 8f))
         }
+        // 1.93.06 (Déverrouillage simplifié) : déverrouiller cet appareil tout de suite, sans demande de sa part.
+        if (Modules.actifDans(m, Modules.DEVERROUILLAGE) && a.optBoolean("android"))
+            c.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.parents_deverrouiller)) {
+                deverrouillerADistance(id, prenom.ifEmpty { a.optString("nom") })
+            }, haut = 8f))
         val gestes = Modules.gestesGestion(m, a.optBoolean("android"))
         c.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.parents_gerer, gestes.filter { it != "pause" }.joinToString(", ") { nomGeste(it) })) { GestionAppareil.menu(this, a, personnes) { agir(it) } }, haut = 8f))
         return c
+    }
+
+    /**
+     * 1.93.06 (Déverrouillage simplifié) : accès total pour 15, 30 ou 60 min (réglages d'Android, installations,
+     * options pour les développeurs, aucun écran de blocage), puis l'appareil se reverrouille seul. L'empreinte ou le
+     * code est demandé à chaque fois (Octroi) ; tous les responsables sont prévenus par Home Assistant.
+     */
+    private fun deverrouillerADistance(pc: String, nom: String) {
+        val choix = Deverrouillage.MINUTES_INITIATIVE.sorted()
+        Ui.dialogue(this).setTitle(getString(R.string.parents_deverrouiller_titre, nom))
+            .setItems(choix.map { getString(R.string.parents_deverrouiller_min, it) }.toTypedArray()) { _, i ->
+                val minutes = choix[i]
+                Garde.exigerOctroi(this, getString(R.string.parents_deverrouiller_raison, nom, minutes)) {
+                    Thread {
+                        try {
+                            Net.post(this, cfg, "/api/pc_parental/deverrouillage/initiative",
+                                JSONObject().put("id", cfg.id).put("secret", cfg.secret).put("appareil", pc).put("minutes", minutes))
+                            principal.post { toast(getString(R.string.parents_deverrouiller_fait, nom, minutes), OeilModele.Genre.SUCCES) }
+                        } catch (e: Net.Echec) {
+                            val phrase = e.corps?.optString("retour").orEmpty()
+                            principal.post { toast(phrase.ifEmpty { getString(if (e.code == 403) R.string.geste_echec_droits else R.string.geste_echec_refuse) }, OeilModele.Genre.ERREUR) }
+                        } catch (_: Exception) {
+                            principal.post { toast(getString(R.string.parents_err_reponse), OeilModele.Genre.ERREUR) }
+                        }
+                    }.start()
+                }
+            }
+            .setNegativeButton(R.string.commun_annuler, null).show()
     }
 
     /** Les gestes de gestion (codes de Modules.gestesGestion), tels qu'on les lit sur le bouton « Gérer ». */

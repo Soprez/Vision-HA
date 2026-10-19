@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.max
@@ -202,9 +203,11 @@ class VeilleView(ctx: Context) : View(ctx) {
                 val c = cs!!.getJSONObject(q)
                 if (CasesVeille.exclue(c.optString("entite"))) return@mapNotNull null
                 val sr = c.optJSONArray("serie")
-                Case(c.optString("entite"), c.optString("nom"), c.optString("rendu", "texte"), c.optDoubleOrNull("valeur"), CasesVeille.unite(c.optString("unite")), c.optString("texte"),
-                    if (c.isNull("on")) null else c.optBoolean("on"), c.optString("classe"), c.optDouble("min", 0.0), c.optDouble("max", 100.0),
-                    (0 until (sr?.length() ?: 0)).map { k -> val pt = sr!!.getJSONArray(k); pt.getLong(0) to pt.getDouble(1).toFloat() }, c.optDoubleOrNull("consigne"),
+                // 1.93.06 : un débit réseau en Mbit/s, quelle que soit l'unité de l'entité (Debit) — valeur, bornes et courbe.
+                val u = c.optString("unite"); val f = Debit.facteur(u) ?: 1.0
+                Case(c.optString("entite"), c.optString("nom"), c.optString("rendu", "texte"), c.optDoubleOrNull("valeur")?.times(f), CasesVeille.unite(Debit.unite(u)), c.optString("texte"),
+                    if (c.isNull("on")) null else c.optBoolean("on"), c.optString("classe"), c.optDouble("min", 0.0) * f, c.optDouble("max", 100.0) * f,
+                    (0 until (sr?.length() ?: 0)).map { k -> val pt = sr!!.getJSONArray(k); pt.getLong(0) to (pt.getDouble(1) * f).toFloat() }, c.optDoubleOrNull("consigne")?.times(f),
                     c.optInt("largeur", 6).coerceIn(1, 12), c.optInt("hauteur", 1).coerceIn(1, 3), c.optString("carte"), CasesVeille.lire(c),
                     c.optBoolean("ouverture"), c.optString("type_ouverture"))
             }
@@ -243,6 +246,8 @@ class VeilleView(ctx: Context) : View(ctx) {
 
     @Volatile private var donnees: Donnees? = null
     @Volatile private var erreur = ""
+    /** 1.93.06 : la cause est connue (réseau de l'appareil coupé) : on la dit, plutôt que « Home Assistant injoignable ». */
+    @Volatile private var reseauCoupe = false
     @Volatile private var derniereReussite = 0L
     @Volatile private var derniereLectureMs = 0L
     private var fil: Thread? = null
@@ -392,6 +397,7 @@ class VeilleView(ctx: Context) : View(ctx) {
                     derniereLectureMs = System.currentTimeMillis()
                 } catch (e: Exception) {
                     erreur = (e.message ?: e.javaClass.simpleName).take(90)
+                    reseauCoupe = ReseauLocal.cause(context, e) == ReseauLocal.Cause.RESEAU_COUPE
                 }
                 main.post { reconstruire() }
                 try { Thread.sleep(60_000) } catch (_: InterruptedException) { break }
@@ -735,7 +741,8 @@ class VeilleView(ctx: Context) : View(ctx) {
         }
         val n = min(tableaux.size, 14)
         val r = h * 0.0055f; val pas = h * 0.022f
-        val cy = h * 0.955f
+        // 1.93.06 : dans la marge de 5 % (avant : 95,5 %, sous le bord réglé une fois au ras de l'écran).
+        val cy = h * 0.95f - r * 1.35f
         val largeurPoints = (n - 1) * pas
         var x = w / 2f - largeurPoints / 2f
         pForme.style = Paint.Style.FILL
@@ -890,7 +897,8 @@ class VeilleView(ctx: Context) : View(ctx) {
         val p2 = etape(ecoule, 600, 800)
         if (erreur.isNotEmpty() && (d == null || SystemClock.uptimeMillis() - derniereReussite > 300_000L)) {
             // Lot 6 (APP-24) : ce qu'il faut faire, plus le texte de l'exception.
-            ecrire(c, context.getString(R.string.lot6_veille_injoignable), w / 2, h * 0.94f, h * 0.024f, encre3, alpha * p2, normal, Paint.Align.CENTER)
+            val texte = if (reseauCoupe) ReseauLocal.messageCoupe(context) else context.getString(R.string.lot6_veille_injoignable)
+            ecrire(c, texte, w / 2, h * 0.94f, h * 0.024f, encre3, alpha * p2, normal, Paint.Align.CENTER)
         }
     }
 
@@ -914,7 +922,7 @@ class VeilleView(ctx: Context) : View(ctx) {
         val hh = if (h24) String.format(Locale.getDefault(), "%02d", cal.get(Calendar.HOUR_OF_DAY)) else String.format(Locale.getDefault(), "%d", (cal.get(Calendar.HOUR) + 11) % 12 + 1); val mm = String.format(Locale.getDefault(), "%02d", cal.get(Calendar.MINUTE))
         val lMin = largeur(mm, taille, fin); val lDeux = largeur(":", taille, fin)
         // 1.93.05 (retour 39) : décalée vers la gauche quand le coin du haut à droite est pris (QR, logo, bandeau).
-        val droite = CoinsVeille.Coins.bordDroit(OptionsVeille.HD, OptionsVeille.qr(context), OptionsVeille.logo(context), OptionsVeille.lecteur(context), w, h, w * 0.92f)
+        val droite = CoinsVeille.Coins.bordDroit(OptionsVeille.HD, OptionsVeille.qr(context), OptionsVeille.logo(context), OptionsVeille.lecteur(context), w, h, w * 0.92f, CoinsVeille.coteQr(context, h), CoinsVeille.largeurLegende(context, h))
         ecrire(c, mm, droite, h * 0.17f, taille, encre, 0.9f, fin, Paint.Align.RIGHT)
         ecrire(c, ":", droite - lMin, h * 0.17f, taille, pourpre, 0.9f * batt, fin, Paint.Align.RIGHT)
         ecrire(c, hh, droite - lMin - lDeux, h * 0.17f, taille, encre, 0.9f, fin, Paint.Align.RIGHT)
@@ -1871,15 +1879,42 @@ class VeilleView(ctx: Context) : View(ctx) {
         ecrire(c, if (k.valeur != null) compter(formatValeur(k.valeur, k.unite), pf) else k.texte, r.left + pad, r.top + pad + petit + h * 0.015f + taille, taille, encre, a, fin)
         val pts = k.serie
         if (pts.size < 2) { ecrire(c, context.getString(R.string.veilleview_pas_historique), r.left + pad, r.bottom - pad, petit, encre3, a, normal); return }
-        val zone = RectF(r.left + pad, r.top + pad + petit + h * 0.03f + taille, r.right - pad, r.bottom - pad - petit * 1.6f)
+        // 1.93.06 (photo de l'auteur, graphiques de la box : « 0,0 Mbit/s … 24 h … 322 Mbit/s » sous la courbe, peu lisible) : le
+        // format des widgets — la valeur actuelle en haut, l'échelle des valeurs à gauche (2 ou 3 graduations rondes, l'unité
+        // sur la plus haute, traits légers), les heures dessous.
         val vmin = pts.minOf { it.second }; val vmax = pts.maxOf { it.second }
-        val marge = max(0.5f, (vmax - vmin) * 0.1f)
-        val bas = vmin - marge; val hautV = vmax + marge
+        val marge = max(if (vmax - vmin < 1e-6f) max(abs(vmax) * 0.1f, 0.5f) else 0f, (vmax - vmin) * 0.1f)
+        val grads = WidgetsHa.graduations((vmin - marge).toDouble().let { if (vmin >= 0f) max(0.0, it) else it }, (vmax + marge).toDouble(), 3)
+        val bas = min(vmin - marge, grads.firstOrNull()?.toFloat() ?: vmin - marge)
+        val hautV = max(vmax + marge, grads.lastOrNull()?.toFloat() ?: vmax + marge)
+        val tEchelle = petit * 0.8f
+        val etiquettes = grads.mapIndexed { i, g -> if (i == grads.size - 1) formatValeur(g, k.unite) else WidgetsHa.nombre(g) }
+        val gouttiere = (etiquettes.maxOfOrNull { largeur(it, tEchelle, normal) } ?: 0f) + pad * 0.4f
+        val zone = RectF(r.left + pad + gouttiere, r.top + pad + petit + h * 0.03f + taille, r.right - pad, r.bottom - pad - tEchelle * 1.5f)
+        for ((i, g) in grads.withIndex()) {
+            val y = zone.bottom - zone.height() * ((g.toFloat() - bas) / (hautV - bas))
+            pForme.style = Paint.Style.STROKE; pForme.strokeWidth = h * 0.0012f; pForme.color = encre3; pForme.alpha = (a * 50).toInt()
+            c.drawLine(zone.left, y, zone.right, y, pForme)
+            ecrire(c, etiquettes[i], zone.left - pad * 0.4f, y + tEchelle * 0.35f, tEchelle, encre3, a, normal, Paint.Align.RIGHT)
+        }
+        // L'axe du temps : les points à leur heure (horodatages en s ou en ms), et un repère toutes les 6 h.
+        fun ms(ts: Long) = if (ts < 100_000_000_000L) ts * 1000L else ts
+        val t0 = ms(pts.first().first); val t1 = ms(pts.last().first)
+        val parTemps = t1 > t0
         val n = pts.size
+        fun xDe(i: Int) = if (parTemps) zone.left + zone.width() * (ms(pts[i].first) - t0) / (t1 - t0).toFloat() else zone.left + zone.width() * i / (n - 1)
+        if (parTemps) {
+            val tz = java.util.TimeZone.getDefault()
+            val format = android.text.format.DateFormat.getTimeFormat(context)
+            for (tm in WidgetsHa.reperesTemps(t0, t1, "24h") { tz.getOffset(it).toLong() }) {
+                val x = zone.left + zone.width() * (tm - t0) / (t1 - t0).toFloat()
+                ecrire(c, format.format(java.util.Date(tm)), x, r.bottom - pad * 0.4f, tEchelle, encre3, a * 0.9f, normal, Paint.Align.CENTER)
+            }
+        }
         val visibles = (n * pf).toInt().coerceIn(2, n)
         chemin.reset()
         for (i in 0 until visibles) {
-            val x = zone.left + zone.width() * i / (n - 1)
+            val x = xDe(i)
             val y = zone.bottom - zone.height() * (pts[i].second - bas) / (hautV - bas)
             if (i == 0) chemin.moveTo(x, y) else chemin.lineTo(x, y)
         }
@@ -1888,13 +1923,10 @@ class VeilleView(ctx: Context) : View(ctx) {
         c.drawPath(chemin, pForme)
         // Le remplissage léger sous la courbe.
         val remplissage = Path(chemin)
-        val xFin = zone.left + zone.width() * (visibles - 1) / (n - 1)
-        remplissage.lineTo(xFin, zone.bottom); remplissage.lineTo(zone.left, zone.bottom); remplissage.close()
+        val xFin = xDe(visibles - 1)
+        remplissage.lineTo(xFin, zone.bottom); remplissage.lineTo(xDe(0), zone.bottom); remplissage.close()
         pForme.style = Paint.Style.FILL; pForme.alpha = (a * 35).toInt()
         c.drawPath(remplissage, pForme)
-        ecrire(c, formatValeur(vmin.toDouble(), k.unite), zone.left, r.bottom - pad * 0.4f, petit * 0.85f, encre3, a, normal)
-        ecrire(c, formatValeur(vmax.toDouble(), k.unite), zone.right, r.bottom - pad * 0.4f, petit * 0.85f, encre3, a, normal, Paint.Align.RIGHT)
-        ecrire(c, "24 h", zone.centerX(), r.bottom - pad * 0.4f, petit * 0.85f, encre3, a * 0.8f, normal, Paint.Align.CENTER)
     }
 
     // --- Photos -----------------------------------------------------------------------
@@ -1983,8 +2015,8 @@ class VeilleView(ctx: Context) : View(ctx) {
         val taille = h * 0.024f
         val l = largeur(texte, taille, normal) + h * 0.07f
         // 1.93.05 (retour 39) : à gauche du QR, du logo ou du bandeau posé en bas à droite (jamais dessus).
-        val droite = CoinsVeille.Coins.bordDroit(OptionsVeille.BD, OptionsVeille.qr(context), OptionsVeille.logo(context), OptionsVeille.lecteur(context), w, h, w * 0.92f)
-        val rect = RectF(droite - l, h * 0.93f, droite, h * 0.975f)
+        val droite = CoinsVeille.Coins.bordDroit(OptionsVeille.BD, OptionsVeille.qr(context), OptionsVeille.logo(context), OptionsVeille.lecteur(context), w, h, w * 0.92f, CoinsVeille.coteQr(context, h), CoinsVeille.largeurLegende(context, h))
+        val rect = RectF(droite - l, h * 0.905f, droite, h * 0.95f)  // 1.93.06 : dans la marge (avant : jusqu'à 97,5 %)
         pForme.style = Paint.Style.FILL; pForme.color = carte; pForme.alpha = (Color.alpha(carte) * 0.9f).toInt()
         c.drawRoundRect(rect, rect.height() / 2, rect.height() / 2, pForme)
         pForme.color = pourpre; pForme.alpha = (150 + 100 * sin(t * 4f)).toInt().coerceIn(0, 255)

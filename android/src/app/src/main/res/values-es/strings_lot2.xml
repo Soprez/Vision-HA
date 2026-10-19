@@ -787,4 +787,23 @@
     <string name="manifeste_fermes">Lo que está bloqueado</string>
     <string name="manifeste_maison">Por decidir</string>
     <string name="manifeste_musique">Música</string>
+    <!-- 1.93.06 : Déverrouillage simplifié -->
+    <string name="dev_deverrouille_total">%1$s ha desbloqueado este dispositivo durante %2$d min: acceso total. Se vuelve a bloquear solo al final.</string>
+    <string name="bandeau_deverrouille">Desbloqueado, quedan %1$d min</string>
+    <string name="bandeau_reverrouiller">Volver a bloquear</string>
+    <string name="bandeau_reverrouille">Dispositivo bloqueado de nuevo.</string>
+    <string name="parents_deverrouiller">Desbloquear…</string>
+    <string name="parents_deverrouiller_titre">Desbloquear «%1$s»: acceso total durante…</string>
+    <string name="parents_deverrouiller_min">%1$d min</string>
+    <string name="parents_deverrouiller_raison">Desbloquear «%1$s» durante %2$d min</string>
+    <string name="parents_deverrouiller_fait">«%1$s» se desbloqueará %2$d min en su próxima conexión.</string>
+    <string name="garde_code_oublie">¿Has olvidado el código?</string>
+    <string name="code_oublie_titre">Código olvidado</string>
+    <string name="code_oublie_texte">Nadie puede devolverte el código antiguo: Vision no lo guarda en ningún sitio. Dos salidas: un %1$s desbloquea este dispositivo a distancia (cuando lo pidas, o por su cuenta desde su móvil o Home Assistant), o un administrador de Home Assistant elige un código nuevo: Ajustes › Dispositivos y servicios › Vision › Configurar › Seguridad.</string>
+    <string name="code_oublie_demander">Pedírselo a un %1$s</string>
+    <string name="setup_parametres_appareil">Ajustes del dispositivo</string>
+    <string name="setup_parametres_appareil_raison">Abrir los ajustes del dispositivo</string>
+    <string name="setup_parametres_appareil_impossible">Los ajustes del dispositivo no se pueden abrir aquí.</string>
+    <string name="vuewidget_min_max">%1$s · mín. %2$s · máx. %3$s</string>
+    <string name="vuewidget_plage">%1$s – %2$s</string>
 </resources>

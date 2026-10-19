@@ -263,8 +263,8 @@ def lecteur_propre(hass: HomeAssistant, store, pc: dict[str, Any] | None) -> tup
 
 
 async def attendre_lecteur_propre(hass: HomeAssistant, store, pc: dict[str, Any] | None) -> str:
-    """2.5.11.1 (l'auteur, 18/10 : « remplacer » puis ▶ sur la télé, rien ne joue). Au
-    moment exact du « lancer_ici », le lecteur « <télé> · Vision » était hors ligne pour quelques secondes
+    """2.5.11.1 (l'auteur, 18/10 : « remplacer » puis ▶ sur la TV du salon, rien ne joue). À 01:23:17 et à 10:35:24, au
+    moment exact du « lancer_ici », le lecteur « Téléviseur du salon · Vision » était hors ligne pour quelques secondes
     (l'appli venait de se reconnecter à Music Assistant : « Duplicate connection detected ») ; il est revenu 0 à 6 s
     plus tard. La soirée partait alors sur une autre enceinte, sans le dire, et tout ce que l'auteur faisait ensuite visait
     cette enceinte-là. On laisse au lecteur propre jusqu'à ATTENTE_LECTEUR_PROPRE_S pour revenir.
@@ -917,6 +917,20 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
 REPRISE_MAX_S = 120
 REPRISE_DELAI_S = 4
 _COUPURES: dict[str, float] = {}
+# 2.5.12 (incident du salon, 18/10 : après une réinstallation de l'appli, la soirée est repartie pendant qu'on regardait
+# une appli de replay sur la télé) : ce que l'appareil dit au relevé — autre chose joue chez lui pendant que la musique de Vision ne
+# joue pas (vidéo, TV en direct, HDMI). Gardé en mémoire (pas dans le magasin) ; récent = moins de AUTRE_SON_MAX_S.
+AUTRE_SON_MAX_S = 60
+_AUTRE_SON: dict[str, tuple[bool, float]] = {}
+
+
+def noter_autre_son(pc_id: str, oui: bool, maintenant_ts: float) -> None:
+    _AUTRE_SON[str(pc_id)] = (bool(oui), maintenant_ts)
+
+
+def autre_son_recent(pc_id: str, maintenant_ts: float) -> bool:
+    oui, ts = _AUTRE_SON.get(str(pc_id), (False, 0.0))
+    return oui and maintenant_ts - ts <= AUTRE_SON_MAX_S
 
 
 def reprise_apres_coupure(hass: HomeAssistant, eid: str, ancien: str | None, nouveau: str | None, maintenant_ts: float) -> bool:
@@ -939,6 +953,10 @@ async def reprendre_apres_coupure(hass: HomeAssistant, eid: str) -> None:
     await asyncio.sleep(REPRISE_DELAI_S)
     s = hass.states.get(eid)
     if s is None or s.state in ("playing", "unavailable") or etat(hass)["lecteur"] != eid or not etat(hass)["actif"]:
+        return
+    # 2.5.12 : jamais par-dessus ce qui joue déjà sur la télé de la soirée (l'appli refuse aussi ce départ).
+    if autre_son_recent(etat(hass)["ecran"], time.time()):
+        _LOGGER.info("%s : Party — pas de relance sur %s : autre chose joue sur l'appareil", PRODUIT, eid)
         return
     try:
         if s.state == "off":
@@ -965,9 +983,14 @@ async def pochette(hass: HomeAssistant, eid: str) -> tuple[bytes, str] | None:
     # titre en cours dans la file de Music Assistant, lue par Home Assistant (jamais son adresse côté appareil).
     url = musique.image_en_cours(hass, eid)
     if not url:
+        # 2.5.12 (essai 9.7 de la TCL : grande pochette en retard) : ce qui manque se lit dans le journal.
+        _LOGGER.info("%s : pochette de %s introuvable (ni image du lecteur, ni titre en cours dans la file)", PRODUIT, eid)
         return None
     from . import party_invites
-    return await party_invites.telecharger_image(hass, url)
+    image = await party_invites.telecharger_image(hass, url)
+    if image is None:
+        _LOGGER.info("%s : pochette de %s : l'image du titre en cours n'a pas pu être lue", PRODUIT, eid)
+    return image
 
 
 # ----------------------------------------------------------------------------- Les portes

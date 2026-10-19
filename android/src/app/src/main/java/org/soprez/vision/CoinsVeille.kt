@@ -88,13 +88,21 @@ class CoinsVeille(ctx: Context, private val veille: VeilleView) : View(ctx) {
         val contenu = if (e != null && Coins.qrMontre(e.actif, e.invitesOuverts, e.qr)) Party.qrAvecTheme(e.qr, Local.themeEffectif(context, Palette.APPLI)) else ""
         if (contenu == qrContenu) return
         qrContenu = contenu
-        qr = if (contenu.isEmpty()) null else try {
-            val cote = 360
-            val m = com.google.zxing.qrcode.QRCodeWriter().encode(contenu, com.google.zxing.BarcodeFormat.QR_CODE, cote, cote, mapOf(com.google.zxing.EncodeHintType.MARGIN to 1))
-            val pts = IntArray(cote * cote)
-            for (y in 0 until cote) for (x in 0 until cote) pts[y * cote + x] = if (m[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE
-            Bitmap.createBitmap(pts, cote, cote, Bitmap.Config.RGB_565)
-        } catch (_: Exception) { null }
+        // 1.93.06 : un pixel par module (zone de silence de 4 modules), agrandi d'un nombre entier de pixels au dessin.
+        qr = if (contenu.isEmpty()) null else QrInvites.matrice(contenu)?.also { Coins.modulesVus = it.width }
+    }
+
+    companion object {
+        private val mesure = Paint(Paint.ANTI_ALIAS_FLAG)
+
+        /** La largeur (px) de la légende « Ajoute ta musique » sur une veille haute de [h] px : sa carte n'est jamais plus étroite. */
+        fun largeurLegende(ctx: Context, h: Float): Float = synchronized(mesure) {
+            mesure.typeface = Polices.demiGras(ctx); mesure.textSize = h * Coins.TEXTE_LEGENDE
+            mesure.measureText(ctx.getString(R.string.veille_qr_ajoute))
+        }
+
+        /** Le côté du QR (px) de cet appareil sur une veille haute de [h] px. */
+        fun coteQr(ctx: Context, h: Float): Float = Coins.cotePx(h, OptionsVeille.qrTaille(ctx), Coins.modulesVus, ZoneSure.echelle(ctx))
     }
 
     /** Pour les essais : l'état de la musique comme s'il venait d'être relu. */
@@ -133,14 +141,16 @@ class CoinsVeille(ctx: Context, private val veille: VeilleView) : View(ctx) {
         val echelle = ZoneSure.echelle(context)
         if (echelle != 1f) c.scale(echelle, echelle, w / 2, h / 2)
         c.translate(xy[0].toFloat(), xy[1].toFloat())
+        val coteQr = Coins.cotePx(h, OptionsVeille.qrTaille(context), image?.width ?: Coins.modulesVus, echelle)
+        val legende = largeurLegende(context, h)
         if (aBandeau > 0f && eb != null) {
             Coins.bandeau(Coins.coinBandeau(coinQr, OptionsVeille.logo(context)), w, h, r)
             avecFondu(c, r, aBandeau, bouger) { dessinerBandeau(c, r, h, eb) }
             boiteBandeau.set(r)
         }
         if (aQr > 0f && image != null && coinQr != OptionsVeille.CACHE) {
-            Coins.qr(coinQr, w, h, r)
-            avecFondu(c, r, aQr, bouger) { dessinerQr(c, r, h, image) }
+            Coins.qr(coinQr, w, h, r, coteQr, legende)
+            avecFondu(c, r, aQr, bouger) { dessinerQr(c, r, h, image, coteQr) }
             boiteQr.set(r)
         }
         c.restoreToCount(n)
@@ -175,18 +185,21 @@ class CoinsVeille(ctx: Context, private val veille: VeilleView) : View(ctx) {
         companion object { val COURBE = floatArrayOf(0.23f, 1f, 0.32f, 1f) }
     }
 
-    private fun dessinerQr(c: Canvas, b: RectF, h: Float, image: Bitmap) {
+    private fun dessinerQr(c: Canvas, b: RectF, h: Float, image: Bitmap, cote: Float) {
         val rayon = h * 0.018f
         pinceau.style = Paint.Style.FILL; pinceau.color = veille.carte; pinceau.alpha = 240
         c.drawRoundRect(b, rayon, rayon, pinceau)
         pinceau.style = Paint.Style.STROKE; pinceau.strokeWidth = h * 0.0018f; pinceau.color = veille.carteBord; pinceau.alpha = 255
         c.drawRoundRect(b, rayon, rayon, pinceau)
-        val pad = h * Coins.PAD; val cote = h * Coins.QR
-        // Le code lui-même, noir sur blanc (lisible de loin, quel que soit le thème), sans lissage.
+        val pad = h * Coins.PAD
+        // Le code lui-même, noir sur blanc (lisible de loin, quel que soit le thème), sans lissage, centré dans sa carte
+        // (plus large que lui quand la légende l'est).
         pinceau.style = Paint.Style.FILL; pinceau.isFilterBitmap = false
-        c.drawBitmap(image, null, RectF(b.left + pad, b.top + pad, b.left + pad + cote, b.top + pad + cote), pinceau)
+        val gauche = b.centerX() - cote / 2
+        c.drawBitmap(image, null, RectF(gauche, b.top + pad, gauche + cote, b.top + pad + cote), pinceau)
         pinceau.isFilterBitmap = true
-        texte.typeface = Polices.demiGras(context); texte.textSize = h * 0.022f; texte.color = veille.encre; texte.textAlign = Paint.Align.CENTER
+        // Une seule ligne, jamais coupée : la carte est au moins aussi large que la légende (Coins.qr).
+        texte.typeface = Polices.demiGras(context); texte.textSize = h * Coins.TEXTE_LEGENDE; texte.color = veille.encre; texte.textAlign = Paint.Align.CENTER
         c.drawText(context.getString(R.string.veille_qr_ajoute), b.centerX(), b.bottom - pad - h * 0.008f, texte)
         texte.textAlign = Paint.Align.LEFT
     }
@@ -243,6 +256,16 @@ class CoinsVeille(ctx: Context, private val veille: VeilleView) : View(ctx) {
         const val QR = 0.19f
         const val PAD = 0.016f
         const val LEGENDE = 0.045f
+        const val TEXTE_LEGENDE = 0.022f
+        /** Le nombre de modules du dernier QR dessiné (zone de silence comprise) : pour placer les autres éléments avant. */
+        @Volatile var modulesVus = 41 + 2 * QrInvites.SILENCE
+
+        /**
+         * 1.93.06 : le côté du QR (px) pour la [taille] choisie (« Grand » = [QR], la taille d'avant), et au moins 2 pixels
+         * RÉELS par module une fois la veille resserrée ([echelle]). Pur.
+         */
+        fun cotePx(h: Float, taille: String, modules: Int, echelle: Float = 1f): Float =
+            QrInvites.cotePx(h * QR * QrInvites.facteur(taille), modules, QrInvites.MODULE_MIN_PX / echelle.coerceAtLeast(0.1f))
 
         fun gauche(coin: String) = coin == OptionsVeille.HG || coin == OptionsVeille.BG
         fun haut(coin: String) = coin == OptionsVeille.HG || coin == OptionsVeille.HD
@@ -256,22 +279,31 @@ class CoinsVeille(ctx: Context, private val veille: VeilleView) : View(ctx) {
             sortie.set(l, t, l + lw, t + lh)
         }
 
-        fun qr(coin: String, w: Float, h: Float, sortie: RectF) = poser(coin, w, h, h * (QR + 2 * PAD), h * (QR + 2 * PAD + LEGENDE), sortie)
+        /** La carte du QR : le code de côté [cote] (px), et au moins aussi large que la légende ([legendeL], px). */
+        fun qr(coin: String, w: Float, h: Float, sortie: RectF, cote: Float = h * QR * QrInvites.facteur(QrInvites.DEFAUT), legendeL: Float = 0f) =
+            poser(coin, w, h, maxOf(cote, legendeL) + 2 * h * PAD, cote + h * (2 * PAD + LEGENDE), sortie)
 
         fun bandeau(coin: String, w: Float, h: Float, sortie: RectF) = poser(coin, w, h, w * 0.28f, h * 0.10f, sortie)
 
-        /** Le centre de l'œil : en bas à gauche, sa place d'avant (un peu dans la marge) ; ailleurs, en miroir. */
+        /** Demi-hauteur de la place du logo (l'œil fait ± 1,7 % de la hauteur, « Vision » descend à + 1,5 %). */
+        const val DEMI_LOGO = 0.02f
+
+        /**
+         * Le centre de l'œil, DANS la marge comme le QR et le bandeau ; en bas à gauche par défaut, ailleurs en miroir.
+         * 1.93.06 (photo de l'auteur, réglé au ras des bords : « Vision » à moitié coupé par le bas) : l'œil était posé à 95 %
+         * de la hauteur, donc à moitié dans la marge, et la veille agrandie à 110 % le sortait de l'écran.
+         */
         fun oeil(coin: String, w: Float, h: Float): Pair<Float, Float> {
-            val dx = w * 0.035f + h * 0.03f
-            return (if (gauche(coin)) dx else w - dx) to (if (haut(coin)) h * 0.05f else h * 0.95f)
+            val dx = w * MARGE + h * 0.03f
+            return (if (gauche(coin)) dx else w - dx) to (if (haut(coin)) h * (MARGE + DEMI_LOGO) else h * (1 - MARGE - DEMI_LOGO))
         }
 
         /** La place du logo : l'œil et « Vision » à côté, vers l'intérieur de l'écran. */
         fun logo(coin: String, w: Float, h: Float, sortie: RectF) {
             val (cx, cy) = oeil(coin, w, h)
             val demiL = h * 0.03f; val texte = h * 0.13f
-            if (gauche(coin)) sortie.set(cx - demiL, cy - h * 0.035f, cx + demiL + texte, cy + h * 0.035f)
-            else sortie.set(cx - demiL - texte, cy - h * 0.035f, cx + demiL, cy + h * 0.035f)
+            if (gauche(coin)) sortie.set(cx - demiL, cy - h * DEMI_LOGO, cx + demiL + texte, cy + h * DEMI_LOGO)
+            else sortie.set(cx - demiL - texte, cy - h * DEMI_LOGO, cx + demiL, cy + h * DEMI_LOGO)
         }
 
         /** Le bandeau prend le premier coin libre (ni le QR ni le logo), en haut à gauche d'abord. */
@@ -279,10 +311,11 @@ class CoinsVeille(ctx: Context, private val veille: VeilleView) : View(ctx) {
             listOf(OptionsVeille.HG, OptionsVeille.HD, OptionsVeille.BG, OptionsVeille.BD).firstOrNull { it != qr && it != logo } ?: OptionsVeille.HG
 
         /** Ce qui occupe [coin] (rectangle à éviter), d'après les réglages ; null si rien. */
-        fun occupant(coin: String, qr: String, logo: String, lecteur: Boolean, w: Float, h: Float): RectF? {
+        fun occupant(coin: String, qr: String, logo: String, lecteur: Boolean, w: Float, h: Float,
+                     coteQr: Float = h * QR * QrInvites.facteur(QrInvites.DEFAUT), legendeL: Float = 0f): RectF? {
             val sortie = RectF()
             when {
-                coin == qr -> qr(coin, w, h, sortie)
+                coin == qr -> qr(coin, w, h, sortie, coteQr, legendeL)
                 coin == logo -> logo(coin, w, h, sortie)
                 lecteur && coinBandeau(qr, logo) == coin -> bandeau(coin, w, h, sortie)
                 else -> return null
@@ -291,8 +324,9 @@ class CoinsVeille(ctx: Context, private val veille: VeilleView) : View(ctx) {
         }
 
         /** Le bord droit d'un élément posé à droite (demande en bas, petite horloge en haut), décalé s'il y a un occupant. */
-        fun bordDroit(coin: String, qr: String, logo: String, lecteur: Boolean, w: Float, h: Float, defaut: Float): Float =
-            occupant(coin, qr, logo, lecteur, w, h)?.let { minOf(defaut, it.left - w * 0.015f) } ?: defaut
+        fun bordDroit(coin: String, qr: String, logo: String, lecteur: Boolean, w: Float, h: Float, defaut: Float,
+                      coteQr: Float = h * QR * QrInvites.facteur(QrInvites.DEFAUT), legendeL: Float = 0f): Float =
+            occupant(coin, qr, logo, lecteur, w, h, coteQr, legendeL)?.let { minOf(defaut, it.left - w * 0.015f) } ?: defaut
     }
 
     /** Le bandeau : quand le montrer. Pur (essais JVM). */

@@ -85,6 +85,10 @@ const TEXTES = /*i18n-json*/{
     "tuile_accueil_tv": "activer l'accueil forcé dans les réglages de Vision",
     "prot_hors_ligne": "Hors ligne : rien n'est appliqué pour l'instant.",
     "prot_ok": "Tout est en place.",
+    "dev_init_titre": "Déverrouiller :",
+    "dev_init_min": "{minutes} min",
+    "dev_init_fait": "« {nom} » sera déverrouillé {minutes} min dès son prochain relevé : accès total, puis il se reverrouille seul.",
+    "dev_init_aide": "Déverrouiller {nom} pendant {minutes} min (accès total)",
     "prot_a_faire": "À faire sur l'appareil : {liste}.",
     "aucun_appareil": "Aucun appareil.",
     "alerte_accessibilite": "l'accessibilité est coupée (une appli fermée met quelques secondes à se fermer)",
@@ -325,6 +329,10 @@ const TEXTES = /*i18n-json*/{
     "tuile_accueil_tv": "turn on the forced home screen in Vision's settings",
     "prot_hors_ligne": "Offline: nothing is applied for now.",
     "prot_ok": "Everything is in place.",
+    "dev_init_titre": "Unlock:",
+    "dev_init_min": "{minutes} min",
+    "dev_init_fait": "“{nom}” will be unlocked for {minutes} min at its next check-in: full access, then it locks again by itself.",
+    "dev_init_aide": "Unlock {nom} for {minutes} min (full access)",
     "prot_a_faire": "To do on the device: {liste}.",
     "aucun_appareil": "No devices.",
     "alerte_accessibilite": "accessibility is off (a blocked app takes a few seconds to close)",
@@ -565,6 +573,10 @@ const TEXTES = /*i18n-json*/{
     "tuile_accueil_tv": "den erzwungenen Startbildschirm in den Vision-Einstellungen einschalten",
     "prot_hors_ligne": "Offline: im Moment wird nichts angewendet.",
     "prot_ok": "Alles ist eingerichtet.",
+    "dev_init_titre": "Entsperren:",
+    "dev_init_min": "{minutes} Min.",
+    "dev_init_fait": "„{nom}“ wird bei seiner nächsten Meldung für {minutes} Min. entsperrt: voller Zugriff, danach sperrt es sich selbst wieder.",
+    "dev_init_aide": "{nom} für {minutes} Min. entsperren (voller Zugriff)",
     "prot_a_faire": "Auf dem Gerät zu erledigen: {liste}.",
     "aucun_appareil": "Keine Geräte.",
     "alerte_accessibilite": "die Bedienungshilfe ist aus (eine gesperrte App braucht ein paar Sekunden, bis sie sich schließt)",
@@ -805,6 +817,10 @@ const TEXTES = /*i18n-json*/{
     "tuile_accueil_tv": "activar la pantalla de inicio forzada en los ajustes de Vision",
     "prot_hors_ligne": "Sin conexión: por ahora no se aplica nada.",
     "prot_ok": "Todo está en orden.",
+    "dev_init_titre": "Desbloquear:",
+    "dev_init_min": "{minutes} min",
+    "dev_init_fait": "«{nom}» se desbloqueará {minutes} min en su próxima conexión: acceso total; después se vuelve a bloquear solo.",
+    "dev_init_aide": "Desbloquear {nom} durante {minutes} min (acceso total)",
     "prot_a_faire": "Pendiente en el dispositivo: {liste}.",
     "aucun_appareil": "Ningún dispositivo.",
     "alerte_accessibilite": "la accesibilidad está desactivada (una app bloqueada tarda unos segundos en cerrarse)",
@@ -1045,6 +1061,10 @@ const TEXTES = /*i18n-json*/{
     "tuile_accueil_tv": "attivare la schermata Home forzata nelle impostazioni di Vision",
     "prot_hors_ligne": "Offline: per ora non viene applicato nulla.",
     "prot_ok": "È tutto a posto.",
+    "dev_init_titre": "Sblocca:",
+    "dev_init_min": "{minutes} min",
+    "dev_init_fait": "«{nom}» sarà sbloccato per {minutes} min al prossimo contatto: accesso completo, poi si blocca di nuovo da solo.",
+    "dev_init_aide": "Sblocca {nom} per {minutes} min (accesso completo)",
     "prot_a_faire": "Da fare sul dispositivo: {liste}.",
     "aucun_appareil": "Nessun dispositivo.",
     "alerte_accessibilite": "l'accessibilità è disattivata (un'app bloccata impiega qualche secondo a chiudersi)",
@@ -1285,6 +1305,10 @@ const TEXTES = /*i18n-json*/{
     "tuile_accueil_tv": "het verplichte startscherm aanzetten in de instellingen van Vision",
     "prot_hors_ligne": "Offline: er wordt nu niets toegepast.",
     "prot_ok": "Alles is in orde.",
+    "dev_init_titre": "Ontgrendelen:",
+    "dev_init_min": "{minutes} min",
+    "dev_init_fait": "„{nom}” wordt bij de volgende melding {minutes} min ontgrendeld: volledige toegang, daarna vergrendelt het zichzelf weer.",
+    "dev_init_aide": "{nom} {minutes} min ontgrendelen (volledige toegang)",
     "prot_a_faire": "Te doen op het apparaat: {liste}.",
     "aucun_appareil": "Geen apparaten.",
     "alerte_accessibilite": "toegankelijkheid staat uit (een geblokkeerde app sluit pas na een paar seconden)",
@@ -1774,7 +1798,11 @@ class VisionMaisonCard extends HTMLElement {
   async _charger() {
     if (!this._hass) return;
     try {
-      this._donnees = await this._hass.callApi("GET", API);
+      // 2.5.12 : la relecture des 30 s envoie l'empreinte connue ; rien n'a changé → ni données ni redessin.
+      const connue = this._donnees && !this._erreur ? this._donnees.revision : "";
+      const r = await this._hass.callApi("GET", API + (connue ? "?revision=" + encodeURIComponent(connue) : ""));
+      if (r && r.inchange) return;
+      this._donnees = r;
       this._erreur = "";
     } catch (e) {
       this._erreur = tr("erreur_charger", { detail: e.message || e });
@@ -1807,6 +1835,24 @@ class VisionMaisonCard extends HTMLElement {
     }
     this._occupe = false;
     this._enCours = "";
+    this._rendre();
+    clearTimeout(this._minuteFait);
+    if (this._fait) this._minuteFait = setTimeout(() => { this._fait = ""; this._rendre(); }, 6000);
+  }
+
+  // 2.5.12 : la même attente et les mêmes messages que [_agir], vers la porte du déverrouillage (administrateur).
+  async _deverrouiller(pc, nom, minutes) {
+    if (this._occupe || !pc) return;
+    this._occupe = true;
+    this._erreur = ""; this._fait = "";
+    this._rendre();
+    try {
+      await avecCodeOctroi(this._hass, this.shadowRoot, "pc_parental/deverrouillage", { initiative: pc, minutes });
+      this._fait = tr("dev_init_fait", { nom, minutes: String(minutes) });
+    } catch (e) {
+      this._erreur = messageErreur(e);
+    }
+    this._occupe = false;
     this._rendre();
     clearTimeout(this._minuteFait);
     if (this._fait) this._minuteFait = setTimeout(() => { this._fait = ""; this._rendre(); }, 6000);
@@ -1986,10 +2032,12 @@ class VisionMaisonCard extends HTMLElement {
       return `<div class="tuile-p ${ok ? "ok" : a.en_ligne ? "ko" : "off"}">
           <ha-icon icon="${iconeAppareil(a)}"></ha-icon>
           <div><b>${esc(a.nom)}</b>${a.prenom ? `<span class="qui"> · ${esc(a.prenom)}</span>` : ""}
-            <div class="etat-p"><ha-icon icon="${ok ? "mdi:check-circle" : a.en_ligne ? "mdi:alert" : "mdi:power-plug-off-outline"}"></ha-icon>${esc(etat)}</div></div>
+            <div class="etat-p"><ha-icon icon="${ok ? "mdi:check-circle" : a.en_ligne ? "mdi:alert" : "mdi:power-plug-off-outline"}"></ha-icon>${esc(etat)}</div>
+            ${a.android ? `<div class="dev-init"><span>${esc(tr("dev_init_titre"))}</span>${[15, 30, 60].map((m) => `<button type="button" data-dev-init="${esc(a.id)}" data-dev-nom="${esc(a.nom)}" data-min="${m}" aria-label="${esc(tr("dev_init_aide", { nom: a.nom, minutes: String(m) }))}">${esc(tr("dev_init_min", { minutes: String(m) }))}</button>`).join("")}</div>` : ""}</div>
         </div>`;
     }).join("");
-    return `<ha-card><div class="tuiles-p">${tuiles || `<div class="vide">${esc(tr("aucun_appareil"))}</div>`}</div></ha-card>`;
+    const messages = `${this._erreur ? `<div class="erreur" role="alert">${esc(this._erreur)}</div>` : ""}${this._fait ? `<div class="fait" role="status">${esc(this._fait)}</div>` : ""}`;
+    return `<ha-card>${messages}<div class="tuiles-p">${tuiles || `<div class="vide">${esc(tr("aucun_appareil"))}</div>`}</div></ha-card>`;
   }
 
   _rendreMaison() {
@@ -2805,6 +2853,10 @@ class VisionMaisonCard extends HTMLElement {
           background:var(--secondary-background-color); }
         .tuile-p > ha-icon { --mdc-icon-size:26px; color:var(--secondary-text-color); flex:none; }
         .tuile-p .qui { color:var(--secondary-text-color); }
+        .tuile-p > div { min-width:0; overflow-wrap:anywhere; }
+        .tuile-p .dev-init { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:8px; color:var(--secondary-text-color); }
+        .tuile-p .dev-init button { font:inherit; min-height:36px; padding:4px 12px; border-radius:999px; border:1px solid var(--divider-color);
+          background:none; color:var(--primary-text-color); cursor:pointer; }
         .etat-p { display:flex; gap:6px; align-items:flex-start; margin-top:4px; font-size:.92em; }
         .etat-p ha-icon { --mdc-icon-size:18px; flex:none; }
         .tuile-p.ok .etat-p ha-icon { color:var(--success-color,#2e7d32); }
@@ -2852,6 +2904,9 @@ class VisionMaisonCard extends HTMLElement {
         const elements = cases.some((c) => !c.checked) && b.dataset.dec !== "non" ? cases.filter((c) => c.checked).map((c) => c.value) : undefined;
         this._agir({ action: "acces", pc: b.dataset.pc, demande: b.dataset.acces, decision: b.dataset.dec, minutes: Number(b.dataset.min || 0), mode: b.dataset.mode || "", elements });
       }));
+    // 2.5.12 (Déverrouillage simplifié) : déverrouiller un appareil à l'initiative d'un Décideur ; le code est exigé.
+    r.querySelectorAll("[data-dev-init]").forEach((b) =>
+      b.addEventListener("click", () => this._deverrouiller(b.dataset.devInit, b.dataset.devNom, Number(b.dataset.min))));
     r.querySelectorAll("[data-action]").forEach((b) =>
       b.addEventListener("click", () =>
         this._agir({ action: b.dataset.action, pc: b.dataset.pc, minutes: Number(b.dataset.min || 0) })));

@@ -192,6 +192,53 @@ object Party {
     /** 1.90.2 : la clé d'un titre (titre et artiste, sans casse) pour retrouver sa vignette quand il passe en cours. */
     fun cleTitre(titre: String, artiste: String): String = titre.trim().lowercase() + "|" + artiste.trim().lowercase()
 
+    /**
+     * 1.93.06 (TCL, 18/10 à 22:36 : la grande pochette restait sur le titre d'avant) : Home Assistant n'écrit pas le titre
+     * en cours comme la file : « Dubdogz/FEZZO/Zaark » contre « Dubdogz, FEZZO, Zaark », « Jamaican (Bam Bam) (Afro House
+     * Remix) » contre « Jamaican (Bam Bam) ». Une clé plus large pour retrouver sa vignette : sans ce qui est entre
+     * parenthèses ou crochets, les artistes séparés de la même façon et triés. Pur.
+     */
+    fun cleTitreLarge(titre: String, artiste: String): String {
+        val t = titre.lowercase().replace(Regex("""\s*[(\[][^)\]]*[)\]]"""), "").replace(Regex("""\s+"""), " ").trim()
+        val a = artiste.lowercase().split(Regex("""\s*(?:,|/|&|;|\bfeat\.?|\bft\.?|\bx\b)\s*""")).map { it.trim() }
+            .filter { it.isNotEmpty() }.sorted().joinToString(",")
+        return "$t|$a"
+    }
+
+    /**
+     * 1.93.06 (point 2, l'auteur, après la vidéo de la TCL) : au titre suivant, « En cours » reste à sa place en haut de la file
+     * et la liste y monte d'une ligne, en douceur. C'est le cas quand l'ancien titre en cours est devenu le dernier titre
+     * passé. Tout autre changement (précédent, titre choisi plus loin, file vidée) se pose sans animation. Pur.
+     */
+    fun monteeDUneLigne(ancienCourant: String, nouveauCourant: String, dernierPasse: String): Boolean =
+        ancienCourant.isNotEmpty() && nouveauCourant.isNotEmpty() && nouveauCourant != ancienCourant && dernierPasse == ancienCourant
+
+    /**
+     * 1.93.06 (point 2, vidéo de la TCL, 19:45) : les titres passés montrés au-dessus d'« En cours », stables d'un état à
+     * l'autre. Le HA de la maison ne les envoie pas toujours (un état sur deux sans `file_passes` juste après un
+     * changement) : la liste changeait de forme pendant la montée et sautait. On garde la liste de HA quand il en
+     * envoie une ([ha]), sinon la dernière gardée ([garde]) ; au titre suivant, l'ancien titre en cours ([ancien]) y
+     * est ajouté s'il n'y est pas encore ; un titre revenu en cours (précédent) en sort, avec ceux d'après. Pur.
+     */
+    fun passesStables(garde: List<Titre>, ha: List<Titre>, ancien: Titre?, nouveauCle: String, max: Int = PASSES_MAX): List<Titre> {
+        fun cle(t: Titre) = cleTitre(t.titre, t.artiste)
+        var l = if (ha.isNotEmpty()) ha else garde
+        if (ancien != null && ancien.titre.isNotEmpty() && cle(ancien) != nouveauCle && l.lastOrNull()?.let(::cle) != cle(ancien)
+            && l.none { cle(it) == nouveauCle } && garde.none { cle(it) == nouveauCle }) l = l.filter { cle(it) != cle(ancien) } + ancien
+        val i = l.indexOfFirst { cle(it) == nouveauCle }
+        if (i >= 0) l = l.subList(0, i)
+        return l.takeLast(max)
+    }
+
+    const val PASSES_MAX = 10
+
+    /**
+     * 1.93.06 (point 6e, vidéo sur la TCL) : un état qui ramène le titre d'avant ([precedent]) peu après un changement
+     * ([depuisMs] < 8 s) est un état en retard de Home Assistant, sauf si « précédent » vient d'être demandé ici. Pur.
+     */
+    fun retourEnArriere(precedent: String, actuel: String, nouveau: String, depuisMs: Long, precedentDemande: Boolean): Boolean =
+        precedent.isNotEmpty() && nouveau == precedent && nouveau != actuel && depuisMs in 0 until 8_000 && !precedentDemande
+
     fun imagePour(refBrute: String, image: String): String {
         val ref = refBrute.trim()
         if (ref.isNotEmpty() && ref.length <= 64 && ref.all { it in 'a'..'z' || it in 'A'..'Z' || it in '0'..'9' || it == '-' || it == '_' }) return Vignettes.RELAIS + ref

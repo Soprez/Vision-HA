@@ -32,7 +32,7 @@ import org.json.JSONObject
  * Demandeur. Téléphone : une barre d'onglets en bas ; tablette : un rail à gauche ; télé : un rail à gauche à
  * grandes rubriques (gauche / droite passent du rail à la page, Retour remonte d'un niveau).
  */
-class SetupActivity : Activity() {
+class SetupActivity : Activity(), ZoneSure.Geree {
 
     private lateinit var racine: LinearLayout
     /** Lot 5 : la page qui défile (contient [racine]) et la navigation entre espaces (barre ou rail). */
@@ -1430,6 +1430,23 @@ class SetupActivity : Activity() {
 
     // ---------------------------------------------------- Espace parent
 
+    /**
+     * 1.93.06 (Déverrouillage simplifié) : ouvre les paramètres d'Android. Déjà déverrouillé (accès total, ou réglages
+     * ouverts par un responsable) : tout de suite. Sinon le code ou l'empreinte (Garde) ouvre les réglages protégés
+     * [PARAMETRES_MS] ; le code oublié mène à l'accord d'un responsable à distance (Garde.codeOublie).
+     */
+    private fun ouvrirParametresAppareil() {
+        val lancer = {
+            try { startActivity(Intent(android.provider.Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            catch (_: Exception) { toast(getString(R.string.setup_parametres_appareil_impossible), OeilModele.Genre.ERREUR) }
+        }
+        if (Deverrouillage.accesTotal(this) || Deverrouillage.reglagesOuverts(this)) { lancer(); return }
+        Garde.exiger(this, getString(R.string.setup_parametres_appareil_raison)) {
+            Deverrouillage.ouvrirReglagesUnInstant(this, PARAMETRES_MS)
+            lancer()
+        }
+    }
+
     private fun zoneParent(c: LinearLayout) {
         if (!cfg.aUnCode) {
             c.addView(Ui.sousTitre(this, getString(R.string.setup_choisis_code)))
@@ -1445,9 +1462,11 @@ class SetupActivity : Activity() {
             }, haut = 12f))
             return
         }
+        // 1.93.06 (Déverrouillage simplifié) : les paramètres d'Android, en un geste.
+        c.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.setup_parametres_appareil)) { ouvrirParametresAppareil() }, bas = 10f))
         if (cfg.modeParent) {
             c.addView(ligneInfo(getString(R.string.setup_pause), getString(R.string.temps_jusqua, Etat.heure(cfg.parentJusqua))))
-            c.addView(Ui.marge(this, Ui.boutonPrimaire(this, getString(R.string.setup_reprendre_protection)) { cfg.parentJusqua = 0; dessiner() }, haut = 12f))
+            c.addView(Ui.marge(this, Ui.boutonPrimaire(this, getString(R.string.setup_reprendre_protection)) { Deverrouillage.reverrouiller(this, "setup"); dessiner() }, haut = 12f))
             // Le code (ou l'empreinte) vient d'être donné : on peut changer le code et la façon de déverrouiller.
             reglagesProtection(c)
             if (Etat.parent && Modules.actif(this, Modules.DEVERROUILLAGE)) c.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.dpa_titre)) {
@@ -1624,6 +1643,9 @@ class SetupActivity : Activity() {
     private fun toast(t: String, genre: OeilModele.Genre = OeilModele.Genre.INFO) = Ui.toast(this, t, court = true, genre = genre)
 
     companion object {
+        /** 1.93.06 : les réglages protégés restent ouverts ce temps après le code, pour « Paramètres de l'appareil ». */
+        const val PARAMETRES_MS = 15 * 60_000L
+
         /** 1.84.0 : ouvrir avec l'espace gestion déplié (section « Décideurs » des réglages télé). */
         const val EXTRA_GESTION = "gestion"
 

@@ -114,7 +114,8 @@ class MiniLecteur(ctx: Context, private val theme: Theme, private val tele: Bool
     override fun onWindowVisibilityChanged(v: Int) {
         super.onWindowVisibilityChanged(v)
         main.removeCallbacks(relire)
-        if (v == View.VISIBLE && attache) main.post(relire)
+        // 1.93.06 (retour d'essai) : de retour à l'écran, l'état est relu tel quel (une demande d'avant ne le masque plus).
+        if (v == View.VISIBLE && attache) { voulu = ""; main.post(relire) }
     }
 
     private fun charger() {

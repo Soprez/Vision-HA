@@ -1489,6 +1489,20 @@
       "name": "Neuer Entsperrschlüssel",
       "description": "Ersetzt den Schlüssel, der die Entsperr-Genehmigungen signiert; laufende Genehmigungen gelten nicht mehr. Die Geräte erhalten den neuen Schlüssel bei der nächsten Meldung. Nur für Administratoren."
     },
+    "deverrouiller_appareil": {
+      "name": "Gerät entsperren",
+      "description": "Entsperrt ein Gerät sofort, ohne Anfrage des Geräts: voller Zugriff (Android-Einstellungen, Installationen, Entwickleroptionen) für 15, 30 oder 60 Min., danach sperrt es sich selbst wieder. Alle Verantwortlichen werden benachrichtigt. Nur für Administratoren.",
+      "fields": {
+        "pc": {
+          "name": "Gerät",
+          "description": "Das zu entsperrende Gerät (seine Vision-Kennung)."
+        },
+        "minutes": {
+          "name": "Minuten",
+          "description": "Wie lange: 15, 30 oder 60 Min."
+        }
+      }
+    },
     "pause_generale": {
       "name": "Alles sperren",
       "description": "Sperrt auf einmal alle betreuten Geräte für eine bestimmte Dauer; die Geräte der Personen, die entscheiden, bleiben freigegeben. „Wieder freigeben“ gibt sie vor dem Ende frei. Nur für Administratoren.",
@@ -1920,6 +1934,54 @@
         "logo": {
           "name": "Vision-Logo",
           "description": "Ecke des Vision-Auges: gleiche Werte; standardmäßig unten links (sein gewohnter Platz). QR-Code und Logo teilen sich nie eine Ecke."
+        },
+        "qr_taille": {
+          "name": "Größe des Gäste-QR-Codes",
+          "description": "petit (klein, aus der Nähe ≈ 1 m, Standard), moyen (mittel, ≈ 1,5 m) oder grand (groß, ≈ 2 m). Gilt auch für den Musikplayer."
+        }
+      }
+    },
+    "musique_regler": {
+      "name": "Musik — Ton anderer Apps",
+      "description": "Was die Musik von Vision auf einem Gerät tut, wenn eine andere App Ton abspielt (nur Administratoren und Automatisierungen). Das Gerät übernimmt die neueste Einstellung, aus Home Assistant oder vom Fernseher selbst.",
+      "fields": {
+        "pc": {
+          "name": "Gerät",
+          "description": "Name des Geräts."
+        },
+        "focus": {
+          "name": "Musik pausieren",
+          "description": "toujours (Standard): Pause, sobald eine andere App Ton abspielt; applis: nur bei den Apps der Liste; jamais: die Musik läuft weiter. Ein Wechsel auf einen TV-Eingang (HDMI, Live-TV) zählt wie eine andere App."
+        },
+        "applis": {
+          "name": "Apps, die pausieren",
+          "description": "Android-Paketnamen (zum Beispiel com.google.android.youtube.tv), für „applis“. vision.entrees_tele steht für die TV-Eingänge (HDMI, Live-TV)."
+        },
+        "reprise": {
+          "name": "Automatisch fortsetzen",
+          "description": "Die Musik läuft von selbst weiter, wenn der andere Ton aufhört (standardmäßig aus)."
+        }
+      }
+    },
+    "widget_regler": {
+      "name": "Widget — Zeile unter dem Wert",
+      "description": "Stellt das Widget einer Entität auf allen Geräten ein (nur Administratoren und Automatisierungen): die Zeile unter dem Wert, Name und Symbol. Wie die Karte Widgets HA.",
+      "fields": {
+        "entite": {
+          "name": "Entität des Widgets",
+          "description": "Die Entität, die das Widget zeigt (zum Beispiel input_number.sollwert)."
+        },
+        "ligne": {
+          "name": "Zeile unter dem Wert",
+          "description": "Eine andere Entität, deren Zustand unter dem Wert steht (zum Beispiel sensor.heizmodus). Leer: keine Zeile."
+        },
+        "nom": {
+          "name": "Name",
+          "description": "Der angezeigte Name (leer: der von Home Assistant)."
+        },
+        "icone": {
+          "name": "Symbol",
+          "description": "Ein mdi:-Symbol (leer: das von Home Assistant)."
         }
       }
     },
@@ -1973,6 +2035,9 @@
       },
       "compte_administrateur": {
         "name": "Administratorkonto"
+      },
+      "protection_desactivee": {
+        "name": "Schutz deaktiviert"
       },
       "pause_generale_en_cours": {
         "name": "Alles gesperrt"

@@ -950,5 +950,11 @@
   "inv.mes_en_cours": "Speelt nu",
   "inv.mes_ensuite": "Speelt direct na het huidige nummer",
   "inv.mes_position": "In de wachtrij, nr. {pos}",
-  "inv.mes_joue": "Al gespeeld"
+  "inv.mes_joue": "Al gespeeld",
+  "musique.paquet_invalide": "„{nom}” is geen Android-appnaam (bijvoorbeeld com.google.android.youtube.tv).",
+  "dev.initiative": "{par} heeft „{nom}” {minutes} min ontgrendeld (volledige toegang: instellingen, installaties); daarna vergrendelt het zichzelf weer.",
+  "prot.titre": "Bescherming uitgeschakeld",
+  "prot.titre_retablie": "Bescherming hersteld",
+  "prot.coupee": "Bescherming uitgeschakeld op „{nom}”: de toegankelijkheidsdienst van Vision staat uit, Vision beschermt daar niets meer. Op het apparaat: Instellingen › Toegankelijkheid › Vision › Aan.",
+  "prot.retablie": "Bescherming hersteld op „{nom}”: de toegankelijkheid van Vision is weer actief."
 }

@@ -43,6 +43,60 @@ JOUE = ("playing", "buffering")
 # id de l'appareil → {"lecteur", "uri", "depuis", "vu", "repeter"} : les musiques lancées par une veille.
 _EN_COURS: dict[str, dict[str, Any]] = {}
 
+# 2.5.12 (incidents du salon, 18/10 à 10:43 et 19:46) : l'appli a été relancée pendant une veille (mise à jour,
+# plantage) sans dire « fin » ; on a ensuite écouté la même file à la main (lecteur, « suivant »). 6 min plus tard,
+# l'expiration (EXPIRE_S) a arrêté le lecteur ET vidé sa file. Désormais, dès qu'une commande de lecture venue
+# d'ailleurs (une personne, l'appli, une automatisation, la Party) touche le lecteur d'une veille, la musique est
+# « reprise à la main » : la veille la lâche, sans rien arrêter ni vider. Le volume ne compte pas.
+REPRISE = {
+    "media_player": {"media_play", "media_pause", "media_play_pause", "media_next_track", "media_previous_track",
+                     "play_media", "media_seek", "select_source", "shuffle_set", "repeat_set", "media_stop",
+                     "clear_playlist", "join", "turn_on", "turn_off"},
+    "music_assistant": {"play_media", "transfer_queue", "play_announcement"},
+}
+# Les contextes des commandes envoyées par ce module (titre suivant) : jamais une reprise à la main.
+_NOS: set[str] = set()
+
+
+def _cibles(donnees: dict[str, Any]) -> set[str]:
+    e = donnees.get("entity_id")
+    if isinstance(e, str):
+        return {x.strip() for x in e.split(",") if x.strip()}
+    if isinstance(e, (list, tuple, set)):
+        return {str(x) for x in e}
+    return set()
+
+
+def reprise_a_la_main(domaine: str, service: str, donnees: dict[str, Any], contexte: str = "") -> list[str]:
+    """Une commande de service : les veilles qu'elle reprend à la main (lâchées, sans arrêt). Rend leurs lecteurs."""
+    if contexte in _NOS or service not in REPRISE.get(domaine, set()):
+        return []
+    cibles = _cibles(donnees)
+    lachees = []
+    for pid, v in list(_EN_COURS.items()):
+        if v["lecteur"] in cibles:
+            _EN_COURS.pop(pid, None)
+            lachees.append(v["lecteur"])
+            _LOGGER.info("Veille : %s repris à la main (%s.%s) : plus d'arrêt ni de file vidée à l'expiration",
+                         v["lecteur"], domaine, service)
+    return lachees
+
+
+def ecouter(hass: HomeAssistant):
+    """Écoute les commandes de service (une fois par installation) ; rend de quoi arrêter l'écoute."""
+    from homeassistant.const import EVENT_CALL_SERVICE
+    from homeassistant.core import Event, callback
+
+    @callback
+    def _sur_service(event: Event) -> None:
+        if not _EN_COURS:
+            return
+        d = event.data
+        reprise_a_la_main(str(d.get("domain") or ""), str(d.get("service") or ""),
+                          dict(d.get("service_data") or {}), event.context.id if event.context else "")
+
+    return hass.bus.async_listen(EVENT_CALL_SERVICE, _sur_service)
+
 
 def lecteur_propre(hass: HomeAssistant, pc: dict[str, Any]) -> str:
     """Le lecteur Music Assistant de l'appareil lui-même (« <appareil> · Vision »), vide s'il n'y en a pas."""
@@ -155,11 +209,18 @@ async def suite(hass: HomeAssistant, pc: dict[str, Any]) -> bool:
     lecteur = lecteur_propre(hass, pc)
     if not lecteur:
         return False
+    from homeassistant.core import Context
+
+    nous = Context()
+    _NOS.add(nous.id)  # notre propre « suivant » : pas une reprise à la main
     try:
-        await hass.services.async_call("media_player", "media_next_track", {"entity_id": lecteur}, blocking=True)
+        await hass.services.async_call("media_player", "media_next_track", {"entity_id": lecteur}, blocking=True,
+                                       context=nous)
     except Exception as err:  # noqa: BLE001 - fin de file ou lecteur parti : l'appareil s'arrête comme avant
         _LOGGER.info("Fin de titre sans suite sur %s : pas de titre suivant (%s)", lecteur, err)
         return False
+    finally:
+        _NOS.discard(nous.id)
     _LOGGER.warning("Fin de titre sans suite sur %s : Music Assistant n'avait rien envoyé, titre suivant demandé", lecteur)
     return True
 

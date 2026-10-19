@@ -1489,6 +1489,20 @@
       "name": "Nouvelle clé de déverrouillage",
       "description": "Remplace la clé qui signe les approbations de déverrouillage ; celles en cours ne valent plus. Les appareils reçoivent la nouvelle clé au relevé suivant. Réservé aux administrateurs."
     },
+    "deverrouiller_appareil": {
+      "name": "Déverrouiller un appareil",
+      "description": "Déverrouille un appareil tout de suite, sans demande de sa part : accès total (réglages d'Android, installations, options pour les développeurs) pendant 15, 30 ou 60 min, puis il se reverrouille seul. Tous les responsables sont prévenus. Administrateurs seulement.",
+      "fields": {
+        "pc": {
+          "name": "Appareil",
+          "description": "L'appareil à déverrouiller (son identifiant Vision)."
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "Pour combien de temps : 15, 30 ou 60 min."
+        }
+      }
+    },
     "pause_generale": {
       "name": "Tout fermer",
       "description": "Ferme d'un coup les appareils suivis pour une durée ; les appareils des personnes qui décident restent ouverts. « Rouvrir » les rouvre avant la fin. Réservé aux administrateurs.",
@@ -1920,6 +1934,54 @@
         "logo": {
           "name": "Logo Vision",
           "description": "Coin de l'œil de Vision : mêmes valeurs ; en bas à gauche (sa place habituelle) par défaut. Le QR code et le logo ne partagent jamais un coin."
+        },
+        "qr_taille": {
+          "name": "Taille du QR des invités",
+          "description": "petit (à scanner de près, ≈ 1 m, par défaut), moyen (≈ 1,5 m) ou grand (≈ 2 m). Vaut aussi pour le lecteur de musique."
+        }
+      }
+    },
+    "musique_regler": {
+      "name": "Musique — son des autres applis",
+      "description": "Ce que fait la musique de Vision sur un appareil quand une autre appli joue du son (administrateurs et automatisations seulement). L'appareil applique le réglage le plus récent, de Home Assistant ou de la télé elle-même.",
+      "fields": {
+        "pc": {
+          "name": "Appareil",
+          "description": "Nom de l'appareil."
+        },
+        "focus": {
+          "name": "Pause de la musique",
+          "description": "toujours (défaut) : pause dès qu'une autre appli joue du son ; applis : seulement pour les applis de la liste ; jamais : la musique continue. Passer sur une entrée de la télé (HDMI, TV en direct) compte comme une autre appli."
+        },
+        "applis": {
+          "name": "Applis qui mettent en pause",
+          "description": "Noms de paquets Android (par exemple com.google.android.youtube.tv), pour « applis ». vision.entrees_tele désigne les entrées de la télé (HDMI, TV en direct)."
+        },
+        "reprise": {
+          "name": "Reprise automatique",
+          "description": "La musique repart d'elle-même quand l'autre son s'arrête (non par défaut)."
+        }
+      }
+    },
+    "widget_regler": {
+      "name": "Widget — ligne sous la valeur",
+      "description": "Règle le widget d'une entité sur tous les appareils (administrateurs et automatisations seulement) : la ligne écrite sous la valeur, son nom et son icône. Comme la carte Widgets HA.",
+      "fields": {
+        "entite": {
+          "name": "Entité du widget",
+          "description": "L'entité que montre le widget (par exemple input_number.consigne)."
+        },
+        "ligne": {
+          "name": "Ligne sous la valeur",
+          "description": "Une autre entité, dont l'état s'écrit sous la valeur (par exemple sensor.mode_chauffage). Vide : plus de ligne."
+        },
+        "nom": {
+          "name": "Nom",
+          "description": "Le nom affiché (vide : celui de Home Assistant)."
+        },
+        "icone": {
+          "name": "Icône",
+          "description": "Une icône mdi: (vide : celle de Home Assistant)."
         }
       }
     },
@@ -1973,6 +2035,9 @@
       },
       "compte_administrateur": {
         "name": "Compte administrateur"
+      },
+      "protection_desactivee": {
+        "name": "Protection désactivée"
       },
       "pause_generale_en_cours": {
         "name": "Tout fermé"

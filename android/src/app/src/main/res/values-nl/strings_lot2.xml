@@ -787,4 +787,23 @@
     <string name="manifeste_fermes">Wat geblokkeerd is</string>
     <string name="manifeste_maison">Te beslissen</string>
     <string name="manifeste_musique">Muziek</string>
+    <!-- 1.93.06 : Déverrouillage simplifié -->
+    <string name="dev_deverrouille_total">%1$s heeft dit apparaat %2$d min ontgrendeld: volledige toegang. Daarna vergrendelt het zichzelf weer.</string>
+    <string name="bandeau_deverrouille">Ontgrendeld, nog %1$d min</string>
+    <string name="bandeau_reverrouiller">Weer vergrendelen</string>
+    <string name="bandeau_reverrouille">Apparaat weer vergrendeld.</string>
+    <string name="parents_deverrouiller">Ontgrendelen…</string>
+    <string name="parents_deverrouiller_titre">„%1$s” ontgrendelen: volledige toegang voor…</string>
+    <string name="parents_deverrouiller_min">%1$d min</string>
+    <string name="parents_deverrouiller_raison">„%1$s” %2$d min ontgrendelen</string>
+    <string name="parents_deverrouiller_fait">„%1$s” wordt bij de volgende melding %2$d min ontgrendeld.</string>
+    <string name="garde_code_oublie">Code vergeten?</string>
+    <string name="code_oublie_titre">Code vergeten</string>
+    <string name="code_oublie_texte">Niemand kan je de oude code teruggeven: Vision bewaart die nergens. Twee oplossingen: een %1$s ontgrendelt dit apparaat op afstand (op jouw verzoek, of zelf vanaf zijn telefoon of Home Assistant), of een beheerder van Home Assistant kiest een nieuwe code: Instellingen › Apparaten en diensten › Vision › Configureren › Beveiliging.</string>
+    <string name="code_oublie_demander">Een %1$s vragen</string>
+    <string name="setup_parametres_appareil">Apparaatinstellingen</string>
+    <string name="setup_parametres_appareil_raison">De apparaatinstellingen openen</string>
+    <string name="setup_parametres_appareil_impossible">De apparaatinstellingen kunnen hier niet worden geopend.</string>
+    <string name="vuewidget_min_max">%1$s · min %2$s · max %3$s</string>
+    <string name="vuewidget_plage">%1$s – %2$s</string>
 </resources>

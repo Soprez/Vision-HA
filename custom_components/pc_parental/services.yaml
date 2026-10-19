@@ -708,6 +708,20 @@ refuser_deverrouillage:
       selector:
         text: null
 nouvelle_cle_deverrouillage: {}
+deverrouiller_appareil:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    minutes:
+      default: 15
+      selector:
+        select:
+          options:
+          - '15'
+          - '30'
+          - '60'
 pause_generale:
   fields:
     minutes:
@@ -986,6 +1000,42 @@ veille_regler:
       selector:
         select:
           options: [haut_gauche, haut_droite, bas_gauche, bas_droite, cache]
+    qr_taille:
+      selector:
+        select:
+          options: [petit, moyen, grand]
+musique_regler:
+  fields:
+    pc:
+      required: true
+      selector:
+        text: null
+    focus:
+      selector:
+        select:
+          options: [toujours, applis, jamais]
+    applis:
+      selector:
+        text:
+          multiple: true
+    reprise:
+      selector:
+        boolean: null
+widget_regler:
+  fields:
+    entite:
+      required: true
+      selector:
+        entity: {}
+    ligne:
+      selector:
+        entity: {}
+    nom:
+      selector:
+        text: null
+    icone:
+      selector:
+        icon: {}
 son_regler:
   fields:
     pc:
