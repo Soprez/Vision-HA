@@ -16,7 +16,7 @@ and time requests that the Deciders approve or decline.
 
 Everything stays with you: Home Assistant decides, the devices apply. No outside service is needed.
 
-## Requirements
+## Requirements 
 
 - Home Assistant **2026.9** or newer.
 - [HACS](https://hacs.xyz) for installation and updates.
