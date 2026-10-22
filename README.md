@@ -16,9 +16,10 @@ and time requests that the Deciders approve or decline.
 
 Everything stays with you: Home Assistant decides, the devices apply. No outside service is needed.
 
-## Requirements 
+## Requirements
 
-- Home Assistant **2026.9** or newer.
+- Home Assistant **2026.9** or newer (check *Settings → About*). On an older version HACS refuses to download
+  Vision, so it never shows up in *Add integration*: update Home Assistant first.
 - [HACS](https://hacs.xyz) for installation and updates.
 - Devices that Home Assistant can reach: PCs running Windows 10/11, Android phones or TVs.
 
@@ -31,7 +32,8 @@ Vision has three parts: the Home Assistant **integration** (installed with HACS)
 
 1. In HACS: **⋮ → Custom repositories**, add `https://github.com/Soprez/Vision-HA`,
    category **Integration**.
-2. Search for **Vision** in HACS, install it, then restart Home Assistant.
+2. Search for **Vision** in HACS (its folder is named `pc_parental`), click *Download*, then restart Home
+   Assistant.
 3. **Settings → Devices & services → Add integration → Vision.**
 
 HACS installs the `vision.zip` file of the latest release (*Releases* tab): it contains the integration **and**

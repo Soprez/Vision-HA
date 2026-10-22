@@ -18,7 +18,8 @@ Tout reste chez vous : Home Assistant décide, les appareils appliquent. Aucun s
 
 ## Ce qu'il faut
 
-- Home Assistant **2026.9** ou plus récent.
+- Home Assistant **2026.9** ou plus récent (voir *Paramètres → À propos*). Sur une version plus ancienne, HACS refuse
+  de télécharger Vision, qui n'apparaît alors jamais dans *Ajouter une intégration* : mettez d'abord Home Assistant à jour.
 - [HACS](https://hacs.xyz) pour l'installation et les mises à jour.
 - Des appareils joignables depuis Home Assistant : PC sous Windows 10/11, téléphones ou télés sous Android.
 
@@ -31,7 +32,8 @@ l'**agent Windows**. Les deux dernières sont fournies par l'intégration elle-m
 
 1. Dans HACS : **⋮ → Dépôts personnalisés**, ajoutez `https://github.com/Soprez/Vision-HA`,
    catégorie **Intégration**.
-2. Cherchez **Vision** dans HACS, installez-la, puis redémarrez Home Assistant.
+2. Cherchez **Vision** dans HACS (son dossier s'appelle `pc_parental`), cliquez sur *Télécharger*, puis redémarrez
+   Home Assistant.
 3. **Paramètres → Appareils et services → Ajouter une intégration → Vision.**
 
 HACS installe le fichier `vision.zip` de la dernière version publiée (onglet *Releases*) : il contient
