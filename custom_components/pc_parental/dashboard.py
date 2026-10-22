@@ -1481,6 +1481,10 @@ def build(hass: HomeAssistant, coord: PcParentalCoordinator) -> dict[str, Any]:
     # « Tout fermer » (ex-pause générale, point 14.2) : les deux boutons et l'état, sur l'accueil, si le module est actif.
     if (section_pg := _section_pause_generale(hass, coord)) is not None:
         vue_maison["sections"].append(section_pg)
+    # 2.5.12.14 : les limites de temps de toutes les personnes dans une liste, avec filtres (module « Temps » allumé).
+    if not modules.coupe(coord.store, "temps"):
+        vue_maison["sections"].append({"type": "grid", "column_span": 2, "cards": [
+            {"type": "custom:vision-ensemble-card", "mode": "limites", "grid_options": {"columns": "full"}}]})
     vues_personnes = [
         _vue_personne(hass, coord, personne)
         for personne in _personnes_du_tableau(hass, coord)
@@ -1507,6 +1511,10 @@ def build(hass: HomeAssistant, coord: PcParentalCoordinator) -> dict[str, Any]:
                 {"type": "grid", "column_span": 3, "cards": [
                     {"type": "heading", "heading": _t(hass, "protection_sur_appareils"), "icon": "mdi:cellphone-check"},
                     {"type": "custom:vision-maison-card", "mode": "protections"},
+                ]},
+                # 2.5.12.14 : tous les appareils et toutes les personnes dans une liste, avec filtres.
+                {"type": "grid", "column_span": 3, "cards": [
+                    {"type": "custom:vision-ensemble-card", "mode": "logiciels", "grid_options": {"columns": "full"}},
                 ]}]),
             *([] if modules.coupe(coord.store, "filtrage") else _sections_securite(hass, coord)),
             *sections_processus],

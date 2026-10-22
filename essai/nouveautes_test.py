@@ -162,6 +162,25 @@ async def test_filtrage_par_cible_et_public(hass, hass_storage, hass_client):
     assert d["cible"] == "tele" and d["nouveautes"][0]["points"] == tele["nouveautes"][0]["points"]
 
 
+async def test_point_de_module_coupe_pas_servi(hass, hass_storage, hass_client):
+    """2.5.12.14 : un point marqué « module » (le niveau sonore, éteint par défaut) ne sort que module allumé."""
+    await _monter(hass, hass_storage, t1="2.2.10", d1="2.2.10", v1="2.2.10", w1="2.2.10")
+    client = await hass_client()
+    hass.config.language = "fr"
+    coord = next(iter(hass.data[DOMAIN].values()))
+    nv = _nv()
+    await nv.charger(hass)
+    hass.data[nv._CACHE]["2.2.12"]["points"].append(
+        {"cibles": ["telephone"], "module": "son", "texte": {"fr": "Point du module sonore", "en": "Sound module item"}})
+    sans = await _lire(client, TEL)
+    assert not any("module sonore" in p for n in sans["nouveautes"] for p in n["points"])
+    from custom_components.pc_parental import modules
+    coord.store.modules = {"son": True}
+    assert modules.actif(coord.store, "son")
+    avec = await _lire(client, TEL)
+    assert any("module sonore" in p for n in avec["nouveautes"] for p in n["points"])
+
+
 # ------------------------------------------------------------------ Vu, nouvelle version, appareil neuf
 
 

@@ -43,6 +43,9 @@ const CARTES = [
   // 2.5.12 (Déverrouillage simplifié) : l'onglet Protection et sa ligne « Déverrouiller : 15 · 30 · 60 min » par appareil.
   { id: "protections", fichier: "vision-maison-card", el: "vision-maison-card", donnees: "maison", config: { mode: "protections", chemin: "/vision-maison" } },
   { id: "etiquettes", fichier: "vision-etiquettes-card", el: "vision-etiquettes-card", donnees: "catalogue", config: {} },
+  // 2.5.12.14 : la vue d'ensemble (tous les appareils et toutes les personnes), logiciels puis limites.
+  { id: "ensemble", fichier: "vision-ensemble-card", el: "vision-ensemble-card", donnees: "ensemble_logiciels", config: { mode: "logiciels" } },
+  { id: "ensemble-limites", fichier: "vision-ensemble-card", el: "vision-ensemble-card", donnees: "ensemble_limites", config: { mode: "limites" } },
   { id: "messages", fichier: "vision-messages-card", el: "vision-messages-card", donnees: "messages", config: {} },
   { id: "planning", fichier: "vision-planning-card", el: "vision-planning-card", donnees: "planning", config: { entity: "__auto" } },
   { id: "processus", fichier: "vision-processus-card", el: "vision-processus-card", donnees: "processus", config: {} },

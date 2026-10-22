@@ -1278,7 +1278,7 @@ async def agir_maison(hass: HomeAssistant, coord: PcParentalCoordinator, corps: 
     return retour
 
 
-LECTURES = frozenset({"categorie", "recherche", "recents", "bloques"})
+LECTURES = frozenset({"categorie", "recherche", "recents", "bloques", "ensemble"})
 
 
 def _lecture(coord: PcParentalCoordinator, corps: dict[str, Any], langue: str) -> tuple[dict[str, Any], int]:
@@ -1287,10 +1287,15 @@ def _lecture(coord: PcParentalCoordinator, corps: dict[str, Any], langue: str) -
     « categorie » : la catégorie détaillée (logiciels, services, sites, état de chacun) ; « recherche » : un site,
     une appli, un logiciel ou une catégorie, où qu'il soit rangé, et pourquoi il est fermé ; « recents » : les
     derniers blocages des appareils de la personne, et les mêmes regroupés par logiciel."""
+    action = str(corps.get("action") or "")
+    if action == "ensemble":
+        # 2.5.12.14 : la vue d'ensemble (tous les appareils et toutes les personnes), filtrée et paginée ici.
+        from . import ensemble
+
+        return ensemble.lire(coord.hass, coord, corps), 200
     cible = _cible(coord, corps)
     if cible is None:
         return {"ok": False, "error": "pc"}, 404
-    action = str(corps.get("action") or "")
     if action == "bloques":
         # 2.5.12.13 : ce qui est fermé sur cet appareil, lu à l'ouverture de sa fiche (plus dans l'état du tableau).
         fiche = _fiche(coord.hass, coord, cible, roles.avec(coord.store, "gerer"))

@@ -38,6 +38,7 @@ CARTES = (
     "vision-personne-card.js",  # refonte lot 3 : la fiche d'une personne
     "vision-reglages-card.js",  # refonte lot 5 : Réglages › Réservé
     "vision-canaux-card.js",  # 2.5.6 : Réglages › Mes notifications (chaque Décideur)
+    "vision-ensemble-card.js",  # 2.5.12.14 : vue d'ensemble (tous les appareils, toutes les personnes), avec filtres
     "vision-apparence-card.js",
     "vision-messages-card.js",
 )

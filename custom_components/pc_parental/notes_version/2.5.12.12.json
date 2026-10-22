@@ -13,7 +13,8 @@
         "es": "Un clic en «Nivel de ruido» abre su historial (gráfica de Home Assistant).",
         "it": "Un clic su «Livello sonoro» apre lo storico (grafico di Home Assistant).",
         "nl": "Een klik op ‘Geluidsniveau’ opent de geschiedenis (grafiek van Home Assistant)."
-      }
+      },
+      "module": "son"
     },
     {
       "cibles": [
@@ -39,7 +40,8 @@
         "es": "El umbral de ruido, el nivel actual y los avisos solo se ven si el módulo está activo.",
         "it": "Soglia di rumore, livello attuale e avvisi restano visibili solo se il modulo è attivo.",
         "nl": "Geluidsdrempel, huidig niveau en waarschuwingen blijven alleen zichtbaar als de module aan staat."
-      }
+      },
+      "module": "son"
     }
   ]
 }

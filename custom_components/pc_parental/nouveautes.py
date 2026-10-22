@@ -3,7 +3,8 @@
 Les notes sont des fichiers de données livrés avec l'intégration, un par version :
 ``notes_version/<version>.json`` (format dans docs/nouveautes.md). Chaque point dit pour quelles
 cibles il vaut (``ha`` : tableau et pages de Home Assistant, ``telephone``, ``tele``, ``pc``) et,
-au besoin, s'il est réservé aux Décideurs (``"public": "decideurs"``).
+au besoin, s'il est réservé aux Décideurs (``"public": "decideurs"``) ou à un module optionnel (``"module": "son"`` :
+le point n'est servi que si ce module est allumé ; un module coupé ne laisse aucune trace, notes comprises).
 
 Chaque appareil garde dans sa fiche la dernière version qu'il a vue (``nouveautes_vu``). Un
 appareil qui n'a encore rien vu (appareil neuf, ou appli d'avant cette fonction) ne reçoit que
@@ -22,7 +23,7 @@ from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
 
-from . import roles
+from . import modules, roles
 from .const import DOMAIN, VERSION
 
 _LOGGER = logging.getLogger(__name__)
@@ -120,6 +121,7 @@ def a_voir(hass: HomeAssistant, store, pc: dict[str, Any], cible: str, langue: s
             for p in notes[v].get("points") or []
             if isinstance(p, dict) and cible in (p.get("cibles") or [])
             and (p.get("public") != "decideurs" or decideur)
+            and not (p.get("module") and modules.coupe(store, str(p["module"])))
         ]
         points = [p for p in points if p]
         if points:

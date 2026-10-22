@@ -1,0 +1,45 @@
+{
+  "version": "2.5.12.14",
+  "date": "2026-10-22",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Vue d'ensemble : tous les appareils et toutes les personnes dans une seule liste, avec des filtres.",
+        "en": "Overview: all devices and all people in one list, with filters.",
+        "de": "Übersicht: alle Geräte und alle Personen in einer Liste, mit Filtern.",
+        "es": "Vista general: todos los dispositivos y todas las personas en una lista, con filtros.",
+        "it": "Panoramica: tutti i dispositivi e tutte le persone in un elenco, con filtri.",
+        "nl": "Overzicht: alle apparaten en alle personen in één lijst, met filters."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Filtres : personne, appareil, catégorie, état (bloqué, ouvert, limité) et recherche ; le choix est retenu.",
+        "en": "Filters: person, device, category, status (blocked, open, limited) and search; your choice is remembered.",
+        "de": "Filter: Person, Gerät, Kategorie, Status (gesperrt, offen, begrenzt) und Suche; die Auswahl bleibt erhalten.",
+        "es": "Filtros: persona, dispositivo, categoría, estado (bloqueado, abierto, limitado) y búsqueda; se recuerda la elección.",
+        "it": "Filtri: persona, dispositivo, categoria, stato (bloccato, aperto, limitato) e ricerca; la scelta viene ricordata.",
+        "nl": "Filters: persoon, apparaat, categorie, status (geblokkeerd, open, beperkt) en zoeken; je keuze wordt onthouden."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Onglet Protection : les logiciels et sites de tous les appareils ; onglet Utilisateur : les limites de tous.",
+        "en": "Protection tab: apps and sites of all devices; User tab: everyone's time limits.",
+        "de": "Registerkarte Schutz: Apps und Websites aller Geräte; Registerkarte Benutzer: die Zeitlimits aller.",
+        "es": "Pestaña Protección: apps y sitios de todos los dispositivos; pestaña Usuario: los límites de todos.",
+        "it": "Scheda Protezione: app e siti di tutti i dispositivi; scheda Utente: i limiti di tutti.",
+        "nl": "Tabblad Beveiliging: apps en sites van alle apparaten; tabblad Gebruiker: de limieten van iedereen."
+      }
+    }
+  ]
+}

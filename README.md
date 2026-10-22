@@ -55,6 +55,18 @@ first tab of the dashboard and the Vision window on the PCs.
 4. Restart Home Assistant, reload the page with Ctrl+F5, then go to **Settings → Devices & services →
    Add integration → Vision**.
 
+#### After an update: new dashboard cards
+
+The Vision dashboard belongs to you: an update never rebuilds it, so a **new card** (for example *Overview*, added in
+2.5.12.14: every device and every person in one filterable list) does not appear by itself. Two ways to get it:
+
+1. **Rebuild the dashboard** (simplest): press the **Rebuild the dashboard** button (*Settings → Devices & services →
+   Vision*). Your current dashboard is saved first (folder `vision_outils`, then `sauvegardes`, in your configuration
+   folder); changes you made by hand are not carried over.
+2. **Keep your dashboard**: *⋮ → Edit dashboard*, add a *Manual* card and paste
+   `type: custom:vision-ensemble-card` with `mode: logiciels` (apps and sites of all devices, *Protection* tab) or
+   `mode: limites` (time limits of everyone, *User* tab).
+
 ### 2. The Android app (phones, tablets and TVs)
 
 1. In the Vision dashboard, the **Install Vision on a device** section gives the APK link (served by your Home

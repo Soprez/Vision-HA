@@ -13,7 +13,8 @@
         "es": "Nivel de ruido: un umbral general o uno por franja de Vision (la más estricta en curso, si no el general).",
         "it": "Livello sonoro: una soglia generale o una per fascia Vision (la più severa in corso, altrimenti la generale).",
         "nl": "Geluidsniveau: één algemene drempel of één per Vision-tijdvak (het strengste lopende, anders de algemene)."
-      }
+      },
+      "module": "son"
     },
     {
       "cibles": [
@@ -26,7 +27,8 @@
         "es": "Ruido de fondo medido en 24 h (o introducido): un umbral puede darse como «fondo + N dB».",
         "it": "Rumore di fondo misurato su 24 h (o inserito): una soglia può essere «fondo + N dB».",
         "nl": "Achtergrondniveau over 24 u gemeten (of ingevoerd): een drempel kan als ‘bodem + N dB’."
-      }
+      },
+      "module": "son"
     },
     {
       "cibles": [
@@ -39,7 +41,8 @@
         "es": "Ajustes de Vision: sección «Nivel de ruido» por dispositivo; los ajustes día/noche se conservan tal cual.",
         "it": "Impostazioni Vision: sezione «Livello sonoro» per dispositivo; le impostazioni giorno/notte restano invariate.",
         "nl": "Vision-instellingen: onderdeel ‘Geluidsniveau’ per apparaat; bestaande dag/nacht-instellingen blijven behouden."
-      }
+      },
+      "module": "son"
     }
   ]
 }

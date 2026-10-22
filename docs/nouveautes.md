@@ -31,6 +31,8 @@ Un fichier par version, livré avec l'intégration : `pc_parental/notes_version/
 - `cibles` : où le point a un sens — `ha` (tableau et pages servies par Home Assistant),
   `telephone` (téléphones et tablettes), `tele`, `pc`.
 - `public` (facultatif) : `tous` (défaut) ou `decideurs` (seulement les appareils dont le rôle a « gérer »).
+- `module` (facultatif) : un module optionnel, par exemple `son`. Le point n'est servi que si ce module est allumé : un module
+  coupé ne laisse aucune trace, notes de version comprises.
 - `texte` : les 6 langues (fr, en, de, es, it, nl). Il en manque une : repli en anglais, puis en français.
 - Règles (vérifiées par `essai/nouveautes_test.py`) : 3 à 5 points par fichier, une phrase courte chacun,
   sans jargon ; vocabulaire neutre (Décideur, Demandeur, Lieu — jamais les mots de la liste du test).

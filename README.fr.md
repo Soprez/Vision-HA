@@ -55,6 +55,19 @@ il titre le premier onglet du tableau de bord et la fenêtre Vision des PC.
 4. Redémarrez Home Assistant, rechargez la page avec Ctrl+F5, puis **Paramètres → Appareils et services →
    Ajouter une intégration → Vision**.
 
+#### Après une mise à jour : les nouvelles cartes du tableau
+
+Le tableau Vision vous appartient : une mise à jour ne le refait jamais, donc une **nouvelle carte** (par exemple
+*Vue d'ensemble*, ajoutée en 2.5.12.14 : tous les appareils et toutes les personnes dans une liste filtrable)
+n'apparaît pas toute seule. Deux façons de l'obtenir :
+
+1. **Refaire le tableau** (le plus simple) : appuyez sur le bouton **Régénérer le tableau de bord** (*Paramètres →
+   Appareils et services → Vision*). Votre tableau actuel est d'abord sauvegardé (dossier `vision_outils`, puis `sauvegardes`, dans votre dossier
+   de configuration) ; ce que vous aviez changé à la main n'est pas repris.
+2. **Garder votre tableau** : *⋮ → Modifier le tableau de bord*, ajoutez une carte *Manuelle* et collez
+   `type: custom:vision-ensemble-card` avec `mode: logiciels` (logiciels et sites de tous les appareils, onglet
+   *Protection*) ou `mode: limites` (limites de temps de tous, onglet *Utilisateur*).
+
 ### 2. L'application Android (téléphones, tablettes et télés)
 
 1. Dans le tableau de bord Vision, la rubrique **Installer Vision sur un appareil** donne le lien de l'APK (servi

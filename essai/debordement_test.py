@@ -318,6 +318,12 @@ async def test_aucune_carte_ne_deborde(hass, hass_storage, hass_client, tmp_path
     hass.states.async_set(CAPTEUR, "12")
     await hass.async_block_till_done()
 
+    # 2.5.12.14 : des limites de temps (nom très long compris) pour la vue d'ensemble « limites ».
+    for _pc in list(_coord.store.pcs.values())[:2]:
+        _coord.store.poser_limite(_pc, "Minecraft Bedrock Edition (version éducative avec un nom d'application très long)", 45)
+        _coord.store.poser_limite(_pc, "Roblox", 90)
+    await _coord.store.async_save()
+
     # Les données, telles que Vision les sert, dans chaque langue (les textes du serveur suivent la langue de HA).
     plages = next(e for e in hass.states.async_all("sensor") if "plages" in e.attributes)
     for langue in LANGUES:
@@ -336,6 +342,14 @@ async def test_aucune_carte_ne_deborde(hass, hass_storage, hass_client, tmp_path
             maison["__lecture_" + corps["action"]] = await r.json()
         assert maison["__lecture_categorie"]["logiciels"] and maison["__lecture_recents"]["recents"], maison["__lecture_recents"]
         (dossier / "maison.json").write_text(json.dumps(maison, ensure_ascii=False), encoding="utf-8")
+        # 2.5.12.14 : la vue d'ensemble, servie au banc comme Vision la sert (une tranche par vue).
+        for vue in ("logiciels", "limites"):
+            r = await client.post("/api/pc_parental/maison", json={"action": "ensemble", "vue": vue, "n": 40})
+            assert r.status == 200, (vue, await r.text())
+            lecture = await r.json()
+            assert lecture["lignes"], vue
+            (dossier / f"ensemble_{vue}.json").write_text(
+                json.dumps({"__lecture_ensemble": lecture}, ensure_ascii=False), encoding="utf-8")
         planning = json.loads((dossier / "catalogue.json").read_text(encoding="utf-8"))
         planning["__entite"] = plages.entity_id
         planning["__etats"] = {plages.entity_id: {"entity_id": plages.entity_id, "state": plages.state,

@@ -123,6 +123,19 @@
     {
      "cards": [
       {
+       "grid_options": {
+        "columns": "full"
+       },
+       "mode": "limites",
+       "type": "custom:vision-ensemble-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
        "heading": "Actions rapides",
        "icon": "mdi:flash-outline",
        "type": "heading"
@@ -328,6 +341,19 @@
       {
        "mode": "protections",
        "type": "custom:vision-maison-card"
+      }
+     ],
+     "column_span": 3,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "grid_options": {
+        "columns": "full"
+       },
+       "mode": "logiciels",
+       "type": "custom:vision-ensemble-card"
       }
      ],
      "column_span": 3,
