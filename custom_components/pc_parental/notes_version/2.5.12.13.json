@@ -1,0 +1,45 @@
+{
+  "version": "2.5.12.13",
+  "date": "2026-10-22",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Autorisations et Protection plus rapides : l'état du tableau pèse 236 Ko au lieu de 682 Ko.",
+        "en": "Permissions and Protection are faster: the dashboard state weighs 236 KB instead of 682 KB.",
+        "de": "Erlaubnisse und Schutz sind schneller: Der Dashboard-Zustand wiegt 236 statt 682 KB.",
+        "es": "Autorizaciones y Protección van más rápido: el estado del panel pesa 236 KB en vez de 682 KB.",
+        "it": "Autorizzazioni e Protezione più veloci: lo stato del pannello pesa 236 KB invece di 682 KB.",
+        "nl": "Toestemmingen en Beveiliging zijn sneller: de dashboardstatus weegt 236 KB in plaats van 682 KB."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Un même interrupteur partout pour ouvrir ou bloquer : vert ouvert, rouge bloqué, gris non décidé.",
+        "en": "The same switch everywhere to open or block: green open, red blocked, grey undecided.",
+        "de": "Überall derselbe Schalter zum Öffnen oder Sperren: grün offen, rot gesperrt, grau unentschieden.",
+        "es": "El mismo interruptor en todas partes para abrir o bloquear: verde abierto, rojo bloqueado, gris sin decidir.",
+        "it": "Lo stesso interruttore ovunque per aprire o bloccare: verde aperto, rosso bloccato, grigio da decidere.",
+        "nl": "Overal dezelfde schakelaar om te openen of te blokkeren: groen open, rood geblokkeerd, grijs onbeslist."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "La liste de l'onglet Autorisations s'affiche par tranches de 150 au lieu d'un bloc de 2 000 lignes.",
+        "en": "The Permissions list is shown in batches of 150 instead of one block of 2,000 rows.",
+        "de": "Die Liste der Erlaubnisse erscheint in 150er-Schritten statt als Block mit 2000 Zeilen.",
+        "es": "La lista de Autorizaciones se muestra de 150 en 150 en vez de un bloque de 2000 filas.",
+        "it": "L'elenco delle Autorizzazioni si mostra a gruppi di 150 invece di un blocco di 2000 righe.",
+        "nl": "De lijst met toestemmingen verschijnt in delen van 150 in plaats van één blok van 2000 rijen."
+      }
+    }
+  ]
+}

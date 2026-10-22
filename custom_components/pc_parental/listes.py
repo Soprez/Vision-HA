@@ -51,12 +51,18 @@ def empreinte(*valeurs: Any) -> str:
     return hashlib.sha1(brut.encode("utf-8")).hexdigest()[:12]
 
 
-def repondre(vue: HomeAssistantView, request: web.Request, donnees: dict[str, Any]) -> web.Response:
+def avec_revision(donnees: dict[str, Any]) -> tuple[dict[str, Any], str]:
+    """Les données et leur empreinte, calculées ensemble (pour les garder en cache : l'empreinte coûte un JSON complet)."""
+    return donnees, empreinte(donnees)
+
+
+def repondre(vue: HomeAssistantView, request: web.Request, donnees: dict[str, Any],
+             revision: str | None = None) -> web.Response:
     """La réponse d'une API relue en boucle par une carte (toutes les 30 s), avec son empreinte.
 
     Si la carte envoie l'empreinte qu'elle a déjà (`?revision=…`) et que rien n'a changé, on ne renvoie que
     `{"ok": true, "inchange": true}` : ni les centaines de Ko, ni le redessin de la carte."""
-    revision = empreinte(donnees)
+    revision = revision or empreinte(donnees)
     if request.query.get("revision") == revision:
         return vue.json({"ok": True, "inchange": True, "revision": revision})
     return vue.json({**donnees, "revision": revision})

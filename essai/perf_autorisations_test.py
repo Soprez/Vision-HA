@@ -238,3 +238,59 @@ def test_textes_sans_lecture_disque(monkeypatch):
     assert catalogue.cles("fr") and catalogue.cles("en")
     module = importlib.reload(dashboard)
     assert module._TEXTES.cles("de")
+
+
+async def test_maison_sans_listes_de_blocages(hass, hass_storage, hass_client):
+    """2.5.12.13 (mesure sur les vraies données : 1 s de calcul et 682 Ko, dont 300 Ko de listes de blocages) : l'état du
+    tableau ne porte plus ce qui est fermé appareil par appareil ; il se lit à la demande pour l'appareil qu'on ouvre."""
+    coord = await _installer(hass, hass_storage)
+    admin = await hass_client()
+    brut = await admin.get("/api/pc_parental/maison")
+    texte = await brut.text()
+    etat = json.loads(texte)
+    assert len(etat["appareils"]) == NB_PC
+    for a in etat["appareils"]:
+        assert a["apps"] == [] and a["sites"] == [] and a["motifs"] == [] and a["raisons"] == {}
+        assert a["n_sites"] > 100 and a["n_apps"] > 10  # le nombre reste affichable, la liste se lit à part
+    assert len(texte.encode()) < 250_000, len(texte)
+    # La même fiche, lue à l'ouverture de l'appareil : la liste complète, avec ses motifs.
+    pc = coord.store.pcs["pc0"]
+    complet = coord.store.effectif(pc)
+    lue = await (await admin.post("/api/pc_parental/maison", json={"action": "bloques", "pc": "pc0"})).json()
+    assert lue["ok"]
+    assert {s["nom"] if isinstance(s, dict) else s for s in lue["sites"]} == set(complet["sites"])
+    assert {a["nom"] if isinstance(a, dict) else a for a in lue["apps"]} == set(complet["apps"])
+    # Un appareil inconnu : refus propre, pas d'exception.
+    inconnu = await admin.post("/api/pc_parental/maison", json={"action": "bloques", "pc": "nulle-part"})
+    assert inconnu.status == 404
+
+
+async def test_maison_calculee_une_fois(hass, hass_storage, hass_client):
+    """Plusieurs navigateurs ouverts : l'état du tableau n'est calculé qu'une fois (gardé, oublié à chaque écriture)."""
+    coord = await _installer(hass, hass_storage)
+    admin = await hass_client()
+    from custom_components.pc_parental import parent
+
+    appels = []
+    vrai = parent.etat_maison
+    parent.etat_maison = lambda *a, **k: (appels.append(1), vrai(*a, **k))[1]
+    try:
+        for _ in range(3):
+            assert (await admin.get("/api/pc_parental/maison")).status == 200
+        assert len(appels) == 1, appels
+        coord.store.bannir("site-nouveau.example")
+        await coord.store.async_save()
+        assert (await admin.get("/api/pc_parental/maison")).status == 200
+        assert len(appels) == 2, appels
+    finally:
+        parent.etat_maison = vrai
+
+
+def test_carte_lit_les_blocages_a_l_ouverture():
+    """2.5.12.13 : la fiche d'un appareil lit ce qui est fermé à l'ouverture (et à chaque relecture tant qu'elle reste
+    ouverte) ; la carte ne lit plus les listes dans l'état du tableau."""
+    import pathlib
+    src = (pathlib.Path(__file__).parent.parent / "custom_components" / "pc_parental" / "frontend"
+           / "vision-maison-card.js").read_text(encoding="utf-8")
+    assert 'action: "bloques"' in src and src.count("_lireBloques(id)") >= 2
+    assert "a.apps.map" not in src and "a.sites.map" not in src and "a.raisons" not in src

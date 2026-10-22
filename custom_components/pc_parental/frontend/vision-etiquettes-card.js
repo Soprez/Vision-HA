@@ -17,6 +17,10 @@
 // ---- i18n:debut — les textes de cette carte, dans les six langues de Vision (fr source, en repli) ----
 const TEXTES = /*i18n-json*/{
   "fr": {
+    "afficher_suite": "Afficher les {n} suivants",
+    "bascule_ouvert": "Ouvert",
+    "bascule_bloque": "Bloqué",
+    "bascule_neutre": "Non décidé",
     "erreur_admin": "Réservé aux administrateurs de Home Assistant.",
     "erreur_loading": "Vision démarre : réessaie dans un instant.",
     "erreur_pc": "Cet appareil n'existe plus dans Vision.",
@@ -110,6 +114,10 @@ const TEXTES = /*i18n-json*/{
     "onglet_etiquettes": "Étiquettes"
   },
   "en": {
+    "afficher_suite": "Show the next {n}",
+    "bascule_ouvert": "Open",
+    "bascule_bloque": "Blocked",
+    "bascule_neutre": "Undecided",
     "erreur_admin": "Only Home Assistant administrators can do this.",
     "erreur_loading": "Vision is starting: try again in a moment.",
     "erreur_pc": "This device no longer exists in Vision.",
@@ -203,6 +211,10 @@ const TEXTES = /*i18n-json*/{
     "onglet_etiquettes": "Labels"
   },
   "de": {
+    "afficher_suite": "Die nächsten {n} anzeigen",
+    "bascule_ouvert": "Offen",
+    "bascule_bloque": "Gesperrt",
+    "bascule_neutre": "Unentschieden",
     "erreur_admin": "Nur für Home Assistant-Administratoren.",
     "erreur_loading": "Vision startet gerade: versuch es gleich noch einmal.",
     "erreur_pc": "Dieses Gerät gibt es in Vision nicht mehr.",
@@ -296,6 +308,10 @@ const TEXTES = /*i18n-json*/{
     "onglet_etiquettes": "Labels"
   },
   "es": {
+    "afficher_suite": "Mostrar los {n} siguientes",
+    "bascule_ouvert": "Abierto",
+    "bascule_bloque": "Bloqueado",
+    "bascule_neutre": "Sin decidir",
     "erreur_admin": "Solo para administradores de Home Assistant.",
     "erreur_loading": "Vision se está iniciando: inténtalo de nuevo en un momento.",
     "erreur_pc": "Este dispositivo ya no existe en Vision.",
@@ -389,6 +405,10 @@ const TEXTES = /*i18n-json*/{
     "onglet_etiquettes": "Etiquetas"
   },
   "it": {
+    "afficher_suite": "Mostra i {n} successivi",
+    "bascule_ouvert": "Aperto",
+    "bascule_bloque": "Bloccato",
+    "bascule_neutre": "Da decidere",
     "erreur_admin": "Riservato agli amministratori di Home Assistant.",
     "erreur_loading": "Vision si sta avviando: riprova tra un momento.",
     "erreur_pc": "Questo dispositivo non esiste più in Vision.",
@@ -482,6 +502,10 @@ const TEXTES = /*i18n-json*/{
     "onglet_etiquettes": "Etichette"
   },
   "nl": {
+    "afficher_suite": "Volgende {n} tonen",
+    "bascule_ouvert": "Open",
+    "bascule_bloque": "Geblokkeerd",
+    "bascule_neutre": "Onbeslist",
     "erreur_admin": "Alleen voor beheerders van Home Assistant.",
     "erreur_loading": "Vision start op: probeer het zo opnieuw.",
     "erreur_pc": "Dit apparaat bestaat niet meer in Vision.",
@@ -685,6 +709,26 @@ const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   })[c]);
+const PAS_LIGNES = 150;  // lignes dessinées par tranche dans la liste des éléments (2.5.12.12)
+// ---- bascule:debut — l'interrupteur d'ouverture et de blocage, le même dans toutes les cartes (essai/son_interface_test.py le vérifie) ----
+// 2.5.12.12 : vert = ouvert (ou actif), rouge = bloqué, gris = non décidé. Un <button role="switch"> léger (aucun
+// élément à shadow DOM par ligne : des milliers restent rapides), au clavier (Entrée, Espace) et au toucher (44 px).
+const basculeHtml = ({ etat, attrs = "", inactif = false, libelle = "", titre = "" }) =>
+  `<button type="button" class="vb vb-${etat}" role="switch" aria-checked="${etat === "ouvert" ? "true" : "false"}"` +  // i18n-ignorer : balisage
+  ` aria-label="${esc(libelle)}"${titre ? ` title="${esc(titre)}"` : ""} ${attrs} ${inactif ? "disabled" : ""}>` +
+  `<span class="vb-piste" aria-hidden="true"><span class="vb-bouton"></span></span></button>`;
+const BASCULE_CSS = `
+  .vb { position:relative; flex:none; display:inline-flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; padding:0; border:0; background:none; cursor:pointer; }
+  .vb-piste { position:relative; width:44px; height:24px; border-radius:12px; background:var(--disabled-color,#9e9e9e); transition:background .15s; }
+  .vb-bouton { position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.3); transition:transform .15s; }
+  .vb-ouvert .vb-piste { background:var(--success-color,#2e7d32); }
+  .vb-ouvert .vb-bouton { transform:translateX(20px); }
+  .vb-bloque .vb-piste { background:var(--error-color,#c62828); }
+  .vb-neutre .vb-bouton { transform:translateX(10px); }
+  .vb:focus-visible { outline:2px solid var(--primary-color); outline-offset:2px; border-radius:14px; }
+  .vb:disabled { cursor:not-allowed; opacity:.55; }
+  @media (prefers-reduced-motion: reduce) { .vb-piste, .vb-bouton { transition:none; } }`;
+// ---- bascule:fin ----
 
 // 1.97.3 : le retour visible de chaque geste, le même dans toutes les cartes Vision. Au clic, le bouton touché dit
 // « En cours… » ; puis une ligne en tête de carte dit le résultat (la réponse du serveur) ou l'échec, en clair.
@@ -800,6 +844,7 @@ class VisionEtiquettesCard extends HTMLElement {
     this._erreur = "";
     this._recherche = "";
     this._filtre = "tout";
+    this._limite = PAS_LIGNES;
     this._plateforme = "tout";
     this._vue = "elements";
     this._coches = new Set();
@@ -1054,7 +1099,7 @@ class VisionEtiquettesCard extends HTMLElement {
   // Lot 1 (HA-02) : sous 600 px de large (la carte, pas l'écran : @container), chaque ligne devient une petite carte :
   // le nom, puis les étiquettes, puis les décisions en boutons pleine largeur (44 px), sans rien qui déborde à 320 px.
   _styles() {
-    return `
+    return `${BASCULE_CSS}
       :host { display: block;
         --vision-texte-alerte: color-mix(in srgb, var(--warning-color, #ef6c00) 50%, var(--primary-text-color, #212121));
         --vision-texte-succes: color-mix(in srgb, var(--success-color, #2e7d32) 65%, var(--primary-text-color, #212121));
@@ -1246,7 +1291,8 @@ class VisionEtiquettesCard extends HTMLElement {
     }
 
     html += '<div class="lignes">';
-    for (const el of visibles) {
+    // 2.5.12.12 : par tranches (des milliers d'éléments ne se dessinent pas d'un coup) ; la suite au clic.
+    for (const el of visibles.slice(0, this._limite)) {
       const cle = this._cle(el);
       const posees = el.etiquettes || [];
       html += `<div class="ligne">
@@ -1263,6 +1309,9 @@ class VisionEtiquettesCard extends HTMLElement {
       if (this._menu === cle) html += this._rendreChoix(el, posees);
     }
     html += "</div>";
+    if (visibles.length > this._limite) {
+      html += `<button class="filtre suite" data-suite>${esc(tr("afficher_suite", { n: Math.min(PAS_LIGNES, visibles.length - this._limite) }))}</button>`;
+    }
     return html;
   }
 
@@ -1279,14 +1328,13 @@ class VisionEtiquettesCard extends HTMLElement {
       el.classe === "Bloqués" ? "bloquer"  // i18n-ignorer : valeur de données comparée
       : el.classe === "Autorisés" ? "autoriser"  // i18n-ignorer : valeur de données comparée
       : "neutre";
-    const options = [
-      { cle: "bloquer", libelle: tr("dec_fermer"), description: tr("bloquer_tous") },
-      { cle: "autoriser", libelle: tr("dec_autoriser"), description: tr("autoriser_tous") },
-      { cle: "neutre", libelle: tr("dec_plus_tard"), description: tr("titre_plus_tard") },
-    ];
     return `<div class="decisions">
       <span class="etat ${etat.classe}">${esc(tr(etat.texte))}</span>
-      <vision-choix data-decider="${esc(cle)}" titre="${esc(tr("titre_decision"))}" valeur="${actuelle}" options="${esc(JSON.stringify(options))}"></vision-choix>
+      ${basculeHtml({ etat: actuelle === "autoriser" ? "ouvert" : actuelle === "bloquer" ? "bloque" : "neutre",
+        attrs: `data-bascule-el="${esc(cle)}" data-actuelle="${actuelle}"`,
+        libelle: `${el.libelle || el.nom} : ${tr(actuelle === "autoriser" ? "bascule_ouvert" : actuelle === "bloquer" ? "bascule_bloque" : "bascule_neutre")}`,
+        titre: tr("titre_decision") })}
+      ${actuelle !== "neutre" ? `<button class="dec plus-tard" data-decider="${esc(cle)}" data-decision="neutre" title="${esc(tr("remettre_a_classer"))}" aria-label="${esc(tr("remettre_a_classer"))}">↺</button>` : ""}
       <button class="dec sup-liste" data-decider="${esc(cle)}" data-decision="retirer"
         title="${esc(tr("retirer_liste"))}" aria-label="${esc(tr("retirer_liste"))}">🗑</button>
     </div>`;
@@ -1344,12 +1392,10 @@ class VisionEtiquettesCard extends HTMLElement {
         <span class="compte">${esc(trn("compte_sites", e.sites || 0))} · ${esc(trn("compte_logiciels", e.apps || 0))}</span>
         <span class="cat-etat">${esc(etat.texte)}</span>
         <span class="maison">
-          <button class="pc" data-maison="bloquer" data-etq="${esc(e.nom)}"
-            aria-pressed="${!!e.bannie}"
-            title="${esc(tr("bloquer_partout"))}">${esc(tr("partout_bloquer"))}</button>
-          <button class="pc ok" data-maison="autoriser" data-etq="${esc(e.nom)}"
-            aria-pressed="${!!e.autorisee}"
-            title="${esc(tr("autoriser_partout"))}">${esc(tr("autoriser"))}</button>
+          ${basculeHtml({ etat: e.bannie ? "bloque" : e.autorisee ? "ouvert" : "neutre",
+            attrs: `data-bascule-etq="${esc(e.nom)}" data-actuelle="${e.bannie ? "bloquer" : e.autorisee ? "autoriser" : "neutre"}"`,
+            libelle: `${trCat(e.nom)} : ${tr(e.bannie ? "bascule_bloque" : e.autorisee ? "bascule_ouvert" : "bascule_neutre")}`,
+            titre: e.bannie ? tr("autoriser_partout") : tr("bloquer_partout") })}
           ${
             e.bannie || e.autorisee
               ? `<button class="pc" data-maison="neutre" data-etq="${esc(
@@ -1448,6 +1494,7 @@ class VisionEtiquettesCard extends HTMLElement {
     if (q) {
       q.addEventListener("input", () => {
         this._recherche = q.value;
+        this._limite = PAS_LIGNES;
         this._menu = null;
         this._rendre();
         const neuf = this.shadowRoot.querySelector("#q");
@@ -1461,6 +1508,7 @@ class VisionEtiquettesCard extends HTMLElement {
     tous("[data-filtre]").forEach((c) =>
       c.addEventListener("vision-choix", (ev) => {
         this._filtre = ev.detail.valeur;
+        this._limite = PAS_LIGNES;
         this._menu = null;
         this._rendre();
       })
@@ -1516,10 +1564,13 @@ class VisionEtiquettesCard extends HTMLElement {
 
     // La décision : un choix (vision-choix) ; la corbeille reste un bouton.
     tous("[data-decider]").forEach((c) =>
-      c.dataset.decision
-        ? c.addEventListener("click", () => this._decider([elementDe(c.dataset.decider)], c.dataset.decision))
-        : c.addEventListener("vision-choix", (ev) => this._decider([elementDe(c.dataset.decider)], ev.detail.valeur))
-    );
+      c.addEventListener("click", () => this._decider([elementDe(c.dataset.decider)], c.dataset.decision)));
+    // 2.5.12.12 : l'interrupteur bascule entre autorisé et fermé (à classer → autorisé).
+    tous("[data-bascule-el]").forEach((c) =>
+      c.addEventListener("click", () =>
+        this._decider([elementDe(c.dataset.basculeEl)], c.dataset.actuelle === "autoriser" ? "bloquer" : "autoriser")));
+    tous("[data-suite]").forEach((b) =>
+      b.addEventListener("click", () => { this._limite += PAS_LIGNES; this._rendre(); }));
 
     // Retirer en cliquant la pastille de la ligne.
     tous(".ligne .pastille").forEach((b) =>
@@ -1618,6 +1669,9 @@ class VisionEtiquettesCard extends HTMLElement {
         else if (retire !== undefined) this._basculerPc(c.dataset.pcsEtq, retire, false);
       });
     });
+    // 2.5.12.13 : un interrupteur pour tout le lieu (ouvert, bloqué, non décidé).
+    tous("[data-bascule-etq]").forEach((c) =>
+      c.addEventListener("click", () => this._maison(c.dataset.basculeEtq, c.dataset.actuelle === "autoriser" ? "bloquer" : "autoriser")));
   }
 }
 

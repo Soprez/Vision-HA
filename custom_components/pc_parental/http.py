@@ -1096,7 +1096,10 @@ class PcParentalCatalogueView(HomeAssistantView):
         if coord is None:
             return self.json({"ok": False, "error": "loading"}, status_code=503)
         # 2.5.12 : la carte relit toutes les 30 s ; rien ne repart si le catalogue n'a pas changé.
-        return listes.repondre(self, request, {"ok": True, **coord.store.catalogue_etiquetage()})
+        # 2.5.12.13 : calculé une fois pour tous les navigateurs ouverts (gardé 10 s, oublié à chaque écriture).
+        donnees, revision = coord.store._memo(
+            ("catalogue_http",), 10.0, lambda: listes.avec_revision({"ok": True, **coord.store.catalogue_etiquetage()}))
+        return listes.repondre(self, request, donnees, revision)
 
     async def post(self, request: web.Request) -> web.Response:
         """Coche ou décoche des catégories : {"categories": {"Nom": true|false}}.

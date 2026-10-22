@@ -144,9 +144,25 @@ async def test_historique_et_fiche_de_l_appareil(hass, hass_storage, hass_client
     assert "sensor.pc_pl_niveau_sonore" in {e.entity_id for e in er.async_entries_for_device(reg, appareil.id)}
 
 
-def test_historique_et_lien_fiche_dans_la_carte():
-    """2.5.12.12 : l'encadré « Niveau sonore » ouvre l'historique (hass-more-info, au clic et au clavier) ; le
-    détail de l'appareil a un lien « Ouvrir la fiche de l'appareil » vers /config/devices/device/<id>."""
+def test_meme_interrupteur_partout():
+    """2.5.12.12 : un seul interrupteur d'ouverture/blocage (bloc « bascule » identique), plus d'anciens contrôles ;
+    la liste des éléments se dessine par tranches ; l'historique s'ouvre par hass-more-info."""
+    import re
+
+    blocs = {}
+    for nom in ("vision-maison-card.js", "vision-etiquettes-card.js"):
+        texte = (CARTES / nom).read_text(encoding="utf-8")
+        m = re.search(r"// ---- bascule:debut.*?// ---- bascule:fin ----", texte, re.S)
+        assert m, nom
+        blocs[nom] = m.group(0)
+        assert 'role="switch"' in m.group(0) and "vb-ouvert" in m.group(0) and "vb-bloque" in m.group(0)
+        assert "${BASCULE_CSS}" in texte
+    assert len(set(blocs.values())) == 1
     maison = (CARTES / "vision-maison-card.js").read_text(encoding="utf-8")
-    assert '"hass-more-info"' in maison and "data-son-entite" in maison and 'ev.key === "Enter"' in maison
-    assert 'class="lien-fiche" href="/config/devices/device/' in maison and '"ouvrir_fiche_appareil"' in maison
+    etq = (CARTES / "vision-etiquettes-card.js").read_text(encoding="utf-8")
+    assert "glissiere" not in maison and "inter-el" not in maison
+    # Le choix des PC où une étiquette est bloquée reste un seul sélecteur compact (dixième de PC : un interrupteur par PC
+    # faisait déborder la ligne, vu par debordement_test.py).
+    assert "vision-choix data-decider" not in etq and "pc-bascule" not in etq
+    assert "visibles.slice(0, this._limite)" in etq and "data-suite" in etq
+    assert '"hass-more-info"' in maison and 'href="/config/devices/device/' in maison

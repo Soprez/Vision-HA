@@ -299,5 +299,6 @@ def test_a7_point_d_etat_double_d_un_mot_et_cibles():
         assert f'"{cle}": "{texte}"' in src
     assert 'return { texte: tr("etat_hors_ligne"), classe: "off" }' in src
     assert ".off { opacity" not in src
-    assert ".inter { position:relative; width:44px; height:24px;" in src
+    # 2.5.12.12 : l'interrupteur uniforme (bloc « bascule ») : piste 44×24, cible de 44 px.
+    assert ".vb-piste { position:relative; width:44px; height:24px;" in src and "min-width:44px; min-height:44px;" in src
     assert ".coche input { width:20px; height:20px;" in src

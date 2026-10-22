@@ -16,6 +16,9 @@ const TEXTES = /*i18n-json*/{
   "fr": {
     "ouvrir_fiche_appareil": "Ouvrir la fiche de l'appareil",
     "son_historique": "Voir l'historique du niveau sonore",
+    "bascule_ouvert": "Ouvert",
+    "bascule_bloque": "Bloqué",
+    "bascule_neutre": "Non décidé",
     "lien_detail_appareil": "Détail de l'appareil",
     "detail_type": "Type : {type}",
     "detail_agent": "Version : {v}",
@@ -276,6 +279,9 @@ const TEXTES = /*i18n-json*/{
   "en": {
     "ouvrir_fiche_appareil": "Open the device page",
     "son_historique": "Show the sound level history",
+    "bascule_ouvert": "Open",
+    "bascule_bloque": "Blocked",
+    "bascule_neutre": "Undecided",
     "lien_detail_appareil": "Device details",
     "detail_type": "Type: {type}",
     "detail_agent": "Version: {v}",
@@ -536,6 +542,9 @@ const TEXTES = /*i18n-json*/{
   "de": {
     "ouvrir_fiche_appareil": "Geräteseite öffnen",
     "son_historique": "Verlauf der Lautstärke anzeigen",
+    "bascule_ouvert": "Offen",
+    "bascule_bloque": "Gesperrt",
+    "bascule_neutre": "Unentschieden",
     "lien_detail_appareil": "Gerätedetails",
     "detail_type": "Typ: {type}",
     "detail_agent": "Version: {v}",
@@ -796,6 +805,9 @@ const TEXTES = /*i18n-json*/{
   "es": {
     "ouvrir_fiche_appareil": "Abrir la ficha del dispositivo",
     "son_historique": "Ver el historial del nivel de ruido",
+    "bascule_ouvert": "Abierto",
+    "bascule_bloque": "Bloqueado",
+    "bascule_neutre": "Sin decidir",
     "lien_detail_appareil": "Detalle del dispositivo",
     "detail_type": "Tipo: {type}",
     "detail_agent": "Versión: {v}",
@@ -1056,6 +1068,9 @@ const TEXTES = /*i18n-json*/{
   "it": {
     "ouvrir_fiche_appareil": "Apri la scheda del dispositivo",
     "son_historique": "Mostra lo storico del livello sonoro",
+    "bascule_ouvert": "Aperto",
+    "bascule_bloque": "Bloccato",
+    "bascule_neutre": "Da decidere",
     "lien_detail_appareil": "Dettaglio del dispositivo",
     "detail_type": "Tipo: {type}",
     "detail_agent": "Versione: {v}",
@@ -1316,6 +1331,9 @@ const TEXTES = /*i18n-json*/{
   "nl": {
     "ouvrir_fiche_appareil": "Apparaatpagina openen",
     "son_historique": "Geschiedenis van het geluidsniveau tonen",
+    "bascule_ouvert": "Open",
+    "bascule_bloque": "Geblokkeerd",
+    "bascule_neutre": "Onbeslist",
     "lien_detail_appareil": "Apparaatdetails",
     "detail_type": "Type: {type}",
     "detail_agent": "Versie: {v}",
@@ -1705,6 +1723,25 @@ const heure = (iso) => {
 // 1.86.6 : l'icône suit le type de l'appareil (une télé n'est plus montrée comme un téléphone).
 const ICONES_TYPE = { tv: "mdi:television", tablette: "mdi:tablet", telephone: "mdi:cellphone", android: "mdi:cellphone", pc: "mdi:desktop-classic" };
 const iconeAppareil = (a) => ICONES_TYPE[a.type] || (a.android ? "mdi:cellphone" : "mdi:desktop-classic");
+// ---- bascule:debut — l'interrupteur d'ouverture et de blocage, le même dans toutes les cartes (essai/son_interface_test.py le vérifie) ----
+// 2.5.12.12 : vert = ouvert (ou actif), rouge = bloqué, gris = non décidé. Un <button role="switch"> léger (aucun
+// élément à shadow DOM par ligne : des milliers restent rapides), au clavier (Entrée, Espace) et au toucher (44 px).
+const basculeHtml = ({ etat, attrs = "", inactif = false, libelle = "", titre = "" }) =>
+  `<button type="button" class="vb vb-${etat}" role="switch" aria-checked="${etat === "ouvert" ? "true" : "false"}"` +  // i18n-ignorer : balisage
+  ` aria-label="${esc(libelle)}"${titre ? ` title="${esc(titre)}"` : ""} ${attrs} ${inactif ? "disabled" : ""}>` +
+  `<span class="vb-piste" aria-hidden="true"><span class="vb-bouton"></span></span></button>`;
+const BASCULE_CSS = `
+  .vb { position:relative; flex:none; display:inline-flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; padding:0; border:0; background:none; cursor:pointer; }
+  .vb-piste { position:relative; width:44px; height:24px; border-radius:12px; background:var(--disabled-color,#9e9e9e); transition:background .15s; }
+  .vb-bouton { position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.3); transition:transform .15s; }
+  .vb-ouvert .vb-piste { background:var(--success-color,#2e7d32); }
+  .vb-ouvert .vb-bouton { transform:translateX(20px); }
+  .vb-bloque .vb-piste { background:var(--error-color,#c62828); }
+  .vb-neutre .vb-bouton { transform:translateX(10px); }
+  .vb:focus-visible { outline:2px solid var(--primary-color); outline-offset:2px; border-radius:14px; }
+  .vb:disabled { cursor:not-allowed; opacity:.55; }
+  @media (prefers-reduced-motion: reduce) { .vb-piste, .vb-bouton { transition:none; } }`;
+// ---- bascule:fin ----
 const heureTs = (ts) => (ts ? heure(new Date(ts * 1000).toISOString()) : "");
 
 const CODES = {
@@ -1818,6 +1855,7 @@ class VisionMaisonCard extends HTMLElement {
     }, true);
     this._ouverts = new Set();
     this._details = new Set();
+    this._bloques = new Map(); // 2.5.12.13 : ce qui est fermé, appareil par appareil, lu à l'ouverture de sa fiche
     this._fiches = new Set();   // 2.5.12.11 : appareils dont le détail est déplié
     // HA 2.5.1 : les catégories détaillées (étiquette → réponse), les logiciels dépliés, les catégories montrées en
     // entier, la ligne dont le choix du mode est ouvert, la recherche et les blocages récents de la personne.
@@ -1898,6 +1936,7 @@ class VisionMaisonCard extends HTMLElement {
       // 2.5.12 : la relecture des 30 s envoie l'empreinte connue ; rien n'a changé → ni données ni redessin.
       const connue = this._donnees && !this._erreur ? this._donnees.revision : "";
       const r = await this._hass.callApi("GET", API + (connue ? "?revision=" + encodeURIComponent(connue) : ""));
+      this._relireBloques();
       if (r && r.inchange) return;
       this._donnees = r;
       this._erreur = "";
@@ -1907,6 +1946,24 @@ class VisionMaisonCard extends HTMLElement {
     // HA-01 : le dialogue de retrait ouvert n'est pas redessiné sous les doigts (la saisie du nom serait coupée).
     if (this._retrait && !this._occupe) return;
     this._rendre();
+  }
+
+  // 2.5.12.13 : les listes de ce qui est fermé ne voyagent plus avec l'état du tableau (300 Ko pour 10 appareils) :
+  // on les lit pour la fiche qu'on ouvre, puis à chaque relecture tant qu'elle reste ouverte (redessin seulement si elles changent).
+  async _lireBloques(id) {
+    let r;
+    try {
+      r = await this._hass.callApi("POST", API, { action: "bloques", pc: id });
+    } catch (e) {
+      r = { apps: [], sites: [], motifs: [], raisons: {}, erreur: true };
+    }
+    if (JSON.stringify(r) === JSON.stringify(this._bloques.get(id) || null)) return;
+    this._bloques.set(id, r);
+    if (this._details.has(id) && !(this._retrait && !this._occupe)) this._rendre();
+  }
+
+  _relireBloques() {
+    for (const id of this._details) this._lireBloques(id);
   }
 
   // 1.97.3 : chaque geste se voit tout de suite (« En cours… » sur le bouton), puis la carte repart de la réponse
@@ -1921,6 +1978,7 @@ class VisionMaisonCard extends HTMLElement {
     try {
       const r = await avecCodeOctroi(this._hass, this.shadowRoot, API, corps);
       if (r && r.appareils) this._donnees = r;
+      this._relireBloques();
       this._fait = (r && r.retour) || tr("geste_fait");
       // HA 2.5.1 : un geste change l'état des lignes : catégories détaillées, recherche et blocages récents relus.
       // 1.93.2 (l'auteur : « la page remonte tout en haut ») : les catégories ouvertes gardent leur contenu pendant qu'on les
@@ -2257,14 +2315,15 @@ class VisionMaisonCard extends HTMLElement {
         </form>`
       : "";
     const ouvert = this._details.has(a.id);
-    const ferme = [...a.apps.map((x) => ({ ...x, genre: "apps" })), ...a.sites.map((x) => ({ ...x, genre: "sites" }))];
+    const lues = this._bloques.get(a.id);
+    const ferme = lues ? [...lues.apps.map((x) => ({ ...x, genre: "apps" })), ...lues.sites.map((x) => ({ ...x, genre: "sites" }))] : [];
     const motif = (x) => {
-      const i = a.raisons && a.raisons[x.nom];
-      const m = i != null && a.motifs && a.motifs[i] ? String(a.motifs[i]).split("|").pop() : "";
+      const i = lues && lues.raisons && lues.raisons[x.nom];
+      const m = i != null && lues.motifs && lues.motifs[i] ? String(lues.motifs[i]).split("|").pop() : "";
       return m ? `<span class="pourquoi">${esc(m)}</span>` : "";
     };
     const detail = ouvert
-      ? `<div class="liste">${ferme.length
+      ? `<div class="liste">${!lues ? `<div class="vide">${esc(tr("chargement"))}</div>` : ferme.length
           ? ferme.map((x) => `<div class="item"><ha-icon icon="${x.genre === "apps" ? "mdi:application-outline" : "mdi:web"}"></ha-icon><span>${esc(x.libelle)}</span>${motif(x)}</div>`).join("")
           : `<div class="vide">${esc(tr("rien_ferme"))}</div>`}</div>`
       : "";
@@ -2560,7 +2619,9 @@ class VisionMaisonCard extends HTMLElement {
       <div class="el">
         <div class="elnom"><span class="nomel">${esc(libelle)}</span><span class="puces">${puces}</span>
           ${!o.ouvert && o.raison ? `<span class="sous">${esc(o.raison)}</span>` : ""}${liens}</div>
-        <button class="inter-el ${o.ouvert ? "on" : ""}" role="switch" aria-checked="${o.ouvert ? "true" : "false"}" aria-expanded="${this._elMode === cle}" data-el-mode="${esc(cle)}" title="${esc(tr("el_mode_choisir", { nom: libelle }))}" ${verrou || this._occupe ? "disabled" : ""}><span class="glissiere"></span></button>
+        ${basculeHtml({ etat: o.ouvert ? "ouvert" : "bloque", inactif: verrou || this._occupe,
+          attrs: `aria-expanded="${this._elMode === cle}" data-el-mode="${esc(cle)}"`,
+          libelle: `${libelle} : ${tr(o.ouvert ? "bascule_ouvert" : "bascule_bloque")}`, titre: tr("el_mode_choisir", { nom: libelle }) })}
         ${modes}
       </div>`;
   }
@@ -2652,10 +2713,10 @@ class VisionMaisonCard extends HTMLElement {
           <span class="compte">${esc(compte)}</span>
         </button>
         ${badge}
-        <label class="inter ${bloque ? "fige" : ""}" title="${c.verrou ? esc(c.raison) : esc(tr(c.coupe ? "inter_rouvrir" : "inter_couper"))}">
-          <input type="checkbox" data-etq="${esc(c.nom)}" data-pc="${esc(pc || "")}" ${c.coupe ? "checked" : ""} ${bloque ? "disabled" : ""}>
-          <span class="glissiere"></span>
-        </label>
+        ${basculeHtml({ etat: c.coupe ? "bloque" : "ouvert", inactif: bloque,
+          attrs: `data-etq="${esc(c.nom)}" data-pc="${esc(pc || "")}" data-coupe="${c.coupe ? "1" : ""}"`,
+          libelle: `${trCat(c.nom)} : ${tr(c.coupe ? "bascule_bloque" : "bascule_ouvert")}`,
+          titre: c.verrou ? c.raison : tr(c.coupe ? "inter_rouvrir" : "inter_couper") })}
         ${contenu}
       </div>`;
   }
@@ -2844,6 +2905,7 @@ class VisionMaisonCard extends HTMLElement {
         .son.cliquable:focus-visible { outline:2px solid var(--primary-color); outline-offset:2px; }
         .lien-fiche { display:inline-flex; align-items:center; gap:6px; min-height:44px; color:var(--primary-color); text-decoration:underline; font-weight:500; }
         .lien-fiche ha-icon { --mdc-icon-size:20px; }
+        ${BASCULE_CSS}
         .limite.atteinte .jauge i { background:var(--error-color,#c62828); }
         .limite.atteinte .sous { color:var(--vision-texte-erreur); }
         h2 { margin: 0; font-size: 1.25em; font-weight: 500; }
@@ -2920,13 +2982,6 @@ class VisionMaisonCard extends HTMLElement {
         .cat .ouvrir ha-icon { color: var(--secondary-text-color); --mdc-icon-size: 20px; }
         .compte { color: var(--secondary-text-color); font-size:.86em; margin-left:6px; }
         .badge-cat { color: color-mix(in srgb, var(--t) 70%, var(--primary-text-color, #212121)); border:1px solid var(--t); border-radius:10px; padding:1px 8px; font-size:.86em; white-space:nowrap; }
-        .inter { position:relative; width:44px; height:24px; display:inline-block; cursor:pointer; }
-        .inter input { opacity:0; width:0; height:0; }
-        .glissiere { position:absolute; inset:0; background: var(--secondary-text-color,#757575); border-radius:24px; transition: background .15s; }
-        .glissiere:before { content:""; position:absolute; width:20px; height:20px; left:2px; top:2px; background:#fff; border-radius:50%; transition: transform .15s; }
-        .inter input:checked + .glissiere { background: var(--error-color,#c62828); }
-        .inter input:checked + .glissiere:before { transform: translateX(20px); }
-        .inter.fige { cursor:not-allowed; }
         /* HA 2.5.1 : par élément. Les noms longs passent à la ligne, jamais d'ellipse (recette). */
         .el { display:grid; grid-template-columns: minmax(0,1fr) 48px; gap:6px 10px; align-items:center; padding:6px 0; border-top:1px solid var(--divider-color); }
         .el .elnom { display:grid; gap:3px; min-width:0; }
@@ -2938,11 +2993,6 @@ class VisionMaisonCard extends HTMLElement {
         .badge-el.ok { color: color-mix(in srgb, var(--success-color,#2e7d32) 75%, var(--primary-text-color,#212121)); border-color: var(--success-color,#2e7d32); }
         .badge-el.ko { color: var(--vision-texte-erreur, var(--error-color,#c62828)); border-color: var(--error-color,#c62828); }
         .badge-el.attente { border-style:dashed; }
-        .inter-el { position:relative; width:44px; height:24px; border:none; padding:0; background:none; cursor:pointer; }
-        .inter-el .glissiere { background: var(--secondary-text-color,#757575); }
-        .inter-el.on .glissiere { background: var(--success-color,#2e7d32); }
-        .inter-el.on .glissiere:before { transform: translateX(20px); }
-        .inter-el:disabled { cursor:not-allowed; opacity:.55; }
         .el-logiciel { display:grid; grid-template-columns: 28px minmax(0,1fr); align-items:start; min-width:0; }
         .el-logiciel > .ouvrir { border:none; background:none; padding:10px 0 0; color: var(--secondary-text-color); cursor:pointer; }
         .el-logiciel > .el { grid-column: 2; }
@@ -2953,7 +3003,6 @@ class VisionMaisonCard extends HTMLElement {
         .el-infos { padding-bottom:6px; overflow-wrap:anywhere; }
         .el-recherche { width:100%; box-sizing:border-box; padding:8px 10px; margin:6px 0; border:1px solid var(--divider-color); border-radius:8px; background:var(--card-background-color); color:var(--primary-text-color); font: inherit; }
         .groupe-dem { display:grid; gap:4px; margin-top:6px; }
-        .inter.fige .glissiere { opacity:.6; }
         .contenu { grid-column: 1 / -1; padding: 2px 0 8px 28px; min-width:0; }
         .raison { font-size:.86em; color: var(--secondary-text-color); margin-bottom:6px; }
         .groupe { display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin:4px 0; }
@@ -3198,7 +3247,7 @@ class VisionMaisonCard extends HTMLElement {
     r.querySelectorAll("[data-detail]").forEach((b) =>
       b.addEventListener("click", () => {
         const id = b.dataset.detail;
-        this._details.has(id) ? this._details.delete(id) : this._details.add(id);
+        this._details.has(id) ? this._details.delete(id) : (this._details.add(id), this._lireBloques(id));
         this._rendre();
       }));
     r.querySelectorAll("[data-cat]").forEach((b) =>
@@ -3275,9 +3324,9 @@ class VisionMaisonCard extends HTMLElement {
       // Le dessin refait la carte : le champ retrouve le focus et le curseur en fin de saisie.
       if (this._elRech.focus) { champ.focus(); const n = champ.value.length; try { champ.setSelectionRange(n, n); } catch (e) { /* type search */ } }
     });
-    r.querySelectorAll("[data-etq]").forEach((c) =>
-      c.addEventListener("change", () =>
-        this._agir({ action: "etiquette", pc: c.dataset.pc, etiquette: c.dataset.etq, etat: c.checked ? "bloquer" : "neutre" })));
+    r.querySelectorAll("button[data-etq]").forEach((c) =>
+      c.addEventListener("click", () =>
+        this._agir({ action: "etiquette", pc: c.dataset.pc, etiquette: c.dataset.etq, etat: c.dataset.coupe ? "neutre" : "bloquer" })));
   }
 }
 

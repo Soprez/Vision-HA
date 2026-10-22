@@ -285,7 +285,8 @@ def _temps(pc: dict[str, Any]) -> dict[str, Any]:
     return {"jours": jours, "total": [{"nom": n, "libelle": libelle(n), "secondes": s, "depuis": p} for n, s, p in total if s >= 60]}
 
 
-def _fiche(hass: HomeAssistant, coord: PcParentalCoordinator, pc: dict[str, Any], parents: list[str]) -> dict[str, Any]:
+def _fiche(hass: HomeAssistant, coord: PcParentalCoordinator, pc: dict[str, Any], parents: list[str],
+           allege: bool = False) -> dict[str, Any]:
     etat = coord.store.evaluate(pc)
     maintenant = coord.local_now()
     local = maintenant.replace(tzinfo=None)
@@ -388,6 +389,10 @@ def _fiche(hass: HomeAssistant, coord: PcParentalCoordinator, pc: dict[str, Any]
         if conc_idx is not None:
             seules = {n for n, i in fiche["raisons"].items() if i == conc_idx}
             fiche["apps"] = [a for a in fiche["apps"] if str(a.get("nom") if isinstance(a, dict) else a) not in seules]
+    if allege:
+        # 2.5.12.13 : les listes de ce qui est fermé (300 Ko pour 10 appareils, avec leurs raisons) ne partent plus avec
+        # l'état du tableau : la carte ne les lit (action « bloques ») que pour l'appareil qu'on ouvre.
+        fiche.update(n_apps=len(fiche["apps"]), n_sites=len(fiche["sites"]), apps=[], sites=[], motifs=[], raisons={})
     return fiche
 
 
@@ -556,7 +561,7 @@ def _personnes(hass: HomeAssistant, coord: PcParentalCoordinator, parents: list[
 
 
 def etat_maison(hass: HomeAssistant, coord: PcParentalCoordinator, moi_id: str | None = None,
-                langue: str | None = None) -> dict[str, Any]:
+                langue: str | None = None, allege: bool = False) -> dict[str, Any]:
     """Tout ce qu'un parent voit : appareils, demandes, catégories, personnes.
 
     Les textes sont dans `langue` ; sans elle, celle de l'appareil `moi_id`, sinon celle de Home Assistant."""
@@ -571,7 +576,7 @@ def etat_maison(hass: HomeAssistant, coord: PcParentalCoordinator, moi_id: str |
         if not pc.get("enabled", True) and pc["id"] != moi_id:
             continue
         try:
-            fiche = _fiche(hass, coord, pc, parents)
+            fiche = _fiche(hass, coord, pc, parents, allege)
             fiche["etiquettes_etat"] = _etats_etiquettes(pc, categories, coord.store, langue)
             try:
                 fiche["exceptions"] = _exceptions(coord.store, pc)
@@ -1273,7 +1278,7 @@ async def agir_maison(hass: HomeAssistant, coord: PcParentalCoordinator, corps: 
     return retour
 
 
-LECTURES = frozenset({"categorie", "recherche", "recents"})
+LECTURES = frozenset({"categorie", "recherche", "recents", "bloques"})
 
 
 def _lecture(coord: PcParentalCoordinator, corps: dict[str, Any], langue: str) -> tuple[dict[str, Any], int]:
@@ -1286,6 +1291,10 @@ def _lecture(coord: PcParentalCoordinator, corps: dict[str, Any], langue: str) -
     if cible is None:
         return {"ok": False, "error": "pc"}, 404
     action = str(corps.get("action") or "")
+    if action == "bloques":
+        # 2.5.12.13 : ce qui est fermé sur cet appareil, lu à l'ouverture de sa fiche (plus dans l'état du tableau).
+        fiche = _fiche(coord.hass, coord, cible, roles.avec(coord.store, "gerer"))
+        return {"ok": True, **{k: fiche[k] for k in ("apps", "sites", "motifs", "raisons")}}, 200
     if action == "recherche":
         return {"ok": True, "resultats": coord.store.rechercher(cible, str(corps.get("texte") or ""), langue)}, 200
     if action == "recents":
@@ -1440,7 +1449,11 @@ class PcParentalMaisonView(HomeAssistantView):
         # 2.5.12 : la carte relit toutes les 30 s ; rien ne repart (ni ne se redessine) si rien n'a changé.
         from . import listes
 
-        return listes.repondre(self, request, etat_maison(self.hass, coord))
+        # 2.5.12.13 : calculé une fois pour tous les navigateurs ouverts (gardé 10 s, oublié à chaque écriture), sans
+        # les listes de blocages ; l'empreinte est calculée avec lui.
+        donnees, revision = coord.store._memo(
+            ("maison_http",), 10.0, lambda: listes.avec_revision(etat_maison(self.hass, coord, allege=True)))
+        return listes.repondre(self, request, donnees, revision)
 
     async def post(self, request: web.Request) -> web.Response:
         if refus := self._admin(request):
@@ -1474,6 +1487,6 @@ class PcParentalMaisonView(HomeAssistantView):
             if refus.retour:
                 reponse["retour"] = refus.retour
             return self.json(reponse, status_code=refus.status)
-        etat = etat_maison(self.hass, coord)
+        etat = etat_maison(self.hass, coord, allege=True)
         etat["retour"] = retour
         return self.json(etat)
