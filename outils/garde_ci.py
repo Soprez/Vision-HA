@@ -133,6 +133,18 @@ class Empreintes:
         return fautes
 
 
+# Seule identité de commit exemptée de la liste privée : le compte GitHub de l'auteur de la PR HACS, sous sa
+# forme « noreply ». Comparaison exacte, champ par champ (auteur, puis commettant) : le vrai nom, l'adresse
+# personnelle, ou même ce pseudonyme avec une autre adresse restent contrôlés. Rien d'autre n'est exempté.
+# Connue par son empreinte SHA-256 seulement : le pseudonyme ne figure pas en clair dans le dépôt (la garde le
+# refuserait dans le contenu).
+IDENTITE_AUTORISEE_SHA256 = "9dc62c3ecbd7507c0ce7c7185f9e801992e8f6bffdd81a7db4ad4a675e7727d5"
+
+
+def identite_autorisee(identite: str) -> bool:
+    return hashlib.sha256(identite.encode("utf-8")).hexdigest() == IDENTITE_AUTORISEE_SHA256
+
+
 def git(*args: str) -> bytes:
     return subprocess.run(["git", *args], check=True, capture_output=True).stdout
 
@@ -176,7 +188,8 @@ def main() -> int:
         for bloc in filter(str.strip, journal.split("\x1e")):
             court, auteur, commettant, message = (bloc.strip("\n").split("\x1f") + ["", "", ""])[:4]
             n += 1
-            for quoi, texte in (("message", message), ("identité", auteur + "\n" + commettant)):
+            identite = "\n".join(i for i in (auteur, commettant) if not identite_autorisee(i))
+            for quoi, texte in (("message", message), ("identité", identite)):
                 fautes += [f.replace(f"{quoi}:", f"{court} {quoi}:", 1) for f in reseau(quoi, texte)]
                 if prive:
                     fautes += [f.replace(f"{quoi}:", f"{court} {quoi}:", 1) for f in prive(quoi, texte)]
