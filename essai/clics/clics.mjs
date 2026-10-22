@@ -303,9 +303,9 @@ const SCENARIOS = [
            h.callApi = async (m, c, corps) => { if (corps && corps.action === "categorie") await new Promise((r) => setTimeout(r, 250)); return lire(m, c, corps); };
            const cats = tous("button.ouvrir[data-cat]").map((b) => b.dataset.cat);
            for (const n of cats) { un('button.ouvrir[data-cat="' + CSS.escape(n) + '"]').click(); await new Promise((r) => setTimeout(r, 350)); }
-           const inter = tous("input[data-etq]").filter((c) => !c.disabled).pop(); if (!inter) throw new Error("aucun interrupteur de catégorie");
+           const inter = tous("button.vb[data-etq]").filter((c) => !c.disabled).pop(); if (!inter) throw new Error("aucun interrupteur de catégorie");
            window.__etq = inter.dataset.etq;
-           await preparerDefilement('input[data-etq="' + CSS.escape(window.__etq) + '"]'); true`,
+           await preparerDefilement('button.vb[data-etq="' + CSS.escape(window.__etq) + '"]'); true`,
     repondre: `D["pc_parental/maison"]`,
     apres: `placeGardee()`,
   },
@@ -335,20 +335,20 @@ const SCENARIOS = [
            const zone = document.getElementById("zone").getBoundingClientRect();
            const deborde = tous("*").filter((e) => { const r = e.getBoundingClientRect(); return r.width && (r.right > zone.right + 0.5 || r.left < zone.left - 0.5); });
            if (deborde.length) throw new Error("déborde : " + deborde.slice(0, 4).map((e) => e.className || e.tagName).join(", "));
-           // 15-10 : la décision est un <vision-choix> (3 options : des étiquettes quand elles tiennent, sinon une liste).
-           const choix = tous("vision-choix[data-decider]");
-           if (!choix.length) throw new Error("aucune ligne à trancher");
-           for (const c of choix) {
-             if (c.getBoundingClientRect().right > zone.right + 0.5) throw new Error("décision qui déborde");
-             for (const b of c.shadowRoot.querySelectorAll("[data-cible]")) if (b.getBoundingClientRect().height < 44) throw new Error("cible de " + b.getBoundingClientRect().height + " px : " + b.textContent);
+           // 2.5.12.13 : la décision est un interrupteur à bascule (vert ouvert, rouge bloqué, gris non décidé), 44 px au moins.
+           const boutons = tous("button.vb[data-bascule-el]");
+           if (!boutons.length) throw new Error("aucune ligne à trancher");
+           for (const b of boutons) {
+             const r = b.getBoundingClientRect();
+             if (r.right > zone.right + 0.5) throw new Error("décision qui déborde");
+             if (r.height < 44) throw new Error("cible de " + r.height + " px");
            }
-           const montrees = choix.filter((c) => c.montreEtiquettes);
-           if (montrees.length && libelles(montrees[0]).join("|") !== "Fermer|Autoriser|Plus tard") throw new Error("décisions sans texte : " + libelles(montrees[0]).join("|"));
-           const c = choix.find((x) => x.valeur !== "bloquer");
-           window.__nom = c.dataset.decider;
-           choisir(c, "bloquer"); true`,
+           const c = boutons[0];
+           window.__nom = c.dataset.basculeEl;
+           window.__decision = c.dataset.actuelle === "autoriser" ? "bloquer" : "autoriser";
+           c.click(); true`,
     enCours: `window.__appels.length === 1`,
-    verifierAppel: `dernier().chemin === "pc_parental.decider_elements" && dernier().corps.decision === "bloquer" && dernier().corps.elements[0].nom === window.__nom.split("|").slice(1).join("|")`,
+    verifierAppel: `dernier().chemin === "pc_parental.decider_elements" && dernier().corps.decision === window.__decision && dernier().corps.elements[0].nom === window.__nom.split("|").slice(1).join("|")`,
     repondre: `undefined`,
     apres: `/fait/.test(statut())`,
   },
