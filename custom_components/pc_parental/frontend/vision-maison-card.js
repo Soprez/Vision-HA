@@ -14,6 +14,8 @@
 // ---- i18n:debut — les textes de cette carte, dans les six langues de Vision (fr source, en repli) ----
 const TEXTES = /*i18n-json*/{
   "fr": {
+    "ouvrir_fiche_appareil": "Ouvrir la fiche de l'appareil",
+    "son_historique": "Voir l'historique du niveau sonore",
     "lien_detail_appareil": "Détail de l'appareil",
     "detail_type": "Type : {type}",
     "detail_agent": "Version : {v}",
@@ -272,6 +274,8 @@ const TEXTES = /*i18n-json*/{
     "el_recherche_court": "Chercher"
   },
   "en": {
+    "ouvrir_fiche_appareil": "Open the device page",
+    "son_historique": "Show the sound level history",
     "lien_detail_appareil": "Device details",
     "detail_type": "Type: {type}",
     "detail_agent": "Version: {v}",
@@ -530,6 +534,8 @@ const TEXTES = /*i18n-json*/{
     "el_recherche_court": "Search"
   },
   "de": {
+    "ouvrir_fiche_appareil": "Geräteseite öffnen",
+    "son_historique": "Verlauf der Lautstärke anzeigen",
     "lien_detail_appareil": "Gerätedetails",
     "detail_type": "Typ: {type}",
     "detail_agent": "Version: {v}",
@@ -788,6 +794,8 @@ const TEXTES = /*i18n-json*/{
     "el_recherche_court": "Suchen"
   },
   "es": {
+    "ouvrir_fiche_appareil": "Abrir la ficha del dispositivo",
+    "son_historique": "Ver el historial del nivel de ruido",
     "lien_detail_appareil": "Detalle del dispositivo",
     "detail_type": "Tipo: {type}",
     "detail_agent": "Versión: {v}",
@@ -1046,6 +1054,8 @@ const TEXTES = /*i18n-json*/{
     "el_recherche_court": "Buscar"
   },
   "it": {
+    "ouvrir_fiche_appareil": "Apri la scheda del dispositivo",
+    "son_historique": "Mostra lo storico del livello sonoro",
     "lien_detail_appareil": "Dettaglio del dispositivo",
     "detail_type": "Tipo: {type}",
     "detail_agent": "Versione: {v}",
@@ -1304,6 +1314,8 @@ const TEXTES = /*i18n-json*/{
     "el_recherche_court": "Cerca"
   },
   "nl": {
+    "ouvrir_fiche_appareil": "Apparaatpagina openen",
+    "son_historique": "Geschiedenis van het geluidsniveau tonen",
     "lien_detail_appareil": "Apparaatdetails",
     "detail_type": "Type: {type}",
     "detail_agent": "Versie: {v}",
@@ -2203,7 +2215,8 @@ class VisionMaisonCard extends HTMLElement {
       tr("son_seuil", { s: n.seuil_dbfs, source: n.source || tr("son_source_general") }),
       n.reagir ? tr("son_avertissements", { n: n.aujourd_hui }) : tr("son_mesure_seule"),
     ];
-    return `<div class="son" data-son-bloc="${esc(a.id)}">
+    const hist = n.entite ? `role="button" tabindex="0" data-son-entite="${esc(n.entite)}" aria-label="${esc(tr("son_historique"))}" title="${esc(tr("son_historique"))}"` : "";
+    return `<div class="son ${n.entite ? "cliquable" : ""}" data-son-bloc="${esc(a.id)}" ${hist}>
       <div class="son-titre"><ha-icon icon="mdi:volume-high"></ha-icon><b>${esc(avecNom ? `${tr("son_titre")} · ${a.nom}` : tr("son_titre"))}</b></div>
       ${lignes.map((l) => `<div class="sous">${esc(l)}</div>`).join("")}
       ${n.coupure ? `<div class="alerte"><ha-icon icon="mdi:volume-off"></ha-icon><span>${esc(tr("son_coupure", { heure: heureTs(n.coupure.fin) }))}</span></div>` : ""}
@@ -2219,6 +2232,8 @@ class VisionMaisonCard extends HTMLElement {
       a.vu ? tr("detail_vu", { quand: heureTs(a.vu) }) : "",
     ].filter(Boolean);
     return `<div class="fiche-appareil" data-fiche-zone="${esc(a.id)}">
+      ${a.appareil_ha ? `<a class="lien-fiche" href="/config/devices/device/${esc(a.appareil_ha)}" data-ha-appareil="${esc(a.appareil_ha)}">
+        <ha-icon icon="mdi:open-in-app"></ha-icon><b>${esc(a.nom)}</b> · ${esc(tr("ouvrir_fiche_appareil"))}</a>` : ""}
       ${infos.map((l) => `<div class="sous">${esc(l)}</div>`).join("")}
       ${this._blocSon(a)}
       ${a.appareil_ha ? `<button class="lien" data-ha-appareil="${esc(a.appareil_ha)}"><ha-icon icon="mdi:cog-outline"></ha-icon> ${esc(tr("detail_entites"))}</button>` : ""}
@@ -2824,6 +2839,11 @@ class VisionMaisonCard extends HTMLElement {
         .son-titre { display:flex; align-items:center; gap:6px; margin-bottom:2px; }
         .son-titre ha-icon { --mdc-icon-size:18px; color:var(--primary-color); }
         .fiche-appareil { padding:4px 0 6px 28px; }
+        .son.cliquable { cursor:pointer; }
+        .son.cliquable:hover { background:var(--secondary-background-color); }
+        .son.cliquable:focus-visible { outline:2px solid var(--primary-color); outline-offset:2px; }
+        .lien-fiche { display:inline-flex; align-items:center; gap:6px; min-height:44px; color:var(--primary-color); text-decoration:underline; font-weight:500; }
+        .lien-fiche ha-icon { --mdc-icon-size:20px; }
         .limite.atteinte .jauge i { background:var(--error-color,#c62828); }
         .limite.atteinte .sous { color:var(--vision-texte-erreur); }
         h2 { margin: 0; font-size: 1.25em; font-weight: 500; }
@@ -3169,7 +3189,12 @@ class VisionMaisonCard extends HTMLElement {
         this._rendre();
       }));
     r.querySelectorAll("[data-ha-appareil]").forEach((b) =>
-      b.addEventListener("click", () => this._naviguer(`/config/devices/device/${b.dataset.haAppareil}`)));
+      b.addEventListener("click", (ev) => { ev.preventDefault(); this._naviguer(`/config/devices/device/${b.dataset.haAppareil}`); }));
+    r.querySelectorAll("[data-son-entite]").forEach((b) => {
+      const ouvrir = () => this.dispatchEvent(new CustomEvent("hass-more-info", { bubbles: true, composed: true, detail: { entityId: b.dataset.sonEntite } }));
+      b.addEventListener("click", ouvrir);
+      b.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ouvrir(); } });
+    });
     r.querySelectorAll("[data-detail]").forEach((b) =>
       b.addEventListener("click", () => {
         const id = b.dataset.detail;

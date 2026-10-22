@@ -365,6 +365,13 @@ def _fiche(hass: HomeAssistant, coord: PcParentalCoordinator, pc: dict[str, Any]
     from . import son as _son
 
     if (bloc_son := _son.pour_fiche(store, pc)) is not None:
+        # 2.5.12.12 : l'entité du capteur, pour ouvrir son historique (more-info) depuis la carte.
+        try:
+            from homeassistant.helpers import entity_registry as er
+
+            bloc_son["entite"] = er.async_get(hass).async_get_entity_id("sensor", DOMAIN, f"{DOMAIN}_son_{pc['id']}") or ""
+        except Exception:  # noqa: BLE001 - l'historique est un plus
+            bloc_son["entite"] = ""
         fiche["son"] = bloc_son
     if modules.coupe(store, "plages"):
         fiche.update(plages=[], planning_ferme=False, prochain_verrou="")

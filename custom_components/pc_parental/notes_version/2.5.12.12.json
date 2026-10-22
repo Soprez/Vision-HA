@@ -1,0 +1,45 @@
+{
+  "version": "2.5.12.12",
+  "date": "2026-10-22",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Un clic sur « Niveau sonore » ouvre son historique (courbe de Home Assistant).",
+        "en": "Clicking “Sound level” opens its history (Home Assistant graph).",
+        "de": "Ein Klick auf „Lautstärke“ öffnet den Verlauf (Kurve von Home Assistant).",
+        "es": "Un clic en «Nivel de ruido» abre su historial (gráfica de Home Assistant).",
+        "it": "Un clic su «Livello sonoro» apre lo storico (grafico di Home Assistant).",
+        "nl": "Een klik op ‘Geluidsniveau’ opent de geschiedenis (grafiek van Home Assistant)."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Détail de l'appareil : un lien « Ouvrir la fiche de l'appareil » mène à sa page dans Home Assistant.",
+        "en": "Device details: an “Open the device page” link leads to its page in Home Assistant.",
+        "de": "Gerätedetails: Ein Link „Geräteseite öffnen“ führt zu seiner Seite in Home Assistant.",
+        "es": "Detalle del dispositivo: el enlace «Abrir la ficha del dispositivo» lleva a su página en Home Assistant.",
+        "it": "Dettaglio del dispositivo: il link «Apri la scheda del dispositivo» porta alla sua pagina in Home Assistant.",
+        "nl": "Apparaatdetails: de link ‘Apparaatpagina openen’ leidt naar de pagina in Home Assistant."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Le seuil sonore, le niveau en cours et les avertissements restent visibles seulement si le module est actif.",
+        "en": "The noise threshold, current level and warnings stay visible only when the module is on.",
+        "de": "Lärmschwelle, aktueller Pegel und Warnungen bleiben nur sichtbar, wenn das Modul aktiv ist.",
+        "es": "El umbral de ruido, el nivel actual y los avisos solo se ven si el módulo está activo.",
+        "it": "Soglia di rumore, livello attuale e avvisi restano visibili solo se il modulo è attivo.",
+        "nl": "Geluidsdrempel, huidig niveau en waarschuwingen blijven alleen zichtbaar als de module aan staat."
+      }
+    }
+  ]
+}

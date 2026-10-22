@@ -120,3 +120,33 @@ async def test_capteur_son_pour_l_historique_et_les_statistiques(hass, hass_stor
     non = NiveauSonoreSensor._unrecorded_attributes
     assert {"journal", "par_micro", "seuils_plages"} <= non and "seuil" not in non and "pic_10s" not in non
 
+
+
+async def test_historique_et_fiche_de_l_appareil(hass, hass_storage, hass_client):
+    """2.5.12.12 : l'encadré « Niveau sonore » porte l'entité du capteur (historique more-info) ; le lien
+    « Ouvrir la fiche de l'appareil » mène à l'appareil Home Assistant de CE PC (identifiant de Vision)."""
+    from homeassistant.helpers import device_registry as dr
+
+    coord = await _monter(hass, hass_storage)
+    from custom_components.pc_parental import son
+    son.regler(coord.store.pcs["pc1"], {"actif": True})
+    await _releve(await hass_client(), son={"niveau": 50, "micros": 1, "micros_actifs": 1, "micros_liste": ["m"], "depassements": []})
+    await hass.async_block_till_done()
+    f = _fiche(hass, coord)
+    assert f["son"]["entite"] == "sensor.pc_pl_niveau_sonore"
+    appareil = dr.async_get(hass).async_get(f["appareil_ha"])
+    from custom_components.pc_parental.registre import identifiant_pc
+
+    assert appareil is not None and identifiant_pc("pc1") in appareil.identifiers
+    from homeassistant.helpers import entity_registry as er
+
+    reg = er.async_get(hass)
+    assert "sensor.pc_pl_niveau_sonore" in {e.entity_id for e in er.async_entries_for_device(reg, appareil.id)}
+
+
+def test_historique_et_lien_fiche_dans_la_carte():
+    """2.5.12.12 : l'encadré « Niveau sonore » ouvre l'historique (hass-more-info, au clic et au clavier) ; le
+    détail de l'appareil a un lien « Ouvrir la fiche de l'appareil » vers /config/devices/device/<id>."""
+    maison = (CARTES / "vision-maison-card.js").read_text(encoding="utf-8")
+    assert '"hass-more-info"' in maison and "data-son-entite" in maison and 'ev.key === "Enter"' in maison
+    assert 'class="lien-fiche" href="/config/devices/device/' in maison and '"ouvrir_fiche_appareil"' in maison
