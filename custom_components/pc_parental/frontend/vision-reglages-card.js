@@ -4,6 +4,7 @@
  * Réglages › « Réservé aux Décideurs 🔒 » : Lieu et vocabulaire, Fonctions (les modules rangés par objectif, un
  * interrupteur chacun, leurs dépendances dites avant de basculer), Rôles et droits (une case par droit). Chaque
  * changement part tout de suite (API reglages/admin) ; rien ne se ferme à chaque formulaire.
+ * 2.5.12.10 : « Niveau sonore » (module allumé) : par appareil, mesure, réaction, seuil général ou par plage, plancher.
  */
 // ---- i18n:debut — les textes de cette carte, dans les six langues de Vision (fr source, en repli) ----
 const TEXTES = /*i18n-json*/{
@@ -37,7 +38,25 @@ const TEXTES = /*i18n-json*/{
     "geste_fait": "C'est fait.",
     "erreur_admin": "Réservé aux administrateurs de Home Assistant.",
     "erreur_loading": "Vision démarre : réessaie dans un instant.",
-    "erreur_defaut": "Ça n'a pas marché. Réessaie."
+    "erreur_defaut": "Ça n'a pas marché. Réessaie.",
+    "partie_son": "Niveau sonore",
+    "son_aide": "Le niveau maximum autorisé, par appareil : un seuil général, ou un seuil par plage (la plus stricte des plages en cours s'applique, sinon le général). En dBFS : 0 = pleine échelle du micro ; plus c'est bas, plus c'est strict.",
+    "son_mesurer": "Mesurer",
+    "son_reagir": "Réagir (messages, coupure)",
+    "son_mode": "Mode du seuil",
+    "son_mode_general": "Général",
+    "son_mode_plages": "Par plage",
+    "son_general": "Seuil général (dBFS)",
+    "son_plage_vide": "vide = seuil général",
+    "son_aucune_plage": "Cet appareil n'a aucune plage : le seuil général s'applique.",
+    "son_plancher": "Plancher de la pièce (dBFS)",
+    "son_plancher_aide": "Mesuré sur 24 h : {mesure}. Vide : le plancher mesuré.",
+    "son_plancher_inconnu": "pas encore mesuré",
+    "son_marge": "soit plancher + {n} dB",
+    "son_moment": "En ce moment : {seuil} dBFS ({source}) ; niveau {niveau}.",
+    "son_source_general": "seuil général",
+    "son_niveau_inconnu": "inconnu",
+    "son_eteint": "Mesure éteinte."
   },
   "en": {
     "carte_nom": "Vision — Restricted settings",
@@ -69,7 +88,25 @@ const TEXTES = /*i18n-json*/{
     "geste_fait": "Done.",
     "erreur_admin": "For Home Assistant administrators only.",
     "erreur_loading": "Vision is starting: try again in a moment.",
-    "erreur_defaut": "That didn't work. Try again."
+    "erreur_defaut": "That didn't work. Try again.",
+    "partie_son": "Sound level",
+    "son_aide": "The maximum allowed level, per device: one general threshold, or one per time slot (the strictest running slot applies, otherwise the general one). In dBFS: 0 = microphone full scale; lower is stricter.",
+    "son_mesurer": "Measure",
+    "son_reagir": "React (messages, cut-off)",
+    "son_mode": "Threshold mode",
+    "son_mode_general": "General",
+    "son_mode_plages": "Per time slot",
+    "son_general": "General threshold (dBFS)",
+    "son_plage_vide": "empty = general threshold",
+    "son_aucune_plage": "This device has no time slot: the general threshold applies.",
+    "son_plancher": "Room floor (dBFS)",
+    "son_plancher_aide": "Measured over 24 h: {mesure}. Empty: the measured floor.",
+    "son_plancher_inconnu": "not measured yet",
+    "son_marge": "that is floor + {n} dB",
+    "son_moment": "Right now: {seuil} dBFS ({source}); level {niveau}.",
+    "son_source_general": "general threshold",
+    "son_niveau_inconnu": "unknown",
+    "son_eteint": "Measuring is off."
   },
   "de": {
     "carte_nom": "Vision — Geschützte Einstellungen",
@@ -101,7 +138,25 @@ const TEXTES = /*i18n-json*/{
     "geste_fait": "Erledigt.",
     "erreur_admin": "Nur für Home-Assistant-Administratoren.",
     "erreur_loading": "Vision startet: gleich noch einmal versuchen.",
-    "erreur_defaut": "Das hat nicht geklappt. Bitte erneut versuchen."
+    "erreur_defaut": "Das hat nicht geklappt. Bitte erneut versuchen.",
+    "partie_son": "Lautstärke",
+    "son_aide": "Der höchste erlaubte Pegel je Gerät: eine allgemeine Schwelle oder eine je Zeitplan (der strengste laufende gilt, sonst die allgemeine). In dBFS: 0 = Vollaussteuerung des Mikrofons; je niedriger, desto strenger.",
+    "son_mesurer": "Messen",
+    "son_reagir": "Reagieren (Meldungen, Sperre)",
+    "son_mode": "Schwellenmodus",
+    "son_mode_general": "Allgemein",
+    "son_mode_plages": "Je Zeitplan",
+    "son_general": "Allgemeine Schwelle (dBFS)",
+    "son_plage_vide": "leer = allgemeine Schwelle",
+    "son_aucune_plage": "Dieses Gerät hat keinen Zeitplan: die allgemeine Schwelle gilt.",
+    "son_plancher": "Grundpegel des Raums (dBFS)",
+    "son_plancher_aide": "Über 24 h gemessen: {mesure}. Leer: der gemessene Grundpegel.",
+    "son_plancher_inconnu": "noch nicht gemessen",
+    "son_marge": "also Grundpegel + {n} dB",
+    "son_moment": "Gerade: {seuil} dBFS ({source}); Pegel {niveau}.",
+    "son_source_general": "allgemeine Schwelle",
+    "son_niveau_inconnu": "unbekannt",
+    "son_eteint": "Messung aus."
   },
   "es": {
     "carte_nom": "Vision — Ajustes reservados",
@@ -133,7 +188,25 @@ const TEXTES = /*i18n-json*/{
     "geste_fait": "Hecho.",
     "erreur_admin": "Solo para administradores de Home Assistant.",
     "erreur_loading": "Vision se está iniciando: inténtalo en un momento.",
-    "erreur_defaut": "No ha funcionado. Inténtalo de nuevo."
+    "erreur_defaut": "No ha funcionado. Inténtalo de nuevo.",
+    "partie_son": "Nivel de ruido",
+    "son_aide": "El nivel máximo permitido por dispositivo: un umbral general o uno por franja (se aplica la franja en curso más estricta, si no el general). En dBFS: 0 = escala completa del micrófono; cuanto más bajo, más estricto.",
+    "son_mesurer": "Medir",
+    "son_reagir": "Reaccionar (mensajes, corte)",
+    "son_mode": "Modo del umbral",
+    "son_mode_general": "General",
+    "son_mode_plages": "Por franja",
+    "son_general": "Umbral general (dBFS)",
+    "son_plage_vide": "vacío = umbral general",
+    "son_aucune_plage": "Este dispositivo no tiene franjas: se aplica el umbral general.",
+    "son_plancher": "Ruido de fondo de la sala (dBFS)",
+    "son_plancher_aide": "Medido en 24 h: {mesure}. Vacío: el fondo medido.",
+    "son_plancher_inconnu": "aún sin medir",
+    "son_marge": "es decir fondo + {n} dB",
+    "son_moment": "Ahora: {seuil} dBFS ({source}); nivel {niveau}.",
+    "son_source_general": "umbral general",
+    "son_niveau_inconnu": "desconocido",
+    "son_eteint": "Medición apagada."
   },
   "it": {
     "carte_nom": "Vision — Impostazioni riservate",
@@ -165,7 +238,25 @@ const TEXTES = /*i18n-json*/{
     "geste_fait": "Fatto.",
     "erreur_admin": "Solo per gli amministratori di Home Assistant.",
     "erreur_loading": "Vision si sta avviando: riprova tra un attimo.",
-    "erreur_defaut": "Non ha funzionato. Riprova."
+    "erreur_defaut": "Non ha funzionato. Riprova.",
+    "partie_son": "Livello sonoro",
+    "son_aide": "Il livello massimo consentito per dispositivo: una soglia generale o una per fascia (vale la fascia in corso più severa, altrimenti la generale). In dBFS: 0 = fondo scala del microfono; più basso è più severo.",
+    "son_mesurer": "Misurare",
+    "son_reagir": "Reagire (messaggi, blocco)",
+    "son_mode": "Modalità della soglia",
+    "son_mode_general": "Generale",
+    "son_mode_plages": "Per fascia",
+    "son_general": "Soglia generale (dBFS)",
+    "son_plage_vide": "vuoto = soglia generale",
+    "son_aucune_plage": "Questo dispositivo non ha fasce: vale la soglia generale.",
+    "son_plancher": "Rumore di fondo della stanza (dBFS)",
+    "son_plancher_aide": "Misurato su 24 h: {mesure}. Vuoto: il fondo misurato.",
+    "son_plancher_inconnu": "non ancora misurato",
+    "son_marge": "cioè fondo + {n} dB",
+    "son_moment": "Ora: {seuil} dBFS ({source}); livello {niveau}.",
+    "son_source_general": "soglia generale",
+    "son_niveau_inconnu": "sconosciuto",
+    "son_eteint": "Misura spenta."
   },
   "nl": {
     "carte_nom": "Vision — Afgeschermde instellingen",
@@ -197,7 +288,25 @@ const TEXTES = /*i18n-json*/{
     "geste_fait": "Klaar.",
     "erreur_admin": "Alleen voor beheerders van Home Assistant.",
     "erreur_loading": "Vision start op: probeer het zo opnieuw.",
-    "erreur_defaut": "Dat is niet gelukt. Probeer het opnieuw."
+    "erreur_defaut": "Dat is niet gelukt. Probeer het opnieuw.",
+    "partie_son": "Geluidsniveau",
+    "son_aide": "Het hoogst toegestane niveau per apparaat: één algemene drempel, of één per tijdvak (het strengste lopende tijdvak geldt, anders de algemene). In dBFS: 0 = volle schaal van de microfoon; lager is strenger.",
+    "son_mesurer": "Meten",
+    "son_reagir": "Reageren (berichten, blokkering)",
+    "son_mode": "Drempelmodus",
+    "son_mode_general": "Algemeen",
+    "son_mode_plages": "Per tijdvak",
+    "son_general": "Algemene drempel (dBFS)",
+    "son_plage_vide": "leeg = algemene drempel",
+    "son_aucune_plage": "Dit apparaat heeft geen tijdvak: de algemene drempel geldt.",
+    "son_plancher": "Achtergrondniveau van de kamer (dBFS)",
+    "son_plancher_aide": "Over 24 u gemeten: {mesure}. Leeg: het gemeten niveau.",
+    "son_plancher_inconnu": "nog niet gemeten",
+    "son_marge": "dus bodem + {n} dB",
+    "son_moment": "Nu: {seuil} dBFS ({source}); niveau {niveau}.",
+    "son_source_general": "algemene drempel",
+    "son_niveau_inconnu": "onbekend",
+    "son_eteint": "Meten staat uit."
   }
 }/*i18n-json:fin*/;
 // Les catégories : cette carte n'en affiche pas.
@@ -296,7 +405,7 @@ const messageGeste = (e) => {
   return tr("erreur_defaut");
 };
 const MOTS = ["decideur", "decideurs", "demandeur", "demandeurs"];
-const PARTIES = ["lieu", "fonctions", "droits"];
+const PARTIES = ["lieu", "fonctions", "droits", "son"];
 
 class VisionReglagesCard extends HTMLElement {
   constructor() {
@@ -370,7 +479,7 @@ class VisionReglagesCard extends HTMLElement {
           ${this._erreur ? `<div class="erreur" role="alert">${esc(this._erreur)}
             ${this._confirmer ? `<div class="boutons"><button class="danger" data-action="confirmer">${esc(tr("couper_quand_meme"))}</button></div>` : ""}</div>` : ""}
           ${this._fait ? `<div class="fait" role="status">${esc(this._fait)}</div>` : ""}
-          ${PARTIES.map((p) => this._partie(p)).join("")}
+          ${PARTIES.filter((p) => p !== "son" || Array.isArray(d.son)).map((p) => this._partie(p)).join("")}
         </div>
       </ha-card>`;
     this._brancher();
@@ -382,7 +491,7 @@ class VisionReglagesCard extends HTMLElement {
       <button class="pli" data-pli="${p}" aria-expanded="${ouverte}" aria-controls="z-${p}">
         <span class="titre">${esc(tr("partie_" + p))}</span><span class="chevron" aria-hidden="true">${ouverte ? "▾" : "▸"}</span>
       </button>
-      ${ouverte ? `<div class="zone" id="z-${p}">${p === "lieu" ? this._lieu() : p === "fonctions" ? this._fonctions() : this._droits()}</div>` : ""}
+      ${ouverte ? `<div class="zone" id="z-${p}">${p === "lieu" ? this._lieu() : p === "fonctions" ? this._fonctions() : p === "son" ? this._son() : this._droits()}</div>` : ""}
     </section>`;
   }
 
@@ -428,6 +537,37 @@ class VisionReglagesCard extends HTMLElement {
       </fieldset>`).join("")}`;
   }
 
+  // 2.5.12.10 : niveau sonore par appareil (mesure, réaction, seuil général ou par plage, plancher de la pièce).
+  _son() {
+    const nb = (v) => (v === null || v === undefined || v === "" ? "" : String(v));
+    const marge = (v, plancher) => (v === null || v === undefined || plancher === null || plancher === undefined) ? ""
+      : `<span class="marge">${esc(tr("son_marge", { n: Math.round(v - plancher) }))}</span>`;
+    const dis = this._occupe ? "disabled" : "";
+    return `<p class="aide">${esc(tr("son_aide"))}</p>
+      ${(this._d.son || []).map((a) => `<fieldset class="role son" data-son="${esc(a.id)}"><legend>${esc(a.nom)}</legend>
+        <label class="choix"><input type="checkbox" data-son-champ="actif" ${a.actif ? "checked" : ""} ${dis}><span>${esc(tr("son_mesurer"))}</span></label>
+        <label class="choix"><input type="checkbox" data-son-champ="reagir" ${a.reagir ? "checked" : ""} ${dis}><span>${esc(tr("son_reagir"))}</span></label>
+        <div class="champ"><span>${esc(tr("son_mode"))}</span>
+          <div class="boutons">
+            <label class="choix"><input type="radio" name="mode-${esc(a.id)}" value="general" data-son-champ="mode" ${a.mode === "general" ? "checked" : ""} ${dis}><span>${esc(tr("son_mode_general"))}</span></label>
+            <label class="choix"><input type="radio" name="mode-${esc(a.id)}" value="plages" data-son-champ="mode" ${a.mode === "plages" ? "checked" : ""} ${dis}><span>${esc(tr("son_mode_plages"))}</span></label>
+          </div></div>
+        <label class="champ"><span>${esc(tr("son_general"))}</span>
+          <input type="number" min="-70" max="0" step="1" data-son-general value="${esc(nb(a.general_dbfs))}" ${dis}>
+          ${marge(a.general_dbfs, a.plancher_dbfs)}</label>
+        ${a.mode === "plages" ? (a.plages.length ? a.plages.map((pl) => `<label class="champ"><span>${esc(pl.nom)}</span>
+          <input type="number" min="-70" max="0" step="1" data-son-plage="${esc(pl.id)}" value="${esc(nb(pl.seuil_dbfs))}" placeholder="${esc(tr("son_plage_vide"))}" ${dis}>
+          ${marge(pl.seuil_dbfs, a.plancher_dbfs)}</label>`).join("") : `<p class="aide">${esc(tr("son_aucune_plage"))}</p>`) : ""}
+        <label class="champ"><span>${esc(tr("son_plancher"))}</span>
+          <input type="number" min="-120" max="-10" step="1" data-son-plancher value="${esc(nb(a.plancher_manuel_dbfs))}"
+            placeholder="${esc(nb(a.plancher_mesure_dbfs))}" ${dis}></label>
+        <p class="aide">${esc(tr("son_plancher_aide", { mesure: a.plancher_mesure_dbfs === null ? tr("son_plancher_inconnu") : a.plancher_mesure_dbfs + " dBFS" }))}</p>
+        <p class="aide">${a.actif ? esc(tr("son_moment", { seuil: a.moment_dbfs, source: a.source || tr("son_source_general"),
+          niveau: a.niveau_dbfs === null ? tr("son_niveau_inconnu") : a.niveau_dbfs + " dBFS" })) : esc(tr("son_eteint"))}</p>
+        <div class="boutons"><button class="principal" data-son-enregistrer="${esc(a.id)}" ${dis}>${esc(tr("enregistrer"))}</button></div>
+      </fieldset>`).join("")}`;
+  }
+
   _brancher() {
     const r = this.shadowRoot;
     r.querySelectorAll("[data-pli]").forEach((b) => b.addEventListener("click", () => {
@@ -447,6 +587,25 @@ class VisionReglagesCard extends HTMLElement {
       this._envoyer({ op: "module", module: i.dataset.module, actif: i.checked })));
     r.querySelectorAll("[data-fonction]").forEach((i) => i.addEventListener("change", () =>
       this._envoyer({ op: "droit", role: i.dataset.role, fonction: i.dataset.fonction, actif: i.checked })));
+    r.querySelectorAll("[data-son]").forEach((bloc) => {
+      const pc = bloc.dataset.son;
+      bloc.querySelectorAll('[data-son-champ="actif"], [data-son-champ="reagir"]').forEach((i) => i.addEventListener("change", () =>
+        this._envoyer({ op: "son", pc, [i.dataset.sonChamp]: i.checked })));
+      bloc.querySelectorAll('[data-son-champ="mode"]').forEach((i) => i.addEventListener("change", () => {
+        if (i.checked) this._envoyer({ op: "son", pc, mode: i.value });
+      }));
+      const bouton = bloc.querySelector("[data-son-enregistrer]");
+      if (bouton) bouton.addEventListener("click", () => {
+        const plages = {};
+        bloc.querySelectorAll("[data-son-plage]").forEach((i) => { plages[i.dataset.sonPlage] = i.value === "" ? null : Number(i.value); });
+        const g = bloc.querySelector("[data-son-general]").value;
+        const pl = bloc.querySelector("[data-son-plancher]").value;
+        const corps = { op: "son", pc, plancher_manuel_dbfs: pl === "" ? null : Number(pl) };
+        if (g !== "") corps.general_dbfs = Number(g);
+        if (Object.keys(plages).length) corps.plages = plages;
+        this._envoyer(corps);
+      });
+    });
     const conf = r.querySelector('[data-action="confirmer"]');
     if (conf) conf.addEventListener("click", () => this._envoyer({ op: "module", module: "protections", actif: false, confirmer: true }));
   }
@@ -487,6 +646,8 @@ class VisionReglagesCard extends HTMLElement {
       fieldset.role legend { font-weight:500; padding:0 4px; overflow-wrap:anywhere; max-width:100%; }
       .choix { padding:6px 0; }
       .sensible { color:var(--warning-color); }
+      .son .champ input { max-width:12em; }
+      .marge { font-size:.85em; color:var(--secondary-text-color); }
     </style>`;
   }
 }

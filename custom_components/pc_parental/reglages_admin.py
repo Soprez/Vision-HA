@@ -55,7 +55,34 @@ def etat(hass: HomeAssistant, coord) -> dict[str, Any]:
                       for i, r in store.roles.items()],
             "fonctions": [{"id": f, "nom": roles.libelle_fonction(f, lg), "sensible": s} for f, (_n, s) in roles.FONCTIONS.items()],
         },
+        "son": _son_etat(store),
     }
+
+
+def _son_etat(store) -> list[dict[str, Any]] | None:
+    """2.5.12.10 : le niveau sonore de chaque appareil pour la carte (module allumé seulement)."""
+    from . import son
+
+    if not son.actif_module(store):
+        return None
+    sortie = []
+    for pid, pc in sorted(store.pcs.items(), key=lambda x: str(x[1].get("name") or x[0]).lower()):
+        r = son.reglages(pc)
+        e = son.etat(pc)
+        seuil, source = son.seuil_detail(store, pc)
+        plancher = son.plancher_effectif_db(pc, e)
+        mesure = son.plancher_mesure_db(e)
+        sortie.append({
+            "id": pid, "nom": str(pc.get("name") or pid), "actif": r["actif"], "reagir": r["reagir"],
+            "mode": r["seuil_mode"], "general_dbfs": r["seuil_db"] - 100,
+            "plages": son.seuils_plages_lisibles(pc),
+            "moment_dbfs": seuil - 100, "source": source.get("nom") or "",
+            "plancher_dbfs": None if plancher is None else round(plancher - 100, 1),
+            "plancher_mesure_dbfs": None if mesure is None else round(mesure - 100, 1),
+            "plancher_manuel_dbfs": r["plancher_manuel_dbfs"],
+            "niveau_dbfs": son.dbfs(e.get("niveau")),
+        })
+    return sortie
 
 
 async def regler(hass: HomeAssistant, coord, corps: dict[str, Any], par: str) -> str:
@@ -99,6 +126,43 @@ async def regler(hass: HomeAssistant, coord, corps: dict[str, Any], par: str) ->
             await store.async_save()
             hass.config_entries.async_schedule_reload(coord.config_entry.entry_id)
         return textes.t("reglages.module_fait", lg, module=modules.nom(m, lg))
+    if op == "son":
+        # 2.5.12.10 : niveau sonore d'un appareil (mesure, réaction, mode, seuil général, seuils par plage, plancher).
+        from . import son
+
+        if not son.actif_module(store):
+            raise textes.Erreur("son.module_coupe")
+        pc = store.pcs.get(str(corps.get("pc") or ""))
+        if pc is None:
+            raise textes.Erreur("commun.appareil_disparu")
+        donnees: dict[str, Any] = {}
+        for cle in ("actif", "reagir"):
+            if cle in corps:
+                donnees[cle] = bool(corps[cle])
+        if corps.get("mode") in son.MODES_SEUIL:
+            donnees["seuil_mode"] = corps["mode"]
+        try:
+            if corps.get("general_dbfs") is not None:
+                donnees["seuil_dbfs"] = max(-70, min(0, int(round(float(corps["general_dbfs"])))))
+            plages = corps.get("plages")
+            if isinstance(plages, dict):
+                donnees["seuils_plages"] = [{"plage": k, "seuil_dbfs": max(-70, min(0, int(round(float(v)))))}
+                                            for k, v in plages.items() if v not in (None, "")]
+                donnees["plage_effacer"] = [k for k, v in plages.items() if v in (None, "")]
+            if "plancher_manuel_dbfs" in corps:
+                v = corps["plancher_manuel_dbfs"]
+                if v in (None, ""):
+                    donnees["plancher_auto"] = True
+                else:
+                    donnees["plancher_dbfs"] = max(-120, min(-10, int(round(float(v)))))
+            son.regler_service(pc, son.etat(pc), donnees)
+        except (TypeError, ValueError) as err:
+            raise textes.Erreur("son.plage_inconnue", plage=str(err)) from err
+        await store.async_save()
+        coord.async_update_listeners()
+        _LOGGER.warning("%s : niveau sonore de « %s » réglé (%s, par %s).", PRODUIT, pc.get("name"),
+                        {k: v for k, v in donnees.items()}, par)
+        return textes.t("reglages.son_fait", lg, appareil=str(pc.get("name") or ""))
     if op == "droit":
         ident, fonction = str(corps.get("role") or ""), str(corps.get("fonction") or "")
         r = store.roles.get(ident)

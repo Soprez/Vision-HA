@@ -2082,6 +2082,34 @@
         "micros_exclus": {
           "name": "Ignorierte Mikrofone",
           "description": "Teile von Mikrofonnamen, die nicht in den Pegel eingehen (z. B. ein Headset am Mund)."
+        },
+        "seuil_mode": {
+          "name": "Schwellenmodus",
+          "description": "Allgemein: eine Schwelle für den ganzen Tag. Je Zeitplan: jeder Vision-Zeitplan kann eine eigene haben; die strengste aktive gilt, sonst die allgemeine."
+        },
+        "seuil_dbfs": {
+          "name": "Allgemeine Schwelle (dBFS)",
+          "description": "Höchster erlaubter Pegel in dBFS (0 = Vollaussteuerung des Mikrofons)."
+        },
+        "marge_plancher_db": {
+          "name": "Allgemeine Schwelle über dem Grundpegel",
+          "description": "Die allgemeine Schwelle N dB über dem Grundpegel des Raums (24 h gemessen oder eingegeben)."
+        },
+        "seuils_plages": {
+          "name": "Schwellen je Zeitplan",
+          "description": "Liste aus plage: Name oder ID, seuil_dbfs oder marge_plancher_db."
+        },
+        "plage_effacer": {
+          "name": "Zeitplan-Schwellen löschen",
+          "description": "Diese Zeitpläne folgen wieder der allgemeinen Schwelle."
+        },
+        "plancher_dbfs": {
+          "name": "Grundpegel des Raums (dBFS)",
+          "description": "Von Hand eingegeben; ersetzt den über 24 h gemessenen."
+        },
+        "plancher_auto": {
+          "name": "Gemessener Grundpegel",
+          "description": "Eingegebenen Grundpegel vergessen und den 24-h-Messwert nutzen."
         }
       }
     }
@@ -2232,9 +2260,6 @@
       "seuil_sonore_jour": {
         "name": "Lautstärkeschwelle tagsüber"
       },
-      "seuil_sonore_nuit": {
-        "name": "Lautstärkeschwelle nachts"
-      },
       "bruit_duree": {
         "name": "Lärm: Dauer vor einer Warnung"
       },
@@ -2246,6 +2271,9 @@
       },
       "bruit_coupure": {
         "name": "Lärm: Dauer der Sperre"
+      },
+      "seuil_sonore_general": {
+        "name": "Lärmschwelle (allgemein)"
       }
     },
     "select": {
@@ -2320,6 +2348,13 @@
       },
       "utilisateur": {
         "name": "Benutzer"
+      },
+      "seuil_sonore_mode": {
+        "name": "Modus der Lärmschwelle",
+        "state": {
+          "general": "Allgemein",
+          "plages": "Je Zeitplan"
+        }
       }
     },
     "sensor": {

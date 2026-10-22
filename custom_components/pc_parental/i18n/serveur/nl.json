@@ -966,5 +966,8 @@
   "prot.coupee": "Bescherming uitgeschakeld op „{nom}”: de toegankelijkheidsdienst van Vision staat uit, Vision beschermt daar niets meer. Op het apparaat: Instellingen › Toegankelijkheid › Vision › Aan.",
   "prot.retablie": "Bescherming hersteld op „{nom}”: de toegankelijkheid van Vision is weer actief.",
   "son.coupure": "Te veel lawaai ({n} waarschuwingen): dit apparaat is {minutes} min gesloten, tot {heure}.",
-  "son.responsable_coupure": "Te veel lawaai op ‘{nom}’ ({niveau} dBFS) na {n} waarschuwingen vandaag: {minutes} min gesloten, tot {heure}."
+  "son.responsable_coupure": "Te veel lawaai op ‘{nom}’ ({niveau} dBFS) na {n} waarschuwingen vandaag: {minutes} min gesloten, tot {heure}.",
+  "reglages.son_fait": "Geluidsniveau van ‘{appareil}’ opgeslagen.",
+  "son.plage_inconnue": "Onbekend tijdvak op dit apparaat: {plage}.",
+  "son.plancher_inconnu": "Nog geen gemeten bodem (één uur meten): voer hem in of geef de drempel in dBFS."
 }

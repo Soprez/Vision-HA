@@ -2082,6 +2082,34 @@
         "micros_exclus": {
           "name": "Micros ignorés",
           "description": "Morceaux de noms de micros laissés hors du niveau (par exemple un casque collé à la bouche)."
+        },
+        "seuil_mode": {
+          "name": "Mode du seuil",
+          "description": "Général : un seul seuil toute la journée. Par plage : chaque plage Vision peut avoir le sien ; la plus stricte des plages actives s’applique, sinon le général."
+        },
+        "seuil_dbfs": {
+          "name": "Seuil général (dBFS)",
+          "description": "Niveau maximum autorisé, en dBFS (0 = pleine échelle du micro)."
+        },
+        "marge_plancher_db": {
+          "name": "Seuil général au-dessus du plancher",
+          "description": "Le seuil général à N dB au-dessus du plancher de la pièce (mesuré sur 24 h, ou saisi)."
+        },
+        "seuils_plages": {
+          "name": "Seuils par plage",
+          "description": "Liste de plage : nom ou identifiant, seuil_dbfs ou marge_plancher_db."
+        },
+        "plage_effacer": {
+          "name": "Effacer des seuils de plage",
+          "description": "Ces plages suivent de nouveau le seuil général."
+        },
+        "plancher_dbfs": {
+          "name": "Plancher de la pièce (dBFS)",
+          "description": "Saisi à la main ; il remplace le plancher mesuré sur 24 h."
+        },
+        "plancher_auto": {
+          "name": "Plancher mesuré",
+          "description": "Oublier le plancher saisi et reprendre celui mesuré sur 24 h."
         }
       }
     }
@@ -2232,9 +2260,6 @@
       "seuil_sonore_jour": {
         "name": "Seuil sonore le jour"
       },
-      "seuil_sonore_nuit": {
-        "name": "Seuil sonore la nuit"
-      },
       "bruit_duree": {
         "name": "Bruit : durée avant alerte"
       },
@@ -2246,6 +2271,9 @@
       },
       "bruit_coupure": {
         "name": "Bruit : durée de la coupure"
+      },
+      "seuil_sonore_general": {
+        "name": "Seuil sonore général"
       }
     },
     "select": {
@@ -2320,6 +2348,13 @@
       },
       "utilisateur": {
         "name": "Utilisateur"
+      },
+      "seuil_sonore_mode": {
+        "name": "Mode du seuil sonore",
+        "state": {
+          "general": "Général",
+          "plages": "Par plage"
+        }
       }
     },
     "sensor": {

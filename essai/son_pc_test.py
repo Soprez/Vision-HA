@@ -97,7 +97,8 @@ async def test_seuil_de_jour_et_de_nuit_selon_la_plage_de_session(hass, hass_sto
     coord = await _monter(hass, hass_storage)
     from custom_components.pc_parental import son
     pc = coord.store.pcs["pc1"]
-    son.regler(pc, {"actif": True, "seuil_db": 78, "seuil_nuit_db": 62})
+    # 2.5.12.10 : « la nuit » = les plages de session ; seuil_nuit_db (service) les remplit, en mode par plage.
+    son.regler_service(pc, son.etat(pc), {"actif": True, "seuil_db": 78, "seuil_nuit_db": 62})
     jour = datetime(2026, 10, 19, 15, 0, tzinfo=PARIS)
     nuit = datetime(2026, 10, 19, 23, 30, tzinfo=PARIS)
     petit_matin = datetime(2026, 10, 20, 6, 30, tzinfo=PARIS)
@@ -181,12 +182,12 @@ async def test_entites_de_reglage_par_appareil(hass, hass_storage, hass_client):
     await hass.services.async_call("switch", "turn_on", {"entity_id": "switch.pc_pl_mesurer_le_niveau_sonore"}, blocking=True)
     assert son.reglages(pc)["actif"] is True
     # Les seuils s'affichent en dBFS : 75 relatif = −25 dBFS ; régler −30 dBFS écrit 70 relatif.
-    jour = hass.states.get("number.pc_pl_seuil_sonore_le_jour")
+    # 2.5.12.10 : un seuil général ; les seuils par plage passent par Réglages Vision et son_regler.
+    jour = hass.states.get("number.pc_pl_seuil_sonore_general")
     assert jour is not None and float(jour.state) == -25.0
-    await hass.services.async_call("number", "set_value", {"entity_id": "number.pc_pl_seuil_sonore_le_jour", "value": -30}, blocking=True)
+    await hass.services.async_call("number", "set_value", {"entity_id": "number.pc_pl_seuil_sonore_general", "value": -30}, blocking=True)
     assert son.reglages(pc)["seuil_db"] == 70
-    await hass.services.async_call("number", "set_value", {"entity_id": "number.pc_pl_seuil_sonore_la_nuit", "value": -40}, blocking=True)
-    assert son.reglages(pc)["seuil_nuit_db"] == 60
+    assert hass.states.get("number.pc_pl_seuil_sonore_la_nuit") is None
     await hass.services.async_call("number", "set_value", {"entity_id": "number.pc_pl_bruit_duree_avant_alerte", "value": 4}, blocking=True)
     await hass.services.async_call("number", "set_value", {"entity_id": "number.pc_pl_bruit_delai_entre_deux_alertes", "value": 3}, blocking=True)
     r = son.reglages(pc)

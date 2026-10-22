@@ -2082,6 +2082,34 @@
         "micros_exclus": {
           "name": "Micrófonos ignorados",
           "description": "Partes de nombres de micrófonos fuera del nivel (p. ej. unos auriculares junto a la boca)."
+        },
+        "seuil_mode": {
+          "name": "Modo del umbral",
+          "description": "General: un solo umbral todo el día. Por franja: cada franja de Vision puede tener el suyo; se aplica la más estricta activa, si no el general."
+        },
+        "seuil_dbfs": {
+          "name": "Umbral general (dBFS)",
+          "description": "Nivel máximo permitido en dBFS (0 = escala completa del micrófono)."
+        },
+        "marge_plancher_db": {
+          "name": "Umbral general sobre el fondo",
+          "description": "El umbral general N dB por encima del ruido de fondo de la sala (medido en 24 h o introducido)."
+        },
+        "seuils_plages": {
+          "name": "Umbrales por franja",
+          "description": "Lista de plage: nombre o id, seuil_dbfs o marge_plancher_db."
+        },
+        "plage_effacer": {
+          "name": "Borrar umbrales de franja",
+          "description": "Estas franjas vuelven a seguir el umbral general."
+        },
+        "plancher_dbfs": {
+          "name": "Ruido de fondo de la sala (dBFS)",
+          "description": "Introducido a mano; sustituye al medido en 24 h."
+        },
+        "plancher_auto": {
+          "name": "Fondo medido",
+          "description": "Olvidar el fondo introducido y usar el medido en 24 h."
         }
       }
     }
@@ -2232,9 +2260,6 @@
       "seuil_sonore_jour": {
         "name": "Umbral de ruido de día"
       },
-      "seuil_sonore_nuit": {
-        "name": "Umbral de ruido de noche"
-      },
       "bruit_duree": {
         "name": "Ruido: duración antes de una alerta"
       },
@@ -2246,6 +2271,9 @@
       },
       "bruit_coupure": {
         "name": "Ruido: duración del corte"
+      },
+      "seuil_sonore_general": {
+        "name": "Umbral de ruido general"
       }
     },
     "select": {
@@ -2320,6 +2348,13 @@
       },
       "utilisateur": {
         "name": "Usuario"
+      },
+      "seuil_sonore_mode": {
+        "name": "Modo del umbral de ruido",
+        "state": {
+          "general": "General",
+          "plages": "Por franja"
+        }
       }
     },
     "sensor": {

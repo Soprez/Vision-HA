@@ -966,5 +966,8 @@
   "prot.coupee": "Protection désactivée sur « {nom} » : le service d'accessibilité de Vision est coupé, Vision n'y protège plus rien. Sur l'appareil : Paramètres › Accessibilité › Vision › Activé.",
   "prot.retablie": "Protection rétablie sur « {nom} » : l'accessibilité de Vision est de nouveau active.",
   "son.coupure": "Trop de bruit ({n} avertissements) : l'appareil est fermé {minutes} min, jusqu'à {heure}.",
-  "son.responsable_coupure": "Trop de bruit sur « {nom} » ({niveau} dBFS) après {n} avertissements aujourd'hui : fermé {minutes} min, jusqu'à {heure}."
+  "son.responsable_coupure": "Trop de bruit sur « {nom} » ({niveau} dBFS) après {n} avertissements aujourd'hui : fermé {minutes} min, jusqu'à {heure}.",
+  "reglages.son_fait": "Niveau sonore de « {appareil} » enregistré.",
+  "son.plage_inconnue": "Plage inconnue sur cet appareil : {plage}.",
+  "son.plancher_inconnu": "Pas encore de plancher mesuré (une heure de mesure) : saisissez-le, ou donnez le seuil en dBFS."
 }

@@ -64,6 +64,11 @@ REGLAGES_DEFAUT: dict[str, Any] = {
     "micro_fige_s": 10,          # un micro dont le niveau ne bouge plus pendant ce temps est exclu de la moyenne (2.5.12.3)
     "reagir": True,              # réagir aux dépassements (messages, responsables, coupure) ; éteint = mesure seule (2.5.12.7)
     "micros_exclus": [],         # morceaux de noms de micros ignorés (ex. un casque collé à la bouche) (2.5.12.7)
+    # 2.5.12.10 : le seuil autorisé, général (toute la journée) ou par plage Vision (la plus stricte des plages actives,
+    # sinon le général). seuil_nuit_db / nuit / nuit_debut / nuit_fin ne servent plus qu'à la migration et au service.
+    "seuil_mode": "general",     # « general » ou « plages »
+    "seuils_plages": {},         # {id de la plage Vision : seuil relatif (0 à 100)}
+    "plancher_manuel_dbfs": None,  # plancher de la pièce saisi à la main (dBFS) ; None : le plancher mesuré (24 h)
     "micro_plancher_dbfs": -90,  # un micro plus bas que ça (avant calibration) ne capte rien : compté comme éteint (l'auteur, agent 1.93.5)
 }
 # Un PC (agent Windows, 2.5.12.3) : des alertes et des messages, jamais de coupure par défaut ; 3 s suffisent.
@@ -74,6 +79,12 @@ BORNES: dict[str, tuple[float, float]] = {
     "calibration_db": (-30, 30), "micro_fige_s": (2, 300), "micro_plancher_dbfs": (-120, -40),
 }
 ETATS_MICRO = ("actif", "muet", "silence", "sous_plancher", "exclu", "fige", "sans_donnees")  # état d'un micro (agent 1.93.5)
+MODES_SEUIL = ("general", "plages")
+SEUIL_SESSION_DEFAUT = 72    # −28 dBFS : proposé aux plages « Verrouiller la session » en passant en mode par plage
+PLANCHER_FENETRE_S = 24 * 3600   # le plancher mesuré : les 24 dernières heures
+PLANCHER_PAS_S = 300             # un échantillon toutes les 5 min au plus (288 sur 24 h)
+PLANCHER_MIN_ECH = 12            # une heure de mesure avant de donner un plancher
+PLANCHER_QUANTILE = 0.10         # le bas de la distribution des moyennes sur 1 min (le calme, pas un silence isolé)
 MAX_DEPASSEMENTS = 20
 JOURNAL_MAX = 20     # avertissements et coupures gardés dans l'état (capteur « Niveau sonore », attribut journal)
 EXCLUS_MAX = 8       # morceaux de noms de micros exclus, 80 caractères chacun  # par relevé : un appareil qui s'emballe ne remplit pas le journal
@@ -92,10 +103,39 @@ def defauts(pc: dict[str, Any]) -> dict[str, Any]:
     return {**REGLAGES_DEFAUT, **(DEFAUTS_PC if est_pc(pc) else {})}
 
 
+def _plages_session(pc: dict[str, Any]) -> list[dict[str, Any]]:
+    """Les plages « Verrouiller la session » de cet appareil (normalisées)."""
+    from . import planner
+
+    # Le code de portée du planning (« session »), pas le libellé de const.PORTEE_SESSION.
+    return planner.de_portee(pc.get("rules") or [], planner.PORTEE_SESSION)
+
+
+def _migrer(pc: dict[str, Any], brut: dict[str, Any], base: dict[str, Any]) -> dict[str, Any]:
+    """2.5.12.10 : un appareil réglé avant le choix du mode garde exactement sa règle jour/nuit.
+
+    Nuit = ses plages de session (réglage « plages ») et un seuil de nuit différent du jour : mode « par plage », le
+    général reprend le jour et chaque plage de session reprend la nuit. Sinon : mode général avec le seuil du jour
+    (le repli horaire « heures » n'a pas d'équivalent en plage : il est noté au journal par migrer())."""
+    if not brut:
+        return {}
+    try:
+        jour = int(float(brut.get("seuil_db", base["seuil_db"])))
+        nuit = int(float(brut.get("seuil_nuit_db", base["seuil_nuit_db"])))
+    except (TypeError, ValueError):
+        return {"seuil_mode": "general"}
+    session = _plages_session(pc)
+    if str(brut.get("nuit") or "plages") == "plages" and session and nuit != jour:
+        return {"seuil_mode": "plages", "seuils_plages": {str(r["id"]): nuit for r in session}}
+    return {"seuil_mode": "general"}
+
+
 def reglages(pc: dict[str, Any]) -> dict[str, Any]:
     base = defauts(pc)
-    brut = (pc.get("son") or {}).get("reglages") or {}
-    r = {**base, **{k: v for k, v in dict(brut).items() if k in base}}
+    brut = dict((pc.get("son") or {}).get("reglages") or {})
+    if "seuil_mode" not in brut:
+        brut.update(_migrer(pc, brut, base))
+    r = {**base, **{k: v for k, v in brut.items() if k in base}}
     for k, (bas, haut) in BORNES.items():
         try:
             r[k] = int(min(haut, max(bas, float(r[k]))))
@@ -107,6 +147,19 @@ def reglages(pc: dict[str, Any]) -> dict[str, Any]:
     exclus = r["micros_exclus"] if isinstance(r["micros_exclus"], list) else []
     r["micros_exclus"] = [str(x).strip()[:80] for x in exclus if isinstance(x, str) and str(x).strip()][:EXCLUS_MAX]
     r["nuit"] = "heures" if str(r.get("nuit")) == "heures" else "plages"
+    r["seuil_mode"] = r["seuil_mode"] if r["seuil_mode"] in MODES_SEUIL else "general"
+    seuils: dict[str, int] = {}
+    for k, v in (r["seuils_plages"] if isinstance(r["seuils_plages"], dict) else {}).items():
+        try:
+            seuils[str(k)[:40]] = int(min(BORNES["seuil_db"][1], max(BORNES["seuil_db"][0], float(v))))
+        except (TypeError, ValueError):
+            continue
+    r["seuils_plages"] = dict(list(seuils.items())[:32])
+    try:
+        pm = r["plancher_manuel_dbfs"]
+        r["plancher_manuel_dbfs"] = None if pm is None else int(min(-10, max(-120, float(pm))))
+    except (TypeError, ValueError):
+        r["plancher_manuel_dbfs"] = None
     for k in ("nuit_debut", "nuit_fin"):
         r[k] = str(r[k]) if _minutes(r.get(k)) is not None else base[k]
     r["plages"] = [p for p in (r["plages"] if isinstance(r["plages"], list) else []) if _plage_valide(p)]
@@ -114,11 +167,97 @@ def reglages(pc: dict[str, Any]) -> dict[str, Any]:
 
 
 def regler(pc: dict[str, Any], changements: dict[str, Any]) -> dict[str, Any]:
-    """Pose des réglages (les clés inconnues sont ignorées, les valeurs bornées) ; rend les réglages effectifs."""
+    """Pose des réglages (les clés inconnues sont ignorées, les valeurs bornées) ; rend les réglages effectifs.
+
+    Passer en mode « par plage » sans aucun seuil de plage propose SEUIL_SESSION_DEFAUT aux plages de session."""
     son = pc.setdefault("son", {})
-    son["reglages"] = {**(son.get("reglages") or {}), **{k: v for k, v in changements.items() if k in REGLAGES_DEFAUT}}
+    avant = reglages(pc)
+    son["reglages"] = {**avant, **{k: v for k, v in changements.items() if k in REGLAGES_DEFAUT}}
+    if (changements.get("seuil_mode") == "plages" and avant["seuil_mode"] != "plages"
+            and not son["reglages"].get("seuils_plages")):
+        son["reglages"]["seuils_plages"] = {str(r["id"]): SEUIL_SESSION_DEFAUT for r in _plages_session(pc)}
     son["reglages"] = reglages(pc)
     return son["reglages"]
+
+
+def plage_id(pc: dict[str, Any], plage: Any) -> str | None:
+    """L'identifiant d'une plage de cet appareil, donnée par son identifiant ou son nom (sans tenir compte de la casse)."""
+    cle = str(plage or "").strip()
+    for r in pc.get("rules") or []:
+        if str(r.get("id")) == cle:
+            return str(r["id"])
+    for r in pc.get("rules") or []:
+        if str(r.get("name") or "").strip().lower() == cle.lower() and cle:
+            return str(r["id"])
+    return None
+
+
+def regler_service(pc: dict[str, Any], e: dict[str, Any], data: dict[str, Any]) -> dict[str, Any]:
+    """Le service son_regler (2.5.12.10) : les champs historiques, plus le mode, les seuils en dBFS, les seuils par
+    plage (en dBFS ou en marge au-dessus du plancher) et le plancher saisi à la main. ValueError : plage inconnue."""
+    changements = {k: v for k, v in data.items() if k in REGLAGES_DEFAUT}
+    if "seuil_dbfs" in data:
+        changements["seuil_db"] = int(round(float(data["seuil_dbfs"]))) + 100
+    if "plancher_dbfs" in data:
+        changements["plancher_manuel_dbfs"] = data["plancher_dbfs"]
+    if data.get("plancher_auto"):
+        changements["plancher_manuel_dbfs"] = None
+    seuils = dict(reglages(pc)["seuils_plages"])
+    toucher_plages = False
+    if "seuil_nuit_db" in data:
+        # Compatibilité : « la nuit » = les plages de session de l'appareil.
+        for r in _plages_session(pc):
+            seuils[str(r["id"])] = int(data["seuil_nuit_db"])
+        toucher_plages = True
+        changements.setdefault("seuil_mode", "plages")
+    plancher = plancher_effectif_db(pc, e)
+    for item in data.get("seuils_plages") or []:
+        ident = plage_id(pc, item.get("plage"))
+        if ident is None:
+            raise ValueError(str(item.get("plage")))
+        if item.get("seuil_dbfs") is not None:
+            seuils[ident] = int(round(float(item["seuil_dbfs"]))) + 100
+        elif item.get("marge_plancher_db") is not None:
+            if plancher is None:
+                raise ValueError("plancher")
+            seuils[ident] = int(round(plancher + float(item["marge_plancher_db"])))
+        toucher_plages = True
+    for plage in data.get("plage_effacer") or []:
+        ident = plage_id(pc, plage)
+        if ident is None:
+            raise ValueError(str(plage))
+        seuils.pop(ident, None)
+        toucher_plages = True
+    if "marge_plancher_db" in data:
+        if plancher is None:
+            raise ValueError("plancher")
+        changements["seuil_db"] = int(round(plancher + float(data["marge_plancher_db"])))
+    if toucher_plages:
+        changements["seuils_plages"] = seuils
+    return regler(pc, changements)
+
+
+def migrer(store) -> int:
+    """Au démarrage : enregistre le mode des appareils réglés avant 2.5.12.10, et oublie les seuils de plages supprimées.
+    Rend le nombre d'appareils changés."""
+    n = 0
+    for pc in list(store.pcs.values()):
+        brut = (pc.get("son") or {}).get("reglages")
+        if not brut:
+            continue
+        r = reglages(pc)
+        ids = {str(x.get("id")) for x in pc.get("rules") or []}
+        propres = {k: v for k, v in r["seuils_plages"].items() if k in ids}
+        if "seuil_mode" in brut and propres == dict(brut.get("seuils_plages") or {}):
+            continue
+        if "seuil_mode" not in brut and str(brut.get("nuit")) == "heures" and r["seuil_nuit_db"] != r["seuil_db"]:
+            _LOGGER.warning("Vision : niveau sonore de « %s » : la nuit par heures (%s → %s) n'existe plus ; seuil général "
+                            "%s dBFS. Créez une plage pour un seuil de nuit.", pc.get("name"), r["nuit_debut"], r["nuit_fin"],
+                            r["seuil_db"] - 100)
+        r["seuils_plages"] = propres
+        pc.setdefault("son", {})["reglages"] = r
+        n += 1
+    return n
 
 
 def etat(pc: dict[str, Any]) -> dict[str, Any]:
@@ -186,14 +325,74 @@ def est_nuit(store, pc: dict[str, Any], moment: datetime | None = None) -> bool:
     moment = moment or dt_util.now()
     if r["nuit"] == "plages" and store is not None:
         regles = store.regles_pour(pc)
-        if planner.de_portee(regles, PORTEE_SESSION):
+        # 2.5.12.10 : le code de portée du planning ; avec le libellé de const, la nuit retombait toujours sur la
+        # plage de repli (22:00 → 07:00), quelles que soient les plages de l'appareil.
+        if planner.de_portee(regles, planner.PORTEE_SESSION):
             return planner.is_locked(regles, moment)
     return dans_plages([{"debut": r["nuit_debut"], "fin": r["nuit_fin"]}], moment)
 
 
-def seuil_effectif(store, pc: dict[str, Any], moment: datetime | None = None) -> int:
+def seuil_detail(store, pc: dict[str, Any], moment: datetime | None = None) -> tuple[int, dict[str, Any]]:
+    """2.5.12.10 : le seuil du moment (relatif) et d'où il vient : {"type": "general"} ou {"type": "plage", "id", "nom"}.
+
+    Mode « par plage » : parmi les plages Vision actives à cet instant qui ont un seuil, la plus stricte (la plus
+    basse) ; aucune : le seuil général."""
+    from . import planner
+
     r = reglages(pc)
-    return int(r["seuil_nuit_db"] if est_nuit(store, pc, moment) else r["seuil_db"])
+    if r["seuil_mode"] == "plages" and r["seuils_plages"]:
+        moment = moment or dt_util.now()
+        regles = store.regles_pour(pc) if store is not None else (pc.get("rules") or [])
+        retenue = None
+        for regle in planner._actives(regles):
+            ident = str(regle.get("id"))
+            if ident in r["seuils_plages"] and planner.rule_covers(regle, moment):
+                if retenue is None or r["seuils_plages"][ident] < retenue[0]:
+                    retenue = (r["seuils_plages"][ident], {"type": "plage", "id": ident, "nom": regle.get("name") or ident})
+        if retenue is not None:
+            return retenue
+    return int(r["seuil_db"]), {"type": "general"}
+
+
+def seuil_effectif(store, pc: dict[str, Any], moment: datetime | None = None) -> int:
+    return seuil_detail(store, pc, moment)[0]
+
+
+def seuils_plages_lisibles(pc: dict[str, Any]) -> list[dict[str, Any]]:
+    """Chaque plage de l'appareil avec son seuil en dBFS (None : le seuil général s'applique)."""
+    r = reglages(pc)
+    return [{"id": str(x.get("id")), "nom": x.get("name") or str(x.get("id")),
+             "seuil_dbfs": (r["seuils_plages"][str(x.get("id"))] - 100) if str(x.get("id")) in r["seuils_plages"] else None}
+            for x in pc.get("rules") or []]
+
+
+# ----------------------------------------------------------------------------- Plancher mesuré (2.5.12.10)
+
+
+def noter_plancher(e: dict[str, Any], niveau: float | None, t: float) -> None:
+    """Un échantillon de la moyenne sur 1 min, toutes les PLANCHER_PAS_S au plus, gardé PLANCHER_FENETRE_S."""
+    if niveau is None:
+        return
+    ech = [x for x in (e.get("plancher_ech") or []) if isinstance(x, list) and len(x) == 2 and t - float(x[0]) < PLANCHER_FENETRE_S]
+    if not ech or t - float(ech[-1][0]) >= PLANCHER_PAS_S:
+        ech.append([round(t), round(float(niveau), 1)])
+    e["plancher_ech"] = ech
+
+
+def plancher_mesure_db(e: dict[str, Any]) -> float | None:
+    """Le plancher mesuré (relatif) : le bas (10 %) des moyennes sur 1 min des 24 dernières heures ; None avant une heure."""
+    valeurs = sorted(float(x[1]) for x in (e.get("plancher_ech") or []) if isinstance(x, list) and len(x) == 2)
+    if len(valeurs) < PLANCHER_MIN_ECH:
+        return None
+    return round(valeurs[int(PLANCHER_QUANTILE * (len(valeurs) - 1))], 1)
+
+
+def plancher_effectif_db(pc: dict[str, Any], e: dict[str, Any] | None = None) -> float | None:
+    """Le plancher qui sert aux marges : celui saisi à la main, sinon le mesuré (relatif)."""
+    manuel = reglages(pc)["plancher_manuel_dbfs"]
+    if manuel is not None:
+        return float(manuel) + 100
+    return plancher_mesure_db(e if e is not None else etat(pc))
 
 
 # ----------------------------------------------------------------------------- Relevé
@@ -209,7 +408,7 @@ def pour_releve(store, pc: dict[str, Any]) -> dict[str, Any]:
     e = etat(pc)
     nuit = est_nuit(store, pc)
     return {
-        "actif": True, "seuil_db": int(r["seuil_nuit_db"] if nuit else r["seuil_db"]), "nuit": nuit,
+        "actif": True, "seuil_db": seuil_effectif(store, pc), "nuit": nuit,
         "sensibilite_s": r["sensibilite_s"], "plages": r["plages"], "calibration_db": r["calibration_db"],
         "micro_fige_s": r["micro_fige_s"], "micro_plancher_dbfs": r["micro_plancher_dbfs"],
         "micros_exclus": r["micros_exclus"],
@@ -328,6 +527,7 @@ def recevoir(hass: HomeAssistant, store, pc: dict[str, Any], bloc: Any, maintena
             for d in detail[:64] if isinstance(d, dict) and isinstance(d.get("nom"), str)
         ][:16]
     if niveau is not None:
+        noter_plancher(e, niveau, t)
         e["niveau"] = niveau
         e["maximum"] = _nombre(bloc.get("maximum"))
         e["pic"] = _nombre(bloc.get("pic10"))
@@ -361,7 +561,7 @@ def recevoir(hass: HomeAssistant, store, pc: dict[str, Any], bloc: Any, maintena
         if dernier and quand - dernier < r["repos_min"] * 60:
             continue
         db = _nombre(d.get("db"))
-        seuil = int(r["seuil_nuit_db"] if est_nuit(store, pc, instant) else r["seuil_db"])
+        seuil = seuil_effectif(store, pc, instant)
         if not r["reagir"]:
             # 2.5.12.7 : mesure seule. Compté et journalisé, sans message, sans responsables, sans coupure.
             e["aujourd_hui"] = int(e["aujourd_hui"]) + 1

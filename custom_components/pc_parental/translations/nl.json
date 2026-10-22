@@ -2082,6 +2082,34 @@
         "micros_exclus": {
           "name": "Genegeerde microfoons",
           "description": "Delen van microfoonnamen die niet meetellen (bv. een headset bij de mond)."
+        },
+        "seuil_mode": {
+          "name": "Drempelmodus",
+          "description": "Algemeen: één drempel de hele dag. Per tijdvak: elk Vision-tijdvak kan een eigen drempel hebben; de strengste actieve geldt, anders de algemene."
+        },
+        "seuil_dbfs": {
+          "name": "Algemene drempel (dBFS)",
+          "description": "Hoogst toegestane niveau in dBFS (0 = volle schaal van de microfoon)."
+        },
+        "marge_plancher_db": {
+          "name": "Algemene drempel boven de bodem",
+          "description": "De algemene drempel N dB boven het achtergrondniveau van de kamer (24 u gemeten of ingevoerd)."
+        },
+        "seuils_plages": {
+          "name": "Drempels per tijdvak",
+          "description": "Lijst van plage: naam of id, seuil_dbfs of marge_plancher_db."
+        },
+        "plage_effacer": {
+          "name": "Tijdvakdrempels wissen",
+          "description": "Deze tijdvakken volgen weer de algemene drempel."
+        },
+        "plancher_dbfs": {
+          "name": "Achtergrondniveau van de kamer (dBFS)",
+          "description": "Handmatig ingevoerd; vervangt het over 24 u gemeten niveau."
+        },
+        "plancher_auto": {
+          "name": "Gemeten bodem",
+          "description": "Ingevoerde bodem vergeten en de over 24 u gemeten gebruiken."
         }
       }
     }
@@ -2232,9 +2260,6 @@
       "seuil_sonore_jour": {
         "name": "Geluidsdrempel overdag"
       },
-      "seuil_sonore_nuit": {
-        "name": "Geluidsdrempel 's nachts"
-      },
       "bruit_duree": {
         "name": "Lawaai: duur vóór een melding"
       },
@@ -2246,6 +2271,9 @@
       },
       "bruit_coupure": {
         "name": "Lawaai: duur van de blokkering"
+      },
+      "seuil_sonore_general": {
+        "name": "Algemene geluidsdrempel"
       }
     },
     "select": {
@@ -2320,6 +2348,13 @@
       },
       "utilisateur": {
         "name": "Gebruiker"
+      },
+      "seuil_sonore_mode": {
+        "name": "Modus van de geluidsdrempel",
+        "state": {
+          "general": "Algemeen",
+          "plages": "Per tijdvak"
+        }
       }
     },
     "sensor": {

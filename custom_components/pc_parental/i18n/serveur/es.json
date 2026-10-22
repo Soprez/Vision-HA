@@ -966,5 +966,8 @@
   "prot.coupee": "Protección desactivada en «{nom}»: el servicio de accesibilidad de Vision está apagado y Vision ya no protege nada allí. En el dispositivo: Ajustes › Accesibilidad › Vision › Activado.",
   "prot.retablie": "Protección restablecida en «{nom}»: la accesibilidad de Vision vuelve a estar activa.",
   "son.coupure": "Demasiado ruido ({n} avisos): este dispositivo queda cerrado {minutes} min, hasta las {heure}.",
-  "son.responsable_coupure": "Demasiado ruido en «{nom}» ({niveau} dBFS) tras {n} avisos hoy: cerrado {minutes} min, hasta las {heure}."
+  "son.responsable_coupure": "Demasiado ruido en «{nom}» ({niveau} dBFS) tras {n} avisos hoy: cerrado {minutes} min, hasta las {heure}.",
+  "reglages.son_fait": "Nivel de ruido de «{appareil}» guardado.",
+  "son.plage_inconnue": "Franja desconocida en este dispositivo: {plage}.",
+  "son.plancher_inconnu": "Aún no hay fondo medido (una hora de medida): introdúzcalo o indique el umbral en dBFS."
 }

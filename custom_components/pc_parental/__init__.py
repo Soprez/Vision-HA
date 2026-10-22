@@ -351,6 +351,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     from . import demandes_livraison as _livraison
     entry.async_on_unload(_livraison.demarrer(hass, coordinator))
 
+    # 2.5.12.10 : niveau sonore, mode du seuil enregistré pour les appareils réglés avant (règle jour/nuit gardée).
+    from . import son as _son_migr
+    if _son_migr.migrer(coordinator.store):
+        await coordinator.store.async_save()
+
     # 2.4.0 (retour d'essai) : arrêt automatique de la lecture après inactivité (Configurer › Musique).
     from . import musique_arret as _arret
 
@@ -1260,8 +1265,11 @@ def _async_register_services(hass: HomeAssistant) -> None:
         if not _son.actif_module(coord.store):
             raise HomeAssistantError(textes.t("son.module_coupe", lg))
         pc = _pc(coord, call.data["pc"])
-        changements = {k: v for k, v in call.data.items() if k != "pc"}
-        reglages = _son.regler(pc, changements)
+        try:
+            reglages = _son.regler_service(pc, _son.etat(pc), {k: v for k, v in call.data.items() if k != "pc"})
+        except ValueError as err:
+            cle = "son.plancher_inconnu" if str(err) == "plancher" else "son.plage_inconnue"
+            raise HomeAssistantError(textes.t(cle, lg, plage=str(err))) from err
         await coord.store.async_save()
         coord.async_update_listeners()
         return {"pc": pc["id"], "reglages": reglages}
@@ -1316,6 +1324,18 @@ def _async_register_services(hass: HomeAssistant) -> None:
         # 2.5.12.7 : mesure seule ou réaction ; micros ignorés (morceaux de noms).
         vol.Optional("reagir"): cv.boolean,
         vol.Optional("micros_exclus"): vol.All(cv.ensure_list, [vol.All(cv.string, vol.Length(min=1, max=80))], vol.Length(max=8)),
+        # 2.5.12.10 : seuil général ou par plage Vision ; seuils en dBFS ou en marge au-dessus du plancher.
+        vol.Optional("seuil_mode"): vol.In(["general", "plages"]),
+        vol.Optional("seuil_dbfs"): vol.All(vol.Coerce(int), vol.Range(min=-70, max=0)),
+        vol.Optional("marge_plancher_db"): vol.All(vol.Coerce(int), vol.Range(min=0, max=60)),
+        vol.Optional("seuils_plages"): [vol.Schema({
+            vol.Required("plage"): cv.string,
+            vol.Exclusive("seuil_dbfs", "valeur"): vol.All(vol.Coerce(int), vol.Range(min=-70, max=0)),
+            vol.Exclusive("marge_plancher_db", "valeur"): vol.All(vol.Coerce(int), vol.Range(min=0, max=60)),
+        })],
+        vol.Optional("plage_effacer"): vol.All(cv.ensure_list, [cv.string]),
+        vol.Optional("plancher_dbfs"): vol.All(vol.Coerce(int), vol.Range(min=-120, max=-10)),
+        vol.Optional("plancher_auto"): cv.boolean,
     }), supports_response=SupportsResponse.OPTIONAL)
 
     # Module Réveil — services pc_parental.reveil_* (droits du Réveil, pas « administrateurs seulement »).

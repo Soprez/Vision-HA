@@ -39,6 +39,8 @@ async def async_setup_entry(
     prune_stale(hass, coordinator, "number", f"{DOMAIN}_pause_max_", {f"{DOMAIN}_pause_max_{pc}" for pc in coordinator.pcs})
     # La règle de moyenne a quitté l'intégration (1.60.0) : ses seuils quittent le registre.
     prune_stale(hass, coordinator, "number", f"{DOMAIN}_moyenne_seuil_", set())
+    # 2.5.12.10 : le seuil « la nuit » devient un seuil par plage (Réglages Vision, service son_regler).
+    prune_stale(hass, coordinator, "number", f"{DOMAIN}_son_seuil_nuit_", set())
 
 
 class _Reglage(HubEntity, NumberEntity):
@@ -227,7 +229,7 @@ def _son_numbers(coordinator: PcParentalCoordinator) -> list:
         return []
     sortie: list = []
     for pc_id in coordinator.pcs:
-        sortie += [SonSeuilNumber(coordinator, pc_id, nuit=False), SonSeuilNumber(coordinator, pc_id, nuit=True),
+        sortie += [SonSeuilNumber(coordinator, pc_id),
                    SonDureeNumber(coordinator, pc_id), SonReposNumber(coordinator, pc_id),
                    SonAvertissementsNumber(coordinator, pc_id), SonCoupureNumber(coordinator, pc_id)]
     return sortie
@@ -262,21 +264,21 @@ class _SonNumber(EntityIdFige, PcEntity, NumberEntity):
 
 
 class SonSeuilNumber(_SonNumber):
-    """Seuil de jour ou de nuit, en dBFS (0 = pleine échelle du micro ; l'appareil le reçoit en dB relatifs + 100)."""
+    """2.5.12.10 : le seuil général, en dBFS (0 = pleine échelle du micro ; l'appareil reçoit le seuil du moment en dB
+    relatifs + 100). Les seuils par plage se règlent dans Réglages Vision ou par son_regler. L'identifiant unique reste
+    celui de l'ancien seuil « le jour » : l'entité et son historique sont gardés."""
 
     _attr_icon = "mdi:volume-high"
     _attr_native_unit_of_measurement = "dB"
     _attr_native_step = 1
     _decalage = -100
+    _cle = "seuil_db"
+    _attr_translation_key = "seuil_sonore_general"
 
-    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str, nuit: bool) -> None:
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
         from . import son as _son
 
-        self._cle = "seuil_nuit_db" if nuit else "seuil_db"
-        self._attr_translation_key = "seuil_sonore_nuit" if nuit else "seuil_sonore_jour"
-        if nuit:
-            self._attr_icon = "mdi:weather-night"
-        super().__init__(coordinator, pc_id, "seuil_nuit" if nuit else "seuil_jour")
+        super().__init__(coordinator, pc_id, "seuil_jour")
         bas, haut = _son.BORNES[self._cle]
         self._attr_native_min_value, self._attr_native_max_value = bas - 100, haut - 100
 

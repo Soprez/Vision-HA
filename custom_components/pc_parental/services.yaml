@@ -1156,3 +1156,40 @@ son_regler:
       selector:
         text:
           multiple: true
+    seuil_mode:
+      selector:
+        select:
+          options:
+            - general
+            - plages
+    seuil_dbfs:
+      selector:
+        number:
+          min: -70
+          max: 0
+          unit_of_measurement: dBFS
+          mode: box
+    marge_plancher_db:
+      selector:
+        number:
+          min: 0
+          max: 60
+          unit_of_measurement: dB
+          mode: box
+    seuils_plages:
+      selector:
+        object: null
+    plage_effacer:
+      selector:
+        text:
+          multiple: true
+    plancher_dbfs:
+      selector:
+        number:
+          min: -120
+          max: -10
+          unit_of_measurement: dBFS
+          mode: box
+    plancher_auto:
+      selector:
+        boolean: null

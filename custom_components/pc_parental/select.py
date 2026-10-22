@@ -94,6 +94,14 @@ async def async_setup_entry(
     entites += [RoleSelect(coordinator, pc_id) for pc_id in coordinator.pcs]
     entites += [MessagePositionSelect(coordinator, pc_id) for pc_id in coordinator.pcs]
     entites += [MessageTailleSelect(coordinator, pc_id) for pc_id in coordinator.pcs]
+    # 2.5.12.10 : niveau sonore, seuil général ou par plage (module allumé seulement).
+    from . import son as _son
+
+    son_actif = _son.actif_module(coordinator.store)
+    prune_stale(hass, coordinator, "select", f"{DOMAIN}_son_seuil_mode_",
+                {f"{DOMAIN}_son_seuil_mode_{pc}" for pc in coordinator.pcs} if son_actif else set())
+    if son_actif:
+        entites += [SonSeuilModeSelect(coordinator, pc_id) for pc_id in coordinator.pcs]
     entites += [
         RulePorteeSelect(coordinator, pc_id, regle["id"])
         for pc_id in coordinator.pcs
@@ -1187,3 +1195,28 @@ class RoleSelect(PcEntity, SelectEntity):
         except ValueError as err:
             raise HomeAssistantError(str(err)) from err  # i18n : message du module rôles (lot A2)
         await self.coordinator.async_ecrire()
+
+
+class SonSeuilModeSelect(PcEntity, SelectEntity):
+    """2.5.12.10 : niveau sonore de cet appareil, un seuil général ou un seuil par plage Vision (la plus stricte des
+    plages actives, sinon le général). Les seuils par plage se règlent dans Réglages Vision ou par son_regler."""
+
+    _attr_translation_key = "seuil_sonore_mode"
+    _attr_icon = "mdi:tune-variant"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_options = ["general", "plages"]
+
+    def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
+        super().__init__(coordinator, pc_id)
+        self._attr_unique_id = f"{DOMAIN}_son_seuil_mode_{pc_id}"
+
+    @property
+    def current_option(self) -> str | None:
+        from . import son as _son
+
+        return _son.reglages(self.pc)["seuil_mode"] if self.pc else None
+
+    async def async_select_option(self, option: str) -> None:
+        from . import son as _son
+
+        await appliquer(self.coordinator, lambda: _son.regler(self.pc, {"seuil_mode": option}))

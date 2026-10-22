@@ -140,7 +140,7 @@ async def test_que_des_nombres_et_plages(hass, hass_storage, hass_client):
     assert vus == []
     e = son.etat(coord.store.get("e1"))
     assert set(e) == {"alertes", "dernier", "vu_jusqua", "niveau", "maximum", "maj", "pic", "instant", "micros", "jour", "aujourd_hui",
-                      "niveau_alerte", "micros_actifs", "micros_liste", "micros_detail", "journal"} and e["niveau"] == 55.0
+                      "niveau_alerte", "micros_actifs", "micros_liste", "micros_detail", "journal", "plancher_ech"} and e["niveau"] == 55.0
     # Rien d'audio n'est gardé dans la fiche de l'appareil.
     assert "audio" not in str(coord.store.get("e1").get("son")) and "extrait" not in str(coord.store.get("e1").get("son"))
 

@@ -55,6 +55,20 @@ ou, quand le module est allumé ET la mesure activée pour cet appareil :
 
 ## Ce que fait Home Assistant
 
+- **2.5.12.10, seuil général ou par plage** (`seuil_mode`, par appareil) : `general` = un seul seuil (`seuil_db`)
+  toute la journée ; `plages` = un seuil par plage Vision de l'appareil (`seuils_plages` : identifiant de plage →
+  seuil), la **plus stricte** des plages actives qui en ont un, sinon le général. Le relevé envoie toujours le seuil
+  **du moment** (`seuil_db`) : rien ne change pour les appareils. Migration : un appareil réglé jour/nuit garde sa
+  règle (général = jour, plages de session = nuit). Passer en mode par plage propose −28 dBFS aux plages de session.
+- **2.5.12.10, plancher de la pièce** : HA garde un échantillon de la moyenne sur 1 min toutes les 5 min pendant
+  24 h ; le plancher mesuré est le bas (10 %) de ces moyennes, après une heure de mesure. `plancher_manuel_dbfs`
+  (saisi) passe avant. Un seuil peut être donné en marge (`marge_plancher_db`) : il est enregistré en absolu.
+- Service `son_regler` : `seuil_mode`, `seuil_dbfs`, `marge_plancher_db`, `seuils_plages` (liste de `plage` : nom ou
+  identifiant, puis `seuil_dbfs` ou `marge_plancher_db`), `plage_effacer`, `plancher_dbfs`, `plancher_auto` ;
+  `seuil_nuit_db` reste accepté (il remplit les plages de session). Réglages Vision : section « Niveau sonore ».
+- Correctif 2.5.12.10 : la nuit (attribut `nuit`) reconnaît enfin les plages de session ; avant, elle retombait
+  toujours sur la plage de repli 22:00 → 07:00.
+
 - **2.5.12.3, réaction graduée** : chaque dépassement compté dépose un message à l'écran de l'appareil (« Moins fort,
   s'il te plaît 🙂 ») ; un autre dans les `ferme_apres_min` suivantes : message ferme ; un troisième : les responsables
   sont prévenus par leurs canaux « alertes » (`prevenir_responsable`). Deux dépassements à moins de `repos_min` l'un de

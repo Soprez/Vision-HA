@@ -2082,6 +2082,34 @@
         "micros_exclus": {
           "name": "Microfoni ignorati",
           "description": "Parti di nomi di microfoni esclusi dal livello (es. una cuffia vicino alla bocca)."
+        },
+        "seuil_mode": {
+          "name": "Modalità della soglia",
+          "description": "Generale: una sola soglia tutto il giorno. Per fascia: ogni fascia Vision può averne una; vale la più severa attiva, altrimenti la generale."
+        },
+        "seuil_dbfs": {
+          "name": "Soglia generale (dBFS)",
+          "description": "Livello massimo consentito in dBFS (0 = fondo scala del microfono)."
+        },
+        "marge_plancher_db": {
+          "name": "Soglia generale sopra il fondo",
+          "description": "La soglia generale N dB sopra il rumore di fondo della stanza (misurato su 24 h o inserito)."
+        },
+        "seuils_plages": {
+          "name": "Soglie per fascia",
+          "description": "Elenco di plage: nome o id, seuil_dbfs o marge_plancher_db."
+        },
+        "plage_effacer": {
+          "name": "Cancella soglie di fascia",
+          "description": "Queste fasce seguono di nuovo la soglia generale."
+        },
+        "plancher_dbfs": {
+          "name": "Rumore di fondo della stanza (dBFS)",
+          "description": "Inserito a mano; sostituisce quello misurato su 24 h."
+        },
+        "plancher_auto": {
+          "name": "Fondo misurato",
+          "description": "Dimentica il fondo inserito e usa quello misurato su 24 h."
         }
       }
     }
@@ -2232,9 +2260,6 @@
       "seuil_sonore_jour": {
         "name": "Soglia sonora di giorno"
       },
-      "seuil_sonore_nuit": {
-        "name": "Soglia sonora di notte"
-      },
       "bruit_duree": {
         "name": "Rumore: durata prima di un avviso"
       },
@@ -2246,6 +2271,9 @@
       },
       "bruit_coupure": {
         "name": "Rumore: durata del blocco"
+      },
+      "seuil_sonore_general": {
+        "name": "Soglia di rumore generale"
       }
     },
     "select": {
@@ -2320,6 +2348,13 @@
       },
       "utilisateur": {
         "name": "Utente"
+      },
+      "seuil_sonore_mode": {
+        "name": "Modalità della soglia di rumore",
+        "state": {
+          "general": "Generale",
+          "plages": "Per fascia"
+        }
       }
     },
     "sensor": {

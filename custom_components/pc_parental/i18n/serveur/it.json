@@ -966,5 +966,8 @@
   "prot.coupee": "Protezione disattivata su «{nom}»: il servizio di accessibilità di Vision è spento, Vision non vi protegge più nulla. Sul dispositivo: Impostazioni › Accessibilità › Vision › Attivo.",
   "prot.retablie": "Protezione ripristinata su «{nom}»: l'accessibilità di Vision è di nuovo attiva.",
   "son.coupure": "Troppo rumore ({n} avvisi): questo dispositivo è chiuso per {minutes} min, fino alle {heure}.",
-  "son.responsable_coupure": "Troppo rumore su «{nom}» ({niveau} dBFS) dopo {n} avvisi oggi: chiuso per {minutes} min, fino alle {heure}."
+  "son.responsable_coupure": "Troppo rumore su «{nom}» ({niveau} dBFS) dopo {n} avvisi oggi: chiuso per {minutes} min, fino alle {heure}.",
+  "reglages.son_fait": "Livello sonoro di «{appareil}» salvato.",
+  "son.plage_inconnue": "Fascia sconosciuta su questo dispositivo: {plage}.",
+  "son.plancher_inconnu": "Ancora nessun fondo misurato (un'ora di misura): inseritelo o indicate la soglia in dBFS."
 }

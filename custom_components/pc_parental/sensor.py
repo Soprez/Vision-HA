@@ -897,7 +897,9 @@ class NiveauSonoreSensor(PcEntity, SensorEntity):
         r = son.reglages(pc)
         store = self.coordinator.store
         nuit = son.est_nuit(store, pc) if self.pc else False
-        seuil = int(r["seuil_nuit_db"] if nuit else r["seuil_db"])
+        seuil, source = son.seuil_detail(store, pc) if self.pc else (r["seuil_db"], {"type": "general"})
+        plancher = son.plancher_effectif_db(pc, e) if self.pc else None
+        mesure = son.plancher_mesure_db(e)
         return {
             "echelle": "dBFS",
             "maximum": son.dbfs(e.get("maximum")), "pic_10s": son.dbfs(e.get("pic")), "instant": son.dbfs(e.get("instant")),
@@ -905,7 +907,12 @@ class NiveauSonoreSensor(PcEntity, SensorEntity):
             "micros_actifs": e.get("micros_actifs"), "micros_pris_en_compte": list(e.get("micros_liste") or []),
             "par_micro": son.par_micro(e),
             "reagir": r["reagir"], "micros_exclus": r["micros_exclus"], "journal": son.journal_lisible(e),
-            "seuil": seuil - 100, "seuil_jour": r["seuil_db"] - 100, "seuil_nuit": r["seuil_nuit_db"] - 100, "nuit": nuit,
+            # 2.5.12.10 : seuil général ou par plage ; le seuil du moment et d'où il vient ; le plancher de la pièce.
+            "seuil": seuil - 100, "seuil_mode": r["seuil_mode"], "seuil_general": r["seuil_db"] - 100,
+            "seuil_source": source.get("nom") or source["type"], "seuils_plages": son.seuils_plages_lisibles(pc),
+            "plancher_dbfs": None if plancher is None else round(plancher - 100, 1),
+            "plancher_mesure_dbfs": None if mesure is None else round(mesure - 100, 1),
+            "plancher_manuel_dbfs": r["plancher_manuel_dbfs"], "nuit": nuit,
             "alertes": e.get("alertes", 0), "alertes_avant_coupure": r["alertes_avant_coupure"],
             "aujourd_hui": e.get("aujourd_hui", 0), "gradation": e.get("niveau_alerte", 0),
         }

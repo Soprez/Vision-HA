@@ -1,0 +1,45 @@
+{
+  "version": "2.5.12.10",
+  "date": "2026-10-22",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Niveau sonore : un seuil général, ou un seuil par plage Vision (la plus stricte en cours, sinon le général).",
+        "en": "Sound level: one general threshold, or one per Vision time slot (the strictest running one, else the general).",
+        "de": "Lautstärke: eine allgemeine Schwelle oder eine je Vision-Zeitplan (der strengste laufende, sonst die allgemeine).",
+        "es": "Nivel de ruido: un umbral general o uno por franja de Vision (la más estricta en curso, si no el general).",
+        "it": "Livello sonoro: una soglia generale o una per fascia Vision (la più severa in corso, altrimenti la generale).",
+        "nl": "Geluidsniveau: één algemene drempel of één per Vision-tijdvak (het strengste lopende, anders de algemene)."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Plancher de la pièce mesuré sur 24 h (ou saisi) : un seuil peut se donner en « plancher + N dB ».",
+        "en": "Room floor measured over 24 h (or entered): a threshold can be given as “floor + N dB”.",
+        "de": "Grundpegel des Raums über 24 h gemessen (oder eingegeben): Schwelle auch als „Grundpegel + N dB“.",
+        "es": "Ruido de fondo medido en 24 h (o introducido): un umbral puede darse como «fondo + N dB».",
+        "it": "Rumore di fondo misurato su 24 h (o inserito): una soglia può essere «fondo + N dB».",
+        "nl": "Achtergrondniveau over 24 u gemeten (of ingevoerd): een drempel kan als ‘bodem + N dB’."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Réglages Vision : section « Niveau sonore » par appareil ; les réglages jour/nuit existants sont gardés tels quels.",
+        "en": "Vision settings: a “Sound level” section per device; existing day/night settings are kept as they were.",
+        "de": "Vision-Einstellungen: Bereich „Lautstärke“ je Gerät; bestehende Tag-/Nacht-Einstellungen bleiben erhalten.",
+        "es": "Ajustes de Vision: sección «Nivel de ruido» por dispositivo; los ajustes día/noche se conservan tal cual.",
+        "it": "Impostazioni Vision: sezione «Livello sonoro» per dispositivo; le impostazioni giorno/notte restano invariate.",
+        "nl": "Vision-instellingen: onderdeel ‘Geluidsniveau’ per apparaat; bestaande dag/nacht-instellingen blijven behouden."
+      }
+    }
+  ]
+}

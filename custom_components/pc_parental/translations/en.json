@@ -2082,6 +2082,34 @@
         "micros_exclus": {
           "name": "Ignored microphones",
           "description": "Parts of microphone names left out of the level (e.g. a headset close to the mouth)."
+        },
+        "seuil_mode": {
+          "name": "Threshold mode",
+          "description": "General: one threshold all day. Per time slot: each Vision time slot can have its own; the strictest active one applies, otherwise the general one."
+        },
+        "seuil_dbfs": {
+          "name": "General threshold (dBFS)",
+          "description": "Maximum allowed level, in dBFS (0 = microphone full scale)."
+        },
+        "marge_plancher_db": {
+          "name": "General threshold above the floor",
+          "description": "The general threshold as N dB above the room floor (measured over 24 h, or entered)."
+        },
+        "seuils_plages": {
+          "name": "Thresholds per time slot",
+          "description": "List of plage: name or id, seuil_dbfs or marge_plancher_db."
+        },
+        "plage_effacer": {
+          "name": "Clear time slot thresholds",
+          "description": "These time slots follow the general threshold again."
+        },
+        "plancher_dbfs": {
+          "name": "Room floor (dBFS)",
+          "description": "Entered by hand; it replaces the floor measured over 24 h."
+        },
+        "plancher_auto": {
+          "name": "Measured floor",
+          "description": "Forget the entered floor and use the one measured over 24 h."
         }
       }
     }
@@ -2232,9 +2260,6 @@
       "seuil_sonore_jour": {
         "name": "Daytime sound threshold"
       },
-      "seuil_sonore_nuit": {
-        "name": "Night-time sound threshold"
-      },
       "bruit_duree": {
         "name": "Noise: duration before an alert"
       },
@@ -2246,6 +2271,9 @@
       },
       "bruit_coupure": {
         "name": "Noise: cut-off duration"
+      },
+      "seuil_sonore_general": {
+        "name": "Noise threshold (general)"
       }
     },
     "select": {
@@ -2320,6 +2348,13 @@
       },
       "utilisateur": {
         "name": "User"
+      },
+      "seuil_sonore_mode": {
+        "name": "Noise threshold mode",
+        "state": {
+          "general": "General",
+          "plages": "Per time slot"
+        }
       }
     },
     "sensor": {
