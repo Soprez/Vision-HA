@@ -45,6 +45,16 @@ dangerous domains (malware, phishing) is active; it can be turned off in the set
 The **place name** (“School”, “Club”, “Office”…) is set in **Vision → Configure → General settings**: it titles the
 first tab of the dashboard and the Vision window on the PCs.
 
+#### If Vision does not show up
+
+1. Check your Home Assistant version (**2026.9** minimum) and update HACS.
+2. Make sure the custom repository was added with the category **Integration** (not *Dashboard* or *Appdaemon*),
+   and that HACS is signed in to GitHub (*HACS → ⋮ → Settings*).
+3. Search for **Vision** in HACS (clear any filter), open it and click *Download*. If HACS shows an error, note
+   its exact message when you report the problem.
+4. Restart Home Assistant, reload the page with Ctrl+F5, then go to **Settings → Devices & services →
+   Add integration → Vision**.
+
 ### 2. The Android app (phones, tablets and TVs)
 
 1. In the Vision dashboard, the **Install Vision on a device** section gives the APK link (served by your Home

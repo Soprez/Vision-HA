@@ -45,6 +45,16 @@ liste des domaines dangereux (logiciels malveillants, hameçonnage) est active ;
 Le **nom du lieu** (« École », « Club », « Bureau »…) se règle dans **Vision → Configurer → Réglages généraux** :
 il titre le premier onglet du tableau de bord et la fenêtre Vision des PC.
 
+#### Si Vision n'apparaît pas
+
+1. Vérifiez votre version de Home Assistant (**2026.9** minimum) et mettez HACS à jour.
+2. Vérifiez que le dépôt personnalisé a été ajouté avec la catégorie **Intégration** (et non *Tableau de bord* ou
+   *Appdaemon*), et que HACS est connecté à GitHub (*HACS → ⋮ → Paramètres*).
+3. Cherchez **Vision** dans HACS (sans filtre), ouvrez-la et cliquez sur *Télécharger*. Si HACS affiche une erreur,
+   notez son message exact pour le signaler.
+4. Redémarrez Home Assistant, rechargez la page avec Ctrl+F5, puis **Paramètres → Appareils et services →
+   Ajouter une intégration → Vision**.
+
 ### 2. L'application Android (téléphones, tablettes et télés)
 
 1. Dans le tableau de bord Vision, la rubrique **Installer Vision sur un appareil** donne le lien de l'APK (servi
