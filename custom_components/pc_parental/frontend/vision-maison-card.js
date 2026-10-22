@@ -14,6 +14,20 @@
 // ---- i18n:debut — les textes de cette carte, dans les six langues de Vision (fr source, en repli) ----
 const TEXTES = /*i18n-json*/{
   "fr": {
+    "lien_detail_appareil": "Détail de l'appareil",
+    "detail_type": "Type : {type}",
+    "detail_agent": "Version : {v}",
+    "detail_machine": "Machine : {m}",
+    "detail_vu": "Dernier contact : {quand}",
+    "detail_entites": "Toutes les entités de l'appareil",
+    "son_titre": "Niveau sonore",
+    "son_niveau": "Niveau : {n} dBFS",
+    "son_niveau_inconnu": "Niveau : pas de mesure récente",
+    "son_seuil": "Seuil en cours : {s} dBFS ({source})",
+    "son_source_general": "seuil général",
+    "son_avertissements": "Avertissements aujourd'hui : {n}",
+    "son_coupure": "Fermé pour bruit jusqu'à {heure}",
+    "son_mesure_seule": "Mesure seule : aucune réaction",
     "pg_rouvrir": "Rouvrir",
     "octroi_titre": "Code de déverrouillage",
     "octroi_champ": "Code",
@@ -258,6 +272,20 @@ const TEXTES = /*i18n-json*/{
     "el_recherche_court": "Chercher"
   },
   "en": {
+    "lien_detail_appareil": "Device details",
+    "detail_type": "Type: {type}",
+    "detail_agent": "Version: {v}",
+    "detail_machine": "Machine: {m}",
+    "detail_vu": "Last contact: {quand}",
+    "detail_entites": "All entities of the device",
+    "son_titre": "Sound level",
+    "son_niveau": "Level: {n} dBFS",
+    "son_niveau_inconnu": "Level: no recent measurement",
+    "son_seuil": "Current threshold: {s} dBFS ({source})",
+    "son_source_general": "general threshold",
+    "son_avertissements": "Warnings today: {n}",
+    "son_coupure": "Closed for noise until {heure}",
+    "son_mesure_seule": "Measure only: no reaction",
     "pg_rouvrir": "Allow again",
     "octroi_titre": "Unlock code",
     "octroi_champ": "Code",
@@ -502,6 +530,20 @@ const TEXTES = /*i18n-json*/{
     "el_recherche_court": "Search"
   },
   "de": {
+    "lien_detail_appareil": "Gerätedetails",
+    "detail_type": "Typ: {type}",
+    "detail_agent": "Version: {v}",
+    "detail_machine": "Rechner: {m}",
+    "detail_vu": "Letzter Kontakt: {quand}",
+    "detail_entites": "Alle Entitäten des Geräts",
+    "son_titre": "Lautstärke",
+    "son_niveau": "Pegel: {n} dBFS",
+    "son_niveau_inconnu": "Pegel: keine aktuelle Messung",
+    "son_seuil": "Aktuelle Schwelle: {s} dBFS ({source})",
+    "son_source_general": "allgemeine Schwelle",
+    "son_avertissements": "Warnungen heute: {n}",
+    "son_coupure": "Wegen Lärm gesperrt bis {heure}",
+    "son_mesure_seule": "Nur messen: keine Reaktion",
     "pg_rouvrir": "Wieder freigeben",
     "octroi_titre": "Entsperrcode",
     "octroi_champ": "Code",
@@ -746,6 +788,20 @@ const TEXTES = /*i18n-json*/{
     "el_recherche_court": "Suchen"
   },
   "es": {
+    "lien_detail_appareil": "Detalle del dispositivo",
+    "detail_type": "Tipo: {type}",
+    "detail_agent": "Versión: {v}",
+    "detail_machine": "Equipo: {m}",
+    "detail_vu": "Último contacto: {quand}",
+    "detail_entites": "Todas las entidades del dispositivo",
+    "son_titre": "Nivel de ruido",
+    "son_niveau": "Nivel: {n} dBFS",
+    "son_niveau_inconnu": "Nivel: sin medida reciente",
+    "son_seuil": "Umbral actual: {s} dBFS ({source})",
+    "son_source_general": "umbral general",
+    "son_avertissements": "Avisos hoy: {n}",
+    "son_coupure": "Cerrado por ruido hasta las {heure}",
+    "son_mesure_seule": "Solo medir: sin reacción",
     "pg_rouvrir": "Volver a permitir",
     "octroi_titre": "Código de desbloqueo",
     "octroi_champ": "Código",
@@ -990,6 +1046,20 @@ const TEXTES = /*i18n-json*/{
     "el_recherche_court": "Buscar"
   },
   "it": {
+    "lien_detail_appareil": "Dettaglio del dispositivo",
+    "detail_type": "Tipo: {type}",
+    "detail_agent": "Versione: {v}",
+    "detail_machine": "Computer: {m}",
+    "detail_vu": "Ultimo contatto: {quand}",
+    "detail_entites": "Tutte le entità del dispositivo",
+    "son_titre": "Livello sonoro",
+    "son_niveau": "Livello: {n} dBFS",
+    "son_niveau_inconnu": "Livello: nessuna misura recente",
+    "son_seuil": "Soglia attuale: {s} dBFS ({source})",
+    "son_source_general": "soglia generale",
+    "son_avertissements": "Avvisi oggi: {n}",
+    "son_coupure": "Chiuso per rumore fino alle {heure}",
+    "son_mesure_seule": "Solo misura: nessuna reazione",
     "pg_rouvrir": "Consenti di nuovo",
     "octroi_titre": "Codice di sblocco",
     "octroi_champ": "Codice",
@@ -1234,6 +1304,20 @@ const TEXTES = /*i18n-json*/{
     "el_recherche_court": "Cerca"
   },
   "nl": {
+    "lien_detail_appareil": "Apparaatdetails",
+    "detail_type": "Type: {type}",
+    "detail_agent": "Versie: {v}",
+    "detail_machine": "Computer: {m}",
+    "detail_vu": "Laatste contact: {quand}",
+    "detail_entites": "Alle entiteiten van het apparaat",
+    "son_titre": "Geluidsniveau",
+    "son_niveau": "Niveau: {n} dBFS",
+    "son_niveau_inconnu": "Niveau: geen recente meting",
+    "son_seuil": "Huidige drempel: {s} dBFS ({source})",
+    "son_source_general": "algemene drempel",
+    "son_avertissements": "Waarschuwingen vandaag: {n}",
+    "son_coupure": "Gesloten wegens lawaai tot {heure}",
+    "son_mesure_seule": "Alleen meten: geen reactie",
     "pg_rouvrir": "Weer toestaan",
     "octroi_titre": "Ontgrendelcode",
     "octroi_champ": "Code",
@@ -1722,6 +1806,7 @@ class VisionMaisonCard extends HTMLElement {
     }, true);
     this._ouverts = new Set();
     this._details = new Set();
+    this._fiches = new Set();   // 2.5.12.11 : appareils dont le détail est déplié
     // HA 2.5.1 : les catégories détaillées (étiquette → réponse), les logiciels dépliés, les catégories montrées en
     // entier, la ligne dont le choix du mode est ouvert, la recherche et les blocages récents de la personne.
     this._elCats = new Map();
@@ -2109,6 +2194,37 @@ class VisionMaisonCard extends HTMLElement {
     return `<div class="alerte"><ha-icon icon="mdi:alert-outline"></ha-icon><span>${esc(tr("alerte_a_verifier", { liste: manquent.join(tr("separateur_liste")) }))}</span></div>`;
   }
 
+  // 2.5.12.11 : niveau sonore d'un appareil (absent si le module est coupé ou la mesure éteinte : rien n'est affiché).
+  _blocSon(a, avecNom = false) {
+    const n = a.son;
+    if (!n) return "";
+    const lignes = [
+      n.niveau_dbfs === null || n.niveau_dbfs === undefined ? tr("son_niveau_inconnu") : tr("son_niveau", { n: n.niveau_dbfs }),
+      tr("son_seuil", { s: n.seuil_dbfs, source: n.source || tr("son_source_general") }),
+      n.reagir ? tr("son_avertissements", { n: n.aujourd_hui }) : tr("son_mesure_seule"),
+    ];
+    return `<div class="son" data-son-bloc="${esc(a.id)}">
+      <div class="son-titre"><ha-icon icon="mdi:volume-high"></ha-icon><b>${esc(avecNom ? `${tr("son_titre")} · ${a.nom}` : tr("son_titre"))}</b></div>
+      ${lignes.map((l) => `<div class="sous">${esc(l)}</div>`).join("")}
+      ${n.coupure ? `<div class="alerte"><ha-icon icon="mdi:volume-off"></ha-icon><span>${esc(tr("son_coupure", { heure: heureTs(n.coupure.fin) }))}</span></div>` : ""}
+    </div>`;
+  }
+
+  // 2.5.12.11 : le détail de l'appareil, déplié depuis sa ligne (état, version, machine, niveau sonore, entités HA).
+  _ficheAppareil(a) {
+    const infos = [
+      tr("detail_type", { type: a.type || "" }),
+      a.agent_version ? tr("detail_agent", { v: a.agent_version }) : "",
+      a.machine ? tr("detail_machine", { m: a.machine }) : "",
+      a.vu ? tr("detail_vu", { quand: heureTs(a.vu) }) : "",
+    ].filter(Boolean);
+    return `<div class="fiche-appareil" data-fiche-zone="${esc(a.id)}">
+      ${infos.map((l) => `<div class="sous">${esc(l)}</div>`).join("")}
+      ${this._blocSon(a)}
+      ${a.appareil_ha ? `<button class="lien" data-ha-appareil="${esc(a.appareil_ha)}"><ha-icon icon="mdi:cog-outline"></ha-icon> ${esc(tr("detail_entites"))}</button>` : ""}
+    </div>`;
+  }
+
   _appareil(a) {
     const act = this._activite(a);
     const icone = iconeAppareil(a);
@@ -2169,6 +2285,11 @@ class VisionMaisonCard extends HTMLElement {
           ${esc(tr("lien_a_qui"))}
         </button>
         ${partage}
+        <button class="lien" data-fiche="${esc(a.id)}" aria-expanded="${this._fiches.has(a.id)}">
+          <ha-icon icon="${this._fiches.has(a.id) ? "mdi:chevron-down" : "mdi:chevron-right"}"></ha-icon>
+          ${esc(tr("lien_detail_appareil"))}
+        </button>
+        ${this._fiches.has(a.id) ? this._ficheAppareil(a) : ""}
         <button class="lien retirer" data-retirer="${esc(a.id)}" title="${esc(tr("retrait_titre_bouton"))}" aria-haspopup="dialog" ${this._occupe ? "disabled" : ""}>
           <ha-icon icon="mdi:delete-outline"></ha-icon>
           ${esc(tr("bouton_retirer_appareil"))}
@@ -2665,6 +2786,7 @@ class VisionMaisonCard extends HTMLElement {
         ${this._erreur ? `<div class="erreur" role="alert">${esc(this._erreur)}</div>` : ""}${this._fait ? `<div class="fait" role="status">${esc(this._fait)}</div>` : ""}
         ${d.retour ? `<div class="retour-texte">${esc(d.retour)}</div>` : ""}
         ${resume ? `${this._blocTemps(p)}
+        ${p.appareils.filter((a) => a.son).map((a) => this._blocSon(a, true)).join("")}
         <h3>${esc(tr("titre_appareils"))}</h3>
         ${p.appareils.length ? p.appareils.map((a) => this._appareil(a)).join("") : `<div class="vide">${esc(tr("aucun_appareil_instant"))}</div>`}
         ${p.entite ? this._blocAjout(p) : ""}
@@ -2698,6 +2820,10 @@ class VisionMaisonCard extends HTMLElement {
         .limite .jauge i { display:block; height:100%; background:var(--primary-color); }
         .alerte { display:flex; gap:6px; align-items:flex-start; color:var(--vision-texte-alerte); font-size:.9em; margin:6px 0; }
         .alerte ha-icon { --mdc-icon-size:18px; flex:none; }
+        .son { border:1px solid var(--divider-color); border-radius:8px; padding:8px 10px; margin:8px 0; }
+        .son-titre { display:flex; align-items:center; gap:6px; margin-bottom:2px; }
+        .son-titre ha-icon { --mdc-icon-size:18px; color:var(--primary-color); }
+        .fiche-appareil { padding:4px 0 6px 28px; }
         .limite.atteinte .jauge i { background:var(--error-color,#c62828); }
         .limite.atteinte .sous { color:var(--vision-texte-erreur); }
         h2 { margin: 0; font-size: 1.25em; font-weight: 500; }
@@ -3036,6 +3162,14 @@ class VisionMaisonCard extends HTMLElement {
         this._retirer();
       });
     }
+    r.querySelectorAll("[data-fiche]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const id = b.dataset.fiche;
+        this._fiches.has(id) ? this._fiches.delete(id) : this._fiches.add(id);
+        this._rendre();
+      }));
+    r.querySelectorAll("[data-ha-appareil]").forEach((b) =>
+      b.addEventListener("click", () => this._naviguer(`/config/devices/device/${b.dataset.haAppareil}`)));
     r.querySelectorAll("[data-detail]").forEach((b) =>
       b.addEventListener("click", () => {
         const id = b.dataset.detail;

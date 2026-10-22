@@ -288,6 +288,43 @@ def mesure_active(store, pc: dict[str, Any]) -> bool:
     return actif_module(store) and reglages(pc)["actif"]
 
 
+def visible(store, pc: dict[str, Any] | None) -> bool:
+    """2.5.12.11 (principe du module) : le niveau sonore n'apparaît dans l'interface (plages, résumé, détail de
+    l'appareil) que si le module est allumé ET la mesure allumée sur cet appareil. Sinon : aucune trace, aucun calcul."""
+    return bool(pc) and mesure_active(store, pc)
+
+
+def pour_fiche(store, pc: dict[str, Any], maintenant: float | None = None) -> dict[str, Any] | None:
+    """Le bloc « Niveau sonore » d'un appareil pour la carte Maison (résumé de la personne, détail de l'appareil) :
+    niveau actuel, seuil en cours et sa source, avertissements du jour, coupure pour bruit en cours. None si invisible."""
+    if not visible(store, pc):
+        return None
+    t = time.time() if maintenant is None else maintenant
+    r = reglages(pc)
+    e = etat(pc)
+    seuil, source = seuil_detail(store, pc)
+    coupure = None
+    derniere = next((x for x in reversed(e.get("journal") or []) if isinstance(x, dict) and x.get("type") == "coupure"), None)
+    override = pc.get("override") or {}
+    if derniere and override.get("mode") == MODE_LOCKED and float(override.get("until") or 0) > t:
+        # La fin enregistrée au moment de la coupure (2.5.12.11) ; avant, l'heure du dépassement plus la durée.
+        fin_bruit = float(derniere.get("fin") or (float(derniere.get("ts") or 0) + float(derniere.get("minutes") or 0) * 60))
+        if fin_bruit > t and abs(fin_bruit - float(override["until"])) < 120:
+            coupure = {"fin": int(float(override["until"]))}
+    frais = t - float(e.get("maj") or 0) < 300
+    return {
+        "niveau_dbfs": dbfs(e.get("niveau")) if frais else None,
+        "seuil_dbfs": seuil - 100,
+        "source": source.get("nom") or "",
+        "mode": r["seuil_mode"],
+        "reagir": r["reagir"],
+        "aujourd_hui": int(e.get("aujourd_hui") or 0) if e.get("jour") == dt_util.as_local(dt_util.utc_from_timestamp(t)).date().isoformat() else 0,
+        "alertes": int(e.get("alertes") or 0),
+        "alertes_avant_coupure": r["alertes_avant_coupure"],
+        "coupure": coupure,
+    }
+
+
 # ----------------------------------------------------------------------------- Plages horaires
 
 
@@ -592,7 +629,7 @@ def recevoir(hass: HomeAssistant, store, pc: dict[str, Any], bloc: Any, maintena
                 _prevenir_responsables(hass, store, pc, db, e["aujourd_hui"], cle="son.responsable_coupure",
                                        minutes=r["coupure_min"], heure=textes.heure(fin_coupure, textes.ha(hass)))
             hass.bus.async_fire(EV_COUPURE, {"appareil": pc.get("id"), "nom": nom, "minutes": r["coupure_min"], "alertes": n})
-            _noter(e, quand, "coupure", db, rang=n, seuil_dbfs=seuil - 100, minutes=r["coupure_min"])
+            _noter(e, quand, "coupure", db, rang=n, seuil_dbfs=seuil - 100, minutes=r["coupure_min"], fin=round(fin_coupure))
             _LOGGER.warning("Vision : trop de bruit sur « %s » : coupure %d min après %d avertissements (%s dBFS, seuil %s dBFS).",
                             nom, r["coupure_min"], n, dbfs(db), seuil - 100)
             e["alertes"] = 0

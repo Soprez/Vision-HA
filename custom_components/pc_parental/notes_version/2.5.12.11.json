@@ -1,0 +1,45 @@
+{
+  "version": "2.5.12.11",
+  "date": "2026-10-22",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Détail d'une plage : son seuil sonore, modifiable (module Niveau sonore allumé et mesure active).",
+        "en": "Time slot details: its noise threshold, editable (Sound level module on and measuring active).",
+        "de": "Zeitplan-Details: seine Lärmschwelle, änderbar (Modul Lautstärke an, Messung aktiv).",
+        "es": "Detalle de una franja: su umbral de ruido, editable (módulo Nivel de ruido activo y medición encendida).",
+        "it": "Dettaglio di una fascia: la sua soglia di rumore, modificabile (modulo Livello sonoro e misura attivi).",
+        "nl": "Details van een tijdvak: de geluidsdrempel, aanpasbaar (module Geluidsniveau aan en meten actief)."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Bloc « Niveau sonore » dans le résumé de la personne : niveau, seuil en cours, avertissements, coupure.",
+        "en": "“Sound level” block in the person summary: level, current threshold, warnings, cut-off.",
+        "de": "Block „Lautstärke“ in der Personenübersicht: Pegel, aktuelle Schwelle, Warnungen, Sperre.",
+        "es": "Bloque «Nivel de ruido» en el resumen de la persona: nivel, umbral actual, avisos, corte.",
+        "it": "Blocco «Livello sonoro» nel riepilogo della persona: livello, soglia attuale, avvisi, blocco.",
+        "nl": "Blok ‘Geluidsniveau’ in het overzicht van de persoon: niveau, huidige drempel, waarschuwingen, blokkering."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "« Détail de l'appareil » depuis sa ligne : version, machine, niveau sonore et toutes ses entités.",
+        "en": "“Device details” from its row: version, machine, sound level and all its entities.",
+        "de": "„Gerätedetails“ in seiner Zeile: Version, Rechner, Lautstärke und alle Entitäten.",
+        "es": "«Detalle del dispositivo» desde su fila: versión, equipo, nivel de ruido y todas sus entidades.",
+        "it": "«Dettaglio del dispositivo» dalla sua riga: versione, computer, livello sonoro e tutte le entità.",
+        "nl": "‘Apparaatdetails’ vanuit de regel: versie, computer, geluidsniveau en alle entiteiten."
+      }
+    }
+  ]
+}

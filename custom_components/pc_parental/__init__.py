@@ -353,7 +353,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # 2.5.12.10 : niveau sonore, mode du seuil enregistré pour les appareils réglés avant (règle jour/nuit gardée).
     from . import son as _son_migr
-    if _son_migr.migrer(coordinator.store):
+    if _son_migr.actif_module(coordinator.store) and _son_migr.migrer(coordinator.store):
         await coordinator.store.async_save()
 
     # 2.4.0 (retour d'essai) : arrêt automatique de la lecture après inactivité (Configurer › Musique).

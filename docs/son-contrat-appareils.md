@@ -66,6 +66,11 @@ ou, quand le module est allumé ET la mesure activée pour cet appareil :
 - Service `son_regler` : `seuil_mode`, `seuil_dbfs`, `marge_plancher_db`, `seuils_plages` (liste de `plage` : nom ou
   identifiant, puis `seuil_dbfs` ou `marge_plancher_db`), `plage_effacer`, `plancher_dbfs`, `plancher_auto` ;
   `seuil_nuit_db` reste accepté (il remplit les plages de session). Réglages Vision : section « Niveau sonore ».
+- **2.5.12.11, interface** (règle du module) : rien n'apparaît si le module est coupé ou la mesure éteinte sur
+  l'appareil (ni attribut, ni bloc, ni calcul). Sinon : `sensor.<pc>_plages` porte `son` (`mode`, `general_dbfs`) et
+  `seuil_sonore_dbfs` par plage (détail de plage, modifiable) ; la fiche d'appareil de la carte des appareils porte `son`
+  (`niveau_dbfs`, `seuil_dbfs`, `source`, `aujourd_hui`, `coupure.fin`), montré dans le résumé de la personne et dans
+  « Détail de l'appareil » (avec `agent_version`, `machine` et le lien vers l'appareil Home Assistant).
 - Correctif 2.5.12.10 : la nuit (attribut `nuit`) reconnaît enfin les plages de session ; avant, elle retombait
   toujours sur la plage de repli 22:00 → 07:00.
 

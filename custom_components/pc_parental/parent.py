@@ -346,8 +346,26 @@ def _fiche(hass: HomeAssistant, coord: PcParentalCoordinator, pc: dict[str, Any]
         "refus": coord.store.refus_en_cours(pc),
         "limites": _limites(coord.store, pc),
     }
+    # 2.5.12.11 : le détail de l'appareil (agent, machine, appareil Home Assistant pour toutes ses entités).
+    fiche["agent_version"] = str(agent.get("version") or "")
+    fiche["machine"] = str(agent.get("host") or pc.get("host") or "")
+    try:
+        from homeassistant.helpers import device_registry as dr
+
+        from .registre import identifiant_pc
+
+        # API non dépréciée (HA 2027.8) : l'identifiant de l'appareil dans l'entrée de Vision.
+        appareil = dr.async_get(hass).async_get_device_by_identifier(identifiant_pc(pc["id"]), coord.config_entry.entry_id)
+        fiche["appareil_ha"] = appareil.id if appareil else ""
+    except Exception:  # noqa: BLE001 - le détail ne bloque jamais la fiche
+        fiche["appareil_ha"] = ""
     # 1.82.0 : ce qui relève d'un module coupé n'est plus montré (et reste enregistré pour son retour).
     store = coord.store
+    # 2.5.12.11 : le niveau sonore, seulement module allumé et mesure allumée sur cet appareil.
+    from . import son as _son
+
+    if (bloc_son := _son.pour_fiche(store, pc)) is not None:
+        fiche["son"] = bloc_son
     if modules.coupe(store, "plages"):
         fiche.update(plages=[], planning_ferme=False, prochain_verrou="")
     if modules.coupe(store, "temps"):

@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from homeassistant.const import MATCH_ALL
+from homeassistant.const import MATCH_ALL, UnitOfSoundPressure
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -783,7 +783,17 @@ class PcPlagesSensor(PcEntity, SensorEntity):
         # se demande à `/api/pc_parental/catalogue`. Plusieurs centaines de
         # noms recopiés dans les attributs de quatre capteurs finiraient
         # écrits en base à chaque changement, pour rien.
-        return {
+        # 2.5.12.11 : le seuil sonore de chaque plage, seulement module allumé et mesure allumée sur cet appareil.
+        from . import son as _son
+
+        son_bloc = None
+        if _son.visible(self.coordinator.store, pc):
+            r = _son.reglages(pc)
+            son_bloc = {"mode": r["seuil_mode"], "general_dbfs": r["seuil_db"] - 100}
+            for p in plages:
+                v = r["seuils_plages"].get(str(p["id"]))
+                p["seuil_sonore_dbfs"] = None if v is None else v - 100
+        attributs = {
             "pc": self.coordinator.pc_name(self.pc_id),
             # Les appareils de la personne : une plage peut en épargner certains.
             "appareils": [
@@ -793,6 +803,9 @@ class PcPlagesSensor(PcEntity, SensorEntity):
             "vocabulaire": self.coordinator.store.toutes_etiquettes(),
             "plages": plages,
         }
+        if son_bloc is not None:
+            attributs["son"] = son_bloc
+        return attributs
 
 
 
@@ -856,8 +869,15 @@ class NiveauSonoreSensor(PcEntity, SensorEntity):
 
     _attr_translation_key = "niveau_sonore"
     _attr_icon = "mdi:volume-vibrate"
-    _attr_native_unit_of_measurement = "dB"
+    # 2.5.12.11 : un vrai capteur pour l'historique et les statistiques longues natives de Home Assistant (moyenne,
+    # minimum et maximum horaires, gardés au-delà de la purge du recorder). Classe « pression acoustique » et unité dB
+    # (la seule que cette classe accepte, et celle des statistiques déjà enregistrées) ; la valeur reste en dBFS
+    # (0 = pleine échelle du micro), comme le dit l'attribut « echelle ».
+    _attr_device_class = SensorDeviceClass.SOUND_PRESSURE
+    _attr_native_unit_of_measurement = UnitOfSoundPressure.DECIBEL
     _attr_state_class = SensorStateClass.MEASUREMENT
+    # L'état est enregistré à chaque relevé ; les attributs lourds (listes) ne le sont pas, la base ne gonfle pas.
+    _unrecorded_attributes = frozenset({"journal", "par_micro", "seuils_plages", "micros_pris_en_compte", "micros_exclus"})
 
     def __init__(self, coordinator: PcParentalCoordinator, pc_id: str) -> None:
         super().__init__(coordinator, pc_id)

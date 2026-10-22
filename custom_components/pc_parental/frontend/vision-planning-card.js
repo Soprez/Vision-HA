@@ -10,6 +10,8 @@
 // ---- i18n:debut — les textes de cette carte, dans les six langues de Vision (fr source, en repli) ----
 const TEXTES = /*i18n-json*/{
   "fr": {
+    "seuil_sonore": "Seuil sonore de cette plage (dBFS)",
+    "seuil_sonore_aide": "Vide : le seuil général ({g} dBFS). Plusieurs plages en cours : la plus stricte.",
     "jour_lun": "Lun", "jour_mar": "Mar", "jour_mer": "Mer", "jour_jeu": "Jeu", "jour_ven": "Ven", "jour_sam": "Sam", "jour_dim": "Dim",
     "erreur_admin": "Réservé aux administrateurs de Home Assistant.",
     "erreur_loading": "Vision démarre : réessaie dans un instant.",
@@ -65,6 +67,8 @@ const TEXTES = /*i18n-json*/{
     "plage_inactive": "désactivée"
   },
   "en": {
+    "seuil_sonore": "Noise threshold for this time slot (dBFS)",
+    "seuil_sonore_aide": "Empty: the general threshold ({g} dBFS). Several running slots: the strictest.",
     "jour_lun": "Mon", "jour_mar": "Tue", "jour_mer": "Wed", "jour_jeu": "Thu", "jour_ven": "Fri", "jour_sam": "Sat", "jour_dim": "Sun",
     "erreur_admin": "Only Home Assistant administrators can do this.",
     "erreur_loading": "Vision is starting: try again in a moment.",
@@ -120,6 +124,8 @@ const TEXTES = /*i18n-json*/{
     "plage_inactive": "turned off"
   },
   "de": {
+    "seuil_sonore": "Lärmschwelle dieses Zeitplans (dBFS)",
+    "seuil_sonore_aide": "Leer: die allgemeine Schwelle ({g} dBFS). Mehrere laufende Zeitpläne: der strengste.",
     "jour_lun": "Mo", "jour_mar": "Di", "jour_mer": "Mi", "jour_jeu": "Do", "jour_ven": "Fr", "jour_sam": "Sa", "jour_dim": "So",
     "erreur_admin": "Nur für Home Assistant-Administratoren.",
     "erreur_loading": "Vision startet gerade: versuch es gleich noch einmal.",
@@ -175,6 +181,8 @@ const TEXTES = /*i18n-json*/{
     "plage_inactive": "ausgeschaltet"
   },
   "es": {
+    "seuil_sonore": "Umbral de ruido de esta franja (dBFS)",
+    "seuil_sonore_aide": "Vacío: el umbral general ({g} dBFS). Varias franjas en curso: la más estricta.",
     "jour_lun": "Lun", "jour_mar": "Mar", "jour_mer": "Mié", "jour_jeu": "Jue", "jour_ven": "Vie", "jour_sam": "Sáb", "jour_dim": "Dom",
     "erreur_admin": "Solo para administradores de Home Assistant.",
     "erreur_loading": "Vision se está iniciando: inténtalo de nuevo en un momento.",
@@ -230,6 +238,8 @@ const TEXTES = /*i18n-json*/{
     "plage_inactive": "desactivada"
   },
   "it": {
+    "seuil_sonore": "Soglia di rumore di questa fascia (dBFS)",
+    "seuil_sonore_aide": "Vuoto: la soglia generale ({g} dBFS). Più fasce in corso: la più severa.",
     "jour_lun": "Lun", "jour_mar": "Mar", "jour_mer": "Mer", "jour_jeu": "Gio", "jour_ven": "Ven", "jour_sam": "Sab", "jour_dim": "Dom",
     "erreur_admin": "Riservato agli amministratori di Home Assistant.",
     "erreur_loading": "Vision si sta avviando: riprova tra un momento.",
@@ -285,6 +295,8 @@ const TEXTES = /*i18n-json*/{
     "plage_inactive": "disattivata"
   },
   "nl": {
+    "seuil_sonore": "Geluidsdrempel van dit tijdvak (dBFS)",
+    "seuil_sonore_aide": "Leeg: de algemene drempel ({g} dBFS). Meerdere lopende tijdvakken: het strengste.",
     "jour_lun": "Ma", "jour_mar": "Di", "jour_mer": "Wo", "jour_jeu": "Do", "jour_ven": "Vr", "jour_sam": "Za", "jour_dim": "Zo",
     "erreur_admin": "Alleen voor beheerders van Home Assistant.",
     "erreur_loading": "Vision start op: probeer het zo opnieuw.",
@@ -664,7 +676,14 @@ const retourGeste = (hote) => {
         })),
         couleur: p.couleur || null,
         libelle: p.libelle || "",
+        // 2.5.12.11 : présent seulement si le module Niveau sonore est allumé et la mesure allumée sur cet appareil.
+        seuil_sonore: p.seuil_sonore_dbfs === undefined ? undefined : p.seuil_sonore_dbfs,
       }));
+    }
+
+    // 2.5.12.11 : {mode, general_dbfs} quand le niveau sonore vaut pour cet appareil ; sinon null (aucune trace).
+    _son() {
+      return ((this._etat || {}).attributes || {}).son || null;
     }
 
     _pc() {
@@ -1289,6 +1308,9 @@ const retourGeste = (hote) => {
                 options="${echap(JSON.stringify(this._appareils().map((a) => ({ cle: a.id, libelle: a.nom }))))}"></vision-choix>
               <div class="suggestion">${echap(tr("sauf_aide"))}</div></div>` : ""}
             <div class="champ"><label>${echap(tr("couleur"))}</label><div class="nuancier" id="ed-couleurs">${nuancier}</div></div>
+            ${!neuf && this._son() ? `<div class="champ"><label for="ed-son">${echap(tr("seuil_sonore"))}</label>
+              <input type="number" id="ed-son" min="-70" max="0" step="1" value="${p.seuil_sonore === null || p.seuil_sonore === undefined ? "" : echap(String(p.seuil_sonore))}">
+              <div class="suggestion">${echap(tr("seuil_sonore_aide", { g: this._son().general_dbfs }))}</div></div>` : ""}
             <div class="champ"><label class="interrupteur">
               <input type="checkbox" id="ed-active" ${p.active ? "checked" : ""}> ${echap(tr("plage_active"))}</label></div>
             <div class="boutons">
@@ -1503,6 +1525,17 @@ const retourGeste = (hote) => {
         donnees.id = p.id;
         donnees.couleur = p.couleur || "";
         this._svc("update_schedule", donnees);
+        // 2.5.12.11 : le seuil sonore de la plage (champ présent seulement module allumé et mesure allumée).
+        const champSon = $("ed-son");
+        if (champSon) {
+          const avant = p.seuil_sonore === null || p.seuil_sonore === undefined ? "" : String(p.seuil_sonore);
+          const apres = String(champSon.value || "").trim();
+          if (apres !== avant) {
+            this._svc("son_regler", apres === ""
+              ? { pc: this._pc(), plage_effacer: [String(p.id)] }
+              : { pc: this._pc(), seuil_mode: "plages", seuils_plages: [{ plage: String(p.id), seuil_dbfs: Math.max(-70, Math.min(0, Math.round(Number(apres)))) }] });
+          }
+        }
       }
       this._fermerEditeur();
     }
