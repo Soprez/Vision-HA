@@ -11,6 +11,7 @@ import logging
 import secrets
 import time
 from typing import Any
+from urllib.parse import urlsplit
 
 from aiohttp import web
 from homeassistant.components import persistent_notification
@@ -64,6 +65,20 @@ def retirer(pc: dict[str, Any], demande_id: str) -> dict[str, Any] | None:
     return None
 
 
+def lien_sur(texte: Any) -> str:
+    """Le lien joint à une demande, seulement s'il est de la forme http(s)://hôte/… (2.5.12.14.1, revue de sécurité de HACS) :
+    l'appareil qui demande choisit ce texte, et la carte du tableau en fait un lien cliquable. « javascript: », « data: »,
+    un lien sans hôte ou avec des espaces ou des caractères de contrôle donnent une chaîne vide."""
+    brut = str(texte or "").strip()
+    if not brut or len(brut) > 300 or any(c.isspace() or ord(c) < 32 or ord(c) == 127 for c in brut):
+        return ""
+    try:
+        morceaux = urlsplit(brut)
+    except ValueError:
+        return ""
+    return brut if morceaux.scheme.lower() in ("http", "https") and morceaux.netloc and morceaux.hostname else ""
+
+
 def deposer(
     hass: HomeAssistant, coord: PcParentalCoordinator, pc: dict[str, Any],
     genre: str, nom: str, libelle: str, lien: str = "", motif: str = "", duree: str = "",
@@ -77,6 +92,7 @@ def deposer(
     cle = cle_de(genre, nom)
     if not cle:
         return None
+    lien = lien_sur(lien)  # 2.5.12.14.1 : seulement http(s), avant de l'enregistrer ou de le notifier
     sites = sites_du_groupe(coord, pc, cle, sites) if genre == "apps" and sites else []
     # Refusée il y a peu : elle ne repart pas chez les parents avant la fin de l'attente.
     jusqua = coord.store.refus_jusqua(pc, genre, cle)

@@ -2137,7 +2137,9 @@ class VisionMaisonCard extends HTMLElement {
 
   _demande(d) {
     const quoi = d.libelle || d.cle || d.nom || "";
-    const lien = d.lien ? `<a href="${esc(d.lien)}" target="_blank" rel="noopener">${esc(d.lien)}</a>` : "";
+    // 2.5.12.14.1 : un lien ne devient cliquable que s'il est http(s) (« javascript: », « data: »… : texte simple).
+    const lienSur = /^https?:\/\/[^\s]+$/i.test(String(d.lien || "")) ? String(d.lien) : "";
+    const lien = lienSur ? `<a href="${esc(lienSur)}" target="_blank" rel="noopener noreferrer">${esc(lienSur)}</a>` : (d.lien ? `<span class="pourquoi">${esc(d.lien)}</span>` : "");
     const motif = d.motif ? `<span class="motif">${esc(tr("motif_cite", { motif: d.motif }))}</span>` : "";
     const raison = d.raison ? `<span class="pourquoi">${esc(d.raison)}</span>` : "";
     const b = (dec, txt, min, mode) =>

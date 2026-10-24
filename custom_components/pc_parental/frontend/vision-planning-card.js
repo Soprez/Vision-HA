@@ -944,7 +944,7 @@ const retourGeste = (hote) => {
         ${this._style()}
         <ha-card>
           <div class="entete">
-            <div class="titre">${titre}</div>
+            <div class="titre">${echap(titre)}</div>
             <div class="vues" role="group" aria-label="${echap(tr("vue_choix"))}">
               <button class="vue" data-vue="liste" aria-pressed="${liste}">${echap(tr("vue_liste"))}</button>
               <button class="vue" data-vue="grille" aria-pressed="${!liste}">${echap(tr("vue_grille"))}</button>

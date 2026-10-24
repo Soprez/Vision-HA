@@ -58,18 +58,24 @@ async def test_chaque_geste_se_voit_tout_de_suite(hass, hass_storage, hass_clien
     # Lot 1 (HA-02) : de quoi trancher dans l'onglet Autorisations (un logiciel au nom long, deux sites).
     lou["apps_vues"] = {"com.mojang.minecraftpe.un.nom.de.paquet.tres.long": {"premier": maintenant, "dernier": maintenant, "secondes": 60}}
     lou["sites_vus"] = {d: {"premier": maintenant, "dernier": maintenant, "n": 1} for d in ("wikipedia.org", "twitch.tv")}
+    # 2.5.12.14.1 (revue de sécurité de HACS) : un appareil, une personne et une demande « hostiles » : leurs noms, leur motif
+    # et leur lien sont du HTML ou « javascript: ». Les cartes doivent tout montrer en texte, sans rien exécuter.
+    lou["demandes"].append({"id": "d2", "genre": "sites", "cle": "exemple-xss.fr", "nom": "exemple-xss.fr", "libelle": "Site <b>gras</b>",
+                            "lien": "javascript:window.__xss=3", "motif": "<img src=x onerror=window.__xss=4>", "duree": "", "ts": maintenant - 90})
+    zed = _fiche("x1", '<img src=x onerror="window.__xss=1">', "z" * 32, person="person.zed", platform="android", type="telephone")
     # 2.5.0 : une appli « toujours disponible » sur la fiche (onglet Autorisations).
     lou["autorises"] = ["minecraft"]
     lou["toujours"] = ["minecraft"]
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True,
         "entites_personnes": {"person.lou": ["sensor.salon"]},
-        "pcs": {"e1": lou, "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent")},
+        "pcs": {"e1": lou, "x1": zed, "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent")},
         # 2.5.1 : une catégorie à détailler élément par élément.
         "etiquettes": {"apps": {"com.mojang.minecraftpe.un.nom.de.paquet.tres.long": ["Jeux"]}, "sites": {"twitch.tv": ["Jeux"]}},
     }}
     hass.states.async_set("person.lou", "home", {"friendly_name": "Lou"})
     hass.states.async_set("person.nolan", "home", {"friendly_name": "Nolan"})
+    hass.states.async_set("person.zed", "home", {"friendly_name": '<svg onload="window.__xss=2">'})
     hass.states.async_set("sensor.salon", "21.5", {"friendly_name": "Température salon", "unit_of_measurement": "°C"})
     entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
@@ -92,6 +98,12 @@ async def test_chaque_geste_se_voit_tout_de_suite(hass, hass_storage, hass_clien
     planning["__entite"] = plages.entity_id
     planning["__etats"] = {plages.entity_id: {"entity_id": plages.entity_id, "state": plages.state, "attributes": json.loads(json.dumps(dict(plages.attributes), default=str))}}
     (tmp_path / "donnees" / "planning.json").write_text(json.dumps(planning, ensure_ascii=False), encoding="utf-8")
+    # 2.5.12.14.1 : la même carte Planning, sur l'appareil au nom hostile (le titre de la carte porte ce nom).
+    hostile = next(e for e in hass.states.async_all("sensor") if "plages" in e.attributes and "<img" in str(e.attributes.get("pc")))
+    planning_xss = json.loads(json.dumps(planning))
+    planning_xss["__entite"] = hostile.entity_id
+    planning_xss["__etats"] = {hostile.entity_id: {"entity_id": hostile.entity_id, "state": hostile.state, "attributes": json.loads(json.dumps(dict(hostile.attributes), default=str))}}
+    (tmp_path / "donnees" / "planning_xss.json").write_text(json.dumps(planning_xss, ensure_ascii=False), encoding="utf-8")
     # 2.5.1 : les lectures de l'écran par élément, servies au banc (ce ne sont pas des gestes).
     maison = json.loads((tmp_path / "donnees" / "maison.json").read_text(encoding="utf-8"))
     for corps in ({"action": "categorie", "etiquette": "Jeux"}, {"action": "recherche", "texte": "twitch"}, {"action": "recents"}):
@@ -101,7 +113,8 @@ async def test_chaque_geste_se_voit_tout_de_suite(hass, hass_storage, hass_clien
     assert maison["__lecture_categorie"]["sites"], maison["__lecture_categorie"]
     (tmp_path / "donnees" / "maison.json").write_text(json.dumps(maison, ensure_ascii=False), encoding="utf-8")
     m = maison["pc_parental/maison"]
-    assert {d["genre"] for d in m["demandes"]} == {"apps", "temps"}
+    assert {d["genre"] for d in m["demandes"]} == {"apps", "temps", "sites"}
+    assert any(d.get("lien", "").startswith("javascript:") for d in m["demandes"])  # la donnée hostile arrive bien aux cartes
     shutil.copy(ICI / "clics" / "banc.html", tmp_path / "banc.html")
     for f in CARTES.glob("vision-*.js"):
         shutil.copy(f, tmp_path / f.name)

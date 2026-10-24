@@ -374,6 +374,25 @@ const SCENARIOS = [
     echouer: `new Error("Élément inconnu de Vision.")`,
     apres: `/inconnu/.test(statutKo())`,
   },
+  // ---------------------------------------------------------------- sécurité : rien d'hostile ne s'exécute (2.5.12.14.1)
+  // Le banc a un appareil dont le nom, une personne dont le prénom, et une demande dont le motif et le lien sont du HTML ou
+  // « javascript: ». Les cartes les montrent en texte : aucun élément injecté, aucun script, aucun lien « javascript: ».
+  {
+    nom: "Sécurité — noms, motif et lien hostiles (carte Maison)", carte: "vision-maison-card", donnees: "maison",
+    config: { mode: "maison", chemin: "/vision-maison" }, rendu: true,
+    apres: `window.__xss === undefined && !R().querySelector("img, [onerror], [onload]") && /<img src=x/.test(R().textContent) && ` +
+           `!tous("a[href]").some((a) => /^ *(javascript|data|vbscript):/i.test(a.getAttribute("href")))`,
+  },
+  {
+    nom: "Sécurité — noms hostiles (onglet Protection)", carte: "vision-maison-card", donnees: "maison",
+    config: { mode: "protections", chemin: "/vision-maison" }, rendu: true,
+    apres: `window.__xss === undefined && !R().querySelector("img, svg, [onerror], [onload]") && /<img src=x/.test(R().textContent)`,
+  },
+  {
+    nom: "Sécurité — titre de la carte Planning d'un appareil au nom hostile", carte: "vision-planning-card", donnees: "planning_xss",
+    config: { entity: "__auto" }, rendu: true,
+    apres: `window.__xss === undefined && !R().querySelector("img, svg, [onerror], [onload]") && /<img src=x/.test(R().querySelector(".titre").textContent)`,
+  },
   // ---------------------------------------------------------------- carte Planning
   {
     nom: "Planning — enregistrer une plage", carte: "vision-planning-card", donnees: "planning", config: { entity: "__auto" },
@@ -439,6 +458,15 @@ async function main() {
         for (let i = 0; i < 60 && !pret; i++) { await pause(100); pret = await evaluer(`!!(window.__pret && R() && R().querySelector("button"))`).catch(() => false); }
         if (!pret) throw new Error("carte non affichée");
         await pause(150);
+        if (s.rendu) {
+          // Un simple rendu : rien à cliquer, la page doit être restée saine.
+          await pause(400);
+          if (!(await evaluer(s.apres))) throw new Error("rendu non sûr : " + (await evaluer(`R().innerHTML.slice(0, 300)`)));
+          if (exceptions.length) throw new Error("exception : " + exceptions[0]);
+          res.ok = true;
+          console.log(JSON.stringify(res));
+          continue;
+        }
         if (s.defilement) {
           // 1.93.2 : pas de « En cours… » à guetter ; un geste éventuel reçoit sa réponse, puis la place est vérifiée.
           await evaluer(s.agir, true);
