@@ -525,7 +525,10 @@ async def test_blueprint_jours_d_ecole(hass, hass_storage):
         for eid in call.data["entity_id"]:
             v = agendas[eid]
             if isinstance(v, list):
-                sortie[eid] = {"events": [{"start": f"{jour}T{h}:00+02:00", "end": f"{jour}T{h}:00+02:00", "summary": t,
+                # Le décalage horaire est celui du jour (pas un « +02:00 » fixe : le jour du changement d'heure d'octobre il vaut +01:00).
+                def _local(h):
+                    return datetime.fromisoformat(f"{jour}T{h}:00").replace(tzinfo=dt_util.get_default_time_zone()).isoformat()
+                sortie[eid] = {"events": [{"start": _local(h), "end": _local(h), "summary": t,
                                            "description": d} for h, t, d in v]}
             else:
                 sortie[eid] = {"events": [{"start": str(jour), "end": str(jour), "summary": "x"}] if v else []}
