@@ -1517,16 +1517,6 @@
       "name": "Consenti di nuovo",
       "description": "Consente di nuovo i dispositivi che «Blocca tutto» teneva bloccati: tornano al loro programma. Un blocco manuale precedente viene mantenuto. Solo per gli amministratori."
     },
-    "musique_vider_suite": {
-      "name": "Musica — svuota la coda",
-      "description": "Rimuove tutti i brani dopo quello in corso dalla coda di Music Assistant del diffusore scelto (il brano in corso continua) e disattiva l'aggiunta automatica. Solo per gli amministratori.",
-      "fields": {
-        "entity_id": {
-          "name": "Diffusore",
-          "description": "Il lettore Music Assistant di cui si svuota la coda."
-        }
-      }
-    },
     "reveil_activer": {
       "description": "Attiva una sveglia (come il suo interruttore).",
       "fields": {

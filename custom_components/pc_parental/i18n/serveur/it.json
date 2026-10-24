@@ -969,5 +969,6 @@
   "son.responsable_coupure": "Troppo rumore su «{nom}» ({niveau} dBFS) dopo {n} avvisi oggi: chiuso per {minutes} min, fino alle {heure}.",
   "reglages.son_fait": "Livello sonoro di «{appareil}» salvato.",
   "son.plage_inconnue": "Fascia sconosciuta su questo dispositivo: {plage}.",
-  "son.plancher_inconnu": "Ancora nessun fondo misurato (un'ora di misura): inseritelo o indicate la soglia in dBFS."
+  "son.plancher_inconnu": "Ancora nessun fondo misurato (un'ora di misura): inseritelo o indicate la soglia in dBFS.",
+  "mus.a_faire_dans_ma": "Da fare in Music Assistant: Vision non lo fa più da qui."
 }

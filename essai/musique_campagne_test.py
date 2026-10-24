@@ -8,8 +8,6 @@ volume). Rien ne joue nulle part : les services media_player et Music Assistant 
 from __future__ import annotations
 
 import asyncio
-from types import SimpleNamespace
-
 from homeassistant.core import ServiceCall, SupportsResponse
 from homeassistant.helpers import entity_registry as er
 
@@ -21,7 +19,7 @@ from party_musique_test import (  # noqa: F401  (fixtures du banc)
 
 async def _soiree(hass, hass_storage, hass_client, monkeypatch, *, jouer=True):
     """Une soirée lancée sur le salon (faux MA), les services media_player notés, la limite de débit remise à zéro."""
-    from custom_components.pc_parental import musique, widgets
+    from custom_components.pc_parental import widgets
     widgets._recentes.clear()
     coord, appels, files = await _monter(hass, hass_storage, monkeypatch)
     er.async_get(hass).async_get_or_create("media_player", "music_assistant", "tele_salon", suggested_object_id="televiseur_du_salon_4")
@@ -31,11 +29,12 @@ async def _soiree(hass, hass_storage, hass_client, monkeypatch, *, jouer=True):
         async def h(call: ServiceCall, svc=svc):
             media.append((svc, dict(call.data)))
         hass.services.async_register("media_player", svc, h)
-    # mass.music pour le nombre de titres d'un album ou d'une playlist (la confirmation au-delà de 50).
-    async def pistes(*_a, **_k):
-        return [object()] * 3
-    ma = musique.entree(hass)
-    ma.runtime_data.mass.music = SimpleNamespace(get_album_tracks=pistes, get_playlist_tracks=pistes)
+    # Le service music_assistant.transfer_queue (changer d'enceinte en pleine lecture) : l'appel est noté dans files.supprimes.
+    async def transfert(call: ServiceCall):
+        cibles = call.data.get("entity_id", [])
+        for cible in ([cibles] if isinstance(cibles, str) else cibles):
+            files.supprimes.append(("transfert", call.data.get("source_player"), cible))
+    hass.services.async_register("music_assistant", "transfer_queue", transfert)
     client = await hass_client()
     s, r = await _post(client, "commande", PARENT, action="lancer", ecran="t1", lecteur=MA_SALON)
     assert s == 200, r
@@ -73,29 +72,15 @@ async def test_ajout_en_double(hass, hass_storage, hass_client, monkeypatch):
     assert len([c for c in _play(appels) if c["media_id"] == "library://track/145"]) == 2
 
 
-async def test_retirer_suivant_dernier_en_cours_inconnu(hass, hass_storage, hass_client, monkeypatch):
+async def test_retirer_deplacer_a_la_fin_sont_a_faire_dans_ma(hass, hass_storage, hass_client, monkeypatch):
+    """Retirer, déplacer, mettre à la fin : plus de service Home Assistant, donc une phrase « à faire dans Music Assistant »
+    (jamais une erreur 500) et rien envoyé à Music Assistant."""
     _c, _a, files, client, _m = await _soiree(hass, hass_storage, hass_client, monkeypatch)
-    ids = [x["queue_item_id"] for x in files.items]
-    # Le dernier (q1) : retiré.
-    s, r = await _post(client, "commande", PARENT, action="retirer", element=ids[-1])
-    assert s == 200, r
-    # Un identifiant inconnu : une phrase, jamais une erreur 500.
-    s, r = await _post(client, "commande", PARENT, action="retirer", element="inconnu")
-    assert s in (200, 400) and "retour" in r, r
-    # Le titre en cours : refusé ou sans effet, jamais une erreur 500.
-    s, r = await _post(client, "commande", PARENT, action="retirer", element=ids[0])
-    assert s in (200, 400) and "retour" in r, r
-    # Sans élément : une phrase.
-    s, r = await _post(client, "commande", PARENT, action="retirer")
-    assert s == 400 and r.get("retour"), r
-
-
-async def test_deplacer_zero_et_a_la_fin_inconnu(hass, hass_storage, hass_client, monkeypatch):
-    _c, _a, _f, client, _m = await _soiree(hass, hass_storage, hass_client, monkeypatch)
-    s, r = await _post(client, "commande", PARENT, action="deplacer", element="q1", decalage=0)
-    assert s == 400 and r.get("retour"), r
-    s, r = await _post(client, "commande", PARENT, action="a_la_fin", element="nexistepas")
-    assert s == 400 and r.get("retour"), r
+    for extra in ({"action": "retirer", "element": "q1"}, {"action": "deplacer", "element": "q1", "decalage": 1},
+                  {"action": "a_la_fin", "element": "q1"}):
+        s, r = await _post(client, "commande", PARENT, **extra)
+        assert s in (200, 400) and "Music Assistant" in (r.get("retour") or ""), (extra, s, r)
+    assert [x["queue_item_id"] for x in files.items] == ["q0", "q1"] and files.supprimes == []
 
 
 async def test_file_vide_suivant(hass, hass_storage, hass_client, monkeypatch):
@@ -159,11 +144,11 @@ async def test_changer_d_enceinte_en_pleine_lecture(hass, hass_storage, hass_cli
 
 
 async def test_transfert_impossible(hass, hass_storage, hass_client, monkeypatch):
-    _c, _a, files, client, _m = await _soiree(hass, hass_storage, hass_client, monkeypatch)
+    _c, _a, _files, client, _m = await _soiree(hass, hass_storage, hass_client, monkeypatch)
 
-    async def casse(*_a, **_k):
+    async def casse(call: ServiceCall):
         raise RuntimeError("MA refuse")
-    files.transfer = casse
+    hass.services.async_register("music_assistant", "transfer_queue", casse)
     s, r = await _post(client, "commande", PARENT, action="enceinte", lecteur=MA_CHAMBRE)
     assert s in (200, 400) and r.get("retour"), r
 

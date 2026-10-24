@@ -42,7 +42,7 @@ async def test_avertit_puis_arrete(hass, hass_storage, monkeypatch):
         return {"envoi": "x", "messages": []}
     from custom_components.pc_parental import messages_v2
     monkeypatch.setattr(messages_v2, "envoyer", envoyer)
-    assert musique_arret.delai_min(coord.store) == musique_arret.DEFAUT_MIN  # 2 h par défaut
+    assert musique_arret.delai_min(coord.store) == musique_arret.DEFAUT_MIN  # désactivé par défaut (2.5.12.14.2)
     coord.store.musique["arret_auto_min"] = 30
     _jouer(hass, MA_SALON, "Télé du bureau · Vision")
     t0 = time.time()
@@ -57,6 +57,27 @@ async def test_avertit_puis_arrete(hass, hass_storage, monkeypatch):
     assert len(envois) == 1
     arretes = await musique_arret.tour(hass, coord, t0 + 30 * 60 + 1)
     assert arretes == [MA_SALON] and appels == [("media_pause", MA_SALON), ("media_stop", MA_SALON)]
+
+
+async def test_desactive_par_defaut_et_seuls_les_lecteurs_vision_sont_arretes(hass, hass_storage, monkeypatch):
+    """2.5.12.14.2 (revue de HACS) : sans réglage, rien n'est arrêté, même après des jours ; une fois allumé, seuls les
+    lecteurs « · Vision » le sont : un autre lecteur de Music Assistant (la chambre) n'est jamais touché."""
+    coord, _a, _f = await _monter(hass, hass_storage, monkeypatch)
+    from custom_components.pc_parental import musique_arret
+    musique_arret._ACTIVITE.clear(); musique_arret._AVERTIS.clear()
+    appels = _services(hass)
+    _jouer(hass, MA_SALON, "Télé du bureau · Vision")
+    _jouer(hass, MA_CHAMBRE, "Chambre")
+    assert musique_arret.DEFAUT_MIN == 0 and musique_arret.delai_min(coord.store) == 0
+    t0 = time.time()
+    assert await musique_arret.tour(hass, coord, t0) == [] and await musique_arret.tour(hass, coord, t0 + 5 * 24 * 3600) == []
+    assert appels == []
+    # Allumé : le lecteur « · Vision » est arrêté, la chambre jamais.
+    coord.store.musique["arret_auto_min"] = 30
+    await musique_arret.tour(hass, coord, t0 + 6 * 24 * 3600)
+    assert await musique_arret.tour(hass, coord, t0 + 6 * 24 * 3600 + 31 * 60) == [MA_SALON]
+    assert appels == [("media_pause", MA_SALON), ("media_stop", MA_SALON)]
+    assert MA_CHAMBRE not in musique_arret._ACTIVITE
 
 
 async def test_continuer_et_activite_relancent(hass, hass_storage, monkeypatch):

@@ -1,6 +1,6 @@
 """2.1.0 — la Party ouverte à tous (décision du 2026-10-10), sauf l'interrupteur Mode Fête.
 
-Pendant une Party, un enfant choisit la musique, met en pause, passe, règle le volume, retire un titre. Il ne lance
+Pendant une Party, un enfant choisit la musique, met en pause, passe, règle le volume (retirer un titre : à faire dans Music Assistant). Il ne lance
 pas, n'arrête pas, ne change pas d'enceinte, ne touche ni aux invités ni au Mode Fête. Un appareil fermé par ses
 règles (la nuit) ne participe pas, et le dit.
 
@@ -40,8 +40,9 @@ async def test_pendant_la_party_un_enfant_participe(hass, hass_storage, hass_cli
         assert s != 403, (action, r)  # le service de lecture lui-même n'existe pas dans le banc
     s, r = await _post(client, "commande", ENFANT, action="volume", volume=0.3)
     assert s != 403
+    # Retirer un titre n'existe plus dans Vision (2.5.12.14.2) : permis à l'enfant, mais « à faire dans Music Assistant ».
     s, r = await _post(client, "commande", ENFANT, action="retirer", element="q1")
-    assert s == 200 and files.supprimes
+    assert s == 400 and r["retour"].startswith("À faire dans Music Assistant") and files.supprimes == []
     # Ce qui reste aux décideurs.
     for action, plus in (("arreter", {}), ("lancer", {"ecran": "t1", "lecteur": MA_SALON}),
                          ("enceinte", {"lecteur": MA_CHAMBRE}), ("invites", {"mode": "direct"}), ("nouveau_lien", {})):

@@ -1517,16 +1517,6 @@
       "name": "Wieder freigeben",
       "description": "Gibt die Geräte wieder frei, die „Alles sperren“ gesperrt hielt: Sie kehren zu ihrem Zeitplan zurück. Eine manuelle Sperre von vorher bleibt bestehen. Nur für Administratoren."
     },
-    "musique_vider_suite": {
-      "name": "Musik — Warteschlange leeren",
-      "description": "Entfernt alle Titel nach dem aktuellen aus der Music-Assistant-Warteschlange des gewählten Lautsprechers (der aktuelle Titel läuft weiter) und schaltet das automatische Hinzufügen aus. Nur für Administratoren.",
-      "fields": {
-        "entity_id": {
-          "name": "Lautsprecher",
-          "description": "Der Music-Assistant-Player, dessen Warteschlange geleert wird."
-        }
-      }
-    },
     "reveil_activer": {
       "description": "Aktiviert einen Wecker (wie sein Schalter).",
       "fields": {

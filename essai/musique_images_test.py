@@ -21,7 +21,7 @@ async def test_chemin_interne_par_l_imageproxy(hass, hass_storage, monkeypatch):
 
     # Adresse déjà servie (service get_library) : inchangée.
     assert musique._image({"image": f"{BASE}/imageproxy/abc?size=0"}, BASE) == f"{BASE}/imageproxy/abc?size=0"
-    # library:// (client Music Assistant) : chemin interne + fournisseur → imageproxy, chemin encodé.
+    # library:// (élément de Music Assistant) : chemin interne + fournisseur → imageproxy, chemin encodé.
     piste = {"uri": "library://track/12", "name": "Titre", "media_type": "track",
              "image": {"type": "thumb", "path": "/media/Musique/Disney/cover 1&2.jpg", "provider": "filesystem_local--x1",
                        "remotely_accessible": False}}
@@ -57,18 +57,13 @@ async def test_base_retenue_depuis_l_integration(hass, hass_storage, monkeypatch
     await _monter(hass, hass_storage, monkeypatch)
     from custom_components.pc_parental import musique
 
+    monkeypatch.setattr(musique, "_BASE_MA", "")
+
     class _Entree:
         data = {"url": "http://d5369777-music-assistant:8094/"}
 
-    monkeypatch.setattr(musique, "_client", lambda _h: None)
     monkeypatch.setattr(musique, "entree", lambda _h: _Entree())
     assert musique.retenir_base(hass) == "http://d5369777-music-assistant:8094"
-
-    class _Info:
-        base_url = BASE
-
-    class _Mass:
-        server_info = _Info()
-
-    monkeypatch.setattr(musique, "_client", lambda _h: _Mass())
-    assert musique.retenir_base(hass) == BASE
+    # Sans intégration chargée : la dernière adresse retenue reste.
+    monkeypatch.setattr(musique, "entree", lambda _h: None)
+    assert musique.retenir_base(hass) == "http://d5369777-music-assistant:8094"

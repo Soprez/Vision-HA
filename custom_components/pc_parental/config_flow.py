@@ -668,7 +668,7 @@ class PcParentalOptionsFlow(_Assistant, OptionsFlow):
             choix = str(user_input.get("arret_auto") or str(musique_arret.DEFAUT_MIN))
             if choix == "perso":
                 m["arret_auto_min"] = max(musique_arret.ARRET_PERSO_MIN, min(musique_arret.ARRET_PERSO_MAX,
-                                                                              int(user_input.get("arret_auto_perso") or musique_arret.DEFAUT_MIN)))
+                                                                              int(user_input.get("arret_auto_perso") or 60)))
             else:
                 m["arret_auto_min"] = int(choix)
             _LOGGER.warning("%s : enceintes de Musique → %s (par %s).", PRODUIT_AFFICHE,
@@ -686,7 +686,7 @@ class PcParentalOptionsFlow(_Assistant, OptionsFlow):
             vol.Optional("arret_auto", default=str(actuel) if actuel in musique_arret.CHOIX_MIN else "perso"):
                 selector.SelectSelector(selector.SelectSelectorConfig(
                     options=choix_arret, mode=selector.SelectSelectorMode.DROPDOWN, translation_key="arret_auto")),
-            vol.Optional("arret_auto_perso", default=actuel or musique_arret.DEFAUT_MIN): selector.NumberSelector(
+            vol.Optional("arret_auto_perso", default=actuel or 60): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=musique_arret.ARRET_PERSO_MIN, max=musique_arret.ARRET_PERSO_MAX, step=5,
                                               unit_of_measurement="min", mode=selector.NumberSelectorMode.BOX)),
         }))

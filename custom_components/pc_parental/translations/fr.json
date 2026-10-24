@@ -1517,16 +1517,6 @@
       "name": "Rouvrir",
       "description": "Rouvre les appareils que « Tout fermer » tenait fermés : ils reviennent à leur planning. Une fermeture manuelle d'avant est gardée. Réservé aux administrateurs."
     },
-    "musique_vider_suite": {
-      "name": "Musique — vider la suite",
-      "description": "Retire tous les titres qui suivent le titre en cours dans la file Music Assistant de l'enceinte choisie (le titre en cours continue) et coupe l'ajout automatique. Réservé aux administrateurs.",
-      "fields": {
-        "entity_id": {
-          "name": "Enceinte",
-          "description": "Le lecteur Music Assistant dont la file est vidée."
-        }
-      }
-    },
     "reveil_creer": {
       "name": "Réveil — créer",
       "description": "Crée un réveil pour un Demandeur. Il est programmé sur ses appareils, qui sonnent seuls même si Home Assistant ou le réseau sont tombés. Renvoie l'identifiant du réveil. Module « Réveil » requis.",

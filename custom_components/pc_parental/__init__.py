@@ -595,7 +595,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "liberer_message",
                 "pause_generale",
                 "fin_pause_generale",
-                "musique_vider_suite",
                 "son_regler",
             ):
                 hass.services.async_remove(DOMAIN, service)
@@ -1161,19 +1160,6 @@ def _async_register_services(hass: HomeAssistant) -> None:
         vol.Required("minutes"): vol.All(vol.Coerce(int), vol.Range(min=_pause_g.MINUTES_MIN, max=_pause_g.MINUTES_MAX)),
     }))
     service_admin(hass, "fin_pause_generale", _fin_pause_generale, schema=vol.Schema({}))
-
-    async def _musique_vider_suite(call: ServiceCall) -> None:
-        """2.2.10 (retour d'essai) : vider la suite d'une file Music Assistant (le titre en cours continue)."""
-        from . import musique as _musique
-        try:
-            for eid in call.data["entity_id"]:
-                await _musique.vider_suite(hass, eid)
-        except _musique.MusiqueIndisponible as err:
-            raise HomeAssistantError(str(err)) from err
-
-    service_admin(hass, "musique_vider_suite", _musique_vider_suite, schema=vol.Schema({
-        vol.Required("entity_id"): cv.entity_ids,
-    }))
 
     async def _ecran_regler(call: ServiceCall) -> dict:
         """17-10 (retour d'essai) : l'écran d'un appareil — veille de Vision permise, écran gardé allumé (administrateurs et automatisations)."""

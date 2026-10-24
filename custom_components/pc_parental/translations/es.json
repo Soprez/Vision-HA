@@ -1517,16 +1517,6 @@
       "name": "Volver a permitir",
       "description": "Vuelve a permitir los dispositivos que «Bloquear todo» tenía bloqueados: vuelven a su horario. Un bloqueo manual de antes se mantiene. Solo para administradores."
     },
-    "musique_vider_suite": {
-      "name": "Música — vaciar la cola",
-      "description": "Quita todas las canciones que siguen a la actual en la cola de Music Assistant del altavoz elegido (la actual sigue sonando) y desactiva la adición automática. Solo para administradores.",
-      "fields": {
-        "entity_id": {
-          "name": "Altavoz",
-          "description": "El reproductor de Music Assistant cuya cola se vacía."
-        }
-      }
-    },
     "reveil_activer": {
       "description": "Activa una alarma (como su interruptor).",
       "fields": {

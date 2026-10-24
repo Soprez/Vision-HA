@@ -26,9 +26,11 @@ from . import musique, textes
 
 _LOGGER = logging.getLogger(__name__)
 
-# Valeurs proposées (minutes) ; 0 = désactivé. Défaut : 2 h. « Personnalisé » : ARRET_PERSO_MIN à ARRET_PERSO_MAX.
+# Valeurs proposées (minutes) ; 0 = désactivé. Défaut : désactivé (0). « Personnalisé » : ARRET_PERSO_MIN à ARRET_PERSO_MAX.
 CHOIX_MIN = (0, 30, 60, 120, 240)
-DEFAUT_MIN = 120
+# 2.5.12.14.2 (revue de HACS) : désactivé par défaut ; une fois allumé, il ne vise que les lecteurs « · Vision » (ceux de
+# Vision), jamais les autres lecteurs de Music Assistant de la maison.
+DEFAUT_MIN = 0
 ARRET_PERSO_MIN, ARRET_PERSO_MAX = 5, 1440
 AVANCE_S = 60
 REPONSE_CONTINUER = "continuer"
@@ -115,6 +117,10 @@ async def tour(hass: HomeAssistant, coord, maintenant: float | None = None) -> l
     from . import veille_musique
     pendant_veille = veille_musique.exemptes()
     for lecteur in sorted(musique.lecteurs_ma(hass)):
+        if not musique.est_lecteur_vision(hass, lecteur):
+            _ACTIVITE.pop(lecteur, None)
+            _AVERTIS.pop(lecteur, None)
+            continue  # 2.5.12.14.2 : seulement les lecteurs gérés par Vision
         s = hass.states.get(lecteur)
         # 2.4.8 : personne n'interagit pendant une veille ; sa musique s'arrête de toute façon à la sortie.
         if lecteur in pendant_veille:

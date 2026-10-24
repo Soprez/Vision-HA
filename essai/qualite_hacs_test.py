@@ -173,3 +173,44 @@ def test_le_releve_utilise_le_calcul_par_tranches():
     src = (RACINE / "http.py").read_text(encoding="utf-8")
     assert "_effectif = await coord.store.async_effectif(pc)" in src and "**coord.store.effectif(pc)" not in src
     assert "await self.store.async_effectif(_pc)" in (RACINE / "coordinator.py").read_text(encoding="utf-8")
+
+
+# ------------------------------------------------------------------ 1 à 3. Music Assistant : services HA seulement
+
+def test_plus_de_client_interne_de_music_assistant():
+    """Points 1 et 2 de la revue : plus aucun accès au client interne de Music Assistant (`runtime_data.mass`), plus aucune
+    commande ni écriture de sa configuration, plus aucun renommage d'appareil Home Assistant. Balayage du CODE de chaque
+    module (l'arbre syntaxique : les commentaires et les docstrings qui racontent l'histoire ne comptent pas)."""
+    import re
+
+    commande_ma = re.compile(r"^(config/(players|player_queues|flows)|players|player_queues|music)/[a-z_/]+$")
+    fautes: list[str] = []
+    for f in sorted(RACINE.glob("*.py")):
+        arbre = ast.parse(f.read_text(encoding="utf-8"))
+        docstrings = {id(n.body[0].value) for n in ast.walk(arbre)
+                      if isinstance(n, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+                      and n.body and isinstance(n.body[0], ast.Expr) and isinstance(n.body[0].value, ast.Constant)}
+        for n in ast.walk(arbre):
+            if isinstance(n, ast.Attribute) and n.attr in ("runtime_data", "send_command"):
+                fautes.append(f"{f.name}:{n.lineno} .{n.attr}")
+            elif isinstance(n, ast.Attribute) and n.attr in ("player_queues", "players", "music") and ast.unparse(n.value).endswith("mass"):
+                fautes.append(f"{f.name}:{n.lineno} {ast.unparse(n)}")
+            elif isinstance(n, ast.Name) and n.id == "_client":
+                fautes.append(f"{f.name}:{n.lineno} _client")
+            elif isinstance(n, ast.FunctionDef) and n.name == "_client":
+                fautes.append(f"{f.name}:{n.lineno} def _client")
+            elif isinstance(n, ast.keyword) and n.arg == "name_by_user":
+                fautes.append(f"{f.name}:{n.value.lineno} name_by_user=")
+            elif isinstance(n, ast.Constant) and isinstance(n.value, str) and id(n) not in docstrings and commande_ma.match(n.value):
+                fautes.append(f"{f.name}:{n.lineno} commande « {n.value} »")
+    assert not fautes, fautes
+
+
+def test_arret_automatique_desactive_par_defaut_et_limite_a_vision():
+    from custom_components.pc_parental import musique_arret
+
+    assert musique_arret.DEFAUT_MIN == 0
+    assert musique_arret.delai_min(type("S", (), {"musique": {}})()) == 0  # rien de réglé : désactivé
+    assert musique_arret.delai_min(type("S", (), {"musique": {"arret_auto_min": 60}})()) == 60  # activé exprès
+    src = (RACINE / "musique_arret.py").read_text(encoding="utf-8")
+    assert "musique.est_lecteur_vision(hass, lecteur)" in src  # la boucle ignore les lecteurs qui ne sont pas à Vision

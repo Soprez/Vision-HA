@@ -1517,16 +1517,6 @@
       "name": "Allow again",
       "description": "Allows again the devices that “Block everything” was holding: they go back to their schedule. A manual block from before is kept. Administrators only."
     },
-    "musique_vider_suite": {
-      "name": "Music — clear the queue",
-      "description": "Removes every track after the current one from the chosen speaker's Music Assistant queue (the current track keeps playing) and turns off automatic additions. Administrators only.",
-      "fields": {
-        "entity_id": {
-          "name": "Speaker",
-          "description": "The Music Assistant player whose queue is cleared."
-        }
-      }
-    },
     "reveil_creer": {
       "name": "Alarm — create",
       "description": "Creates an alarm for a Requester. It is scheduled on their devices, which ring by themselves even if Home Assistant or the network is down. Returns the alarm id. Requires the « Alarm » module.",

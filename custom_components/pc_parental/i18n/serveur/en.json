@@ -969,5 +969,6 @@
   "son.responsable_coupure": "Too much noise on “{nom}” ({niveau} dBFS) after {n} warnings today: closed for {minutes} min, until {heure}.",
   "reglages.son_fait": "Sound level of “{appareil}” saved.",
   "son.plage_inconnue": "Unknown time slot on this device: {plage}.",
-  "son.plancher_inconnu": "No measured floor yet (one hour of measuring): enter it, or give the threshold in dBFS."
+  "son.plancher_inconnu": "No measured floor yet (one hour of measuring): enter it, or give the threshold in dBFS.",
+  "mus.a_faire_dans_ma": "To be done in Music Assistant: Vision no longer does this from here."
 }

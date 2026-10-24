@@ -1,6 +1,6 @@
 """Point 14 bis (1.99.0) : choisir la musique (Music Assistant) et la page invité (QR code).
 
-Un faux Music Assistant (services search / get_library / play_media / get_queue et client de file) remplace le vrai.
+Un faux Music Assistant (services search / get_library / play_media / get_queue, rien d'autre) remplace le vrai.
 Vérifie : lecteurs MA d'abord et doublon Cast caché ; recherche et bibliothèque pour décideur et télé, refus pour un
 enfant ; « Jouer maintenant » / « Ajouter à la file » ; la télé lance la Party chez elle mais ne vise jamais une
 autre enceinte ; page invité : jeton de la Party, révoqué à l'arrêt, références au lieu d'adresses, limites,
@@ -33,47 +33,21 @@ PISTES = [{"media_type": "track", "uri": "library://track/145", "name": "Dancing
 
 
 class FauxFiles:
+    """La file d'un faux Music Assistant, lue par le service `get_queue` seulement (2.5.12.14.2 : plus de client interne).
+    `supprimes` reste vide : tout ce qu'un client interne aurait reçu y serait noté."""
+
     def __init__(self):
         self.supprimes = []
-
         self.items = [{"queue_item_id": "q0", "media_item": {"name": "En cours", "uri": "library://track/1", "artists": []}},
                       {"queue_item_id": "q1", "media_item": {"name": "Dancing Queen", "uri": "library://track/145", "artists": [{"name": "ABBA"}]}}]
         self.courant = 0
-        self.dstm = {}
-        self.fondu = False
-        self.envoyes = []
 
-    def get(self, qid):
-        return {"current_index": self.courant, "items": len(self.items), "flow_mode": True,
-                "crossfade_enabled": self.fondu, "index_in_buffer": self.courant + 1,
-                "autoplay_enabled": self.dstm.get(qid, False),
-                "current_item": self.items[self.courant] if 0 <= self.courant < len(self.items) else None}
-
-    async def get_queue_items(self, qid, limit=500, offset=0):
-        return self.items[offset:offset + limit]
-
-    async def move_item(self, qid, item, pos_shift=1):
-        self.supprimes.append(("deplacer", qid, item, pos_shift))
-
-    async def dont_stop_the_music(self, qid, actif):
-        self.dstm[qid] = actif
-
-    async def delete_item(self, qid, item):
-        self.supprimes.append((qid, item))
-        self.items = [x for x in self.items if x.get("queue_item_id") != item]
-
-    async def play_index(self, qid, index):
-        self.supprimes.append(("jouer", qid, index))
-
-    async def move_next(self, qid, item):
-        # Comme Music Assistant (player_queues/move_item) : un titre déjà joué ou en cours ne se déplace pas.
-        ids = [x.get("queue_item_id") for x in self.items]
-        if item in ids and ids.index(item) <= self.courant:
-            raise IndexError(f"{ids.index(item)} is already played/buffered")
-        self.supprimes.append(("ensuite", qid, item))
-
-    async def transfer(self, src, dst, auto_play=None):
-        self.supprimes.append(("transfert", src, dst))
+    def reponse(self):
+        """Ce que rend `music_assistant.get_queue` pour un lecteur : titre en cours, titre suivant, nombre de titres."""
+        i = self.courant
+        return {"current_item": self.items[i] if 0 <= i < len(self.items) else None,
+                "next_item": self.items[i + 1] if 0 <= i + 1 < len(self.items) else None,
+                "items": len(self.items)}
 
 
 async def _monter(hass, hass_storage, monkeypatch):
@@ -85,19 +59,11 @@ async def _monter(hass, hass_storage, monkeypatch):
             "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], person="person.nolan", platform="android", role="parent"),
         }}}
     await hass.config.async_update(external_url="https://ha.exemple.org")
-    # L'intégration Music Assistant elle-même n'est pas installée dans le banc : son entrée chargée est simulée.
+    # L'intégration Music Assistant elle-même n'est pas installée dans le banc : son entrée chargée est simulée (sans client).
     from custom_components.pc_parental import musique, party_invites
     files = FauxFiles()
 
-    async def send_command(cmd, **kw):
-        files.envoyes.append((cmd, kw))
-        if cmd == "player_queues/crossfade":
-            files.fondu = kw["crossfade_enabled"]
-        if cmd == "player_queues/autoplay":
-            files.dstm[kw["queue_id"]] = kw["autoplay_enabled"]
-        if cmd == "config/player_queues/get_value":
-            return 8
-    ma = SimpleNamespace(entry_id="ma1", runtime_data=SimpleNamespace(mass=SimpleNamespace(player_queues=files, send_command=send_command)))
+    ma = SimpleNamespace(entry_id="ma1", data={})
     monkeypatch.setattr(musique, "entree", lambda _hass: ma)
     party_invites._compteurs.clear()
     reg = er.async_get(hass)
@@ -121,7 +87,8 @@ async def _monter(hass, hass_storage, monkeypatch):
         appels.append(("play_media", dict(call.data)))
 
     async def get_queue(call: ServiceCall):
-        return {}
+        eids = call.data.get("entity_id") or []
+        return {eid: files.reponse() for eid in ([eids] if isinstance(eids, str) else eids)}
     hass.services.async_register("music_assistant", "search", search, supports_response=SupportsResponse.ONLY)
     hass.services.async_register("music_assistant", "get_library", library, supports_response=SupportsResponse.ONLY)
     hass.services.async_register("music_assistant", "play_media", play_media)
@@ -240,9 +207,9 @@ async def test_page_invite_de_bout_en_bout(hass, hass_storage, hass_client_no_au
     # Sur la télé : « proposé par un invité ».
     s, r = await _post(client, "etat", TELE)
     assert [(x["titre"], x["invite"]) for x in r["file"]] == [("Dancing Queen", True)]
-    # Le décideur retire le titre.
+    # Le décideur ne retire plus le titre d'ici (2.5.12.14.2) : c'est à faire dans Music Assistant, aucun client appelé.
     s, r = await _post(client, "commande", PARENT, action="retirer", element=r["file"][0]["id"])
-    assert s == 200 and files.supprimes == [("qid-salon", "q1")]
+    assert s == 400 and r["retour"].startswith("À faire dans Music Assistant") and files.supprimes == []
     # Limite : 3 propositions par minute et par adresse.
     for _ in range(2):
         await client.post(chemin + "/proposer", json={"ref": j["titres"][0]["ref"]})
@@ -387,7 +354,6 @@ async def test_page_invite_pochettes_et_titre_en_cours(hass, hass_storage, hass_
 async def test_page_invite_souvent_joues_et_sans_music_assistant(hass, hass_storage, hass_client_no_auth, monkeypatch):
     """2.2.13 (retour d'essai) : « Souvent joués » avec pochettes dès l'ouverture (références, jamais d'adresse) ; la puce
     « Music Assistant » (fournisseur interne) n'est pas une plateforme ; remise à l'échelle si Chrome est en mode bureau."""
-    from types import SimpleNamespace
     from urllib.parse import urlparse
 
     from homeassistant.core import ServiceCall, SupportsResponse
@@ -414,8 +380,8 @@ async def test_page_invite_souvent_joues_et_sans_music_assistant(hass, hass_stor
     assert r.status == 200 and [t["titre"] for t in j["titres"]] == ["Sweat"] and j["titres"][0]["img"] is True
     assert "://" not in str(j) and vus[0].get("order_by") == "play_count_desc"
     # Plateformes : jamais « Music Assistant ».
-    musique._client(hass).providers = [SimpleNamespace(type="music", domain="builtin", name="Music Assistant", available=True),
-                                       SimpleNamespace(type="music", domain="ytmusic", name="YTM", available=True)]
+    # 2.5.12.14.2 : plus de client pour lister les fournisseurs ; ceux dont on a déjà vu des résultats.
+    monkeypatch.setattr(musique, "_FOURNISSEURS_VUS", {"builtin", "ytmusic"})
     assert [p["domaine"] for p in musique.plateformes(hass)] == ["library", "ytmusic"]
     page = await (await client.get(chemin)).text()
     assert "Music Assistant</button>" not in page and "YouTube Music</button>" in page

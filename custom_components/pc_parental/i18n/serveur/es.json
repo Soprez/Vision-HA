@@ -969,5 +969,6 @@
   "son.responsable_coupure": "Demasiado ruido en «{nom}» ({niveau} dBFS) tras {n} avisos hoy: cerrado {minutes} min, hasta las {heure}.",
   "reglages.son_fait": "Nivel de ruido de «{appareil}» guardado.",
   "son.plage_inconnue": "Franja desconocida en este dispositivo: {plage}.",
-  "son.plancher_inconnu": "Aún no hay fondo medido (una hora de medida): introdúzcalo o indique el umbral en dBFS."
+  "son.plancher_inconnu": "Aún no hay fondo medido (una hora de medida): introdúzcalo o indique el umbral en dBFS.",
+  "mus.a_faire_dans_ma": "Hay que hacerlo en Music Assistant: Vision ya no lo hace desde aquí."
 }

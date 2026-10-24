@@ -1,0 +1,58 @@
+{
+  "version": "2.5.12.14.3",
+  "date": "2026-10-25",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Musique : Vision ne passe plus que par les services de Music Assistant (plus de connexion interne).",
+        "en": "Music: Vision now only uses Music Assistant's services (no more internal connection).",
+        "de": "Musik: Vision nutzt nur noch die Dienste von Music Assistant (keine interne Verbindung mehr).",
+        "es": "Música: Vision solo usa los servicios de Music Assistant (sin conexión interna).",
+        "it": "Musica: Vision usa solo i servizi di Music Assistant (nessuna connessione interna).",
+        "nl": "Muziek: Vision gebruikt alleen nog de diensten van Music Assistant (geen interne verbinding meer)."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "À faire dans Music Assistant : file complète, retirer ou déplacer un titre, fondu, ajout auto, appairage Sendspin.",
+        "en": "To do in Music Assistant: full queue, remove or move a track, crossfade, auto-add, Sendspin pairing.",
+        "de": "In Music Assistant erledigen: ganze Warteschlange, Titel entfernen oder verschieben, Überblendung, Sendspin.",
+        "es": "Hacer en Music Assistant: cola completa, quitar o mover un tema, fundido, adición automática, Sendspin.",
+        "it": "Da fare in Music Assistant: coda completa, rimuovere o spostare un brano, dissolvenza, aggiunta auto, Sendspin.",
+        "nl": "Te doen in Music Assistant: volledige wachtrij, nummer verwijderen of verplaatsen, crossfade, Sendspin."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "L'arrêt automatique de la musique est désactivé par défaut et ne vise que les lecteurs de Vision.",
+        "en": "Automatic music stop is off by default and only targets Vision's own players.",
+        "de": "Der automatische Musik-Stopp ist standardmäßig aus und betrifft nur Vision-Player.",
+        "es": "La parada automática de la música está desactivada por defecto y solo afecta a los reproductores de Vision.",
+        "it": "L'arresto automatico della musica è disattivato di default e riguarda solo i lettori di Vision.",
+        "nl": "Het automatisch stoppen van muziek staat standaard uit en geldt alleen voor spelers van Vision."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Plus sûr et plus fluide : titre et lien des demandes contrôlés, calculs lourds hors de la boucle de Home Assistant.",
+        "en": "Safer and smoother: request titles and links checked, heavy work kept off Home Assistant's event loop.",
+        "de": "Sicherer und flüssiger: Anfragetitel und -links geprüft, schwere Arbeit nicht in der Ereignisschleife.",
+        "es": "Más seguro y fluido: títulos y enlaces de solicitudes controlados, trabajo pesado fuera del bucle de eventos.",
+        "it": "Più sicuro e fluido: titoli e link delle richieste controllati, lavoro pesante fuori dal ciclo di eventi.",
+        "nl": "Veiliger en vlotter: titels en links van verzoeken gecontroleerd, zwaar werk buiten de gebeurtenislus."
+      }
+    }
+  ]
+}

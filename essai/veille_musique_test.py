@@ -181,56 +181,60 @@ async def test_pas_d_arret_apres_inactivite_pendant_la_veille_et_ecran_eteint(ha
     assert "t1" not in veille_musique._EN_COURS
 
 
-class _Mass:
-    """Le client Music Assistant de l'intégration officielle, simulé : il note les commandes de favoris."""
+def _brancher_boutons(hass):
+    """Deux lecteurs Music Assistant (PROPRE, AUTRE) chacun avec son bouton « _favorite_now_playing » dans le registre ;
+    les pressions sur un bouton (service button.press) sont notées et rendues."""
+    from homeassistant.helpers import device_registry as dr, entity_registry as er
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-    def __init__(self):
-        self.appels = []
-        mass = self
+    entree = MockConfigEntry(domain="music_assistant", data={}, title="Music Assistant")
+    entree.add_to_hass(hass)
+    appareils, reg = dr.async_get(hass), er.async_get(hass)
+    pressions = []
+    # Les états existent déjà (le banc les pose) : on les retire le temps d'inscrire les entités sous leur identifiant.
+    for eid in (PROPRE, AUTRE):
+        hass.states.async_remove(eid)
+    for uid, lecteur, bouton in (("p1", PROPRE, "button.tele_salon_favori"), ("p2", AUTRE, "button.cuisine_favori")):
+        dev = appareils.async_get_or_create(config_entry_id=entree.entry_id, identifiers={("music_assistant", uid)})
+        reg.async_get_or_create("media_player", "music_assistant", uid, suggested_object_id=lecteur.split(".", 1)[1], device_id=dev.id)
+        reg.async_get_or_create("button", "music_assistant", f"{uid}_favorite_now_playing",
+                                suggested_object_id=bouton.split(".", 1)[1], device_id=dev.id)
+        reg.async_get_or_create("button", "music_assistant", f"{uid}_autre_bouton",
+                                suggested_object_id=bouton.split(".", 1)[1] + "_autre", device_id=dev.id)
 
-        class _Music:
-            async def add_item_to_favorites(self, item):
-                mass.appels.append(("ajout", item))
-
-            async def remove_item_from_favorites(self, media_type, library_item_id):
-                mass.appels.append(("retrait", media_type, library_item_id))
-
-            async def get_item_by_uri(self, uri):
-                class _I:
-                    media_type = "playlist"; item_id = "21"; provider = "library"
-                return _I()
-        self.music = _Music()
-
-
-def _brancher_mass(monkeypatch):
-    from custom_components.pc_parental import musique
-
-    mass = _Mass()
-    entree = type("E", (), {"runtime_data": type("R", (), {"mass": mass})()})()
-    monkeypatch.setattr(musique, "entree", lambda _h: entree)
-    return mass
+    async def presser(call: ServiceCall):
+        pressions.extend(call.data.get("entity_id") if isinstance(call.data.get("entity_id"), list) else [call.data.get("entity_id")])
+    hass.services.async_register("button", "press", presser)
+    hass.states.async_set(AUTRE, "idle", {"friendly_name": "Cuisine · Vision"})
+    return pressions
 
 
-async def test_coeur_favori_par_le_client_music_assistant(hass, hass_storage, hass_client, monkeypatch):
-    """l'auteur (15/10) : le cœur ajoute ou retire le favori dans Music Assistant, sans ouvrir son interface."""
+async def test_coeur_favori_du_titre_en_cours_par_le_bouton_du_lecteur(hass, hass_storage, hass_client, monkeypatch):
+    """2.5.12.14.2 (revue de HACS) : le cœur n'ajoute que le TITRE EN COURS d'un lecteur Music Assistant, par le bouton
+    « _favorite_now_playing » de ce lecteur ; retirer un favori, ou aimer un titre qui ne joue pas, est à faire dans MA."""
     from deverrouillage_test import ENFANT
 
     await _veille(hass, hass_storage, monkeypatch)
-    mass = _brancher_mass(monkeypatch)
+    pressions = _brancher_boutons(hass)
+    hass.states.async_set(PROPRE, "playing", {"friendly_name": "Téléviseur du salon · Vision", "media_content_id": "ytmusic://track/abc"})
     client = await hass_client()
-    s, r = await _post(client, TELE, action="favori", uri="ytmusic://playlist/PLabc", favori=True)
-    assert s == 200 and r["favori"] is True
-    s, r = await _post(client, TELE, action="favori", uri="library://playlist/15", favori=False)
-    assert s == 200 and r["favori"] is False
-    s, r = await _post(client, TELE, action="favori", uri="ytmusic://playlist/PLabc", favori=False)
-    assert s == 200
-    assert mass.appels == [("ajout", "ytmusic://playlist/PLabc"), ("retrait", "playlist", "15"), ("retrait", "playlist", "21")]
+    s, r = await _post(client, TELE, action="favori", uri="ytmusic://track/abc", favori=True)
+    assert s == 200 and r["favori"] is True, r
+    # Le bouton du lecteur qui joue ce titre, et aucun autre.
+    assert pressions == ["button.tele_salon_favori"]
+    # Retirer un favori : plus fait par Vision.
+    s, r = await _post(client, TELE, action="favori", uri="ytmusic://track/abc", favori=False)
+    assert s in (400, 503) and "Music Assistant" in r.get("retour", ""), (s, r)
+    # Aimer un titre qui ne joue nulle part : de même, aucun bouton pressé.
+    s, r = await _post(client, TELE, action="favori", uri="library://playlist/15", favori=True)
+    assert s in (400, 503) and "Music Assistant" in r.get("retour", ""), (s, r)
+    assert pressions == ["button.tele_salon_favori"]
     # Le téléphone d'un Demandeur ne change pas les favoris de tout le monde.
-    s, r = await _post(client, ENFANT, action="favori", uri="library://playlist/15", favori=True)
-    assert s == 403 and len(mass.appels) == 3
+    s, r = await _post(client, ENFANT, action="favori", uri="ytmusic://track/abc", favori=True)
+    assert s == 403 and len(pressions) == 1
     # Une uri invalide : refusée proprement.
     s, r = await _post(client, TELE, action="favori", uri="pas-une-uri", favori=True)
-    assert s == 503 and len(mass.appels) == 3
+    assert s == 503 and len(pressions) == 1
 
 
 async def test_recherche_de_playlists_tous_fournisseurs(hass, hass_storage, hass_client, monkeypatch):
@@ -255,11 +259,12 @@ async def test_recherche_de_playlists_tous_fournisseurs(hass, hass_storage, hass
 async def test_meme_coeur_dans_l_appli_musique(hass, hass_storage, hass_client, monkeypatch):
     """Le même appel (musique.basculer_favori) depuis l'appli Musique de Vision : /party/musique, quoi = favori."""
     await _veille(hass, hass_storage, monkeypatch)
-    mass = _brancher_mass(monkeypatch)
+    pressions = _brancher_boutons(hass)
+    hass.states.async_set(PROPRE, "playing", {"friendly_name": "Téléviseur du salon · Vision", "media_content_id": "library://track/7"})
     client = await hass_client()
-    r = await client.post("/api/pc_parental/party/musique", json={**TELE, "quoi": "favori", "uri": "library://playlist/7", "favori": True})
+    r = await client.post("/api/pc_parental/party/musique", json={**TELE, "quoi": "favori", "uri": "library://track/7", "favori": True})
     assert r.status == 200 and (await r.json())["favori"] is True
-    assert mass.appels == [("ajout", "library://playlist/7")]
+    assert pressions == ["button.tele_salon_favori"]
 
 
 async def test_suite_demande_le_titre_suivant_sur_son_propre_lecteur(hass, hass_storage, hass_client, monkeypatch):

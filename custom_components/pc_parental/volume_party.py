@@ -45,11 +45,6 @@ def membres(hass: HomeAssistant, eid: str) -> list[str]:
     return [str(x) for x in m if isinstance(x, str) and x.startswith("media_player.")]
 
 
-def _uid(hass: HomeAssistant, eid: str) -> str | None:
-    e = er.async_get(hass).async_get(eid)
-    return e.unique_id if e is not None and e.platform == musique.MA else None
-
-
 def _volume(hass: HomeAssistant, eid: str) -> float | None:
     s = hass.states.get(eid)
     v = s.attributes.get("volume_level") if s is not None else None
@@ -57,16 +52,8 @@ def _volume(hass: HomeAssistant, eid: str) -> float | None:
 
 
 def volume_groupe(hass: HomeAssistant, eid: str) -> float | None:
-    """Le volume du groupe : celui que tient Music Assistant, sinon la moyenne des enceintes réglables."""
-    mass, uid = musique._client(hass), _uid(hass, eid)
-    if mass is not None and uid and hasattr(getattr(mass, "players", None), "get"):
-        try:
-            p = mass.players.get(uid)
-            gv = p.get("group_volume") if isinstance(p, dict) else getattr(p, "group_volume", None)
-            if isinstance(gv, (int, float)):
-                return max(0.0, min(1.0, gv / 100))
-        except Exception:  # noqa: BLE001 - on retombe sur la moyenne
-            pass
+    """Le volume du groupe : la moyenne des enceintes réglables (2.5.12.14.2 : plus de volume de groupe de Music Assistant,
+    qui n'a pas de service ; Vision règle chaque enceinte par `media_player.volume_set`)."""
     vols = [v for m in membres(hass, eid) if not est_vision(hass, m) and (v := _volume(hass, m)) is not None]
     return round(sum(vols) / len(vols), 2) if vols else None
 
@@ -92,11 +79,18 @@ async def regler(hass: HomeAssistant, lecteur: str, v: float) -> bool:
     """Le bouton de volume de la Party. Vrai si c'est fait ici (groupe, ou lecteur Vision : rien à faire) ; faux pour
     une enceinte seule (l'appelant règle son volume)."""
     if membres(hass, lecteur):
-        mass, uid = musique._client(hass), _uid(hass, lecteur)
-        if mass is None or not uid or not hasattr(mass, "send_command"):
+        # Le groupe se règle enceinte par enceinte (service media_player.volume_set), en gardant leurs écarts : chaque volume
+        # est multiplié par le rapport entre le volume demandé et la moyenne actuelle (rien pour une enceinte « · Vision »).
+        reglables = [m for m in membres(hass, lecteur) if not est_vision(hass, m) and _volume(hass, m) is not None]
+        if not reglables:
             raise musique.MusiqueIndisponible("mus.ma_injoignable")
-        await mass.send_command("players/cmd/group_volume", player_id=uid, volume_level=round(v * 100))
-        _LOGGER.info("Party : volume du groupe de %s à %d %%", lecteur, round(v * 100))
+        v = max(0.0, min(1.0, float(v)))
+        moyenne = sum(_volume(hass, m) for m in reglables) / len(reglables)
+        for m in reglables:
+            nouveau = v if moyenne <= 0.01 else max(0.0, min(1.0, _volume(hass, m) * v / moyenne))
+            await hass.services.async_call("media_player", "volume_set",
+                                           {"entity_id": m, "volume_level": round(nouveau, 2)}, blocking=True)
+        _LOGGER.info("Party : volume du groupe de %s à %d %% (enceinte par enceinte)", lecteur, round(v * 100))
         return True
     if est_vision(hass, lecteur):
         await musique.tenir_volume(hass, lecteur)  # 2.4.0 : remis à 100 % s'il en était sorti

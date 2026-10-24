@@ -969,5 +969,6 @@
   "son.responsable_coupure": "Zu laut auf „{nom}“ ({niveau} dBFS) nach {n} Warnungen heute: {minutes} Min. gesperrt, bis {heure}.",
   "reglages.son_fait": "Lautstärke von „{appareil}“ gespeichert.",
   "son.plage_inconnue": "Unbekannter Zeitplan auf diesem Gerät: {plage}.",
-  "son.plancher_inconnu": "Noch kein gemessener Grundpegel (eine Stunde Messung): eingeben oder Schwelle in dBFS angeben."
+  "son.plancher_inconnu": "Noch kein gemessener Grundpegel (eine Stunde Messung): eingeben oder Schwelle in dBFS angeben.",
+  "mus.a_faire_dans_ma": "In Music Assistant erledigen: Vision macht das nicht mehr von hier aus."
 }

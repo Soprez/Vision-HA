@@ -1517,16 +1517,6 @@
       "name": "Weer toestaan",
       "description": "Staat de apparaten weer toe die “Alles blokkeren” geblokkeerd hield: ze gaan terug naar hun planning. Een handmatige blokkade van daarvoor blijft staan. Alleen voor beheerders."
     },
-    "musique_vider_suite": {
-      "name": "Muziek — wachtrij leegmaken",
-      "description": "Verwijdert alle nummers na het huidige uit de Music Assistant-wachtrij van de gekozen speaker (het huidige nummer speelt door) en zet automatisch toevoegen uit. Alleen voor beheerders.",
-      "fields": {
-        "entity_id": {
-          "name": "Speaker",
-          "description": "De Music Assistant-speler waarvan de wachtrij wordt leeggemaakt."
-        }
-      }
-    },
     "reveil_activer": {
       "description": "Schakelt een wekker in (zoals de schakelaar).",
       "fields": {

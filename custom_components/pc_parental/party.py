@@ -636,6 +636,29 @@ async def mes_titres(hass: HomeAssistant, appareil: str, langue: str | None = No
     return sortie
 
 
+def invites_en_attente(hass: HomeAssistant, st: dict[str, Any]) -> int:
+    """Les titres d'invités ajoutés à la file et pas encore joués, tels que Vision les a suivis (2.5.12.14.2 : la file complète
+    de Music Assistant n'est plus lisible, seul le titre suivant l'est). Un titre est « en cours » quand le lecteur le joue, et
+    « fini » quand il a cessé de l'être ; au bout de 3 h sans l'avoir vu jouer, il ne compte plus."""
+    lect = hass.states.get(st.get("lecteur") or "") if st.get("lecteur") else None
+    courant = str(lect.attributes.get("media_content_id") or "") if lect is not None and lect.state in EN_COURS else ""
+    maintenant = time.time()
+    n = 0
+    for p in st.get("propositions") or []:
+        if p.get("etat") != "ajoute" or p.get("fini"):
+            continue
+        if maintenant - float(p.get("ts") or 0) > 3 * 3600:
+            p["fini"] = True
+            continue
+        if courant and p.get("uri") == courant:
+            p["en_cours"] = True
+        elif p.get("en_cours"):
+            p["fini"] = True
+            continue
+        n += 1
+    return n
+
+
 async def proposer(hass: HomeAssistant, t: dict[str, Any], langue: str | None = None, appareil: str = "") -> str:
     """Un titre proposé par un invité : ajouté à la file (ajout direct), ou mis en attente d'un décideur.
 
@@ -649,8 +672,7 @@ async def proposer(hass: HomeAssistant, t: dict[str, Any], langue: str | None = 
         st["propositions"] = st["propositions"][-200:]
         return textes.t("party.merci_attente", langue)
     # Ajout direct : au plus N titres d'invités pas encore joués dans la file (pas d'inondation).
-    en_file = [x for x in await file_attente(hass, st["lecteur"]) if x.get("invite")]
-    if len(en_file) >= party_invites.INVITES_EN_FILE_MAX:
+    if invites_en_attente(hass, st) >= party_invites.INVITES_EN_FILE_MAX:
         raise party_invites.Complet(textes.t("party.complet", langue))
     # 2.5.8 (retour d'essai) : « jouer après » (juste après le titre en cours) ou « en fin de file ».
     ensuite = st.get("invites_mode") == "ensuite"
@@ -779,10 +801,8 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
             return textes.t("party.enchainement_fondu", lg, s=max(1, min(15, duree or 0)))
         return textes.t("party.enchainement_sans_blanc", lg)
     if action == "similaires":
-        st["similaires"] = bool(corps.get("actif"))
-        if st["actif"]:
-            await musique.sans_ajout_auto(hass, st["lecteur"], st["similaires"])
-        return textes.t("party.similaires_oui" if st["similaires"] else "party.similaires_non", lg)
+        # 2.5.12.14.2 : l'ajout automatique de titres de Music Assistant n'a pas de service Home Assistant : à régler dans Music Assistant.
+        raise musique.a_faire_dans_ma()
     if action in ("deplacer", "a_la_fin"):
         if action == "a_la_fin":
             await musique.a_la_fin(hass, st["lecteur"], str(corps.get("element") or ""))
@@ -1120,6 +1140,8 @@ class PcParentalPartyEtatView(_Porte):
             # 2.4.6 : le dernier saut sur ce lecteur (recalage de l'horloge locale d'un lecteur « · Vision »).
             "saut": saut_recent(self.hass, vu),
             "file": (la_file := avec_refs(self.hass, await file_attente(self.hass, st["lecteur"])) if st["actif"] else []),
+            # 2.5.12.14.2 : le suivi des titres d'invités (qui joue, qui est fini) se fait à chaque lecture de l'écran.
+            "invites_en_attente": invites_en_attente(self.hass, st) if st["actif"] else 0,
             # 2.5.8 (l'auteur : « la file doit défiler et suivre le morceau en cours ») : les derniers titres joués, du plus
             # ancien au plus récent ; l'appli les montre au-dessus du titre en cours.
             "file_passes": avec_refs(self.hass, await musique.file_passes(self.hass, st["lecteur"])) if st["actif"] else [],

@@ -153,7 +153,8 @@ async def test_pochette_d_un_titre_de_la_file(hass, hass_storage, hass_client, m
     from custom_components.pc_parental import party_invites
 
     url = "https://yt3.googleusercontent.com/bambam=w600-h600-p"
-    files.items.append({"queue_item_id": "q2", "media_item": {
+    # 2.5.12.14.2 : la file n'est lue que par get_queue, qui ne donne que le titre suivant : c'est lui qu'on met ici.
+    files.items[1] = ({"queue_item_id": "q2", "media_item": {
         "name": "BAM BAM", "uri": "library://track/414", "artists": [{"name": "Dj Towla"}],
         "image": {"type": "thumb", "path": url, "provider": "ytmusic--x", "remotely_accessible": True}}})
     morceaux = [b"\xff\xd8" + b"a" * 60_000, b"b" * 68_000 + b"\xff\xd9"]

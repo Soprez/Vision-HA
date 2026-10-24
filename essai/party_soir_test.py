@@ -6,11 +6,16 @@
 - changer d'enceinte transfère la file ; la télé n'est jamais l'enceinte de sa propre Party.
 
     python -m pytest essai/party_soir_test.py -q -o asyncio_mode=auto
+
+2.5.12.14.2 (revue de HACS) : Vision n'utilise plus le client interne de Music Assistant, seulement ses services Home Assistant
+(get_queue, transfer_queue, play_media). Ce qui n'avait pas de service (retirer, déplacer, vider la suite, enchaînement, ajout
+automatique, titres similaires, nombre de titres) répond « À faire dans Music Assistant » (erreur 400 habituelle).
 """
 from __future__ import annotations
 
 import time
 
+from homeassistant.core import ServiceCall, SupportsResponse
 from homeassistant.helpers import entity_registry as er
 
 from party_musique_test import (  # noqa: F401  (fixtures du banc)
@@ -29,6 +34,38 @@ async def _party(hass, hass_storage, hass_client, monkeypatch):
     s, r = await _post(client, "commande", PARENT, action="lancer", ecran="t1", lecteur=MA_SALON)
     assert s == 200, r
     return coord, appels, files, client
+
+
+A_FAIRE = "À faire dans Music Assistant"
+
+
+def _file_ma(hass, suivant="Dancing Queen", total=2, image=None):
+    """Simule le service `music_assistant.get_queue` (réponse {entity_id: {current_item, next_item, items}}) ; rend les
+    paramètres modifiables du test."""
+    q = {"suivant": suivant, "total": total, "image": image}
+
+    async def get_queue(call: ServiceCall):
+        eids = call.data.get("entity_id") or []
+        eids = [eids] if isinstance(eids, str) else eids
+        courant = {"queue_item_id": "q0", "media_item": {"name": "En cours", "uri": "library://track/1", "artists": [],
+                                                         **({"image": q["image"]} if q["image"] else {})}}
+        reponse = {"current_item": courant, "items": q["total"]}
+        reponse["next_item"] = ({"queue_item_id": "q1", "media_item": {"name": q["suivant"], "uri": "library://track/145",
+                                                                       "artists": [{"name": "ABBA"}]}} if q["suivant"] else None)
+        return {e: reponse for e in eids}
+    hass.services.async_register("music_assistant", "get_queue", get_queue, supports_response=SupportsResponse.ONLY)
+    return q
+
+
+def _transferts(hass):
+    """Enregistre les appels à `music_assistant.transfer_queue` : (source, cible, auto_play)."""
+    vus = []
+
+    async def transfer_queue(call: ServiceCall):
+        cible = call.data.get("entity_id")
+        vus.append((call.data.get("source_player"), cible[0] if isinstance(cible, list) else cible, call.data.get("auto_play")))
+    hass.services.async_register("music_assistant", "transfer_queue", transfer_queue)
+    return vus
 
 
 async def test_jamais_de_coupure(hass, hass_storage, hass_client, monkeypatch):
@@ -52,77 +89,64 @@ async def test_la_tele_pilote_la_file_et_l_enceinte(hass, hass_storage, hass_cli
     assert tv and tv[0]["dispo"] and not tv[0]["raison"]
     suivants = []
     hass.services.async_register("media_player", "media_next_track", lambda call: suivants.append(call.data.get("entity_id")))
+    # 2.5.12.14.2 : jouer maintenant / jouer ensuite / retirer un élément de la file n'ont pas de service : « à faire dans
+    # Music Assistant » (erreur 400 habituelle), rien n'est envoyé au lecteur et aucun client interne n'est appelé.
     for action in ("jouer_element", "ensuite_element", "retirer"):
         s, r = await _post(client, "commande", TELE, action=action, element="q1")
-        assert s == 200, (action, r)
-    # 2.5.8 (retour d'essai) : « Jouer maintenant » place le titre juste après celui en cours (pas de saut qui ferait passer pour
-    # joués les titres d'entre les deux) ; 2.5.12.2 (l'auteur, 19/10) : puis lance CE titre (play_index), jamais « suivant ».
-    assert files.supprimes.count(("ensuite", "qid-salon", "q1")) == 2 and ("jouer", "qid-salon", "q1") in files.supprimes
-    assert suivants == []
+        assert s == 400 and A_FAIRE in r["retour"], (action, r)
+    assert suivants == [] and files.supprimes == []
+    transferts = _transferts(hass)
     s, r = await _post(client, "commande", TELE, action="enceinte", lecteur="media_player.televiseur_du_salon_4")
-    assert s == 200 and ("transfert", "qid-salon", "q-tv") in files.supprimes and "Music Assistant" not in r["retour"]
+    assert s == 200 and transferts == [(MA_SALON, "media_player.televiseur_du_salon_4", True)] and "Music Assistant" not in r["retour"]
     s, r = await _post(client, "commande", TELE, action="enceinte", lecteur=MA_CHAMBRE)
-    assert s == 200 and ("transfert", "q-tv", "qid-chambre") in files.supprimes and "continue" in r["retour"]
+    assert s == 200 and transferts[-1] == ("media_player.televiseur_du_salon_4", MA_CHAMBRE, True) and "continue" in r["retour"]
+    assert files.supprimes == []  # le transfert passe par le service, pas par le client
     s, r = await _post(client, "etat", TELE)
     assert r["lecteur"] == MA_CHAMBRE
-
-
-async def test_rejouer_un_titre_deja_passe(hass, hass_storage, hass_client, monkeypatch):
-    """2.5.11 (l'auteur, 18/10, 1.93.05 : « je ne peux pas rejouer un morceau passé », « ça n'a pas marché ») : Music Assistant
-    refuse de déplacer un titre déjà joué (« 23 is already played/buffered », journal du 18/10 à 01:25). Un titre passé
-    est relancé directement (play_index), sans « suivant » derrière ; un titre à venir est placé juste après celui en
-    cours (move_next) puis lancé lui aussi par play_index (2.5.12.2 : plus jamais « suivant », voir party_file_longue_test)."""
-    _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
-    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"T{k}", "uri": f"library://track/{k}"}} for k in range(5)]
-    files.courant = 2
-    suivants = []
-    hass.services.async_register("media_player", "media_next_track", lambda call: suivants.append(call.data.get("entity_id")))
-    # Un titre déjà passé (index 1) : relancé tel quel, rien n'est déplacé, pas de « suivant ».
-    s, r = await _post(client, "commande", TELE, action="jouer_element", element="q1")
-    assert s == 200, r
-    assert ("jouer", "qid-salon", "q1") in files.supprimes and ("ensuite", "qid-salon", "q1") not in files.supprimes
-    assert suivants == []
-    # Le titre en cours (index 2) : relancé lui aussi depuis le début.
-    s, r = await _post(client, "commande", TELE, action="jouer_element", element="q2")
-    assert s == 200 and ("jouer", "qid-salon", "q2") in files.supprimes and suivants == []
-    # Un titre à venir (index 4) : placé juste après celui en cours (comme en 2.5.8), puis lancé lui-même (2.5.12.2).
-    s, r = await _post(client, "commande", TELE, action="jouer_element", element="q4")
-    assert s == 200 and ("ensuite", "qid-salon", "q4") in files.supprimes and suivants == []
-    assert ("jouer", "qid-salon", "q4") in files.supprimes
 
 
 async def test_un_enfant_ne_coupe_pas_la_musique(hass, hass_storage, hass_client, monkeypatch):
     _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
     s, r = await _post(client, "commande", ENFANT, action="jouer_element", element="q1")
     assert s == 403  # jouer tout de suite : décideurs et télé de la Party
+    # « Jouer ensuite » reste permis à un enfant, mais n'a plus de service : « à faire dans Music Assistant ».
     s, r = await _post(client, "commande", ENFANT, action="ensuite_element", element="q1")
-    assert s == 200
+    assert s == 400 and A_FAIRE in r["retour"]
 
 
-async def test_file_infinie(hass, hass_storage, hass_client, monkeypatch):
-    """l'auteur : « une file infinie ». Pas d'ajout automatique par défaut ; la file part du titre en cours, avec le vrai total."""
+async def test_file_du_titre_suivant(hass, hass_storage, hass_client, monkeypatch):
+    """l'auteur : « une file infinie ». Depuis la 2.5.12.14.2, la file ne montre que le titre suivant (champ next_item du
+    service get_queue) et le total vient du champ items ; plus de titres déjà joués ; « similaires » est à faire dans MA."""
     _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
-    assert files.dstm.get("qid-salon") is False  # « Don't stop the music » coupé au lancement
-    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"Titre {k}", "uri": f"library://track/{k}"}} for k in range(372)]
-    files.courant = 200
+    _file_ma(hass, suivant="Titre 201", total=372)
     s, r = await _post(client, "etat", PARENT)
-    assert s == 200 and r["file"][0]["titre"] == "Titre 201" and len(r["file"]) == 30 and r["file_total"] == 171
-    assert not r["similaires"]
+    assert s == 200 and [x["titre"] for x in r["file"]] == ["Titre 201"] and r["file"][0]["id"] == "q1" and r["file_total"] == 372
+    assert r["file_passes"] == [] and r["enchainement"] is None and r["ajout_auto"] is None and not r["similaires"]
     s, r = await _post(client, "commande", TELE, action="similaires", actif=True)
-    assert s == 200 and files.dstm["qid-salon"] is True
+    assert s == 400 and A_FAIRE in r["retour"]
+    transferts = _transferts(hass)
     s, r = await _post(client, "commande", PARENT, action="enceinte", lecteur=MA_CHAMBRE)
-    assert files.dstm.get("qid-chambre") is True  # l'option suit l'enceinte
+    assert s == 200 and transferts == [(MA_SALON, MA_CHAMBRE, True)]
+    assert files.supprimes == []  # aucun réglage de la file envoyé à Music Assistant
 
 
-async def test_deplacer_sans_couper(hass, hass_storage, hass_client, monkeypatch):
+async def test_ce_qui_est_a_faire_dans_music_assistant(hass, hass_storage, hass_client, monkeypatch):
+    """2.5.12.14.2 : retirer, déplacer, mettre à la fin, vider la suite, régler l'enchaînement n'ont pas de service Home
+    Assistant : un décideur ou la télé reçoit « À faire dans Music Assistant » (400), un enfant reste refusé (403), et
+    Vision n'appelle rien (ni client interne, ni lecture)."""
     _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
-    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"T{k}"}} for k in range(6)]
-    s, r = await _post(client, "commande", TELE, action="deplacer", element="q2", decalage=-1)
-    assert s == 200 and ("deplacer", "qid-salon", "q2", -1) in files.supprimes
-    s, r = await _post(client, "commande", PARENT, action="a_la_fin", element="q1")
-    assert s == 200 and ("deplacer", "qid-salon", "q1", 4) in files.supprimes
-    s, r = await _post(client, "commande", ENFANT, action="deplacer", element="q2", decalage=1)
-    assert s == 403  # seul un décideur (ou la télé de la Party) réordonne
+    _file_ma(hass)
+    avant = len(appels)
+    for qui, action, extra in ((TELE, "retirer", {"element": "q1"}), (PARENT, "retirer", {"element": "q1"}),
+                               (TELE, "deplacer", {"element": "q1", "decalage": -1}), (PARENT, "a_la_fin", {"element": "q1"}),
+                               (TELE, "vider", {}), (PARENT, "enchainement", {"mode": "fondu", "duree": 6}),
+                               (TELE, "enchainement", {"mode": "sans_blanc"})):
+        s, r = await _post(client, "commande", qui, action=action, **extra)
+        assert s == 400 and not r["ok"] and A_FAIRE in r["retour"], (action, r)
+    for action, extra in (("deplacer", {"element": "q1", "decalage": 1}), ("vider", {}), ("enchainement", {"mode": "fondu", "duree": 4})):
+        s, r = await _post(client, "commande", ENFANT, action=action, **extra)
+        assert s == 403, (action, r)
+    assert files.supprimes == [] and len(appels) == avant
     assert not [c for c in _play(appels) if c["enqueue"] in ("replace", "play")]
 
 
@@ -139,9 +163,10 @@ async def test_clin_d_oeil_quand_la_musique_s_arrete(hass, hass_storage, hass_cl
         assert all(t.get(f"mus.fin_{k}") for k in range(1, clins.NB_CLINS + 1)) and t["mus.fin_action"]
         assert all(len(t[f"mus.fin_{k}"]) <= 45 for k in range(1, clins.NB_CLINS + 1))  # des titres courts, pas de paroles
     _c, _a, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
+    ma = _file_ma(hass)
     s, r = await _post(client, "etat", TELE)
     assert r["fin_clin"] == -1  # il reste un titre dans la file
-    files.items = files.items[:1]  # plus rien après le titre en cours, et le lecteur s'arrête
+    ma["suivant"] = None  # plus rien après le titre en cours, et le lecteur s'arrête
     hass.states.async_set(MA_SALON, "idle", {"friendly_name": "Salon", "active_queue": "qid-salon"})
     s, r = await _post(client, "etat", TELE)
     n = r["fin_clin"]
@@ -212,22 +237,6 @@ async def test_la_musique_continue_apres_un_redemarrage(hass, hass_storage, hass
     assert coupes == [] and not _play(appels)
 
 
-async def test_enchainement_sans_blanc_ou_fondu(hass, hass_storage, hass_client, monkeypatch):
-    """2.2.4 (l'auteur : « trop d'attente entre deux musiques ») : l'état dit comment Music Assistant enchaîne ; la télé ou
-    un décideur choisit « sans blanc » ou « fondu de X s » ; un enfant ne change pas ce réglage."""
-    _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
-    s, r = await _post(client, "etat", TELE)
-    assert r["enchainement"] == {"flux": True, "fondu": False, "duree": 8, "precharge": True}
-    s, r = await _post(client, "commande", TELE, action="enchainement", mode="fondu", duree=6)
-    assert s == 200 and "fondu de 6 s" in r["retour"] and files.fondu is True
-    assert ("config/player_queues/save", {"queue_id": "qid-salon", "values": {"crossfade_mode": "standard_crossfade", "crossfade_duration": 6}}) in files.envoyes
-    s, r = await _post(client, "commande", PARENT, action="enchainement", mode="sans_blanc")
-    assert s == 200 and files.fondu is False
-    s, r = await _post(client, "commande", ENFANT, action="enchainement", mode="fondu", duree=4)
-    assert s == 403 and files.fondu is False
-    assert not _play(appels)  # jamais de relance de la lecture par Vision
-
-
 async def test_options_musique_enceintes(hass, hass_storage, hass_client, monkeypatch):
     """2.2.5 (retour d'essai) : Vision > Options > Musique — tous cochés par défaut ; n'en garder qu'un ; tout recocher = « tous »."""
     coord, _a, _f = await _monter(hass, hass_storage, monkeypatch)
@@ -236,15 +245,17 @@ async def test_options_musique_enceintes(hass, hass_storage, hass_client, monkey
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "autres"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "musique"})
     assert r["step_id"] == "musique"
-    defaut = r["data_schema"]({})
+    # (arret_auto_perso donné : son défaut 0 est sous le minimum de 5, voir le rapport)
+    defaut = r["data_schema"]({"arret_auto_perso": 5})
     assert set(defaut["enceintes"]) == {MA_SALON, MA_CHAMBRE} and defaut["masquer_hors_ligne"] is False
-    r = await hass.config_entries.options.async_configure(r["flow_id"], {"enceintes": [MA_SALON], "masquer_hors_ligne": True})
+    r = await hass.config_entries.options.async_configure(r["flow_id"], {"enceintes": [MA_SALON], "masquer_hors_ligne": True, "arret_auto": "0", "arret_auto_perso": 5})
     assert r["type"] == "create_entry"
-    assert coord.store.musique == {"enceintes": [MA_SALON], "masquer_hors_ligne": True, "arret_auto_min": 120}  # 2.4.0 : arrêt automatique, 2 h par défaut
+    assert coord.store.musique == {"enceintes": [MA_SALON], "masquer_hors_ligne": True, "arret_auto_min": 0}  # 2.5.12.14.2 : arrêt automatique désactivé par défaut
     r = await hass.config_entries.options.async_init(entree.entry_id)
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "autres"})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "musique"})
-    r = await hass.config_entries.options.async_configure(r["flow_id"], {"enceintes": [MA_SALON, MA_CHAMBRE], "masquer_hors_ligne": False})
+    r = await hass.config_entries.options.async_configure(r["flow_id"], {"enceintes": [MA_SALON, MA_CHAMBRE], "masquer_hors_ligne": False,
+                                                           "arret_auto": "0", "arret_auto_perso": 5})
     assert coord.store.musique["enceintes"] is None
 
 
@@ -273,25 +284,6 @@ async def test_lecture_pause_voulue_et_flux(hass, hass_storage, hass_client, mon
     ligne = await asyncio.wait_for(rep.content.readline(), 5)
     assert ligne.startswith(b"data: ") and _json.loads(ligne[6:])["etat"] == "paused"
     rep.close()
-
-
-async def test_retirer_compte_juste_et_soiree_oubliee(hass, hass_storage, hass_client, monkeypatch):
-    """2.2.6 (l'auteur : « je clique sur retirer, ça revient en flash, le compteur revient au nombre initial ») : la réponse
-    arrive quand Music Assistant a compté le retrait ; après un redémarrage (soirée oubliée), retirer vise le lecteur
-    qui joue au lieu d'échouer."""
-    from custom_components.pc_parental import party
-    _c, _a, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
-    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"T{k}"}} for k in range(6)]
-    s, r = await _post(client, "etat", PARENT)
-    assert r["file_total"] == 5
-    s, r = await _post(client, "commande", PARENT, action="retirer", element="q3")
-    assert s == 200
-    s, r = await _post(client, "etat", PARENT)
-    assert r["file_total"] == 4 and "q3" not in [x["id"] for x in r["file"]]
-    party.etat(hass).update({"actif": False, "lecteur": ""})  # comme après un redémarrage
-    hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Salon", "active_queue": "qid-salon", "media_title": "X"})
-    s, r = await _post(client, "commande", PARENT, action="retirer", element="q4")
-    assert s == 200 and ("qid-salon", "q4") in files.supprimes
 
 
 async def test_reprise_apres_coupure_du_lecteur_vision(hass, hass_storage, hass_client, monkeypatch):
@@ -349,21 +341,6 @@ async def test_reprise_apres_coupure_par_l_ecouteur(hass, hass_storage, hass_cli
     assert any(n == "media_play" for n, _e in vus)
 
 
-async def test_retirer_un_titre_deja_precharge_le_dit(hass, hass_storage, hass_client, monkeypatch):
-    """Banc Musique (2026-10-12) : Music Assistant ignore le retrait d'un titre déjà préchargé (sans erreur) ; Vision ne
-    répond plus « Titre retiré » mais explique pourquoi (et le titre reste dans la file)."""
-    _c, _a, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
-    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"T{k}"}} for k in range(4)]
-
-    async def ignore(qid, item):  # comme MA : « delete requested for item already loaded in buffer »
-        files.supprimes.append((qid, item))
-    monkeypatch.setattr(files, "delete_item", ignore)
-    s, r = await _post(client, "commande", PARENT, action="retirer", element="q1")
-    assert s == 400 and "préparation" in r["retour"]
-    s, r = await _post(client, "etat", PARENT)
-    assert "q1" in [x["id"] for x in r["file"]]
-
-
 async def test_lecteur_vision_remplace_le_cast_de_la_tele(hass, hass_storage, hass_client, monkeypatch):
     """2.2.9 (retour d'essai) : le lecteur « Téléviseur du salon · Vision » (Vision joue le son) remplace le lecteur Cast de la même
     télé dans la liste (masqué), hérite de sa case dans les options, et devient l'enceinte par défaut de cette télé."""
@@ -385,70 +362,24 @@ async def test_lecteur_vision_remplace_le_cast_de_la_tele(hass, hass_storage, ha
     assert party.lecteur_par_defaut(hass, coord.store, tele) == "media_player.televiseur_du_salon_vision"
 
 
-async def test_jamais_d_ajout_automatique(hass, hass_storage, hass_client, monkeypatch):
-    """2.2.10 (l'auteur : « 414 titres que je n'ai pas choisis ») : l'Autoplay de Music Assistant (jusqu'à 150 titres de la
-    bibliothèque par relance) est coupé après CHAQUE lecture, après un transfert, et recoupé s'il se rallume ;
-    « Lire » sur un titre ne met que ce titre ; « vider la suite » garde le titre en cours."""
-    _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
-    files.dstm["qid-salon"] = True  # comme en essai : l'ajout automatique était actif
-    s, r = await _post(client, "commande", PARENT, action="jouer", uri="library://track/145", type="track", comment="remplacer")
-    assert s == 200 and files.dstm["qid-salon"] is False
-    p = _play(appels)[-1]
-    assert p["media_id"] == "library://track/145" and p["media_type"] == "track"  # un seul titre, jamais un album entier
-    # Un réglage de Music Assistant le rallume : la relecture suivante le recoupe.
-    files.dstm["qid-salon"] = True
-    s, r = await _post(client, "etat", PARENT)
-    assert files.dstm["qid-salon"] is False
-    # Le transfert recopie le réglage d'origine : coupé sur l'enceinte d'arrivée.
-    files.dstm["qid-chambre"] = True
-    s, r = await _post(client, "commande", PARENT, action="enceinte", lecteur=MA_CHAMBRE)
-    assert s == 200 and files.dstm["qid-chambre"] is False
-    # L'option « titres similaires » cochée : on le laisse.
-    s, r = await _post(client, "commande", PARENT, action="similaires", actif=True)
-    s, r = await _post(client, "commande", PARENT, action="jouer", uri="library://track/146", type="track", comment="ajouter")
-    assert files.dstm["qid-chambre"] is True
-
-
-async def test_service_vider_la_suite(hass, hass_storage, hass_client, monkeypatch):
-    """2.2.10 : pc_parental.musique_vider_suite retire tout ce qui suit le titre en cours (qui continue)."""
-    _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
-    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"T{k}"}} for k in range(420)]
-    files.courant = 6
-    files.dstm["qid-salon"] = True
-    from custom_components.pc_parental import musique
-    n = await musique.vider_suite(hass, MA_SALON)
-    assert n == 413 and [x["queue_item_id"] for x in files.items] == [f"q{k}" for k in range(7)]
-    assert files.dstm["qid-salon"] is False
-
-
-async def test_grosse_playlist_confirmee_et_journal(hass, hass_storage, hass_client, monkeypatch):
-    """2.2.11 (l'auteur : « 500 titres ajoutés en fin de file », « crée un système de log ») : ajouter une playlist de plus de
-    50 titres demande confirmation ; chaque commande va au journal Musique (événement, capteur, options) ; une perte de
-    l'écran sur la télé y est notée avec l'appli qui l'a pris."""
-    from types import SimpleNamespace
-
+async def test_playlist_sans_confirmation_et_journal(hass, hass_storage, hass_client, monkeypatch):
+    """2.2.11 (l'auteur : « crée un système de log ») : chaque commande va au journal Musique (événement, capteur, options) ;
+    une perte de l'écran sur la télé y est notée avec l'appli qui l'a pris. 2.5.12.14.2 : le nombre de titres d'une playlist
+    n'a plus de service (inconnu), donc plus de confirmation « 500 titres » : l'ajout part directement."""
     from custom_components.pc_parental import journal_musique, musique
     _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
     vus = []
     hass.bus.async_listen(journal_musique.EVENEMENT, lambda e: vus.append(dict(e.data)))
-
-    async def pistes(item_id, prov):
-        return [object()] * (500 if item_id == "random" else 12)
-    musique._client(hass).music = SimpleNamespace(get_playlist_tracks=pistes, get_album_tracks=pistes)
-    musique._NB_CACHE.clear()
+    assert await musique.nb_titres(hass, "builtin://playlist/random", "playlist") is None
     hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Salon", "active_queue": "qid-salon", "media_title": "X"})
     s, r = await _post(client, "commande", PARENT, action="jouer", uri="builtin://playlist/random", type="playlist", comment="ajouter")
-    assert s == 409 and r["confirmer"] and r["nb"] == 500 and "500 titres" in r["retour"]
-    assert not _play(appels)  # rien n'est parti sans le « oui »
-    s, r = await _post(client, "commande", PARENT, action="jouer", uri="builtin://playlist/random", type="playlist", comment="ajouter", confirme=True)
-    assert s == 200 and _play(appels)[-1]["enqueue"] == "add"
+    assert s == 200 and not r.get("confirmer") and _play(appels)[-1]["enqueue"] == "add"
     s, r = await _post(client, "commande", PARENT, action="jouer", uri="library://playlist/10", type="playlist", comment="ajouter")
-    assert s == 200  # 12 titres : pas de question
+    assert s == 200
     await hass.async_block_till_done()
-    assert [v["resultat"] for v in vus[:3]] == ["confirmer", "ok", "ok"] and vus[1]["nb"] == 500
+    assert [v["resultat"] for v in vus[:2]] == ["ok", "ok"]
     # 2.2.13 + i18n : le résultat est un code (journal_musique.RESULTATS), dit dans la langue du lecteur du journal.
-    assert journal_musique.phrase(vus[0]).endswith("— confirmation demandée")
-    assert vus[1]["mode"] == "ajouter" and vus[1]["uri"] == "builtin://playlist/random" and vus[1]["appareil"] == "PIXEL-NOLAN"
+    assert vus[0]["mode"] == "ajouter" and vus[0]["uri"] == "builtin://playlist/random" and vus[0]["appareil"] == "PIXEL-NOLAN"
     # La télé note la perte de l'écran (sans droit Musique particulier).
     s, r = await _post(client, "commande", TELE, action="premier_plan_perdu", paquet="com.google.android.apps.mediashell")
     assert s == 200
@@ -462,17 +393,14 @@ async def test_grosse_playlist_confirmee_et_journal(hass, hass_storage, hass_cli
     f = await hass.config_entries.options.async_init(entree.entry_id)
     f = await hass.config_entries.options.async_configure(f["flow_id"], {"next_step_id": "autres"})
     f = await hass.config_entries.options.async_configure(f["flow_id"], {"next_step_id": "journal_musique"})
-    assert f["step_id"] == "journal_musique" and "500 titres" in f["description_placeholders"]["journal"]
+    assert f["step_id"] == "journal_musique" and "mediashell" in f["description_placeholders"]["journal"]
     f = await hass.config_entries.options.async_configure(f["flow_id"], {"jours": "1"})
     assert journal_musique.jours(hass) == 1
 
 
-async def test_playlists_avec_nombre_et_etiquette(hass, hass_storage, hass_client, monkeypatch):
-    """2.2.11 : chaque playlist dit son nombre de titres ; celles que fabrique Music Assistant ont une étiquette."""
-    from homeassistant.core import ServiceCall, SupportsResponse
-
-    from custom_components.pc_parental import musique
-    from types import SimpleNamespace
+async def test_playlists_avec_etiquette_sans_nombre(hass, hass_storage, hass_client, monkeypatch):
+    """2.2.11 : celles que fabrique Music Assistant ont une étiquette. 2.5.12.14.2 : le nombre de titres n'a plus de service
+    (inconnu) : la liste n'en annonce aucun."""
     _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
 
     async def library(call: ServiceCall):
@@ -480,15 +408,10 @@ async def test_playlists_avec_nombre_et_etiquette(hass, hass_storage, hass_clien
                            "provider_mappings": [{"provider_domain": "builtin", "item_id": "random_tracks"}]},
                           {"media_type": "playlist", "uri": "library://playlist/17", "name": "Disney classique", "provider_mappings": []}]}
     hass.services.async_register("music_assistant", "get_library", library, supports_response=SupportsResponse.ONLY)
-
-    async def pistes(item_id, prov):
-        return [object()] * (500 if item_id == "3" else 24)
-    musique._client(hass).music = SimpleNamespace(get_playlist_tracks=pistes, get_album_tracks=pistes)
-    musique._NB_CACHE.clear()
     s, r = await _post(client, "musique", PARENT, quoi="playlist")
     par_nom = {x["nom"]: x for x in r["items"]}
-    assert par_nom["500 Random tracks"]["auto"] and par_nom["500 Random tracks"]["nb"] == 500
-    assert not par_nom["Disney classique"]["auto"] and par_nom["Disney classique"]["nb"] == 24
+    assert par_nom["500 Random tracks"]["auto"] and not par_nom["Disney classique"]["auto"]
+    assert not par_nom["500 Random tracks"].get("nb") and not par_nom["Disney classique"].get("nb")
 
 
 async def test_tele_garde_son_propre_lecteur_vision(hass, hass_storage, hass_client, monkeypatch):
@@ -516,35 +439,41 @@ async def test_tele_garde_son_propre_lecteur_vision(hass, hass_storage, hass_cli
     assert s != 200 and "Vision → Options → Musique" in r["retour"]
 
 
-async def test_lecteurs_vision_regles_en_mp3(hass, hass_storage, hass_client, monkeypatch):
-    """2.2.13 (l'auteur : « un morceau démarre 5 s puis se coupe ») : Music Assistant envoyait du FLAC au lecteur de Vision,
-    qui ne lit en flux que le MP3. Chaque lecteur « · Vision » est réglé en MP3, une seule fois ; les autres jamais."""
-    from homeassistant.helpers import entity_registry as er
-
+async def test_lecteurs_vision_tenus_a_100_pour_cent(hass, hass_storage, hass_client, monkeypatch):
+    """2.5.12.14.2 : plus de codec ni de renommage ni de client. Les lecteurs « · Vision » sont repérés par leur nom dans Home
+    Assistant et leur volume est tenu à 100 % (media_player.volume_set) ; les autres lecteurs ne sont jamais touchés."""
     from custom_components.pc_parental import musique
     coord, _a, files = await _monter(hass, hass_storage, monkeypatch)
-    musique._CODEC_FAIT.clear()
+    musique._LECTEURS_VISION.clear()
     reg = er.async_get(hass)
     reg.async_get_or_create("media_player", "music_assistant", "02:00:00:00:00:01", suggested_object_id="tele_du_bureau_vision")
-    hass.states.async_set("media_player.tele_du_bureau_vision", "idle", {"friendly_name": "Télé du bureau · Vision"})
+    hass.states.async_set("media_player.tele_du_bureau_vision", "idle", {"friendly_name": "Télé du bureau · Vision", "volume_level": 0.4})
+    volumes = []
+    hass.services.async_register("media_player", "volume_set", lambda call: volumes.append((call.data["entity_id"], call.data["volume_level"])))
     faits = await musique.regler_lecteurs_vision(hass)
-    assert faits == ["media_player.tele_du_bureau_vision"]
-    saves = [kw for c, kw in files.envoyes if c == "config/players/save"]
-    assert saves == [{"player_id": "02:00:00:00:00:01", "values": {"output_codec": "mp3"}}]  # pas « Salon »
-    assert await musique.regler_lecteurs_vision(hass) == []  # une seule fois
-    assert len([c for c, _ in files.envoyes if c == "config/players/save"]) == 1
+    assert faits == ["media_player.tele_du_bureau_vision"]  # pas « Salon »
+    assert volumes == [("media_player.tele_du_bureau_vision", 1.0)]
+    assert musique.est_lecteur_vision(hass, "media_player.tele_du_bureau_vision") and not musique.est_lecteur_vision(hass, MA_SALON)
+    assert files.supprimes == []  # ni codec, ni renommage, ni client interne
+    # Déjà à 100 % : rien à remettre.
+    hass.states.async_set("media_player.tele_du_bureau_vision", "idle", {"friendly_name": "Télé du bureau · Vision", "volume_level": 1.0})
+    await musique.regler_lecteurs_vision(hass)
+    assert len(volumes) == 1
 
 
 async def test_titre_en_cours_a_toujours_sa_pochette(hass, hass_storage, hass_client, monkeypatch, aioclient_mock):
     """2.2.13 (l'auteur : « pochette vide » pour le titre en cours, mini-lecteur et file de la télé) : si le lecteur n'a pas
-    d'image (lecteur « · Vision »), celle du titre en cours dans la file de Music Assistant ; lue par Home Assistant.
+    d'image (lecteur « · Vision »), celle du titre en cours (current_item du service get_queue) ; lue par Home Assistant.
     Échoue si le titre en cours reste sans image alors que la file (ou le lecteur) en a une."""
-    from custom_components.pc_parental import party, party_invites
+    from custom_components.pc_parental import musique, party, party_invites
     coord, _a, files = await _monter(hass, hass_storage, monkeypatch)
     party_invites._images.clear()
-    files.items[0]["media_item"]["image"] = "https://img.example/en-cours.jpg"
+    musique._IMAGES_EN_COURS.clear()
+    ma = _file_ma(hass, image="https://img.example/en-cours.jpg")
     aioclient_mock.get("https://img.example/en-cours.jpg", content=b"JPEG-EN-COURS", headers={"Content-Type": "image/jpeg"})
     hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Salon", "active_queue": "qid-salon", "media_title": "En cours"})
+    assert party.maintenant(hass, MA_SALON)["pochette"] == ""  # la file n'a pas encore été lue
+    await musique.file(hass, MA_SALON)
     m = party.maintenant(hass, MA_SALON)
     assert m["pochette"], "le titre en cours n'a pas d'empreinte de pochette alors que la file a une image"
     image = await party.pochette(hass, MA_SALON)
@@ -554,25 +483,10 @@ async def test_titre_en_cours_a_toujours_sa_pochette(hass, hass_storage, hass_cl
                                                 "entity_picture": "/api/media_player_proxy/media_player.salon_2?token=X"})
     assert party.maintenant(hass, MA_SALON)["pochette"] != m["pochette"]
     # Ni lecteur ni file : pas d'empreinte (l'écran garde son cadre), sans erreur.
-    files.items[0]["media_item"].pop("image")
+    ma["image"] = None
+    await musique.file(hass, MA_SALON)
     hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Salon", "active_queue": "qid-salon"})
     assert party.maintenant(hass, MA_SALON)["pochette"] == "" and await party.pochette(hass, MA_SALON) is None
-
-
-async def test_vider_la_file_depuis_la_tele(hass, hass_storage, hass_client, monkeypatch):
-    """17-10 (l'auteur, point 18b) : « Vider la file » depuis la télé de la soirée — tout ce qui suit est retiré, le titre en
-    cours continue (rien n'est joué ni passé) ; un appareil sans droit ne vide pas la file."""
-    _c, appels, files, client = await _party(hass, hass_storage, hass_client, monkeypatch)
-    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"T{k}"}} for k in range(3)]
-    files.courant = 0
-    avant = len(_play(appels))
-    s, r = await _post(client, "commande", ENFANT, action="vider")
-    assert s == 403, r
-    s, r = await _post(client, "commande", TELE, action="vider")
-    assert s == 200 and r["ok"], r
-    assert [x["queue_item_id"] for x in files.items] == ["q0"]  # le titre en cours reste
-    assert len(_play(appels)) == avant  # rien n'est relancé
-    assert "2" in r["retour"]
 
 
 async def test_mode_soiree_ouvrir_fermer(hass, hass_storage, hass_client, monkeypatch):

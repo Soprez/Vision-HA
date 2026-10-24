@@ -3,7 +3,6 @@
 - Sendspin choisi sur la télé : l'ancien lecteur « · Vision » (Classique) passe hors ligne ; la soirée passe sur son
   jumeau prêt et la file le suit (avant : Music Assistant jouait dans le vide, « Lancement… » sans fin) ;
 - le jumeau « · Vision » d'un Cast coché se choisit comme enceinte (avant : « pas proposée ») ;
-- la file rend aussi les derniers titres joués (l'écran la fait défiler et suit le titre en cours) ;
 - invités : mode « jouer après » ; « Vos titres » dit où en est chaque titre ; la page prend le thème de l'appareil
   qui affiche le code (couleurs dans l'adresse, vérifiées), sinon celui de Home Assistant.
 
@@ -11,6 +10,7 @@
 """
 from __future__ import annotations
 
+from homeassistant.core import ServiceCall
 from homeassistant.helpers import entity_registry as er
 
 from party_musique_test import (  # noqa: F401  (fixtures du banc)
@@ -26,6 +26,11 @@ async def _preparer(hass, hass_storage, hass_client, monkeypatch):
     from custom_components.pc_parental import widgets
     widgets._recentes.clear()
     coord, appels, files = await _monter(hass, hass_storage, monkeypatch)
+    async def transfert(call: ServiceCall):
+        cibles = call.data.get("entity_id", [])
+        for cible in ([cibles] if isinstance(cibles, str) else cibles):
+            files.supprimes.append(("transfert", call.data.get("source_player"), cible))
+    hass.services.async_register("music_assistant", "transfer_queue", transfert)
     reg = er.async_get(hass)
     for uid, obj in (("02:00:00:00:00:0a", "televiseur_du_salon_vision"), ("up1234", "televiseur_du_salon_vision_2")):
         reg.async_get_or_create("media_player", "music_assistant", uid, suggested_object_id=obj)
@@ -47,7 +52,7 @@ async def test_la_soiree_suit_le_moteur_de_la_tele(hass, hass_storage, hass_clie
     assert party.etat(hass)["lecteur"] == SENDSPIN
     jeu = [a[1] for a in appels if a[0] == "play_media"][-1]
     assert jeu["entity_id"] in (SENDSPIN, [SENDSPIN]), jeu
-    assert ("transfert", "02:00:00:00:00:0a", "q-sendspin") in files.supprimes  # file du lecteur hors ligne : son identifiant
+    assert ("transfert", CLASSIQUE, SENDSPIN) in files.supprimes  # service transfer_queue : de l'ancien lecteur vers le jumeau
     # Le relevé d'état montre la même enceinte.
     s, r = await _post(client, "etat", PARENT)
     assert r["lecteur"] == SENDSPIN
@@ -74,17 +79,6 @@ async def test_le_jumeau_d_un_cast_coche_se_choisit(hass, hass_storage, hass_cli
     assert s == 200, r
     s, r = await _post(client, "commande", PARENT, action="enceinte", lecteur=CLASSIQUE)
     assert s == 200, r
-
-
-async def test_la_file_rend_les_titres_deja_joues(hass, hass_storage, hass_client, monkeypatch):
-    _coord, _appels, files, client = await _preparer(hass, hass_storage, hass_client, monkeypatch)
-    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"Titre {k}", "uri": f"library://track/{k}", "artists": []}} for k in range(15)]
-    files.courant = 12
-    s, r = await _post(client, "commande", PARENT, action="lancer", ecran="t1", lecteur=MA_SALON)
-    assert s == 200, r
-    s, r = await _post(client, "etat", PARENT)
-    assert [x["titre"] for x in r["file_passes"]] == [f"Titre {k}" for k in range(2, 12)]  # les 10 derniers, du plus ancien
-    assert [x["titre"] for x in r["file"]][:2] == ["Titre 13", "Titre 14"]
 
 
 async def test_invites_jouer_apres_et_vos_titres(hass, hass_storage, hass_client, monkeypatch):
@@ -132,30 +126,6 @@ async def test_page_invites_au_theme_de_l_appareil(hass, hass_storage, hass_clie
     assert party_invites.theme_de_l_appareil(th)[10] is True
 
 
-async def test_point16_titre_d_invite_en_fin_de_longue_file_visible(hass, hass_storage, hass_client, monkeypatch):
-    """2.5.9 (l'auteur, 17/10, point 16 : « les titres ajoutés par l'invité n'apparaissent jamais dans la file, ni juste
-    après, ni à la fin ») : en fin de file, derrière une playlist de 84 titres, le titre de l'invité était hors des 30
-    titres lus par l'appli. Il apparaît maintenant à la fin de la liste, marqué « invité », et la limite le compte."""
-    from custom_components.pc_parental import party
-    _coord, appels, files, client = await _preparer(hass, hass_storage, hass_client, monkeypatch)
-    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"Titre {k}", "uri": f"library://track/{k}", "artists": []}}
-                   for k in range(84)]
-    files.courant = 2
-    s, r = await _post(client, "commande", PARENT, action="lancer", ecran="t1", lecteur=MA_SALON)
-    assert s == 200, r
-    hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Salon", "active_queue": "qid-salon", "media_title": "Titre 2"})
-    msg = await party.proposer(hass, {"uri": "library://track/900", "titre": "Bam Bam", "artiste": "Sister Nancy"}, "fr", "inv1")
-    assert [a[1] for a in appels if a[0] == "play_media"][-1]["enqueue"] == "add", msg
-    files.items.append({"queue_item_id": "qinv", "media_item": {"name": "Bam Bam", "uri": "library://track/900", "artists": []}})
-    s, r = await _post(client, "etat", PARENT)
-    titres = [x["titre"] for x in r["file"]]
-    assert titres[:2] == ["Titre 3", "Titre 4"]
-    assert titres[-1] == "Bam Bam" and r["file"][-1]["invite"] is True, titres[-5:]
-    assert titres.count("Bam Bam") == 1
-    # La limite d'invités compte aussi les titres au bout de la file.
-    assert [x for x in await party.file_attente(hass, MA_SALON) if x.get("invite")]
-
-
 async def test_point16_le_mode_des_invites_survit_au_redemarrage(hass, hass_storage, hass_client, monkeypatch):
     """2.5.9 (l'auteur, point 16) : le mode choisi (ici « valider avant ») était en mémoire seulement ; le redémarrage de HA de
     09:35 le remettait sur « en fin de file ». Il est gardé dans les réglages et repris au lancement suivant."""
@@ -176,27 +146,3 @@ async def test_point16_le_mode_des_invites_survit_au_redemarrage(hass, hass_stor
     coord.store.musique = {"enceintes": None, "masquer_hors_ligne": False}
     await coord.store.async_load()
     assert party.mode_invites_garde(coord.store) == "validation"
-
-
-async def test_point16_titre_d_invite_range_par_la_bibliotheque_reconnu(hass, hass_storage, hass_client, monkeypatch):
-    """2.5.9 (l'auteur, point 16) : l'invité choisit le titre du fournisseur (ytmusic://…) ; s'il est déjà dans la
-    bibliothèque, Music Assistant range dans la file l'élément library://… L'adresse seule ne le retrouvait pas : ni
-    marqué « invité », ni montré au bout de la file, ni compté par la limite. Titre et artiste le retrouvent."""
-    from custom_components.pc_parental import party
-    _coord, _appels, files, client = await _preparer(hass, hass_storage, hass_client, monkeypatch)
-    files.items = [{"queue_item_id": f"q{k}", "media_item": {"name": f"Titre {k}", "uri": f"library://track/{k}", "artists": []}}
-                   for k in range(84)]
-    files.courant = 2
-    s, r = await _post(client, "commande", PARENT, action="lancer", ecran="t1", lecteur=MA_SALON)
-    assert s == 200, r
-    hass.states.async_set(MA_SALON, "playing", {"friendly_name": "Salon", "active_queue": "qid-salon", "media_title": "Titre 2"})
-    await party.proposer(hass, {"uri": "ytmusic--x://track/abc", "titre": "Bam Bam", "artiste": "Sister Nancy"}, "fr", "inv1")
-    files.items.append({"queue_item_id": "qinv", "media_item": {"name": "Bam  Bam", "uri": "library://track/900",
-                                                                "artists": [{"name": "sister nancy"}]}})
-    s, r = await _post(client, "etat", PARENT)
-    assert r["file"][-1]["titre"] == "Bam  Bam" and r["file"][-1]["invite"] is True, [x["titre"] for x in r["file"][-3:]]
-    # Un titre de la playlist au même nom mais d'un autre artiste n'est pas pris pour celui de l'invité.
-    files.items.append({"queue_item_id": "qautre", "media_item": {"name": "Bam Bam", "uri": "library://track/901",
-                                                                  "artists": [{"name": "Autre"}]}})
-    l = await party.file_attente(hass, MA_SALON)
-    assert [x["id"] for x in l if x.get("invite")] == ["qinv"]
