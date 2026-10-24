@@ -2442,6 +2442,9 @@
       },
       "demandes_en_attente": {
         "name": "Openstaande verzoeken"
+      },
+      "processus_a_valider": {
+        "name": "Te bevestigen processen"
       }
     },
     "switch": {

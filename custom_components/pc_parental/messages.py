@@ -299,7 +299,9 @@ class PcParentalMediaView(HomeAssistantView):
         for pc in entrees[0].store.pcs.values():
             m = (pc.get("medias") or {}).get(jeton)
             if m is not None and secrets.compare_digest(str(m.get("uid") or ""), uid):
-                if float(m.get("jusqua") or 0) < maintenant or not os.path.isfile(m["chemin"]):
+                # 2.5.12.14.2 (revue de HACS) : la vérification du fichier se fait dans l'executor, pas dans la boucle.
+                if float(m.get("jusqua") or 0) < maintenant or not await self.hass.async_add_executor_job(
+                        os.path.isfile, m["chemin"]):
                     break
                 return web.FileResponse(m["chemin"], headers={
                     "Content-Type": m["mime"], "Cache-Control": "private, no-store",
@@ -380,7 +382,8 @@ async def async_envoyer(hass: HomeAssistant, coord, donnees: dict[str, Any]) -> 
     """Le service `pc_parental.envoyer`."""
     media = None
     if donnees.get("media"):
-        chemin = chemin_media(hass, donnees["media"])
+        # 2.5.12.14.2 : `chemin_media` résout des chemins sur le disque (realpath) : dans l'executor.
+        chemin = await hass.async_add_executor_job(chemin_media, hass, donnees["media"])
         media = await hass.async_add_executor_job(decrire_media, chemin)
     cible = donnees.get("pc") or donnees.get("tag")
     envoyes = []

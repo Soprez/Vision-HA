@@ -107,6 +107,14 @@ class PcParentalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._observation_sale = False
             self._dernier_enregistrement = maintenant
             await self.store.async_save()
+        # 2.5.12.14.2 : les calculs lourds (ce que chaque agent doit appliquer) se refont ici, par tranches, à l'abri de
+        # la boucle ; les capteurs qui les lisent ensuite trouvent le résultat prêt.
+        for _pc in list(self.store.pcs.values()):
+            try:
+                await self.store.async_effectif(_pc)
+            except Exception:  # noqa: BLE001 - le calcul se refera à la demande
+                pass
+
         return etats
 
     async def _async_un_verdict(self) -> None:

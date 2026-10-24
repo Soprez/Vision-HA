@@ -16,7 +16,7 @@ classe = next(n for n in ast.parse(src).body if isinstance(n, ast.ClassDef) and 
 methode = next(m for m in classe.body if isinstance(m, ast.FunctionDef) and m.name == "serveurs_partages_requis")
 exec("class M:\n" + textwrap.indent(textwrap.dedent(ast.get_source_segment(src, methode)), "    "), espace)
 requis = espace["M"].serveurs_partages_requis
-calc = next(m for m in classe.body if isinstance(m, ast.FunctionDef) and m.name == "_effectif_calc")
+calc = next(m for m in classe.body if isinstance(m, ast.FunctionDef) and m.name == "_effectif_pas")
 corps = ast.get_source_segment(src, calc)
 
 rates = 0

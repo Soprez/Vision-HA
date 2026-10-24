@@ -2442,6 +2442,9 @@
       },
       "demandes_en_attente": {
         "name": "Pending requests"
+      },
+      "processus_a_valider": {
+        "name": "Processes to approve"
       }
     },
     "switch": {

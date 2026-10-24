@@ -382,9 +382,10 @@ _cache_photos: dict[str, Any] = {"quand": 0.0, "liste": []}
 async def photos(hass: HomeAssistant) -> list[str]:
     if time.time() - _cache_photos["quand"] < 300:
         return _cache_photos["liste"]
-    dossier = _dossier_photos(hass)
 
     def _lister() -> list[str]:
+        # 2.5.12.14.2 (revue de HACS) : le dossier se cherche sur le disque, dans l'executor.
+        dossier = _dossier_photos(hass)
         if not dossier:
             return []
         noms = [n for n in os.listdir(dossier) if n.lower().endswith(PHOTOS_EXT) and not n.startswith(".")]
@@ -435,7 +436,7 @@ class PcParentalVeillePhotoView(_VueVeille):
             return erreur
         nom = os.path.basename(str(corps.get("nom") or ""))
         liste = await photos(self.hass)
-        dossier = _dossier_photos(self.hass)
+        dossier = await self.hass.async_add_executor_job(_dossier_photos, self.hass)
         if not dossier or nom not in liste:
             return self.json({"ok": False, "error": "photo"}, status_code=404)
         chemin = os.path.join(dossier, nom)

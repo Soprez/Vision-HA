@@ -2442,6 +2442,9 @@
       },
       "demandes_en_attente": {
         "name": "Richieste in attesa"
+      },
+      "processus_a_valider": {
+        "name": "Processi da convalidare"
       }
     },
     "switch": {

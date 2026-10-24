@@ -2442,6 +2442,9 @@
       },
       "demandes_en_attente": {
         "name": "Demandes en attente"
+      },
+      "processus_a_valider": {
+        "name": "Processus à valider"
       }
     },
     "switch": {

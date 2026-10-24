@@ -2442,6 +2442,9 @@
       },
       "demandes_en_attente": {
         "name": "Offene Anfragen"
+      },
+      "processus_a_valider": {
+        "name": "Zu bestätigende Prozesse"
       }
     },
     "switch": {

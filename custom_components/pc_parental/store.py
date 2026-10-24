@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import functools
 import hashlib
@@ -3851,8 +3852,51 @@ class PcStore:
                tuple(d for d, _ in self.laissez_passer_actifs(pc or {})))
         return copy.deepcopy(self._memo(cle, 60.0, lambda: self._effectif_calc(pc)))
 
+    async def async_effectif(self, pc: dict[str, Any]) -> dict[str, list[str]]:
+        """Comme `effectif`, mais sans bloquer la boucle d'événements (2.5.12.14.2, revue de HACS : 0,5 à 0,7 s par
+        appareil, d'un seul tenant). Le calcul est le même, fait par tranches (`_effectif_pas` rend la main à la boucle
+        tous les quelques centaines de noms) ; pas de fil d'exécution à part : le magasin n'est pas fait pour être lu
+        pendant qu'on l'écrit. Un résultat encore valable sort tout de suite ; deux demandes pour le même appareil
+        partagent un seul calcul."""
+        cle = ("effectif", (pc or {}).get("id") or "", int(time.time() // 60),
+               tuple(d for d, _ in self.laissez_passer_actifs(pc or {})))
+        memos = getattr(self, "_memos", None) or {}
+        v = memos.get(cle)
+        if v is not None and time.monotonic() - v[0] < 60.0:
+            return copy.deepcopy(v[1])
+        en_cours = self.__dict__.setdefault("_effectif_en_cours", {})
+        tache = en_cours.get(cle)
+        if tache is None:
+            tache = asyncio.ensure_future(self._effectif_en_tranches(pc, cle))
+            en_cours[cle] = tache
+            tache.add_done_callback(lambda _t, c=cle: en_cours.pop(c, None))
+        return copy.deepcopy(await asyncio.shield(tache))
+
+    async def _effectif_en_tranches(self, pc: dict[str, Any], cle: tuple) -> dict[str, list[str]]:
+        pas = self._effectif_pas(pc)
+        try:
+            while True:
+                next(pas)
+                await asyncio.sleep(0)
+        except StopIteration as fin:
+            resultat = fin.value
+        if getattr(self, "_memos", None) is None:
+            self._memos = {}
+        self._memos[cle] = (time.monotonic(), resultat)
+        return resultat
+
     def _effectif_calc(self, pc: dict[str, Any]) -> dict[str, list[str]]:
-        """Ce que l'agent doit réellement appliquer.
+        """Le calcul d'un seul tenant (appelants synchrones : capteurs, listes, essais)."""
+        pas = self._effectif_pas(pc)
+        try:
+            while True:
+                next(pas)
+        except StopIteration as fin:
+            return fin.value
+
+    def _effectif_pas(self, pc: dict[str, Any]):
+        """Ce que l'agent doit réellement appliquer, en générateur : il rend la main (`yield`) toutes les 200 évaluations du
+        catalogue, sa valeur de retour est le résultat.
 
         L'agent ne connaît ni les étiquettes, ni les familles, ni l'heure
         à laquelle un laissez-passer expire : Home Assistant résout tout et
@@ -3911,7 +3955,9 @@ class PcStore:
             connus: set[str] = set(self.etiquettes.get(genre, {}))
             for autre in self.pcs.values():
                 connus.update(autre.get(champ) or {})
-            for nom in connus:
+            for i, nom in enumerate(list(connus)):
+                if i and i % 200 == 0:
+                    yield  # 2.5.12.14.2 : la boucle d'événements respire (voir `async_effectif`)
                 if self.statut(pc, genre, nom) == BLOQUE:
                     _ajouter(genre, nom)
 

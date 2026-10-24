@@ -37,6 +37,7 @@ from homeassistant.exceptions import HomeAssistantError
 
 from . import textes
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN
@@ -49,6 +50,7 @@ STORAGE_KEY = f"{DOMAIN}_processus"
 STORAGE_VERSION = 1
 CAPTEUR = "sensor.vision_processus_a_valider"
 # Le nom d'avant, que les cartes d'une ancienne version lisent encore.
+SIGNAL_MAJ = f"{DOMAIN}_processus_maj"  # 2.5.12.14.2 : le capteur (une vraie entité, sensor.py) se met à jour à ce signal
 CAPTEUR_ANCIEN = "sensor.comvision_processus_a_valider"
 URL_PROCESSUS = "/api/pc_parental/processus"
 
@@ -132,27 +134,25 @@ class GestionProcessus:
             lambda: {"elements": self.catalogue.elements}, 60
         )
 
+    def etat_capteur(self) -> tuple[int, dict[str, Any]]:
+        """La valeur et les attributs du capteur « à valider » (une vraie entité depuis 2.5.12.14.2, revue de HACS :
+        plus de `hass.states.async_set`)."""
+        compte = self.catalogue.compter()
+        return compte["propositions"], {
+            "a_classer": compte["a_classer"],
+            "decides": compte["decides"],
+            # Bouge quand un agent rend compte : la carte se relit.
+            "desinstallations": sum(
+                1
+                for fiche in self.catalogue.elements.values()
+                for chez in (fiche.get("pcs") or {}).values()
+                if isinstance(chez, dict) and chez.get("desinstall")
+            ),
+        }
+
     @callback
     def _publier(self) -> None:
-        compte = self.catalogue.compter()
-        self.hass.states.async_set(
-            CAPTEUR,
-            compte["propositions"],
-            {
-                "friendly_name": textes.t("proc.capteur", textes.ha(self.hass)),
-                "icon": "mdi:cog-transfer-outline",
-                "unit_of_measurement": textes.t("proc.unite", textes.ha(self.hass)),
-                "a_classer": compte["a_classer"],
-                "decides": compte["decides"],
-                # Bouge quand un agent rend compte : la carte se relit.
-                "desinstallations": sum(
-                    1
-                    for fiche in self.catalogue.elements.values()
-                    for chez in (fiche.get("pcs") or {}).values()
-                    if isinstance(chez, dict) and chez.get("desinstall")
-                ),
-            },
-        )
+        async_dispatcher_send(self.hass, SIGNAL_MAJ)
 
     def _noms_pc(self) -> dict[str, str]:
         return {

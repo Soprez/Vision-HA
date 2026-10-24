@@ -434,6 +434,8 @@ class PcParentalPollView(HomeAssistantView):
         # 1.82.0 : les modules coupés n'agissent plus à partir de ce relevé (modules.py ; leurs réglages restent).
         filtrage = not modules.coupe(coord.store, "filtrage")
         _annoncer_modules(coord.store, pc)
+        # 2.5.12.14.2 (revue de HACS) : ce que l'agent doit appliquer se calcule par tranches, sans bloquer la boucle.
+        _effectif = await coord.store.async_effectif(pc)
         reponse: dict[str, Any] = {
             "ok": True,
             "action": "lock" if etat["locked"] else "none",
@@ -455,7 +457,7 @@ class PcParentalPollView(HomeAssistantView):
             "soutien": soutien.pour_releve(coord.store),
             # L'agent reçoit le résultat, pas les règles : les étiquettes
             # et les exceptions sont résolues ici.
-            **coord.store.effectif(pc),
+            **_effectif,
             "message": "",
             "warn": 0,
             "message_seconds": MESSAGE_SECONDS,

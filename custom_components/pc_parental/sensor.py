@@ -46,6 +46,7 @@ async def async_setup_entry(
         entites.append(PcPlagesSensor(coordinator, pc_id))
     entites.append(AClasserSensor(coordinator))
     entites.append(DemandesEnAttenteSensor(coordinator))
+    entites.append(ProcessusAValiderSensor(coordinator))
     entites.append(MusiqueDerniereCommandeSensor(coordinator))
     entites.append(ExceptionsSensor(coordinator))
     entites.append(ListeNoireSensor(coordinator))
@@ -82,6 +83,7 @@ async def async_setup_entry(
     } | {
         f"{DOMAIN}_a_classer",
         f"{DOMAIN}_demandes_en_attente",
+        f"{DOMAIN}_processus_a_valider",
         f"{DOMAIN}_exceptions",
         f"{DOMAIN}_liste_noire_etat",
         f"{DOMAIN}_bloques",
@@ -978,6 +980,50 @@ class MicrosActifsSensor(PcEntity, SensorEntity):
 
         e = self._etat()
         return {"liste": list(e.get("micros_liste") or []), "micros_ecoutes": e.get("micros"), "par_micro": son.par_micro(e)}
+
+
+class ProcessusAValiderSensor(HubEntity, SensorEntity):
+    """Les logiciels et processus à valider (carte Processus, « À décider ») : le nombre de propositions, avec les compteurs
+    en attributs. 2.5.12.14.2 : une vraie entité (dans le registre, avec son appareil), plus un état posé à la main ;
+    elle se met à jour au signal de la gestion des processus."""
+
+    _unrecorded_attributes = frozenset({MATCH_ALL})
+    _attr_translation_key = "processus_a_valider"
+    _attr_icon = "mdi:cog-transfer-outline"
+
+    def __init__(self, coordinator: PcParentalCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{DOMAIN}_processus_a_valider"
+        # Le même entity_id dans toutes les langues : les cartes et « À décider » le lisent (processus.CAPTEUR).
+        from .processus import CAPTEUR
+
+        self.entity_id = CAPTEUR
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        from homeassistant.helpers.dispatcher import async_dispatcher_connect
+
+        from .processus import SIGNAL_MAJ
+
+        self.async_on_remove(async_dispatcher_connect(self.hass, SIGNAL_MAJ, self.async_write_ha_state))
+
+    def _etat(self) -> tuple[int, dict[str, Any]]:
+        gestion = getattr(self.coordinator, "processus", None)
+        return gestion.etat_capteur() if gestion is not None else (0, {"a_classer": 0, "decides": 0, "desinstallations": 0})
+
+    @property
+    def native_value(self) -> int:
+        return self._etat()[0]
+
+    @property
+    def native_unit_of_measurement(self) -> str:
+        from . import textes
+
+        return textes.t("proc.unite", textes.ha(self.hass))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return self._etat()[1]
 
 
 class DemandesEnAttenteSensor(HubEntity, SensorEntity):

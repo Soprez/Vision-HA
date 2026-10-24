@@ -403,6 +403,10 @@
   "sensor.pc_alex_presence",
   "PC-ALEX Présence"
  ],
+ "pc_parental_processus_a_valider": [
+  "sensor.vision_processus_a_valider",
+  "Vision Processus à valider"
+ ],
  "pc_parental_protection_g1": [
   "binary_sensor.google_pixel_8a_protection_desactivee",
   "Google Pixel 8a Protection désactivée"

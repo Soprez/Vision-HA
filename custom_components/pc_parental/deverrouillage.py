@@ -73,10 +73,43 @@ def _b64url(octets: bytes) -> str:
 # ----------------------------------------------------------------------------- La clé
 
 
+def _charger_pem(pem: str):
+    """La clé privée d'un PEM. Import de `cryptography` et calcul : à lancer dans l'executor (2.5.12.14.2, revue de HACS)."""
+    from cryptography.hazmat.primitives import serialization
+
+    return serialization.load_pem_private_key(pem.encode("ascii"), password=None)
+
+
+def _generer_cle():
+    """Une clé ECDSA P-256 neuve, dans l'executor."""
+    from cryptography.hazmat.primitives.asymmetric import ec
+
+    return ec.generate_private_key(ec.SECP256R1())
+
+
+def _publique_de(privee) -> tuple[str, str]:
+    """(pub, k) de la clé privée : la clé publique DER en base64, et son empreinte courte."""
+    from cryptography.hazmat.primitives import serialization
+
+    der = privee.public_key().public_bytes(
+        serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    return base64.b64encode(der).decode("ascii"), hashlib.sha256(der).hexdigest()[:16]
+
+
+def _pem_de(privee) -> str:
+    from cryptography.hazmat.primitives import serialization
+
+    return privee.private_bytes(
+        serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()
+    ).decode("ascii")
+
+
 class Cle:
     """La clé de signature de cette maison (ECDSA P-256), et l'option biométrie."""
 
     def __init__(self, hass: HomeAssistant) -> None:
+        self._hass = hass
         self._store: Store = Store(hass, 1, STOCKAGE)
         self._privee = None
         self.k = ""
@@ -84,38 +117,24 @@ class Cle:
         self.biometrie = False
 
     async def async_load(self) -> None:
-        from cryptography.hazmat.primitives import serialization
-
         lu = await self._store.async_load() or {}
         self.biometrie = bool(lu.get("biometrie", False))
         if lu.get("privee"):
-            self._poser(serialization.load_pem_private_key(lu["privee"].encode("ascii"), password=None))
+            await self._poser(await self._hass.async_add_executor_job(_charger_pem, lu["privee"]))
         else:
             await self.async_tourner()
 
-    def _poser(self, privee) -> None:
-        from cryptography.hazmat.primitives import serialization
-
+    async def _poser(self, privee) -> None:
         self._privee = privee
-        der = privee.public_key().public_bytes(
-            serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo
-        )
-        self.pub = base64.b64encode(der).decode("ascii")
-        self.k = hashlib.sha256(der).hexdigest()[:16]
+        self.pub, self.k = await self._hass.async_add_executor_job(_publique_de, privee)
 
     async def async_tourner(self) -> None:
-        """Une clé neuve : les approbations signées avec l'ancienne ne valent plus."""
-        from cryptography.hazmat.primitives.asymmetric import ec
-
-        self._poser(ec.generate_private_key(ec.SECP256R1()))
+        """Une clé neuve : les approbations signées avec l'ancienne ne valent plus. Générée dans l'executor."""
+        await self._poser(await self._hass.async_add_executor_job(_generer_cle))
         await self.async_save()
 
     async def async_save(self) -> None:
-        from cryptography.hazmat.primitives import serialization
-
-        pem = self._privee.private_bytes(
-            serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()
-        ).decode("ascii")
+        pem = await self._hass.async_add_executor_job(_pem_de, self._privee)
         await self._store.async_save({"privee": pem, "biometrie": self.biometrie})
 
     def publique(self) -> dict[str, str]:
