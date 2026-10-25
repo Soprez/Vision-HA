@@ -108,7 +108,7 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:1.4.1")
     implementation("androidx.media3:media3-exoplayer-hls:1.4.1")
     // Le QR de l'appairage : affiché (encodage) et scanné (décodage des images de la caméra).
-    implementation("com.google.zxing:core:3.5.3")
+    implementation("com.google.zxing:core:3.5.4")
     // La caméra, seulement pour scanner le QR de Home Assistant (sans services Google).
     implementation("androidx.camera:camera-camera2:1.3.4")
     implementation("androidx.camera:camera-lifecycle:1.3.4")
