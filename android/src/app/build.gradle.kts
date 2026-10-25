@@ -103,7 +103,7 @@ dependencies {
     // Recette calculée (captures sans émulateur) : Robolectric pour faire tourner les écrans sur la JVM, Roborazzi pour
     // les images. Seulement dans les essais : rien n'entre dans l'APK.
     testImplementation("org.robolectric:robolectric:4.17")
-    testImplementation("io.github.takahirom.roborazzi:roborazzi:1.32.2")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi:1.77.0")
     // Les flux HLS des caméras (segments fMP4 de Home Assistant) : le MediaPlayer du système ne les lit pas.
     implementation("androidx.media3:media3-exoplayer:1.4.1")
     implementation("androidx.media3:media3-exoplayer-hls:1.4.1")
