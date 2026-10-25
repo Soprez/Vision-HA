@@ -125,7 +125,7 @@ dependencies {
 // Les essais sur émulateur (androidTest) : mêmes versions d'androidx que l'appli (déjà en cache),
 // sinon leur classpath redemande les versions plus anciennes déclarées par CameraX.
 dependencies {
-    androidTestImplementation("androidx.annotation:annotation:1.3.0")
+    androidTestImplementation("androidx.annotation:annotation:1.11.0")
     androidTestImplementation("androidx.core:core:1.8.0")
     androidTestImplementation("androidx.collection:collection:1.2.0")
 }
