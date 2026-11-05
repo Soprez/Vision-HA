@@ -1,0 +1,45 @@
+{
+  "version": "2.5.12.14.4",
+  "date": "2026-11-05",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Ce que chaque appareil applique se calcule par tranches, hors de la boucle de Home Assistant.",
+        "en": "What each device applies is computed in slices, outside Home Assistant's event loop.",
+        "de": "Was jedes Gerät anwendet, wird in Teilschritten außerhalb der Ereignisschleife berechnet.",
+        "es": "Lo que aplica cada dispositivo se calcula por tramos, fuera del bucle de eventos de Home Assistant.",
+        "it": "Ciò che ogni dispositivo applica si calcola a tranche, fuori dal ciclo di eventi di Home Assistant.",
+        "nl": "Wat elk apparaat toepast wordt in delen berekend, buiten de gebeurtenislus van Home Assistant."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Un blocage ou un déblocage part à l'appareil au relevé suivant, comme avant.",
+        "en": "A block or unblock reaches the device at its next check-in, as before.",
+        "de": "Eine Sperre oder Freigabe erreicht das Gerät wie bisher bei der nächsten Abfrage.",
+        "es": "Un bloqueo o desbloqueo llega al dispositivo en la siguiente consulta, como antes.",
+        "it": "Un blocco o uno sblocco arriva al dispositivo alla verifica successiva, come prima.",
+        "nl": "Een blokkade of deblokkade bereikt het apparaat bij de volgende check, zoals voorheen."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Aucun réglage à changer : la mise à jour répond à la dernière revue de HACS.",
+        "en": "No setting to change: this update answers HACS's latest review.",
+        "de": "Keine Einstellung zu ändern: Dieses Update beantwortet die letzte HACS-Prüfung.",
+        "es": "No hay que cambiar ningún ajuste: esta actualización responde a la última revisión de HACS.",
+        "it": "Nessuna impostazione da cambiare: questo aggiornamento risponde all'ultima revisione di HACS.",
+        "nl": "Geen instelling te wijzigen: deze update beantwoordt de laatste HACS-review."
+      }
+    }
+  ]
+}

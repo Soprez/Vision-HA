@@ -161,16 +161,16 @@ async def test_site_lie_propose_puis_valide(hass, hass_storage):
     await parent.agir(hass, coord, pc, {"action": "accorder", "nom": "roblox", "genre": "apps", "mode": "exception"},
                       "Nolan", "p1")
     coord.store._memos = {}
-    assert "robloxdev.com" in coord.store.effectif(pc)["sites"]          # proposé, pas encore lié
+    assert "robloxdev.com" in coord.store._effectif_calc(pc)["sites"]          # proposé, pas encore lié
     await parent.agir(hass, coord, pc, {"action": "lier_domaine", "nom": "roblox", "domaine": "robloxdev.com",
                                         "lier": True}, "Nolan", "p1")
     coord.store._memos = {}
-    eff = coord.store.effectif(pc)
+    eff = coord.store._effectif_calc(pc)
     assert "robloxdev.com" not in eff["sites"] and "robloxdev.com" in eff["exceptions"]
     await parent.agir(hass, coord, pc, {"action": "lier_domaine", "nom": "roblox", "domaine": "robloxdev.com",
                                         "lier": False}, "Nolan", "p1")
     coord.store._memos = {}
-    assert "robloxdev.com" in coord.store.effectif(pc)["sites"]
+    assert "robloxdev.com" in coord.store._effectif_calc(pc)["sites"]
 
 
 # ------------------------------------------------------------------ notifications à boutons

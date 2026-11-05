@@ -82,10 +82,10 @@ async def test_un_lien_automatique_ne_debloque_rien(hass, hass_storage):
     # Même Roblox accordé, le site en attente reste fermé : seul un geste du Décideur le fait suivre.
     store.accorder(w1, "apps", "roblox", "exception")
     store._memos = {}
-    assert "rbxnouveau.com" not in store.effectif(w1)["exceptions"]
+    assert "rbxnouveau.com" not in store._effectif_calc(w1)["exceptions"]
     store.lier_domaine("roblox", "rbxnouveau.com", True)
     store._memos = {}
-    assert "rbxnouveau.com" in store.effectif(w1)["exceptions"]
+    assert "rbxnouveau.com" in store._effectif_calc(w1)["exceptions"]
 
 
 async def test_delier_a_la_main(hass, hass_storage):
@@ -191,7 +191,7 @@ async def test_demande_groupee_en_bloc(hass, hass_storage):
     assert "2" in retour
     store._memos = {}
     assert _ouvert(store, w1, "apps", "roblox")
-    assert {"rbxnouveau.com", "rbxcdn.com"} <= set(store.effectif(w1)["exceptions"])
+    assert {"rbxnouveau.com", "rbxcdn.com"} <= set(store._effectif_calc(w1)["exceptions"])
     assert store.domaines_auto["roblox"]["rbxnouveau.com"]["suit"] is True
 
 

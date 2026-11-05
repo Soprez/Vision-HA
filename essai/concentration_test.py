@@ -38,7 +38,7 @@ async def _installer(hass, hass_storage, modules=None):
 
 
 def _fermees(coord, pc_id="e1"):
-    eff = coord.store.effectif(coord.store.pcs[pc_id])
+    eff = coord.store._effectif_calc(coord.store.pcs[pc_id])
     return set(eff["apps"]), eff
 
 

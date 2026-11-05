@@ -36,7 +36,7 @@ async def _installer(hass, hass_storage, autorises=(), bloques=()):
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
     coord = hass.data[DOMAIN][entree.entry_id]
-    return coord.store.effectif(coord.store.pcs["w1"])
+    return coord.store._effectif_calc(coord.store.pcs["w1"])
 
 
 async def test_jeux_ferme_sans_autorisation_coupe_roblox_et_ses_serveurs(hass, hass_storage):

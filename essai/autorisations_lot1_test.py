@@ -182,7 +182,7 @@ async def test_liste_noire(hass, hass_storage):
     parent = _module("parent")
     with pytest.raises(parent._Refus):
         await _accorder(hass, coord, "exemple-piege.net", "toujours", genre="sites")
-    eff = coord.store.effectif(coord.store.pcs["w1"])
+    eff = coord.store._effectif_calc(coord.store.pcs["w1"])
     assert "exemple-piege.net" not in eff["exceptions"]
 
 
@@ -206,13 +206,13 @@ async def test_sites_lies_pour_les_trois_modes_puis_retrait(hass, hass_storage, 
     coord = await _installer(hass, hass_storage)
     await _accorder(hass, coord, "roblox", mode, minutes=15)
     coord.store._memos = {}
-    eff = coord.store.effectif(coord.store.pcs["w1"])
+    eff = coord.store._effectif_calc(coord.store.pcs["w1"])
     assert "roblox" not in eff["apps"] and not set(ROBLOX_SITES) & set(eff["sites"]), eff
     assert set(ROBLOX_SITES) <= set(eff["exceptions"])
     await _module("parent").agir(hass, coord, coord.store.pcs["w1"],
                                  {"action": "retirer_autorisation", "nom": "roblox", "genre": "apps"}, "Nolan", "p1")
     coord.store._memos = {}
-    eff = coord.store.effectif(coord.store.pcs["w1"])
+    eff = coord.store._effectif_calc(coord.store.pcs["w1"])
     assert "roblox" in eff["apps"] and set(ROBLOX_SITES) <= set(eff["sites"]), eff
     assert not set(ROBLOX_SITES) & set(eff["exceptions"])
 

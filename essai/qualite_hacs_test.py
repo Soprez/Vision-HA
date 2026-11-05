@@ -128,11 +128,12 @@ async def test_effectif_par_tranches(hass, hass_storage):
     coord = await _installer(hass, hass_storage)
     store = coord.store
     pc = store.pcs["pc1"]
-    store._memos = {}
+    await asyncio.gather(*list(getattr(store, "_effectif_en_cours", {}).values()))
+    store._effectif_derniers = {}
     t = time.perf_counter()
-    attendu = store.effectif(pc)
+    attendu = store._effectif_calc(pc)
     duree_sync = time.perf_counter() - t
-    store._memos = {}
+    store._effectif_derniers = {}
     ecarts: list[float] = []
     arret = asyncio.Event()
 
@@ -155,13 +156,15 @@ async def test_effectif_par_tranches(hass, hass_storage):
     t = time.perf_counter()
     assert await store.async_effectif(pc) == attendu
     assert time.perf_counter() - t < 0.05
-    assert store.effectif(pc) == attendu
+    assert store.effectif(pc) == attendu  # l'affichage rend le résultat calculé
+    assert store._effectif_calc(pc) == attendu
 
 
 async def test_effectif_demandes_partagees(hass, hass_storage):
     coord = await _installer(hass, hass_storage)
     store = coord.store
-    store._memos = {}
+    await asyncio.gather(*list(getattr(store, "_effectif_en_cours", {}).values()))
+    store._effectif_derniers = {}
     appels = []
     vrai = store._effectif_pas
     store._effectif_pas = lambda pc: (appels.append(1), vrai(pc))[1]
@@ -214,3 +217,92 @@ def test_arret_automatique_desactive_par_defaut_et_limite_a_vision():
     assert musique_arret.delai_min(type("S", (), {"musique": {"arret_auto_min": 60}})()) == 60  # activé exprès
     src = (RACINE / "musique_arret.py").read_text(encoding="utf-8")
     assert "musique.est_lecteur_vision(hass, lecteur)" in src  # la boucle ignore les lecteurs qui ne sont pas à Vision
+
+
+# ------------------------------------------------------------------ 9 (suite, 2.5.12.14.4) : les appelants synchrones ne calculent plus
+
+def _garde_sans_calcul_synchrone(store, monkeypatch):
+    """Fait échouer tout calcul de `effectif` qui n'est pas lancé par `_effectif_en_tranches` (la tâche par tranches)."""
+    import sys
+
+    vrai = store._effectif_pas
+
+    def pas(pc):
+        appelant = sys._getframe(1).f_code.co_name
+        assert appelant == "_effectif_en_tranches", f"calcul d'effectif hors des tranches, depuis {appelant}()"
+        return vrai(pc)
+
+    def calc(pc):
+        raise AssertionError("_effectif_calc appelé par un chemin de production")
+
+    monkeypatch.setattr(store, "_effectif_pas", pas)
+    monkeypatch.setattr(store, "_effectif_calc", calc)
+
+
+async def test_les_appelants_synchrones_ne_calculent_pas(hass, hass_storage, monkeypatch):
+    from custom_components.pc_parental import ensemble, listes
+
+    coord = await _installer(hass, hass_storage)
+    store = coord.store
+    store._effectif_derniers = {}
+    _garde_sans_calcul_synchrone(store, monkeypatch)
+    pc = store.pcs["pc1"]
+    # Rien n'est calculé : un résultat vide et sûr, et un calcul par tranches est planifié.
+    assert store.effectif(pc) == {"apps": [], "sites": [], "exceptions": [], "motifs": [], "raisons": {}}
+    listes.revision_appareil(store, pc)
+    ensemble.lire(hass, coord, {"mode": "logiciels"})
+    await coord.async_refresh()  # les capteurs relisent : toujours sans calcul synchrone
+    await hass.async_block_till_done()
+    # Les tranches ont tourné entre-temps : le résultat est prêt, et lu tel quel.
+    assert "pc1" in store._effectif_derniers
+    lu = store.effectif(pc)
+    assert lu == store._effectif_derniers["pc1"][2]
+
+
+async def test_une_ecriture_ne_vide_pas_le_resultat(hass, hass_storage, monkeypatch):
+    coord = await _installer(hass, hass_storage)
+    store = coord.store
+    pc = store.pcs["pc2"]
+    avant = await store.async_effectif(pc)
+    assert avant["sites"] or avant["apps"]
+    _garde_sans_calcul_synchrone(store, monkeypatch)
+    await store.async_save()  # l'écriture marque « périmé »...
+    assert store._effectif_frais(pc) is None
+    lu = store.effectif(pc)  # ...mais l'affichage garde l'ancien résultat, sans rien calculer
+    assert lu == avant
+    await asyncio.gather(*list(store._effectif_en_cours.values()))
+    assert store._effectif_frais(pc) is not None  # la tâche planifiée l'a refait par tranches
+
+
+async def test_un_blocage_est_effectif_tout_de_suite_pour_l_agent(hass, hass_storage):
+    """Ce qui part à l'agent (async_effectif, attendu par le relevé) n'est jamais en retard sur une écriture."""
+    coord = await _installer(hass, hass_storage)
+    store = coord.store
+    pc = store.pcs["pc3"]
+    assert "essai-bloque-tout-de-suite.com" not in (await store.async_effectif(pc))["sites"]
+    store.basculer(pc, "essai-bloque-tout-de-suite.com", True)
+    await store.async_save()
+    # L'affichage peut avoir un instant de retard, jamais l'agent.
+    assert "essai-bloque-tout-de-suite.com" in (await store.async_effectif(pc))["sites"]
+    # Un déblocage, pareil.
+    store.basculer(pc, "essai-bloque-tout-de-suite.com", False)
+    await store.async_save()
+    assert "essai-bloque-tout-de-suite.com" not in (await store.async_effectif(pc))["sites"]
+
+
+async def test_un_calcul_en_cours_pendant_une_ecriture_est_refait(hass, hass_storage):
+    """Une écriture pendant les tranches : le résultat rangé est marqué périmé, le relevé suivant le refait."""
+    coord = await _installer(hass, hass_storage)
+    store = coord.store
+    pc = store.pcs["pc4"]
+    store._effectif_derniers = {}
+    tache = asyncio.ensure_future(store.async_effectif(pc))
+    await asyncio.sleep(0)
+    store.basculer(pc, "essai-pendant-le-calcul.com", True)
+    await store.async_save()
+    # Sans attendre le calcul parti avant l'écriture : la demande suivante ne le rejoint pas, elle en lance un neuf.
+    suivant = await store.async_effectif(pc)
+    assert "essai-pendant-le-calcul.com" in suivant["sites"]
+    await tache
+    assert "essai-pendant-le-calcul.com" in (await store.async_effectif(pc))["sites"]
+    assert "essai-pendant-le-calcul.com" in store.effectif(pc)["sites"]  # l'ancien n'a pas écrasé le récent

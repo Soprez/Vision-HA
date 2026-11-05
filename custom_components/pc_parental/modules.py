@@ -125,6 +125,7 @@ def regler(hass: HomeAssistant, store, voulus: set[str], par: str) -> tuple[set[
         raise ValueError(" ".join(erreurs.values()))
     avant = actifs(store)
     store.modules = {m: (m in voulus) for m in TOUS}
+    store._memos = {}  # 2.5.12.14.4 : changer de modules change ce que chaque appareil applique : plus d'ancien résultat
     apres = actifs(store)
     actives, desactives = apres - avant, avant - apres
     if actives or desactives:

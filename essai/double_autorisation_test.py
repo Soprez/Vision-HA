@@ -66,7 +66,7 @@ async def _geste(hass, coord, decision, nom, minutes=None, pc="w1"):
 
 def _eff(coord, pc="w1"):
     coord.store._memos = {}  # le calcul est gardé 5 s : on veut l'état de cet instant
-    return coord.store.effectif(coord.store.pcs[pc])
+    return coord.store._effectif_calc(coord.store.pcs[pc])
 
 
 def _echeance(coord, cle, pc="w1"):

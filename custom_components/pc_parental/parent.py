@@ -1385,6 +1385,7 @@ class PcParentalParentView(HomeAssistantView):
 
             return self.json(*await canaux.depuis_appli(self.hass, coord, moi, corps))
         if corps.get("action") in LECTURES:
+            await coord.store.async_effectifs()  # 2.5.12.14.4 : les lectures ne calculent pas ; le calcul se fait ici, par tranches
             return self.json(*_lecture(coord, corps, langue))
         if str(corps.get("action") or "") in GESTES_MAISON:
             # Pause générale : toute la maison, pas d'appareil visé ; « Gérer » suffit (vérifié plus haut).
@@ -1473,6 +1474,7 @@ class PcParentalMaisonView(HomeAssistantView):
         langue = textes.ha(self.hass)
         qui = str(getattr(request.get("hass_user"), "name", "") or textes.t("commun.un_gestionnaire", langue))
         if corps.get("action") in LECTURES:
+            await coord.store.async_effectifs()  # 2.5.12.14.4 : les lectures ne calculent pas ; le calcul se fait ici, par tranches
             return self.json(*_lecture(coord, corps, langue))
         # FAILLE DE SÉCURITÉ (l'auteur, 16/10) : accorder depuis le tableau exige le code de déverrouillage, à chaque geste.
         from . import octroi

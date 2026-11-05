@@ -36,7 +36,7 @@ async def _installer(hass, hass_storage):
 
 def _fermees(coord, pc_id):
     coord.store._memos = {}
-    return coord.store.effectif(coord.store.pcs[pc_id])
+    return coord.store._effectif_calc(coord.store.pcs[pc_id])
 
 
 async def test_jeux_fermes_au_college(hass, hass_storage):

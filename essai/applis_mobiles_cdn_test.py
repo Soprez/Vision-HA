@@ -46,8 +46,8 @@ async def _installer(hass, hass_storage, extra=None):
 
 async def test_appli_autorisee_garde_ses_cdn_sur_cet_appareil_seulement(hass, hass_storage):
     store = await _installer(hass, hass_storage)
-    lou = store.effectif(store.pcs["e1"])
-    noa = store.effectif(store.pcs["e2"])
+    lou = store._effectif_calc(store.pcs["e1"])
+    noa = store._effectif_calc(store.pcs["e2"])
     # Lou : les applis passent, leurs sites aussi (sous la catégorie fermée).
     assert not set(APPLIS) & set(lou["apps"]), lou["apps"]
     assert not set(SOCIAL) & set(lou["sites"]), lou["sites"]
@@ -60,7 +60,7 @@ async def test_appli_autorisee_garde_ses_cdn_sur_cet_appareil_seulement(hass, ha
 async def test_le_tracage_reste_bloque_meme_range_sous_l_appli(hass, hass_storage):
     # Un Décideur (ou un lien ancien) a rangé un domaine de traçage sous Snapchat : il reste fermé.
     store = await _installer(hass, hass_storage, extra={"domaines_lies": {"com.snapchat.android": ["app-measurement.com"]}})
-    lou = store.effectif(store.pcs["e1"])
+    lou = store._effectif_calc(store.pcs["e1"])
     for s in TRACAGE:
         assert s not in lou["exceptions"], (s, lou["exceptions"])
     assert "app-measurement.com" in store.dependances("com.snapchat.android")

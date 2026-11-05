@@ -3841,38 +3841,95 @@ class PcStore:
             return False
         return not bool((agent.get("protections") or {}).get("accessibilite"))
 
-    def effectif(self, pc: dict[str, Any]) -> dict[str, list[str]]:
-        # Demandé par le relevé de l'agent, le capteur et l'espace parents dans la même
-        # seconde : calculé une fois par PC et par minute, et à nouveau à chaque écriture.
-        # 2.5.12 : la minute plutôt que 5 s. Le coordinateur repasse toutes les 15 s : avec 5 s, chaque passage
-        # refaisait le catalogue entier pour chaque appareil (0,5 à 0,7 s par appareil sur le NUC). Les plages se
-        # règlent à la minute, et les laissez-passer actifs font partie de la clé : un laissez-passer qui se
-        # termine refait le calcul tout de suite. Une limite de temps du jour atteinte se voit à la minute suivante.
-        cle = ("effectif", (pc or {}).get("id") or "", int(time.time() // 60),
-               tuple(d for d, _ in self.laissez_passer_actifs(pc or {})))
-        return copy.deepcopy(self._memo(cle, 60.0, lambda: self._effectif_calc(pc)))
+    @property
+    def _memos(self):
+        return self.__dict__.get("_memos_d")
 
-    async def async_effectif(self, pc: dict[str, Any]) -> dict[str, list[str]]:
-        """Comme `effectif`, mais sans bloquer la boucle d'événements (2.5.12.14.2, revue de HACS : 0,5 à 0,7 s par
-        appareil, d'un seul tenant). Le calcul est le même, fait par tranches (`_effectif_pas` rend la main à la boucle
-        tous les quelques centaines de noms) ; pas de fil d'exécution à part : le magasin n'est pas fait pour être lu
-        pendant qu'on l'écrit. Un résultat encore valable sort tout de suite ; deux demandes pour le même appareil
-        partagent un seul calcul."""
-        cle = ("effectif", (pc or {}).get("id") or "", int(time.time() // 60),
-               tuple(d for d, _ in self.laissez_passer_actifs(pc or {})))
-        memos = getattr(self, "_memos", None) or {}
-        v = memos.get(cle)
-        if v is not None and time.monotonic() - v[0] < 60.0:
-            return copy.deepcopy(v[1])
+    @_memos.setter
+    def _memos(self, valeur) -> None:
+        # Oublier les caches (écriture, essai, changement de modules) périme aussi ce que chaque appareil applique : le
+        # jeton change, `_effectif_frais` ne rend plus l'ancien résultat et le prochain relevé le refait.
+        self.__dict__["_memos_d"] = valeur
+        self.__dict__["_jeton_memos"] = self.__dict__.get("_jeton_memos", 0) + 1
+
+    def _effectif_jeton(self) -> tuple:
+        return (getattr(self, "version_cache", 0), self.__dict__.get("_jeton_memos", 0))
+
+    def _effectif_cle(self, pc: dict[str, Any]) -> tuple:
+        # Les plages se règlent à la minute, et les laissez-passer actifs font partie de la clé : un laissez-passer qui se
+        # termine refait le calcul tout de suite. Une limite de temps du jour atteinte se voit à la minute suivante.
+        return ("effectif", (pc or {}).get("id") or "", int(time.time() // 60),
+                tuple(d for d, _ in self.laissez_passer_actifs(pc or {})))
+
+    def _effectif_frais(self, pc: dict[str, Any]):
+        """Le dernier résultat calculé pour cet appareil, s'il est encore valable (même minute, mêmes laissez-passer, aucune
+        écriture depuis) ; sinon None."""
+        v = (getattr(self, "_effectif_derniers", None) or {}).get((pc or {}).get("id") or "")
+        if v is not None and v[0] == self._effectif_cle(pc) and v[1] == self._effectif_jeton():
+            return v[2]
+        return None
+
+    def effectif(self, pc: dict[str, Any]) -> dict[str, list[str]]:
+        """Ce que l'agent applique, pour l'AFFICHAGE (capteurs, cartes, listes) : rend le dernier résultat calculé et ne
+        calcule jamais rien de lourd. 2.5.12.14.4 (revue de HACS, point 9) : avant, ce chemin refaisait tout le catalogue
+        d'un seul tenant dès que le cache était vide, et chaque écriture le vidait. Maintenant une écriture ou la minute
+        qui passe marquent seulement le résultat « périmé » : on rend l'ancien (ou, tout au début, un résultat vide) et
+        on planifie `async_effectif`, qui le refait par tranches. Rien de ce qui s'applique à l'appareil ne passe par ici :
+        le relevé de l'agent (http.py) attend `async_effectif`, donc un blocage pris à l'instant part au prochain relevé."""
+        if self._effectif_frais(pc) is None:
+            self._planifier_effectif(pc)
+        v = (getattr(self, "_effectif_derniers", None) or {}).get((pc or {}).get("id") or "")
+        if v is None:
+            return {"apps": [], "sites": [], "exceptions": [], "motifs": [], "raisons": {}}
+        return copy.deepcopy(v[2])
+
+    def _planifier_effectif(self, pc: dict[str, Any]) -> None:
+        """Lance (ou rejoint) le calcul par tranches, s'il y a une boucle d'événements ; sinon rien (fil d'exécution à part)."""
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return
+        try:
+            self._tache_effectif(pc, self._effectif_cle(pc))
+        except Exception:  # noqa: BLE001 - l'affichage rend l'ancien résultat, le prochain relevé refera le calcul
+            pass
+
+    def _tache_effectif(self, pc: dict[str, Any], cle: tuple):
+        # Un calcul en cours ne sert que les demandes faites sous le même jeton d'écriture : une écriture arrivée depuis son
+        # départ rend son résultat périmé, la demande suivante lance un calcul neuf (un blocage n'attend pas l'ancien).
+        cle_en_cours = (cle, self._effectif_jeton())
         en_cours = self.__dict__.setdefault("_effectif_en_cours", {})
-        tache = en_cours.get(cle)
+        tache = en_cours.get(cle_en_cours)
         if tache is None:
             tache = asyncio.ensure_future(self._effectif_en_tranches(pc, cle))
-            en_cours[cle] = tache
-            tache.add_done_callback(lambda _t, c=cle: en_cours.pop(c, None))
-        return copy.deepcopy(await asyncio.shield(tache))
+            en_cours[cle_en_cours] = tache
+            tache.add_done_callback(lambda t, c=cle_en_cours: (en_cours.pop(c, None), t.cancelled() or t.exception()))
+        return tache
+
+    async def async_effectif(self, pc: dict[str, Any]) -> dict[str, list[str]]:
+        """Comme `effectif`, mais calculé pour de bon et sans bloquer la boucle d'événements (2.5.12.14.2, revue de HACS :
+        0,5 à 0,7 s par appareil, d'un seul tenant). Le calcul est le même, fait par tranches (`_effectif_pas` rend la
+        main à la boucle tous les quelques centaines de noms) ; pas de fil d'exécution à part : le magasin n'est pas fait
+        pour être lu pendant qu'on l'écrit. Un résultat encore valable sort tout de suite ; deux demandes pour le même
+        appareil partagent un seul calcul. C'est le seul endroit qui calcule : le relevé de l'agent l'attend, donc ce
+        que l'appareil applique n'est jamais en retard sur une écriture."""
+        for _ in range(5):
+            frais = self._effectif_frais(pc)
+            if frais is not None:
+                return copy.deepcopy(frais)
+            await asyncio.shield(self._tache_effectif(pc, self._effectif_cle(pc)))
+        # Écritures sans arrêt : le dernier calcul fait fait foi (il part de l'état d'au plus quelques instants plus tôt).
+        return copy.deepcopy((self.__dict__.get("_effectif_derniers") or {}).get((pc or {}).get("id") or "", (None, None, {}))[2])
+
+    async def async_effectifs(self) -> None:
+        """Remet à jour, par tranches, ce que chaque appareil applique (les lectures d'une carte l'attendent avant de lire)."""
+        for pc in list(self.pcs.values()):
+            await self.async_effectif(pc)
 
     async def _effectif_en_tranches(self, pc: dict[str, Any], cle: tuple) -> dict[str, list[str]]:
+        # La version est relevée AVANT le calcul : une écriture pendant les tranches rend ce résultat « périmé » dès
+        # qu'il est rangé, et le prochain relevé le refait.
+        version = self._effectif_jeton()
         pas = self._effectif_pas(pc)
         try:
             while True:
@@ -3880,9 +3937,10 @@ class PcStore:
                 await asyncio.sleep(0)
         except StopIteration as fin:
             resultat = fin.value
-        if getattr(self, "_memos", None) is None:
-            self._memos = {}
-        self._memos[cle] = (time.monotonic(), resultat)
+        derniers = self.__dict__.setdefault("_effectif_derniers", {})
+        ancien = derniers.get((pc or {}).get("id") or "")
+        if ancien is None or ancien[1] <= version:  # un vieux calcul qui finit en retard n'écrase pas un plus récent
+            derniers[(pc or {}).get("id") or ""] = (cle, version, resultat)
         return resultat
 
     def _effectif_calc(self, pc: dict[str, Any]) -> dict[str, list[str]]:

@@ -16,6 +16,7 @@ Ici : un catalogue de la taille de celui de l'auteur. On vérifie que
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import time
 
@@ -150,6 +151,8 @@ async def test_capteur_etat_en_cache(hass, hass_storage):
         # Une écriture (décision, étiquette…) invalide le cache, et l'empreinte change avec la liste.
         coord.store.bannir("site0003.example")
         await coord.store.async_save()
+        etat.extra_state_attributes  # l'affichage rend l'ancien résultat et planifie le calcul par tranches
+        await asyncio.gather(*list(coord.store._effectif_en_cours.values()))
         apres = etat.extra_state_attributes
         assert apres["revision"] != premier["revision"]
         assert apres["nb_sites_bloques"] == premier["nb_sites_bloques"] + 1
@@ -255,7 +258,7 @@ async def test_maison_sans_listes_de_blocages(hass, hass_storage, hass_client):
     assert len(texte.encode()) < 250_000, len(texte)
     # La même fiche, lue à l'ouverture de l'appareil : la liste complète, avec ses motifs.
     pc = coord.store.pcs["pc0"]
-    complet = coord.store.effectif(pc)
+    complet = coord.store._effectif_calc(pc)
     lue = await (await admin.post("/api/pc_parental/maison", json={"action": "bloques", "pc": "pc0"})).json()
     assert lue["ok"]
     assert {s["nom"] if isinstance(s, dict) else s for s in lue["sites"]} == set(complet["sites"])

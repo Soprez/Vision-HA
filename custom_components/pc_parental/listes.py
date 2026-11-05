@@ -134,6 +134,7 @@ class ListesView(HomeAssistantView):
             pc = coord.store.get(request.query.get("pc", ""))
             if not pc:
                 return self.json({"ok": False, "error": "pc"}, status_code=404)
+            await coord.store.async_effectif(pc)  # 2.5.12.14.4 : la lecture ne calcule pas, le calcul se fait ici
             revision = revision_appareil(coord.store, pc)
             if connue and connue == revision:
                 return self.json({"ok": True, "inchange": True, "revision": revision})
