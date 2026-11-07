@@ -5,6 +5,7 @@
         <activity android:name="org.soprez.vision.SignalerActivity" android:exported="true" tools:replace="android:exported" />
         <activity android:name="org.soprez.vision.MesureActivity" android:exported="true" />
         <activity android:name="org.soprez.vision.RecetteActivity" android:exported="true" />
+        <activity android:name="org.soprez.vision.MaWebActivity" android:exported="true" tools:replace="android:exported" />
         <activity android:name="org.soprez.vision.ReglagesTvActivity" android:exported="true" tools:replace="android:exported" />
     </application>
 </manifest>
