@@ -74,6 +74,9 @@ SCHEMA_ENVOYER = vol.Schema(
         vol.Optional("titre", default=PRODUIT): cv.string,
         vol.Optional("message", default=""): cv.string,
         vol.Optional("media"): cv.string,
+        # 1.94 (point 4) : une image par URL https, ou un GIF (mot-clé, URL ou identifiant Giphy) ; HA les télécharge, l'appareil non.
+        vol.Optional("image"): cv.string,
+        vol.Optional("gif"): cv.string,
         vol.Optional("position"): vol.In(POSITIONS),
         vol.Optional("taille"): vol.In(TAILLES),
         vol.Optional("duree", default=30): vol.All(vol.Coerce(int), vol.Range(min=0, max=3600)),
@@ -381,7 +384,17 @@ class PcParentalAccuseView(HomeAssistantView):
 async def async_envoyer(hass: HomeAssistant, coord, donnees: dict[str, Any]) -> dict[str, Any]:
     """Le service `pc_parental.envoyer`."""
     media = None
-    if donnees.get("media"):
+    if donnees.get("gif") or donnees.get("image"):
+        if donnees.get("media"):
+            raise textes.Erreur("msg.un_seul_media")
+        from . import giphy as _giphy
+
+        if donnees.get("gif"):
+            media = await _giphy.instance(hass, coord).gif(str(donnees["gif"]))
+        else:
+            media = await _giphy.image_par_url(hass, str(donnees["image"]), _giphy.dossier_cache(hass))
+        donnees = {**donnees, "type": "image"}
+    elif donnees.get("media"):
         # 2.5.12.14.2 : `chemin_media` résout des chemins sur le disque (realpath) : dans l'executor.
         chemin = await hass.async_add_executor_job(chemin_media, hass, donnees["media"])
         media = await hass.async_add_executor_job(decrire_media, chemin)
@@ -397,6 +410,9 @@ async def async_envoyer(hass: HomeAssistant, coord, donnees: dict[str, Any]) -> 
 def enregistrer_vues(hass: HomeAssistant) -> None:
     hass.http.register_view(PcParentalMediaView(hass))
     hass.http.register_view(PcParentalAccuseView(hass))
+    from .giphy import PcParentalGiphyView
+
+    hass.http.register_view(PcParentalGiphyView(hass))
     from .code_gestion import PcParentalCodeView
 
     hass.http.register_view(PcParentalCodeView(hass))

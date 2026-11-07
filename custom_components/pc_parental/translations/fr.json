@@ -1967,6 +1967,24 @@
         }
       }
     },
+    "giphy_regler": {
+      "name": "GIF Giphy — réglages",
+      "description": "Active ou coupe les GIF Giphy, pose votre clé API et la classification (administrateurs et automatisations seulement). La clé n'est jamais renvoyée.",
+      "fields": {
+        "actif": {
+          "name": "Activé",
+          "description": "Autoriser les GIF de Giphy dans les messages (coupé par défaut)."
+        },
+        "cle": {
+          "name": "Clé API",
+          "description": "Votre propre clé API Giphy (gratuite sur developers.giphy.com)."
+        },
+        "classification": {
+          "name": "Classification",
+          "description": "g (tout public, défaut), pg, pg-13 ou r. Au-dessus de g, c'est à vous de décider : certains destinataires peuvent être jeunes."
+        }
+      }
+    },
     "accueil_regler": {
       "name": "Accueil — liste des applications",
       "description": "Afficher ou masquer la liste des applications sur l'accueil d'un appareil Android (administrateurs et automatisations seulement). Masquée, l'accueil ne montre que les widgets (tableau de bord) ; un appui long sur l'heure ouvre toujours les paramètres, derrière le code ou l'empreinte. L'appareil applique le réglage le plus récent, de Home Assistant ou de l'appareil lui-même.",

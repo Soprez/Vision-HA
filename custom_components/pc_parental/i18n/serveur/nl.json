@@ -993,5 +993,19 @@
   "reglages.son_fait": "Geluidsniveau van ‘{appareil}’ opgeslagen.",
   "son.plage_inconnue": "Onbekend tijdvak op dit apparaat: {plage}.",
   "son.plancher_inconnu": "Nog geen gemeten bodem (één uur meten): voer hem in of geef de drempel in dBFS.",
-  "mus.a_faire_dans_ma": "Te doen in Music Assistant: Vision doet dit niet meer van hieruit."
+  "mus.a_faire_dans_ma": "Te doen in Music Assistant: Vision doet dit niet meer van hieruit.",
+  "giphy.desactive": "Giphy-GIF's staan uit: zet ze aan in de instellingen van Vision.",
+  "giphy.sans_cle": "De Giphy-API-sleutel ontbreekt (je eigen, gratis op developers.giphy.com).",
+  "giphy.cle_forme": "Deze Giphy-API-sleutel heeft niet de juiste vorm (16 tot 64 letters en cijfers).",
+  "giphy.classification": "Onbekende Giphy-classificatie: g, pg, pg-13 of r.",
+  "giphy.classification_depassee": "Deze GIF zit boven de gekozen Giphy-classificatie: “{q}” wordt niet verstuurd.",
+  "giphy.limite": "Te veel Giphy-zoekopdrachten tegelijk (10 per minuut): probeer het zo opnieuw.",
+  "giphy.indisponible": "Giphy antwoordt nu niet.",
+  "giphy.rien": "Geen GIF gevonden voor “{q}” in de gekozen classificatie.",
+  "giphy.recherche_courte": "Typ minstens twee letters.",
+  "giphy.trop_lourd": "Deze GIF is te zwaar (hoogstens 4 MB).",
+  "images.url_https": "De afbeelding moet van een https-adres komen.",
+  "images.indisponible": "De afbeelding kon niet worden gedownload.",
+  "images.refusee": "Deze afbeelding wordt niet geaccepteerd (JPEG, PNG, WebP of GIF, niet te groot).",
+  "msg.un_seul_media": "Eén media per bericht: media, image of gif."
 }

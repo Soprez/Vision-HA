@@ -1967,6 +1967,24 @@
         }
       }
     },
+    "giphy_regler": {
+      "name": "GIF di Giphy — impostazioni",
+      "description": "Attiva o disattiva le GIF di Giphy, imposta la tua chiave API e la classificazione (solo amministratori e automazioni). La chiave non viene mai restituita.",
+      "fields": {
+        "actif": {
+          "name": "Attivato",
+          "description": "Consenti le GIF di Giphy nei messaggi (disattivato per impostazione predefinita)."
+        },
+        "cle": {
+          "name": "Chiave API",
+          "description": "La tua chiave API di Giphy (gratuita su developers.giphy.com)."
+        },
+        "classification": {
+          "name": "Classificazione",
+          "description": "g (per tutti, predefinita), pg, pg-13 o r. Sopra g decidi tu: alcuni destinatari possono essere giovani."
+        }
+      }
+    },
     "accueil_regler": {
       "name": "Schermata iniziale — elenco delle app",
       "description": "Mostra o nascondi l'elenco delle app nella schermata iniziale di un dispositivo Android (solo amministratori e automazioni). Nascosto, la schermata iniziale mostra solo i widget (cruscotto); tenere premuto sull'ora apre sempre le impostazioni, dietro il codice o l'impronta. Il dispositivo applica l'impostazione più recente, da Home Assistant o dal dispositivo stesso.",

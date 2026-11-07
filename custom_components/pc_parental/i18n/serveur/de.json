@@ -993,5 +993,19 @@
   "reglages.son_fait": "Lautstärke von „{appareil}“ gespeichert.",
   "son.plage_inconnue": "Unbekannter Zeitplan auf diesem Gerät: {plage}.",
   "son.plancher_inconnu": "Noch kein gemessener Grundpegel (eine Stunde Messung): eingeben oder Schwelle in dBFS angeben.",
-  "mus.a_faire_dans_ma": "In Music Assistant erledigen: Vision macht das nicht mehr von hier aus."
+  "mus.a_faire_dans_ma": "In Music Assistant erledigen: Vision macht das nicht mehr von hier aus.",
+  "giphy.desactive": "Giphy-GIFs sind aus: in den Vision-Einstellungen einschalten.",
+  "giphy.sans_cle": "Der Giphy-API-Schlüssel fehlt (Ihr eigener, kostenlos auf developers.giphy.com).",
+  "giphy.cle_forme": "Dieser Giphy-API-Schlüssel hat die falsche Form (16 bis 64 Buchstaben und Ziffern).",
+  "giphy.classification": "Unbekannte Giphy-Einstufung: g, pg, pg-13 oder r.",
+  "giphy.classification_depassee": "Dieses GIF liegt über der für Giphy gewählten Einstufung: „{q}“ wird nicht gesendet.",
+  "giphy.limite": "Zu viele Giphy-Suchen auf einmal (10 pro Minute): gleich noch einmal versuchen.",
+  "giphy.indisponible": "Giphy antwortet gerade nicht.",
+  "giphy.rien": "Kein GIF für „{q}“ in der gewählten Einstufung gefunden.",
+  "giphy.recherche_courte": "Mindestens zwei Buchstaben eingeben.",
+  "giphy.trop_lourd": "Dieses GIF ist zu schwer (höchstens 4 MB).",
+  "images.url_https": "Das Bild muss von einer https-Adresse kommen.",
+  "images.indisponible": "Das Bild konnte nicht heruntergeladen werden.",
+  "images.refusee": "Dieses Bild wird nicht akzeptiert (JPEG, PNG, WebP oder GIF, nicht zu groß).",
+  "msg.un_seul_media": "Ein Medium pro Nachricht: media, image oder gif."
 }

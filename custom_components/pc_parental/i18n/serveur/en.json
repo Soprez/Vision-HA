@@ -993,5 +993,19 @@
   "reglages.son_fait": "Sound level of “{appareil}” saved.",
   "son.plage_inconnue": "Unknown time slot on this device: {plage}.",
   "son.plancher_inconnu": "No measured floor yet (one hour of measuring): enter it, or give the threshold in dBFS.",
-  "mus.a_faire_dans_ma": "To be done in Music Assistant: Vision no longer does this from here."
+  "mus.a_faire_dans_ma": "To be done in Music Assistant: Vision no longer does this from here.",
+  "giphy.desactive": "Giphy GIFs are off: turn them on in Vision's settings.",
+  "giphy.sans_cle": "The Giphy API key is missing (your own, free at developers.giphy.com).",
+  "giphy.cle_forme": "This Giphy API key has the wrong shape (16 to 64 letters and digits).",
+  "giphy.classification": "Unknown Giphy rating: g, pg, pg-13 or r.",
+  "giphy.classification_depassee": "This GIF is above the rating chosen for Giphy: “{q}” is not sent.",
+  "giphy.limite": "Too many Giphy searches at once (10 per minute): try again in a moment.",
+  "giphy.indisponible": "Giphy is not answering right now.",
+  "giphy.rien": "No GIF found for “{q}” in the chosen rating.",
+  "giphy.recherche_courte": "Type at least two letters.",
+  "giphy.trop_lourd": "This GIF is too heavy (4 MB at most).",
+  "images.url_https": "The image must come from an https address.",
+  "images.indisponible": "The image could not be downloaded.",
+  "images.refusee": "This image is not accepted (JPEG, PNG, WebP or GIF, not too large).",
+  "msg.un_seul_media": "One media per message: media, image or gif."
 }

@@ -487,6 +487,8 @@ class PcStore:
         self.idle_minutes: int = IDLE_MINUTES
         self.delai_refus: int = DELAI_REFUS
         self.delai_redemande: int = DELAI_REDEMANDE
+        # 1.94 (point 4) : GIF Giphy, désactivé par défaut ; la clé API est celle de l'utilisateur (giphy.py).
+        self.giphy: dict[str, Any] = {}
         # PC supprimés dont l'agent doit encore apprendre son congé.
         self.retraits: dict[str, dict[str, Any]] = {}
         # Étiquettes des logiciels et des sites. Elles appartiennent à la
@@ -648,6 +650,7 @@ class PcStore:
         self.idle_minutes = int(data.get("idle_minutes", IDLE_MINUTES))
         self.delai_refus = int(data.get("delai_refus", DELAI_REFUS))
         self.delai_redemande = int(data.get("delai_redemande", DELAI_REDEMANDE))
+        self.giphy = dict(data.get("giphy") or {})
         self.retraits = data.get("retraits") or {}
         etiquettes = data.get("etiquettes") or {}
         self.etiquettes = {
@@ -872,6 +875,7 @@ class PcStore:
                 "idle_minutes": self.idle_minutes,
                 "delai_refus": self.delai_refus,
                 "delai_redemande": self.delai_redemande,
+                "giphy": self.giphy,
                 "retraits": self.retraits,
                 "etiquettes": self.etiquettes,
                 "ajouts": self.ajouts,

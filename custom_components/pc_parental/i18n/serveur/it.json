@@ -993,5 +993,19 @@
   "reglages.son_fait": "Livello sonoro di «{appareil}» salvato.",
   "son.plage_inconnue": "Fascia sconosciuta su questo dispositivo: {plage}.",
   "son.plancher_inconnu": "Ancora nessun fondo misurato (un'ora di misura): inseritelo o indicate la soglia in dBFS.",
-  "mus.a_faire_dans_ma": "Da fare in Music Assistant: Vision non lo fa più da qui."
+  "mus.a_faire_dans_ma": "Da fare in Music Assistant: Vision non lo fa più da qui.",
+  "giphy.desactive": "Le GIF di Giphy sono disattivate: attivale nelle impostazioni di Vision.",
+  "giphy.sans_cle": "Manca la chiave API di Giphy (la tua, gratuita su developers.giphy.com).",
+  "giphy.cle_forme": "Questa chiave API di Giphy non ha la forma giusta (da 16 a 64 lettere e cifre).",
+  "giphy.classification": "Classificazione Giphy sconosciuta: g, pg, pg-13 o r.",
+  "giphy.classification_depassee": "Questa GIF supera la classificazione scelta per Giphy: «{q}» non viene inviata.",
+  "giphy.limite": "Troppe ricerche Giphy insieme (10 al minuto): riprova tra un momento.",
+  "giphy.indisponible": "Giphy non risponde al momento.",
+  "giphy.rien": "Nessuna GIF trovata per «{q}» nella classificazione scelta.",
+  "giphy.recherche_courte": "Scrivi almeno due lettere.",
+  "giphy.trop_lourd": "Questa GIF è troppo pesante (al massimo 4 MB).",
+  "images.url_https": "L'immagine deve venire da un indirizzo https.",
+  "images.indisponible": "Non è stato possibile scaricare l'immagine.",
+  "images.refusee": "Questa immagine non è accettata (JPEG, PNG, WebP o GIF, non troppo grande).",
+  "msg.un_seul_media": "Un solo contenuto per messaggio: media, image o gif."
 }

@@ -1237,6 +1237,19 @@ def _async_register_services(hass: HomeAssistant) -> None:
         coord.async_update_listeners()
         return {"personne": personne, "minutes": effectif, "propre": call.data.get("minutes") is not None}
 
+    async def _giphy_regler(call: ServiceCall) -> dict:
+        """1.94 (point 4) : GIF Giphy (option) : activer, clé API de l'utilisateur, classification. Jamais la clé en retour."""
+        from . import giphy as _giphy
+
+        coord = _coordinator()
+        try:
+            etat = _giphy.regler(coord.store, actif=call.data.get("actif"), cle=call.data.get("cle"),
+                                 classification=call.data.get("classification"))
+        except textes.Erreur as err:
+            raise HomeAssistantError(textes.erreur(err, textes.ha(hass))) from err
+        await coord.store.async_save()
+        return etat
+
     async def _accueil_regler(call: ServiceCall) -> dict:
         """1.93.06.1 (l'auteur, tablettes tableau de bord) : « Afficher la liste des applications » d'un appareil Android."""
         from . import accueil_options as _ao
@@ -1307,6 +1320,12 @@ def _async_register_services(hass: HomeAssistant) -> None:
     service_admin(hass, "delai_redemande_regler", _delai_redemande_regler, schema=vol.Schema({
         vol.Required("personne"): cv.entity_id,
         vol.Optional("minutes"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1440)),
+    }), supports_response=SupportsResponse.OPTIONAL)
+
+    service_admin(hass, "giphy_regler", _giphy_regler, schema=vol.Schema({
+        vol.Optional("actif"): cv.boolean,
+        vol.Optional("cle"): cv.string,
+        vol.Optional("classification"): vol.In(["g", "pg", "pg-13", "r"]),
     }), supports_response=SupportsResponse.OPTIONAL)
 
     service_admin(hass, "accueil_regler", _accueil_regler, schema=vol.Schema({

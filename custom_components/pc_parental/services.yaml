@@ -1013,6 +1013,19 @@ musique_regler:
     reprise:
       selector:
         boolean: null
+giphy_regler:
+  fields:
+    actif:
+      selector:
+        boolean: null
+    cle:
+      selector:
+        text:
+          type: password
+    classification:
+      selector:
+        select:
+          options: [g, pg, pg-13, r]
 delai_redemande_regler:
   fields:
     personne:

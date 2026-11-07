@@ -1967,6 +1967,24 @@
         }
       }
     },
+    "giphy_regler": {
+      "name": "Giphy-GIF's — instellingen",
+      "description": "Zet Giphy-GIF's aan of uit, stel je eigen API-sleutel en de classificatie in (alleen beheerders en automatiseringen). De sleutel wordt nooit teruggegeven.",
+      "fields": {
+        "actif": {
+          "name": "Ingeschakeld",
+          "description": "GIF's van Giphy in berichten toestaan (standaard uit)."
+        },
+        "cle": {
+          "name": "API-sleutel",
+          "description": "Je eigen Giphy-API-sleutel (gratis op developers.giphy.com)."
+        },
+        "classification": {
+          "name": "Classificatie",
+          "description": "g (voor iedereen, standaard), pg, pg-13 of r. Alles boven g bepaal je zelf: sommige ontvangers kunnen jong zijn."
+        }
+      }
+    },
     "accueil_regler": {
       "name": "Startscherm — app-lijst",
       "description": "De app-lijst op het startscherm van een Android-apparaat tonen of verbergen (alleen beheerders en automatiseringen). Verborgen toont het startscherm alleen de widgets (dashboard); de tijd ingedrukt houden opent nog steeds de instellingen, achter de code of vingerafdruk. Het apparaat past de nieuwste instelling toe, van Home Assistant of van het apparaat zelf.",

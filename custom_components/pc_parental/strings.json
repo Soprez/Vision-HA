@@ -1967,6 +1967,24 @@
         }
       }
     },
+    "giphy_regler": {
+      "name": "Giphy GIFs — settings",
+      "description": "Turn Giphy GIFs on or off, set your own API key and the rating (administrators and automations only). The key is never shown back.",
+      "fields": {
+        "actif": {
+          "name": "Enabled",
+          "description": "Allow GIFs from Giphy in messages (off by default)."
+        },
+        "cle": {
+          "name": "API key",
+          "description": "Your own Giphy API key (free at developers.giphy.com)."
+        },
+        "classification": {
+          "name": "Rating",
+          "description": "g (all audiences, default), pg, pg-13 or r. Anything above g is for you to decide: some recipients may be young."
+        }
+      }
+    },
     "accueil_regler": {
       "name": "Home screen — apps list",
       "description": "Show or hide the apps list on an Android device's home screen (administrators and automations only). Hidden, the home screen shows only the widgets (dashboard); a long press on the time still opens the settings, behind the code or fingerprint. The device applies the most recent setting, from Home Assistant or from the device itself.",

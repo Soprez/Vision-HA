@@ -1,0 +1,45 @@
+{
+  "version": "2.5.12.20",
+  "date": "2026-10-24",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Messages : une image par adresse https, ou un GIF (mot-clé Giphy), téléchargés par Home Assistant.",
+        "en": "Messages: an image from an https address, or a GIF (Giphy keyword), downloaded by Home Assistant.",
+        "de": "Nachrichten: ein Bild von einer https-Adresse oder ein GIF (Giphy-Stichwort), von Home Assistant geladen.",
+        "es": "Mensajes: una imagen desde una dirección https, o un GIF (palabra clave de Giphy), descargados por Home Assistant.",
+        "it": "Messaggi: un'immagine da un indirizzo https, o una GIF (parola chiave Giphy), scaricate da Home Assistant.",
+        "nl": "Berichten: een afbeelding van een https-adres, of een GIF (Giphy-trefwoord), gedownload door Home Assistant."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Giphy est coupé par défaut : votre clé, une classification « g » modifiable, 10 recherches par minute.",
+        "en": "Giphy is off by default: your own key, an adjustable “g” rating, 10 searches per minute.",
+        "de": "Giphy ist standardmäßig aus: eigener Schlüssel, einstellbare Einstufung „g“, 10 Suchen pro Minute.",
+        "es": "Giphy viene desactivado: su clave, clasificación «g» ajustable, 10 búsquedas por minuto.",
+        "it": "Giphy è disattivato di default: la tua chiave, classificazione «g» modificabile, 10 ricerche al minuto.",
+        "nl": "Giphy staat standaard uit: je eigen sleutel, instelbare classificatie „g”, 10 zoekopdrachten per minuut."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Les images sont réduites à 1280 px, les GIF en WebP animé de 6 s au plus ; l'appareil ne contacte jamais Giphy.",
+        "en": "Images are cut to 1280 px, GIFs become animated WebP of 6 s at most; the device never contacts Giphy.",
+        "de": "Bilder auf 1280 px verkleinert, GIFs als animiertes WebP von höchstens 6 s; das Gerät kontaktiert Giphy nie.",
+        "es": "Imágenes a 1280 px, GIF como WebP animado de 6 s como máximo; el dispositivo nunca contacta con Giphy.",
+        "it": "Immagini ridotte a 1280 px, GIF in WebP animato di al massimo 6 s; il dispositivo non contatta mai Giphy.",
+        "nl": "Afbeeldingen naar 1280 px, GIF's als geanimeerde WebP van hoogstens 6 s; het toestel neemt nooit contact op met Giphy."
+      }
+    }
+  ]
+}

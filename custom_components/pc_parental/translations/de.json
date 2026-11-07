@@ -1967,6 +1967,24 @@
         }
       }
     },
+    "giphy_regler": {
+      "name": "Giphy-GIFs — Einstellungen",
+      "description": "Giphy-GIFs ein- oder ausschalten, eigenen API-Schlüssel und Einstufung setzen (nur Administratoren und Automationen). Der Schlüssel wird nie zurückgegeben.",
+      "fields": {
+        "actif": {
+          "name": "Aktiviert",
+          "description": "GIFs von Giphy in Nachrichten erlauben (standardmäßig aus)."
+        },
+        "cle": {
+          "name": "API-Schlüssel",
+          "description": "Ihr eigener Giphy-API-Schlüssel (kostenlos auf developers.giphy.com)."
+        },
+        "classification": {
+          "name": "Einstufung",
+          "description": "g (für alle, Standard), pg, pg-13 oder r. Alles über g entscheiden Sie selbst: Manche Empfänger können jung sein."
+        }
+      }
+    },
     "accueil_regler": {
       "name": "Startbildschirm — App-Liste",
       "description": "App-Liste auf dem Startbildschirm eines Android-Geräts ein- oder ausblenden (nur Administratoren und Automatisierungen). Ausgeblendet zeigt der Startbildschirm nur die Widgets (Dashboard); langes Drücken auf die Uhrzeit öffnet weiterhin die Einstellungen, hinter Code oder Fingerabdruck. Das Gerät übernimmt die neueste Einstellung, aus Home Assistant oder vom Gerät selbst.",
