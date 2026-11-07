@@ -42,7 +42,10 @@ class DnsVpnService : VpnService() {
     override fun onDestroy() { arreterTout(); super.onDestroy() }
     override fun onRevoke() { arreterTout(); super.onRevoke() }
 
+    private var attribution: AttributionVpn? = null
+
     private fun demarrerTunnel() {
+        attribution = AttributionVpn(this, DNS_VIRTUEL)
         val b = Builder()
             .setSession("Vision")
             .addAddress(ADRESSE_TUN, 32)
@@ -77,6 +80,7 @@ class DnsVpnService : VpnService() {
     }
 
     private fun arreterTout() {
+        attribution?.arreter(); attribution = null
         suivi?.arreter()
         suivi = null
         amont = null
@@ -120,6 +124,8 @@ class DnsVpnService : VpnService() {
 
         enregistrer(hote)
         val (bloque, dangereux) = Etat.domaineBloque(hote)
+        // 1.94 : quelle appli a demandé ce domaine (hors du fil de la pompe : une file, jamais d'attente ici).
+        attribution?.demander(hote, paquet.copyOfRange(12, 16), ((paquet[ihl].toInt() and 0xFF) shl 8) or (paquet[ihl + 1].toInt() and 0xFF), bloque)
 
         val reponseDns: ByteArray = when {
             bloque -> {

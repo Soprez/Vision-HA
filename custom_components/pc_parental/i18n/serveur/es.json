@@ -907,6 +907,8 @@
   "notif.bouton_non": "Rechazar",
   "parent.domaine_lie": "{site} se abre ahora junto con {nom}.",
   "parent.domaine_delie": "{site} ya no se abre con {nom}.",
+  "parent.domaine_commun": "{site} es ahora un dominio común: sin más vínculos automáticos.",
+  "parent.domaine_pas_commun": "{site} ya no es un dominio común.",
   "dem.sites_bloques_one": "{n} sitio bloqueado con él.",
   "dem.sites_bloques_other": "{n} sitios bloqueados con él.",
   "parent.suit_categorie": "{qui}: {nom} vuelve a seguir su categoría.",

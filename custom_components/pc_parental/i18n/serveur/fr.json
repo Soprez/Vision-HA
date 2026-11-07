@@ -907,6 +907,8 @@
   "notif.bouton_non": "Refuser",
   "parent.domaine_lie": "{site} s'ouvre désormais avec {nom}.",
   "parent.domaine_delie": "{site} ne s'ouvre plus avec {nom}.",
+  "parent.domaine_commun": "{site} est désormais un domaine commun : plus aucun lien automatique.",
+  "parent.domaine_pas_commun": "{site} n'est plus un domaine commun.",
   "dem.sites_bloques_one": "{n} site bloqué avec lui.",
   "dem.sites_bloques_other": "{n} sites bloqués avec lui.",
   "parent.suit_categorie": "{qui} : {nom} suit de nouveau sa catégorie.",

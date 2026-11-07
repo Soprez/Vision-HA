@@ -21,7 +21,7 @@ object Octroi {
     const val VALIDITE_MS = 60_000L
 
     /** Les gestes de /parent qui restreignent ou ne changent rien aux droits : pas de preuve en plus de la garde. */
-    val RESTRICTIFS = setOf("fermer", "message", "concentration", "pause_generale")
+    val RESTRICTIFS = setOf("fermer", "message", "concentration", "pause_generale", "domaine_commun")
 
     /** Les lectures de /parent (aucun état ne change). */
     val LECTURES = setOf("", "categorie", "recherche", "recents", "canaux", "code_deverrouillage")

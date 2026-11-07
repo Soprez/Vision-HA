@@ -907,6 +907,8 @@
   "notif.bouton_non": "Ablehnen",
   "parent.domaine_lie": "{site} öffnet sich jetzt zusammen mit {nom}.",
   "parent.domaine_delie": "{site} öffnet sich nicht mehr mit {nom}.",
+  "parent.domaine_commun": "{site} ist jetzt eine gemeinsame Domain: keine automatischen Verknüpfungen mehr.",
+  "parent.domaine_pas_commun": "{site} ist keine gemeinsame Domain mehr.",
   "dem.sites_bloques_one": "{n} Website damit gesperrt.",
   "dem.sites_bloques_other": "{n} Websites damit gesperrt.",
   "parent.suit_categorie": "{qui}: {nom} folgt wieder seiner Kategorie.",

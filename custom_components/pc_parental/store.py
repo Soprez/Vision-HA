@@ -21,6 +21,7 @@ from .const import (
     MODES_DURABLES,
     ETIQUETTES_SANS_LIEN_AUTO,
     NAVIGATEURS,
+    DOMAINES_COMMUNS,
     LIENS_AUTO_MAX,
     ETIQUETTES_SECURITE,
     ETIQUETTE_ECOLE,
@@ -82,6 +83,7 @@ from .const import (
     USAGE_JOURS,
     WARN_MINUTES,
 )
+from . import decouverte
 from . import labels
 from . import modules as _modules
 from . import textes
@@ -215,6 +217,18 @@ def membres_app(nom: str) -> list[str]:
     if not nom:
         return []
     return [nom] + sorted(a for a, c in FAMILLES_APPS.items() if c == nom)
+
+
+def _marque_lien(fiche: dict[str, Any]) -> dict[str, Any]:
+    """Ce qu'un lien automatique montre de lui : sa preuve, ou sa nature de secours (« à vérifier » si la mesure le contredit)."""
+    sortie: dict[str, Any] = {}
+    if isinstance(fiche.get("preuve"), dict):
+        sortie["preuve"] = dict(fiche["preuve"])
+    if fiche.get("secours"):
+        sortie["secours"] = True
+    if fiche.get("a_verifier"):
+        sortie["a_verifier"] = True
+    return sortie
 
 
 def est_bruit_site(nom: str) -> bool:
@@ -686,6 +700,8 @@ class PcStore:
             for app, doms in (data.get("domaines_auto") or {}).items() if isinstance(doms, dict)
         }
         self.domaines_auto = {app: doms for app, doms in self.domaines_auto.items() if doms}
+        # 1.94 : les domaines communs que le Décideur a ajoutés à la liste livrée (ils ne servent qu'à exclure).
+        self.domaines_communs = [str(d) for d in (data.get("domaines_communs") or []) if _nom_site(str(d))]
         self.domaines_delies = {
             str(app): [str(d) for d in doms if _nom_site(str(d))]
             for app, doms in (data.get("domaines_delies") or {}).items() if isinstance(doms, list)
@@ -858,6 +874,7 @@ class PcStore:
                 "categories_choix": self.categories_choix,
                 "domaines_lies": getattr(self, "domaines_lies", {}),
                 "domaines_auto": getattr(self, "domaines_auto", {}),
+                "domaines_communs": getattr(self, "domaines_communs", []),
                 "domaines_delies": getattr(self, "domaines_delies", {}),
                 "fermetures": getattr(self, "fermetures", {}),
                 "autorisations_v2": getattr(self, "autorisations_v2", False),
@@ -1423,6 +1440,8 @@ class PcStore:
         """
         if not isinstance(origines, dict):
             return
+        # 1.94 : les comptes par appli et par jour, d'où viennent les liens automatiques (voir decouverte.py).
+        decouverte.noter(pc, origines, _nom_site, lambda p: FAMILLES_APPS.get(_nom_app(p), _nom_app(p)))
         for adresse, programmes in list(origines.items())[:120]:
             domaine = _nom_site(_hote(str(adresse)))
             fiche = (pc.get("sites_vus") or {}).get(domaine)
@@ -2561,11 +2580,12 @@ class PcStore:
         s'il était fermé au moment du lien (il ne suit le logiciel qu'après un geste du Décideur)."""
         famille = FAMILLES_APPS.get(_nom_app(app), _nom_app(app))
         auto = (getattr(self, "domaines_auto", None) or {}).get(famille) or {}
-        rendu: list[dict[str, Any]] = [{"nom": d, **({"auto": True} if d in auto else {})} for d in self.dependances(famille)]
+        rendu: list[dict[str, Any]] = [{"nom": d, **({"auto": True, **_marque_lien(auto[d])} if d in auto else {})}
+                                       for d in self.dependances(famille)]
         delies = set((getattr(self, "domaines_delies", None) or {}).get(famille, []))
         for d, fiche in auto.items():
             if not fiche.get("suit") and d not in delies:
-                rendu.append({"nom": d, "auto": True, "attente": True})
+                rendu.append({"nom": d, "auto": True, "attente": True, **_marque_lien(fiche)})
         return rendu
 
     def domaines_proposes(self, pc: dict[str, Any], app: str, maximum: int = 8) -> list[str]:
@@ -2606,40 +2626,112 @@ class PcStore:
             return False
         return not ({str(e).strip().lower() for e in self.etiquettes_de("sites", site)} & ETIQUETTES_SANS_LIEN_AUTO)
 
+    def est_commun(self, site: str) -> bool:
+        """L'infrastructure que toutes les applis appellent : la liste livrée, celle de BRUIT_SITES, et ce que le Décideur
+        y a ajouté. Elle ne sert qu'à exclure d'un lien automatique."""
+        d = domaine_principal(site)
+        return d in DOMAINES_COMMUNS or est_bruit_site(d) or d in (getattr(self, "domaines_communs", None) or [])
+
+    def completer_domaines_communs(self, domaine: str, commun: bool = True) -> bool:
+        """Un Décideur ajoute (ou retire) un domaine à la liste des domaines communs. Rend vrai si la liste a changé. Retirer
+        ne touche pas à la liste livrée. Un domaine devenu commun perd ses liens automatiques de mesure et de secours."""
+        site = domaine_principal(domaine)
+        if not site:
+            raise textes.Erreur("store.choisir_site")
+        liste = self.__dict__.setdefault("domaines_communs", [])
+        if commun and site not in liste:
+            liste.append(site)
+            for doms in (getattr(self, "domaines_auto", None) or {}).values():
+                doms.pop(site, None)
+            self.domaines_auto = {a: d for a, d in self.domaines_auto.items() if d}
+            return True
+        if not commun and site in liste:
+            liste.remove(site)
+            return True
+        return False
+
+    @staticmethod
+    def _porte_le_nom_d_une_autre(site: str, famille: str, connues: set[str]) -> bool:
+        """`linkedin.com` porte le nom de LinkedIn : s'il est lié, c'est à LinkedIn, jamais à l'appli depuis laquelle on a
+        ouvert un lien. `connues` : les familles d'applis connues (livrées et vues sur les appareils)."""
+        racine = domaine_principal(site).split(".")[0].replace("-", "")
+        if len(racine) < 4:
+            return False
+        return any(f != famille and racine_app(f).replace("-", "") == racine for f in connues)
+
     def lier_auto(self, pc: dict[str, Any]) -> int:
-        """Lie tout seuls les sites vus pendant qu'un logiciel tourne : les origines remontées par l'agent (quel
-        programme parlait à quel domaine), les tentatives bloquées notées avec le logiciel au premier plan, et les
-        sites qui portent le nom d'un logiciel vu. Rend le nombre de liens nouveaux.
+        """Lie tout seuls les sites que les applis demandent. Rend le nombre de liens nouveaux.
+
+        1.94 (décision de l'auteur : « tel logiciel fait une requête vers tel site, donc c'est lié ») : le lien vient de
+        la MESURE (decouverte.py : 5 demandes sur 2 jours au moins, 70 % du domaine, jamais à 3 applis ou plus), avec sa
+        preuve (n, jours, part). Les anciens raccourcis (tentative bloquée pendant qu'une appli était au premier plan,
+        site qui porte le nom d'une appli vue) ne sont plus que des SECOURS : leurs liens sont marqués `secours`, une
+        observation suffisante les remplace toujours, et un secours que la mesure contredit (jamais demandé par l'appli
+        en 7 jours sur cet appareil) est marqué `a_verifier`. Une appli dont l'attribution est incertaine (Android avant
+        10) n'a que des secours.
 
         Un lien ne débloque rien (« On garde ce qui est bloqué ») : un site fermé sur l'un des appareils au moment du
         lien est rangé sous le logiciel, mais ne le suit qu'après un geste du Décideur (demande groupée, ou son
-        propre interrupteur)."""
-        candidats: dict[str, set[str]] = {}
-        for site, fiche in (pc.get("sites_vus") or {}).items():
-            for programme in (fiche.get("origines") or {}):
-                nom = _nom_app(str(programme))
-                candidats.setdefault(FAMILLES_APPS.get(nom, nom), set()).add(str(site))
+        propre interrupteur). Un lien délié à la main est un refus : il est retenu."""
+        maintenant = time.time()
+        connues = set(FAMILLES_APPS.values()) | {FAMILLES_APPS.get(n, n) for a in self._siens(pc) for n in (a.get("apps_vues") or {})}
+        candidats: dict[str, dict[str, dict[str, Any] | None]] = {}
+        for app, site, preuve in decouverte.evaluer(pc, maintenant):
+            candidats.setdefault(app, {})[site] = preuve
+        secours: list[tuple[str, str]] = []
         for alerte in pc.get("alertes") or []:
             if alerte.get("app"):
-                candidats.setdefault(str(alerte["app"]), set()).add(domaine_principal(str(alerte.get("domaine") or "")))
+                secours.append((str(alerte["app"]), domaine_principal(str(alerte.get("domaine") or ""))))
         for app in {FAMILLES_APPS.get(n, n) for a in self._siens(pc) for n in (a.get("apps_vues") or {})}:
-            for site in self.domaines_proposes(pc, app, LIENS_AUTO_MAX):
-                candidats.setdefault(app, set()).add(site)
+            secours += [(app, site) for site in self.domaines_proposes(pc, app, LIENS_AUTO_MAX)]
+        for app, site in secours:
+            candidats.setdefault(app, {}).setdefault(site, None)
         nouveaux = 0
         auto = self.__dict__.setdefault("domaines_auto", {})
         for famille, sites in candidats.items():
             deja = set(self.dependances(famille))
             liste = auto.get(famille) or {}
             for site in sorted(s for s in sites if s):
-                if site in deja or site in liste or len(liste) >= LIENS_AUTO_MAX:
+                preuve = sites[site]
+                existant = liste.get(site)
+                if existant is not None:
+                    # Une observation suffisante remplace toujours un lien de secours ; elle rafraîchit sa preuve.
+                    if preuve is not None:
+                        existant["preuve"] = preuve
+                        existant.pop("secours", None)
+                        existant.pop("a_verifier", None)
                     continue
+                if site in deja or len(liste) >= LIENS_AUTO_MAX or self.est_commun(site):
+                    continue
+                if self._porte_le_nom_d_une_autre(site, famille, connues):
+                    continue
+                if preuve is None and decouverte.nb_applis(pc, site, maintenant) >= decouverte.APPS_PARTAGE:
+                    continue  # un secours ne contourne pas la règle des applis multiples
                 if not self.lien_auto_permis(famille, site):
                     continue
                 ouvert = all(self.statut(a, "sites", site) == AUTORISE for a in self.pcs.values() if a.get("person"))
-                liste[site] = {"depuis": time.time(), "suit": ouvert}
+                fiche = {"depuis": time.time(), "suit": ouvert}
+                fiche.update({"preuve": preuve} if preuve is not None else {"secours": True})
+                liste[site] = fiche
                 auto[famille] = liste
                 nouveaux += 1
+        self._verifier_secours(pc, maintenant)
         return nouveaux
+
+    def _verifier_secours(self, pc: dict[str, Any], maintenant: float) -> None:
+        """Marque « à vérifier » un lien de secours que la mesure de cet appareil contredit : le domaine a été demandé
+        pendant les 7 derniers jours, mais pas par cette appli. Sans mesure du domaine, on ne dit rien."""
+        for famille, liens in (getattr(self, "domaines_auto", None) or {}).items():
+            for site, fiche in liens.items():
+                if not fiche.get("secours"):
+                    continue
+                qui = decouverte.observation(pc, site, maintenant)
+                if not qui:
+                    continue
+                if famille in qui:
+                    fiche.pop("a_verifier", None)
+                else:
+                    fiche["a_verifier"] = True
 
     def lier_domaine(self, app: str, domaine: str, lier: bool = True) -> bool:
         """Un Décideur lie (ou délie) un site à une appli, pour tout le Lieu. Lier un site lié tout seul et en
@@ -2798,7 +2890,19 @@ class PcStore:
                     s.pop("raison", None)
             sites.append(s)
         ligne["sites"] = sites
+        ligne.update(self.badge_logiciel(pc, ligne))
         return ligne
+
+    @staticmethod
+    def badge_logiciel(pc: dict[str, Any], ligne: dict[str, Any]) -> dict[str, Any]:
+        """Le badge d'un logiciel, calculé sur l'appli ET ses sites liés (1.94, spec §0.5) : « vert » (appli ouverte, tous
+        ses sites ouverts), « orange » (appli ouverte, au moins un site lié fermé : la liste est dans `sites_fermes`),
+        « rouge » (appli fermée, avec sa raison dans `raison` quand la langue est connue). L'appareil regardé est dit
+        dans `appareil`. Un seul calcul, pour l'appli, la carte HA et le sélecteur d'appareil : rien n'est recalculé ailleurs."""
+        fermes = [s["nom"] for s in ligne.get("sites") or [] if not s.get("ouvert", True)]
+        badge = "rouge" if not ligne.get("ouvert", True) else ("orange" if fermes else "vert")
+        return {"badge": badge, "sites_fermes": fermes if badge != "rouge" else [],
+                "appareil": {"id": pc.get("id"), "nom": pc.get("name") or pc.get("id")}}
 
     def detail_categorie(self, pc: dict[str, Any], etiquette: str, sites_max: int = 8,
                          langue: str | None = None) -> dict[str, Any]:

@@ -78,7 +78,7 @@ async def test_un_lien_automatique_ne_debloque_rien(hass, hass_storage):
     fiche = store.domaines_auto["roblox"]["rbxnouveau.com"]
     assert fiche["suit"] is False
     assert "rbxnouveau.com" not in store.dependances("roblox")
-    assert {"nom": "rbxnouveau.com", "auto": True, "attente": True} in store.sites_du_logiciel("roblox")
+    assert {"nom": "rbxnouveau.com", "auto": True, "attente": True, "secours": True} in store.sites_du_logiciel("roblox")
     # Même Roblox accordé, le site en attente reste fermé : seul un geste du Décideur le fait suivre.
     store.accorder(w1, "apps", "roblox", "exception")
     store._memos = {}

@@ -1,0 +1,46 @@
+{
+  "version": "2.5.12.16",
+  "date": "2026-10-23",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Un site est lié à une appli d'après ses vraies requêtes : 5 au moins, sur 2 jours, et 70 % du domaine.",
+        "en": "A site is linked to an app from its real requests: at least 5, over 2 days, and 70% of the domain.",
+        "de": "Eine Website wird einer App nach ihren echten Anfragen zugeordnet: mind. 5, an 2 Tagen, 70 % der Domain.",
+        "es": "Un sitio se vincula a una app según sus peticiones reales: al menos 5, en 2 días, y el 70 % del dominio.",
+        "it": "Un sito viene collegato a un'app in base alle sue richieste reali: almeno 5, in 2 giorni, e il 70 % del dominio.",
+        "nl": "Een site wordt aan een app gekoppeld op basis van echte verzoeken: minstens 5, over 2 dagen, en 70 % van het domein."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Chaque lien automatique montre sa preuve ; un lien que la mesure contredit est marqué « à vérifier ».",
+        "en": "Each automatic link shows its proof; a link the measurement contradicts is marked \"to check\".",
+        "de": "Jede automatische Verknüpfung zeigt ihren Beleg; widersprochene Verknüpfungen gelten als „prüfen“.",
+        "es": "Cada vínculo automático muestra su prueba; uno que la medición contradice se marca «por verificar».",
+        "it": "Ogni collegamento automatico mostra la sua prova; se la misura lo smentisce è «da verificare».",
+        "nl": "Elke automatische koppeling toont zijn bewijs; een koppeling die de meting tegenspreekt is „te controleren“."
+      }
+    },
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "L'appli dit à Home Assistant quelle appli a demandé quel site, sans jamais envoyer d'adresse complète.",
+        "en": "The app tells Home Assistant which app asked for which site, never sending a full address.",
+        "de": "Die App meldet Home Assistant, welche App welche Website angefragt hat, nie mit vollständiger Adresse.",
+        "es": "La app dice a Home Assistant qué app pidió qué sitio, sin enviar nunca una dirección completa.",
+        "it": "L'app dice a Home Assistant quale app ha chiesto quale sito, senza mai inviare un indirizzo completo.",
+        "nl": "De app meldt aan Home Assistant welke app welke site opvroeg, zonder ooit een volledig adres te sturen."
+      }
+    }
+  ]
+}

@@ -317,6 +317,9 @@ class PcParentalPollView(HomeAssistantView):
         # Après les sites, jamais avant : une origine ne fait pas entrer un
         # domaine au catalogue, elle ne fait que dire qui lui parlait.
         coord.store.noter_origines(pc, corps.get("origines") or {})
+        # 1.94 : comment l'appareil attribue chaque requête à son appli (« uid » Android 10+, « proc » 5 à 9, « degrade » : incertain).
+        if str(corps.get("attribution") or "") in ("uid", "proc", "degrade"):
+            pc["attribution"] = str(corps["attribution"])
         coord.store.noter_signatures(pc, corps.get("signatures") or {})
         # L'inventaire des processus : range par le module « processus »,
         # qui n'existe peut-etre pas (chargement partiel).

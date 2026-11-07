@@ -237,7 +237,8 @@ class AgentService : Service() {
         val sites = JSONArray().also { a -> synchronized(Etat.sitesVus) {
             Etat.sitesVus.forEach { a.put(it) }; Etat.sitesVus.clear() } }
         val alertes = JSONArray().also { a -> synchronized(Etat.alertes) {
-            Etat.alertes.forEach { a.put(JSONObject().put("domaine", it).put("source", "vpn")) }
+            // 1.94 : l'appli qui a demandé le domaine bloqué, quand l'attribution est certaine.
+            Etat.alertes.forEach { a.put(JSONObject().put("domaine", it).put("source", "vpn").also { o -> Origines.appBloquante(it)?.let { p -> o.put("app", p) } }) }
             Etat.alertes.clear() } }
         val listeOuvertes = Usage.ouvertes(this, 90_000)
         val ouvertes = JSONArray().also { a -> listeOuvertes.forEach { a.put(it) } }
@@ -271,6 +272,11 @@ class AgentService : Service() {
             try { NiveauSonore.aEnvoyer(this@AgentService)?.let { put("son", it) } } catch (_: Exception) {}
             put("sites_vus", sites)
             put("alertes", alertes)
+            // 1.94 : quelle appli a demandé quel domaine (200 domaines, des comptes, jamais d'URL) et comment l'appareil l'a su.
+            if (DnsVpnService.actif) {
+                put("origines", Origines.releve())
+                put("attribution", AttributionVpn.mode())
+            }
             // Noms affichés des applis citées (le catalogue montre « YouTube »).
             put("apps_libelles", JSONObject(Usage.libelles(this@AgentService,
                 listeOuvertes.plus(Usage.dernierPaquet))))

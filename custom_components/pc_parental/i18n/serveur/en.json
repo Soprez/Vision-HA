@@ -907,6 +907,8 @@
   "notif.bouton_non": "Decline",
   "parent.domaine_lie": "{site} now opens together with {nom}.",
   "parent.domaine_delie": "{site} no longer opens with {nom}.",
+  "parent.domaine_commun": "{site} is now a common domain: no more automatic links.",
+  "parent.domaine_pas_commun": "{site} is no longer a common domain.",
   "dem.sites_bloques_one": "{n} site blocked with it.",
   "dem.sites_bloques_other": "{n} sites blocked with it.",
   "parent.suit_categorie": "{qui}: {nom} follows its category again.",

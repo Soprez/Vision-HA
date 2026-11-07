@@ -42,7 +42,7 @@ from . import roles
 
 _LOGGER = logging.getLogger(__name__)
 
-RESTRICTIFS = frozenset({"fermer", "message", "concentration", "pause_generale"})
+RESTRICTIFS = frozenset({"fermer", "message", "concentration", "pause_generale", "domaine_commun"})
 LECTURES = frozenset({"", "categorie", "recherche", "recents", "canaux"})
 BLOCAGES = frozenset({"bloquer", "bloque", "non", "fermer"})
 # La fiche d'une personne : donner un rôle (Décideur…) ou du temps gagné accorde ; une règle de lieu restreint.

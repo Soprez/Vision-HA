@@ -6,7 +6,7 @@ from datetime import timedelta
 
 DOMAIN = "pc_parental"
 
-VERSION = "2.5.12.15"
+VERSION = "2.5.12.16"
 
 # Version du client PowerShell hébergé par cette intégration. Les agents
 # installés sur les PC se mettent à jour tout seuls quand elle change.
@@ -241,6 +241,16 @@ NAVIGATEURS = frozenset({
     "com.sec.android.app.sbrowser", "com.duckduckgo.mobile.android",
 })
 LIENS_AUTO_MAX = 40
+# 1.94 (découverte appli → sites) : l'infrastructure que toutes les applis appellent. Elle ne sert qu'à EXCLURE d'un lien
+# automatique ; le Décideur peut la compléter (Store.completer_domaines_communs). S'ajoute à BRUIT_SITES.
+DOMAINES_COMMUNS = frozenset({
+    "googleapis.com", "gstatic.com", "googleusercontent.com", "googlevideo.com", "ggpht.com",
+    "cloudfront.net", "akamaihd.net", "akamai.net", "fastly.net", "fbcdn.net",
+    "app-measurement.com", "crashlytics.com", "firebaseio.com", "firebaseinstallations.googleapis.com",
+    "doubleclick.net", "googlesyndication.com", "googletagmanager.com", "google-analytics.com", "gvt1.com", "gvt2.com",
+    "amazonaws.com", "cloudflare.com", "cloudflare.net", "azureedge.net",
+    "sentry.io", "branch.io", "adjust.com", "appsflyer.com", "onesignal.com", "unity3d.com", "applovin.com",
+})
 # Le choix du mode d'un élément : « categorie » (suivre la catégorie, le défaut) retire tout réglage propre.
 MODE_SUIVRE = "categorie"
 

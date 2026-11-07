@@ -907,6 +907,8 @@
   "notif.bouton_non": "Rifiuta",
   "parent.domaine_lie": "{site} ora si apre insieme a {nom}.",
   "parent.domaine_delie": "{site} non si apre più con {nom}.",
+  "parent.domaine_commun": "{site} è ora un dominio comune: niente più collegamenti automatici.",
+  "parent.domaine_pas_commun": "{site} non è più un dominio comune.",
   "dem.sites_bloques_one": "{n} sito bloccato con esso.",
   "dem.sites_bloques_other": "{n} siti bloccati con esso.",
   "parent.suit_categorie": "{qui}: {nom} segue di nuovo la sua categoria.",

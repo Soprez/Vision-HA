@@ -1085,6 +1085,16 @@ async def agir(
             raise _Refus(400, "domaine", err.texte(langue)) from None
         dit("parent.domaine_lie" if corps.get("lier", True) else "parent.domaine_delie", nom=app, site=domaine)
         _LOGGER.info("Vision : site lié %s ↔ %s (%s, changé : %s).", app, domaine, qui, change)
+    elif action == "domaine_commun":
+        # 1.94 : un Décideur ajoute (ou retire) un domaine à la liste des domaines communs (CDN, traceurs) : ils ne servent
+        # qu'à exclure des liens automatiques. Geste restrictif : rien ne s'ouvre.
+        domaine = str(corps.get("domaine") or "").strip()
+        try:
+            change = coord.store.completer_domaines_communs(domaine, bool(corps.get("commun", True)))
+        except textes.Erreur as err:
+            raise _Refus(400, "domaine", err.texte(langue)) from None
+        dit("parent.domaine_commun" if corps.get("commun", True) else "parent.domaine_pas_commun", site=domaine)
+        _LOGGER.info("Vision : domaine commun %s (%s, changé : %s).", domaine, qui, change)
     elif action in ("accorder", "retirer_autorisation"):
         # Refonte des autorisations, lot 1 : trois modes (« temps », « exception », « toujours ») et leur retrait.
         nom = str(corps.get("nom") or "").strip()
@@ -1342,7 +1352,7 @@ def _coordinateur(hass: HomeAssistant) -> PcParentalCoordinator | None:
 
 
 # Les gestes qui changent les règles : il faut la fonction « regles » du rôle, en plus de « gerer ».
-GESTES_REGLES = frozenset({"plage", "limite", "etiquette", "autoriser", "attribuer", "partage", "logiciel", "pause_max"})
+GESTES_REGLES = frozenset({"plage", "limite", "etiquette", "autoriser", "attribuer", "partage", "logiciel", "pause_max", "domaine_commun"})
 
 
 class PcParentalParentView(HomeAssistantView):

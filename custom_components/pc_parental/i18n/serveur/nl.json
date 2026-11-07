@@ -907,6 +907,8 @@
   "notif.bouton_non": "Weigeren",
   "parent.domaine_lie": "{site} gaat nu samen met {nom} open.",
   "parent.domaine_delie": "{site} gaat niet meer open met {nom}.",
+  "parent.domaine_commun": "{site} is nu een gemeenschappelijk domein: geen automatische koppelingen meer.",
+  "parent.domaine_pas_commun": "{site} is geen gemeenschappelijk domein meer.",
   "dem.sites_bloques_one": "{n} site samen ermee geblokkeerd.",
   "dem.sites_bloques_other": "{n} sites samen ermee geblokkeerd.",
   "parent.suit_categorie": "{qui}: {nom} volgt weer zijn categorie.",
