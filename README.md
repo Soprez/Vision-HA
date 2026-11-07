@@ -65,7 +65,8 @@ The Vision dashboard belongs to you: an update never rebuilds it, so a **new car
    folder); changes you made by hand are not carried over.
 2. **Keep your dashboard**: *⋮ → Edit dashboard*, add a *Manual* card and paste
    `type: custom:vision-ensemble-card` with `mode: logiciels` (apps and sites of all devices, *Protection* tab) or
-   `mode: limites` (time limits of everyone, *User* tab).
+   `mode: limites` (time limits of everyone, *User* tab). The *Permissions* card (2.5.12.17: blocks for everyone with
+   their reason, apps with their sites, actions by scope) is `type: custom:vision-autorisations-card`.
 
 ### 2. The Android app (phones, tablets and TVs)
 

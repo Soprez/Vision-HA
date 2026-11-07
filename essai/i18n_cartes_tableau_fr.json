@@ -168,6 +168,18 @@
        "grid_options": {
         "columns": "full"
        },
+       "type": "custom:vision-autorisations-card"
+      }
+     ],
+     "column_span": 2,
+     "type": "grid"
+    },
+    {
+     "cards": [
+      {
+       "grid_options": {
+        "columns": "full"
+       },
        "title": "Trancher : sites, logiciels et étiquettes",
        "type": "custom:vision-etiquettes-card"
       }

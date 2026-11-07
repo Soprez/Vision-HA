@@ -870,6 +870,12 @@ def _vue_listes(
         "icon": "mdi:check-decagram-outline",
         "max_columns": 2,
         "sections": [
+            # 2.5.12.17 : Autorisations refondues, en tête : blocages pour tous avec raison, logiciels et leurs sites, gestes.
+            {
+                "type": "grid",
+                "column_span": 2,
+                "cards": [{"type": "custom:vision-autorisations-card", "grid_options": {"columns": "full"}}],
+            },
             {
                 "type": "grid",
                 "column_span": 2,

@@ -66,7 +66,7 @@ n'apparaît pas toute seule. Deux façons de l'obtenir :
    de configuration) ; ce que vous aviez changé à la main n'est pas repris.
 2. **Garder votre tableau** : *⋮ → Modifier le tableau de bord*, ajoutez une carte *Manuelle* et collez
    `type: custom:vision-ensemble-card` avec `mode: logiciels` (logiciels et sites de tous les appareils, onglet
-   *Protection*) ou `mode: limites` (limites de temps de tous, onglet *Utilisateur*).
+   *Protection*) ou `mode: limites` (limites de temps de tous, onglet *Utilisateur*). La carte *Autorisations* (2.5.12.17 : blocages pour tout le monde avec leur raison, logiciels et leurs sites, gestes par portée) est `type: custom:vision-autorisations-card`.
 
 ### 2. L'application Android (téléphones, tablettes et télés)
 

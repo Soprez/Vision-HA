@@ -41,7 +41,8 @@ CARTES = ("vision-choix.js", "vision-etiquettes-card.js", "vision-planning-card.
           "vision-messages-card.js", "vision-personne-card.js",
           "vision-reglages-card.js",  # lots 3 et 5 : fiche d'une personne, réglages réservés
           "vision-canaux-card.js",  # 2.5.6 : Réglages › Mes notifications
-          "vision-ensemble-card.js")  # 2.5.12.14 : vue d'ensemble avec filtres
+          "vision-ensemble-card.js",  # 2.5.12.14 : vue d'ensemble avec filtres
+          "vision-autorisations-card.js")  # 2.5.12.17 : Autorisations refondues
 
 
 @pytest.fixture(autouse=True)

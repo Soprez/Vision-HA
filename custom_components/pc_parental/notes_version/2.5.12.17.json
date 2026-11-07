@@ -1,0 +1,58 @@
+{
+  "version": "2.5.12.17",
+  "date": "2026-10-23",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Autorisations : les logiciels d'abord, chacun avec ses sites, et un état vert, orange ou rouge avec sa raison.",
+        "en": "Permissions: apps first, each with its sites, and a green, orange or red status with its reason.",
+        "de": "Berechtigungen: zuerst die Programme, jedes mit seinen Websites, und ein grüner, oranger oder roter Status mit Grund.",
+        "es": "Permisos: primero los programas, cada uno con sus sitios, y un estado verde, naranja o rojo con su motivo.",
+        "it": "Autorizzazioni: prima i programmi, ognuno con i suoi siti, e uno stato verde, arancione o rosso con il motivo.",
+        "nl": "Toestemmingen: eerst de programma's, elk met zijn sites, en een groene, oranje of rode status met reden."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "« Bloqué pour tout le monde » a sa section, avec la raison de chaque blocage et un bouton pour le lever.",
+        "en": "\"Blocked for everyone\" has its own section, with each block's reason and a button to lift it.",
+        "de": "„Für alle gesperrt“ hat einen eigenen Bereich mit dem Grund jeder Sperre und einer Schaltfläche zum Aufheben.",
+        "es": "«Bloqueado para todos» tiene su sección, con el motivo de cada bloqueo y un botón para levantarlo.",
+        "it": "«Bloccato per tutti» ha la sua sezione, con il motivo di ogni blocco e un pulsante per rimuoverlo.",
+        "nl": "„Voor iedereen geblokkeerd“ heeft een eigen sectie, met de reden van elke blokkade en een knop om op te heffen."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Plus de code pour un administrateur ni un décideur : chaque geste est signé et lisible dans « Qui a fait quoi ».",
+        "en": "No code for an administrator or a decider: each action is signed and readable in \"Who did what\".",
+        "de": "Kein Code für Administratoren und Entscheider: Jede Aktion ist signiert und unter „Wer hat was getan“ lesbar.",
+        "es": "Sin código para administradores ni responsables: cada acción queda firmada y legible en «Quién hizo qué».",
+        "it": "Niente codice per amministratori e decisori: ogni azione è firmata e leggibile in «Chi ha fatto cosa».",
+        "nl": "Geen code voor beheerders en beslissers: elke actie is ondertekend en leesbaar onder „Wie deed wat“."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Un compte marqué partagé (tablette, télé) garde le code pour ouvrir ; bloquer reste sans code.",
+        "en": "An account marked shared (tablet, TV) keeps the code to open; blocking stays code-free.",
+        "de": "Ein als geteilt markiertes Konto (Tablet, TV) behält den Code zum Öffnen; Sperren bleibt ohne Code.",
+        "es": "Una cuenta marcada como compartida (tableta, TV) mantiene el código para abrir; bloquear sigue sin código.",
+        "it": "Un account contrassegnato come condiviso (tablet, TV) mantiene il codice per aprire; bloccare resta senza codice.",
+        "nl": "Een als gedeeld gemarkeerd account (tablet, tv) houdt de code om te openen; blokkeren blijft zonder code."
+      }
+    }
+  ]
+}

@@ -261,6 +261,7 @@ def lire(hass: HomeAssistant, coord, corps: dict[str, Any]) -> dict[str, Any]:
                                      for x in store.pcs.values() if x.get("enabled", True)), key=lambda a: a["nom"].lower()),
             },
             "comptes_partages": list(getattr(store, "comptes_partages", []) or []),
+            "liens_auto_coupes": list(getattr(store, "liens_auto_coupes", []) or []),
             "journal": journal_gestes.recents(hass, 20),
         }
 
