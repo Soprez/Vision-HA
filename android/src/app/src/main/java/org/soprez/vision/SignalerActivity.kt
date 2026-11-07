@@ -129,6 +129,9 @@ class SignalerActivity : Activity() {
         }.start()
     }
 
+    /** Montre l'aperçu d'un brouillon déjà prêt (aussi utilisé par les essais). */
+    internal fun apercuDe(b: Signalement.Brouillon) { brouillon = b; captures = b.captures.toMutableList(); apercu() }
+
     private fun apercu() {
         val b = brouillon ?: return
         val champ = EditText(this)
