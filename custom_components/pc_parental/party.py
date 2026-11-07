@@ -1405,8 +1405,12 @@ class PcParentalPartyFluxView(_Porte):
             except asyncio.QueueFull:
                 pass
 
+        arret_recu = False
+
         @callback
         def _arret(_event: Event) -> None:
+            nonlocal arret_recu
+            arret_recu = True  # « listen_once » s'est déjà retiré : le retirer encore ferait journaliser une erreur à HA
             try:
                 file.put_nowait(None)
             except asyncio.QueueFull:
@@ -1437,10 +1441,8 @@ class PcParentalPartyFluxView(_Porte):
             pass
         finally:
             desabonner()
-            try:
+            if not arret_recu:
                 desabonner_arret()
-            except ValueError:
-                pass
         return reponse
 
 
