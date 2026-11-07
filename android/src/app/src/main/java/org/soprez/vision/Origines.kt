@@ -64,4 +64,15 @@ object Origines {
     }
 
     @Synchronized fun vider() { table.clear(); appBloquante.clear() }
+
+    /** Pour la mesure (D0) : demandes par paquet, et nombre de domaines selon le nombre d'applis qui les demandent. Sans les noms de domaines. */
+    @Synchronized fun instantane(): Pair<Map<String, Int>, Map<String, Int>> {
+        val parPaquet = HashMap<String, Int>()
+        val parNb = HashMap<String, Int>()
+        for ((_, apps) in table) {
+            parNb.merge(apps.size.toString(), 1, Int::plus)
+            for ((p, l) in apps) parPaquet.merge(p, l.n + l.incertain, Int::plus)
+        }
+        return parPaquet.toSortedMap() to parNb.toSortedMap()
+    }
 }
