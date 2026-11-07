@@ -67,6 +67,8 @@ class Anonymiseur:
 
     def _ip(self, m: re.Match[str]) -> str:
         brut = m.group(0)
+        if ":" in brut and "::" not in brut and not re.search(r"[a-fA-F]", brut) and not _MAC.fullmatch(brut):
+            return brut  # « 00:12:30 » est une durée, pas une adresse IPv6 (qui a presque toujours une lettre ou « :: »)
         if brut in ("127.0.0.1", "0.0.0.0", "::1"):
             return brut
         if _IPV4.fullmatch(brut):
