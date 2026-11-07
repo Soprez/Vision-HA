@@ -47,7 +47,7 @@ async def test_menu_dans_l_ordre(hass, hass_storage, hass_client):
     assert flux["menu_options"] == ["assistant", "ajouter", "appairage", "reparer", "autres", "soutien"]
     assert flux["description_placeholders"]["attente"] == "1"
     reparer = await _suite(admin, flux, {"next_step_id": "reparer"})
-    assert reparer["menu_options"] == ["appareils_relier", "sauvegarde", "installer", "qr", "cle"]
+    assert reparer["menu_options"] == ["appareils_relier", "sauvegarde", "installer", "qr", "cle", "tableau_creer", "tableau_lacher"]
 
 
 async def test_telephone_par_qr(hass, hass_storage, hass_client, hass_client_no_auth):

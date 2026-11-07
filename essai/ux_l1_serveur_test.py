@@ -313,7 +313,7 @@ async def test_appareils_d_essai_sous_avance(hass, hass_storage):
     om.async_abort(flux["flow_id"])
     flux = await om.async_init(entree.entry_id)
     flux = await om.async_configure(flux["flow_id"], {"next_step_id": "autres"})
-    assert flux["menu_options"][-1] == "appareils_essai"  # lot 6 : directement sous « Autres réglages »
+    assert flux["menu_options"][-2:] == ["appareils_essai", "giphy"]  # lot 6 : sous « Autres réglages » ; 1.94 : GIF Giphy à la fin
     flux = await om.async_configure(flux["flow_id"], {"next_step_id": "appareils_essai"})
     assert flux["step_id"] == "appareils_essai"
     flux = await om.async_configure(flux["flow_id"], {"appareils_essai": ["g1"]})

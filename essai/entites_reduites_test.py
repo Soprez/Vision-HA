@@ -44,7 +44,7 @@ async def test_nouvelle_installation_six_entites(hass, hass_storage):
 
     hass.states.async_set("person.lou", "home", {"friendly_name": "Lou"})
     flux = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
-    for saisie in ({"lieu": "Club", "mots": {}}, {"decideurs": []}, {"objectifs": ["horaires", "contenus", "demandes", "ecrans"]},
+    for saisie in ({"lieu": "Club", "mots": {}}, {"tableau": True}, {"decideurs": []}, {"objectifs": ["horaires", "contenus", "demandes", "ecrans"]},
                    {"appareil": "telephone"}, {}):
         flux = await hass.config_entries.flow.async_configure(flux["flow_id"], saisie)
     await hass.async_block_till_done()
