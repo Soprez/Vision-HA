@@ -404,6 +404,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await cartes.async_installer(hass)
     async_register_views(hass)
+    from . import diag
+
+    diag.installer(hass)  # 1.94 : le tampon du journal pour « Signaler un problème » (en mémoire seulement)
     # Appairage par QR (1.62.0) : l'appareil demande, un administrateur valide.
     from . import appairage
 
@@ -601,6 +604,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             from . import reveil_services
 
             reveil_services.retirer(hass)
+            from . import diag
+
+            diag.retirer(hass)
     return decharge
 
 

@@ -1147,6 +1147,9 @@ def async_register(hass: HomeAssistant) -> None:
     if hass.data.get(f"{DOMAIN}_view"):
         return
     hass.http.register_view(PcParentalPollView(hass))
+    from . import diag
+
+    diag.async_register(hass)  # 1.94 : « Signaler un problème », le journal d'une période
     hass.http.register_view(PcParentalEnrollView(hass))
     hass.http.register_view(PcParentalClientView(hass))
     hass.http.register_view(PcParentalListeNoireView(hass))

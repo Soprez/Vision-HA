@@ -1,0 +1,19 @@
+{
+  "_note": "Corpus d'essai commun (HA : essai/diag_test.py ; appli : AnonymisationTest.kt). Prénoms fictifs. Une ligne = une règle de la spécification 1.94 §2.4.",
+  "personnes": ["Lou", "Sam"],
+  "appareils": ["TEL-LOU", "TV-SALON"],
+  "cas": [
+    {"nom": "ip stables", "entree": "connexion depuis 10.1.1.23 puis 10.1.1.23 et 10.1.1.40", "sortie": "connexion depuis ip-1 puis ip-1 et ip-2", "n": 3},
+    {"nom": "ip locales gardees", "entree": "ecoute 127.0.0.1 et 0.0.0.0", "sortie": "ecoute 127.0.0.1 et 0.0.0.0", "n": 0},
+    {"nom": "ip v6", "entree": "pair fe80:0:0:0:1:2:3:4 vu", "sortie": "pair ip-1 vu", "n": 1},
+    {"nom": "mac comme ip", "entree": "carte aa:bb:cc:dd:ee:ff et 10.1.1.9", "sortie": "carte ip-1 et ip-2", "n": 2},
+    {"nom": "version pas une adresse", "entree": "Vision version 2.5.12.15, appli 1.93.06.3, v2.5.12.14", "sortie": "Vision version 2.5.12.15, appli 1.93.06.3, v2.5.12.14", "n": 0},
+    {"nom": "contacts", "entree": "ecrire a sam@example.org ou au 06 12 34 56 78", "sortie": "ecrire a [contact] ou au [contact]", "n": 2},
+    {"nom": "epoque pas un telephone", "entree": "ts=1729324518245 ok", "sortie": "ts=1729324518245 ok", "n": 0},
+    {"nom": "secrets", "entree": "jeton=abc123 puis secret: xyz789 et code_octroi=4821", "sortie": "jeton=[secret] puis secret: [secret] et code_octroi=[secret]", "n": 3},
+    {"nom": "sites", "entree": "resolu roblox.com et soprez.org puis https://exemple.net/x?y=1", "sortie": "resolu [site] et soprez.org puis [site]", "n": 2},
+    {"nom": "noms plus longs d'abord", "entree": "Lou demande du temps sur TEL-LOU, Sam regarde TV-SALON", "sortie": "personne-1 demande du temps sur appareil-1, personne-2 regarde appareil-2", "n": 4},
+    {"nom": "mot entier seulement", "entree": "Samedi et Lousada restent", "sortie": "Samedi et Lousada restent", "n": 0},
+    {"nom": "musique gardee", "entree": "lecture Bohemian Rhapsody par Queen", "sortie": "lecture Bohemian Rhapsody par Queen", "n": 0}
+  ]
+}
