@@ -1153,6 +1153,9 @@ def async_register(hass: HomeAssistant) -> None:
     from . import diag
 
     diag.async_register(hass)  # 1.94 : « Signaler un problème », le journal d'une période
+    from . import autorisations
+
+    autorisations.async_register(hass)  # 1.94 : Autorisations refondues (lecture et gestes)
     hass.http.register_view(PcParentalEnrollView(hass))
     hass.http.register_view(PcParentalClientView(hass))
     hass.http.register_view(PcParentalListeNoireView(hass))

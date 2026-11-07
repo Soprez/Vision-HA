@@ -407,6 +407,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     from . import diag
 
     diag.installer(hass)  # 1.94 : le tampon du journal pour « Signaler un problème » (en mémoire seulement)
+    from . import journal_gestes
+
+    await journal_gestes.charger(hass)  # 1.94 : le journal « qui a fait quoi » des gestes d'autorisation
     # Appairage par QR (1.62.0) : l'appareil demande, un administrateur valide.
     from . import appairage
 

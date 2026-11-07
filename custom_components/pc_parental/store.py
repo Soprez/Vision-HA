@@ -702,6 +702,10 @@ class PcStore:
         self.domaines_auto = {app: doms for app, doms in self.domaines_auto.items() if doms}
         # 1.94 : les domaines communs que le Décideur a ajoutés à la liste livrée (ils ne servent qu'à exclure).
         self.domaines_communs = [str(d) for d in (data.get("domaines_communs") or []) if _nom_site(str(d))]
+        # 1.94 (Autorisations refondues) : les comptes Home Assistant marqués « partagés » (le code est toujours demandé) et
+        # les applis dont le lien automatique est coupé.
+        self.comptes_partages = [str(c) for c in (data.get("comptes_partages") or []) if str(c)]
+        self.liens_auto_coupes = [str(a) for a in (data.get("liens_auto_coupes") or []) if str(a)]
         self.domaines_delies = {
             str(app): [str(d) for d in doms if _nom_site(str(d))]
             for app, doms in (data.get("domaines_delies") or {}).items() if isinstance(doms, list)
@@ -875,6 +879,8 @@ class PcStore:
                 "domaines_lies": getattr(self, "domaines_lies", {}),
                 "domaines_auto": getattr(self, "domaines_auto", {}),
                 "domaines_communs": getattr(self, "domaines_communs", []),
+                "comptes_partages": getattr(self, "comptes_partages", []),
+                "liens_auto_coupes": getattr(self, "liens_auto_coupes", []),
                 "domaines_delies": getattr(self, "domaines_delies", {}),
                 "fermetures": getattr(self, "fermetures", {}),
                 "autorisations_v2": getattr(self, "autorisations_v2", False),
@@ -2688,7 +2694,10 @@ class PcStore:
             candidats.setdefault(app, {}).setdefault(site, None)
         nouveaux = 0
         auto = self.__dict__.setdefault("domaines_auto", {})
+        coupes = set(getattr(self, "liens_auto_coupes", None) or [])
         for famille, sites in candidats.items():
+            if famille in coupes:
+                continue  # « Lier tout seul : non » pour cette appli (Autorisations)
             deja = set(self.dependances(famille))
             liste = auto.get(famille) or {}
             for site in sorted(s for s in sites if s):

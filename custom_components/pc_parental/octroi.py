@@ -232,6 +232,9 @@ def dispense(hass: HomeAssistant, store, utilisateur) -> str:
       tablette ou une télé, gardent le code."""
     if utilisateur is None or not getattr(utilisateur, "is_active", False):
         return ""
+    # 1.94 : un compte marqué partagé (tablette murale, télé) tape toujours le code, même administrateur.
+    if str(getattr(utilisateur, "id", "")) in (getattr(store, "comptes_partages", None) or []):
+        return ""
     if personne_du_compte(hass, getattr(utilisateur, "id", None)) in decideurs(store):
         return "decideur"
     if getattr(utilisateur, "is_admin", False) and not getattr(utilisateur, "system_generated", True) \
