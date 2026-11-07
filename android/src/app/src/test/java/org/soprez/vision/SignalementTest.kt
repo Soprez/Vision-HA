@@ -28,7 +28,8 @@ class SignalementTest {
 
     @Test fun le_paquet_contient_le_manifeste_les_journaux_et_les_captures() {
         val f = File.createTempFile("sig", ".zip")
-        Signalement.assembler(brouillon(listOf(ByteArray(10) { 1 }, ByteArray(10) { 2 })), f)
+        val jpeg = CaptureEcran.jpeg(Bitmap.createBitmap(64, 36, Bitmap.Config.ARGB_8888))
+        Signalement.assembler(brouillon(listOf(jpeg, jpeg)), f)
         val z = zipDe(f)
         assertEquals(setOf("manifeste.json", "journal_appli.txt", "journal_ha.txt", "captures/01.jpg", "captures/02.jpg"), z.keys)
         val m = JSONObject(String(z.getValue("manifeste.json")))
@@ -36,6 +37,8 @@ class SignalementTest {
         assertEquals(3, m.getJSONObject("anonymisation").getInt("remplacements"))
         assertEquals("ça plante", m.getString("description"))
         assertEquals(4, m.getJSONArray("parties").length())
+        // Gardé pour le contrôle de bout en bout contre le serveur du site (build/tmp, ignoré par git).
+        File("build/tmp").mkdirs(); f.copyTo(File("build/tmp/signalement-essai.zip"), overwrite = true)
         f.delete()
     }
 

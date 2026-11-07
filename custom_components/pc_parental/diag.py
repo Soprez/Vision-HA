@@ -31,7 +31,6 @@ MAX_TAMPON = 3000
 MAX_OCTETS = 1_000_000  # 1 Mo au plus dans la réponse
 MAX_PERIODE_S = 3600  # une période au plus d'une heure (l'enregistrement dure 10 min)
 EVENEMENTS_SUIVIS = ("pc_parental_", "vision_musique_commande")
-MOTS_SECRETS = ("secret", "token", "jeton", "code_octroi", "code=", "code:", "password", "mot de passe")
 # Les domaines de Vision restent lisibles ; tout autre domaine devient [site].
 DOMAINES_GARDES = ("soprez.org", "github.com/soprez")
 
@@ -117,11 +116,6 @@ def _noms_utiles(noms: list[str] | None) -> list[str]:
 
 def _motif_nom(nom: str) -> re.Pattern[str]:
     return re.compile(r"(?<![\w])" + re.escape(nom) + r"(?![\w])", re.I)
-
-
-def contient_secret(ligne: str) -> bool:
-    bas = ligne.lower()
-    return any(m in bas for m in MOTS_SECRETS)
 
 
 # ----------------------------------------------------------------------------- Le tampon

@@ -1,0 +1,49 @@
+{
+  "version": "2.5.12.15",
+  "date": "2026-10-23",
+  "points": [
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Signaler un problème : refaire les gestes, vérifier l'aperçu anonymisé, puis envoyer.",
+        "en": "Report a problem: redo the steps, check the anonymised preview, then send.",
+        "de": "Problem melden: Schritte wiederholen, anonymisierte Vorschau prüfen, dann senden.",
+        "es": "Informar de un problema: repetir los pasos, revisar la vista previa anonimizada y enviar.",
+        "it": "Segnala un problema: ripetere i passaggi, controllare l'anteprima anonima e inviare.",
+        "nl": "Probleem melden: stappen herhalen, geanonimiseerd voorbeeld nakijken, dan verzenden."
+      },
+      "public": "decideurs"
+    },
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Rien ne part sans « Envoyer » ; un signalement est gardé 90 jours et s'efface depuis l'appli.",
+        "en": "Nothing leaves without \"Send\"; a report is kept 90 days and can be deleted from the app.",
+        "de": "Ohne „Senden“ geht nichts raus; 90 Tage gespeichert, in der App löschbar.",
+        "es": "Nada sale sin «Enviar»; un informe se guarda 90 días y se borra desde la app.",
+        "it": "Nulla parte senza «Invia»; una segnalazione resta 90 giorni e si cancella dall'app.",
+        "nl": "Niets gaat weg zonder „Verzenden“; 90 dagen bewaard, te wissen vanuit de app."
+      },
+      "public": "decideurs"
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Le journal de l'intégration est gardé en mémoire et rendu anonymisé à l'appli d'un décideur.",
+        "en": "The integration log is kept in memory and returned anonymised to a decider's app.",
+        "de": "Das Protokoll der Integration bleibt im Speicher und geht anonymisiert an die App eines Entscheiders.",
+        "es": "El registro de la integración se guarda en memoria y se entrega anonimizado a la app de un decisor.",
+        "it": "Il registro dell'integrazione resta in memoria e va anonimizzato all'app di un decisore.",
+        "nl": "Het logboek van de integratie blijft in het geheugen en gaat geanonimiseerd naar de app van een beslisser."
+      }
+    }
+  ]
+}
