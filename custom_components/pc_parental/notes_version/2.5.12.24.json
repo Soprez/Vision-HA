@@ -1,0 +1,47 @@
+{
+  "version": "2.5.12.24",
+  "date": "2026-11-06",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Une télé ou une tablette partagée au rôle Décideur accepte maintenant le code d'un Décideur.",
+        "en": "A shared TV or tablet with the Decider role now accepts a Decider's code.",
+        "de": "Ein gemeinsamer Fernseher oder Tablet mit Entscheider-Rolle akzeptiert jetzt den Code eines Entscheiders.",
+        "es": "Una tele o tableta compartida con el rol Decisor ahora acepta el código de un Decisor.",
+        "it": "Una TV o un tablet condiviso con il ruolo Decisore ora accetta il codice di un Decisore.",
+        "nl": "Een gedeelde tv of tablet met de rol Beslisser accepteert nu de code van een Beslisser."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Un code de déverrouillage posé dans Configurer vaut tout de suite sur ces appareils.",
+        "en": "A code set in Configure applies at once on these devices.",
+        "de": "Ein in Konfigurieren gesetzter Code gilt auf diesen Geräten sofort.",
+        "es": "Un código fijado en Configurar vale enseguida en estos dispositivos.",
+        "it": "Un codice impostato in Configura vale subito su questi dispositivi.",
+        "nl": "Een in Configureren ingestelde code geldt meteen op deze apparaten."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Ces appareils ne peuvent ni choisir ni changer un code : il n'y a personne à qui le donner.",
+        "en": "These devices can neither choose nor change a code: there is no one to give it to.",
+        "de": "Diese Geräte können keinen Code wählen oder ändern: Es gibt niemanden, dem er gehört.",
+        "es": "Estos dispositivos no pueden elegir ni cambiar un código: no hay nadie a quien dárselo.",
+        "it": "Questi dispositivi non possono scegliere né cambiare un codice: non c'è nessuno a cui assegnarlo.",
+        "nl": "Deze apparaten kunnen geen code kiezen of wijzigen: er is niemand aan wie hij toebehoort."
+      }
+    }
+  ]
+}

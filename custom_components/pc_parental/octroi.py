@@ -141,6 +141,11 @@ def decideurs(store) -> set[str]:
     return {p for p in vues if p.startswith("person.")}
 
 
+def est_decideur_partage(store, pc: dict[str, Any]) -> bool:
+    """Un appareil sans personne dont le rôle gère ou approuve (une télé partagée) : il tape le code d'un Décideur."""
+    return not str(pc.get("person") or "") and bool(roles.a(store, pc, "gerer") or roles.a(store, pc, "approuver"))
+
+
 def code_pose(store, personne: str | None = None) -> bool:
     """Ce Décideur a-t-il un code ? Sans personne : au moins un Décideur en a-t-il un ?"""
     fiches = _fiches(store)
@@ -289,10 +294,19 @@ async def depuis_appli(hass: HomeAssistant, coord, moi: dict[str, Any], corps: d
     - « definir » {code, ancien} : un code neuf ; s'il y en a déjà un, l'ancien doit être juste."""
     personne = str(moi.get("person") or "")
     store = coord.store
-    if not personne or personne not in decideurs(store):
+    # 1.94 (retour d'essai, télé partagée) : un appareil partagé (télé, tablette) au rôle Décideur n'a aucune personne :
+    # il vérifie le code de n'importe quel Décideur, comme le tableau. Sans personne, il ne peut ni migrer ni définir.
+    if personne not in decideurs(store) and not est_decideur_partage(store, moi):
         return {"ok": False, "error": "personne"}, 403
     op = str(corps.get("op") or "etat")
     qui = "appareil:" + str(moi.get("id") or "")
+    if not personne:
+        if op == "etat":
+            return {"ok": True, "pose": code_pose(store)}, 200
+        if op == "verifier":
+            erreur = await verifier(hass, store, qui, corps.get("code"), None)
+            return ({"ok": True}, 200) if not erreur else ({"ok": False, "error": erreur}, 403)
+        return {"ok": False, "error": "personne"}, 403
     if op == "etat":
         return {"ok": True, "pose": code_pose(store, personne)}, 200
     if op == "migrer":

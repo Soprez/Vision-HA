@@ -1154,6 +1154,8 @@ def _code_deverrouillage(store, pc: dict[str, Any]) -> bool | None:
     from . import octroi
 
     personne = str(pc.get("person") or "")
+    if not personne and octroi.est_decideur_partage(store, pc):
+        return octroi.code_pose(store)  # 1.94 : télé ou tablette partagée au rôle Décideur : le code de n'importe quel Décideur
     if not personne or personne not in octroi.decideurs(store):
         return None
     return octroi.code_pose(store, personne)

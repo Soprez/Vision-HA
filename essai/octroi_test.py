@@ -338,3 +338,28 @@ async def test_le_tableau_prend_le_code_de_la_personne_du_compte(hass, hass_stor
     _poser_code(hass, "2222", "person.mia")
     r = await client.post(MAISON, json={"action": "temps", "pc": "e1", "minutes": 15})
     assert r.status == 200, await r.text()
+
+
+async def test_une_tele_partagee_au_role_decideur_verifie_le_code_d_un_decideur(hass, hass_storage, hass_client):
+    """Retour d'essai (télé partagée) : un appareil au rôle Décideur sans personne attachée recevait « personne » (lu
+    « code incorrect » dans l'appli) : il vérifie désormais le code de n'importe quel Décideur, mais ne peut ni migrer
+    ni définir un code (il n'y a personne à qui le donner)."""
+    client = await _client_code(hass, hass_client)
+    await _monter(hass, hass_storage)
+    store = _actuel(hass).store
+    roles = _module("roles")
+    ident = next(i for i, r in store.roles.items() if "gerer" in (r.get("fonctions") or []))  # le rôle Décideur
+    roles.attribuer_appareil(hass, store, "p1", ident, "essai")  # comme la télé : rôle choisi pour l'appareil
+    store.pcs["p1"]["person"] = ""
+    _poser_code(hass)
+    assert (await _code(client, "etat"))[1] == {"ok": True, "pose": True}
+    assert (await _code(client, "verifier", code=CODE))[0] == 200
+    statut, d = await _code(client, "verifier", code="0000")
+    assert statut == 403 and d["error"] == "code_octroi_faux"
+    assert (await _code(client, "definir", code="1357"))[1]["error"] == "personne"
+    assert (await _code(client, "migrer", empreinte="0" * 64))[1]["error"] == "personne"
+    r = await (await client.post("/api/pc_parental/poll", json={**PARENT})).json()
+    assert r["code_deverrouillage"] is True
+    # Un demandeur sans personne n'obtient toujours rien.
+    r = await client.post(PARENT_URL, json={**ENFANT, "action": "code_deverrouillage", "op": "verifier", "code": CODE})
+    assert r.status == 403
