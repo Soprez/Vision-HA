@@ -40,8 +40,8 @@ android {
         // 36 (Android 16) depuis la 1.34.2. Le service au premier plan déclare
         // foregroundServiceType="specialUse", exigé à partir de la cible 34.
         targetSdk = 36
-        versionCode = 193
-        versionName = "1.93.06.3"
+        versionCode = 194
+        versionName = "1.94.0"
         buildConfigField("boolean", "RECETTE", "false")
         buildConfigField("String", "SITE_SIGNALEMENT", "\"https://soprez.org/api/signalement/\"")
         // Essais sur émulateur (androidTest) : le lanceur d'essais du système, sans bibliothèque à télécharger.
