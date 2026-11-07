@@ -1013,6 +1013,20 @@ musique_regler:
     reprise:
       selector:
         boolean: null
+delai_redemande_regler:
+  fields:
+    personne:
+      required: true
+      selector:
+        entity:
+          domain: person
+    minutes:
+      selector:
+        number:
+          min: 0
+          max: 1440
+          unit_of_measurement: min
+          mode: box
 accueil_regler:
   fields:
     pc:

@@ -1953,6 +1953,20 @@
         }
       }
     },
+    "delai_redemande_regler": {
+      "name": "Demandes — attente avant de redemander",
+      "description": "Combien de temps une personne attend avant de refaire la même demande (administrateurs et automatisations seulement). Sans minutes, la personne suit le réglage général.",
+      "fields": {
+        "personne": {
+          "name": "Personne",
+          "description": "La personne concernée."
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "Attente en minutes (0 : aucune). Vide : suit le réglage général."
+        }
+      }
+    },
     "accueil_regler": {
       "name": "Accueil — liste des applications",
       "description": "Afficher ou masquer la liste des applications sur l'accueil d'un appareil Android (administrateurs et automatisations seulement). Masquée, l'accueil ne montre que les widgets (tableau de bord) ; un appui long sur l'heure ouvre toujours les paramètres, derrière le code ou l'empreinte. L'appareil applique le réglage le plus récent, de Home Assistant ou de l'appareil lui-même.",
@@ -2265,6 +2279,9 @@
     "number": {
       "attente_apres_un_refus": {
         "name": "Attente après un refus"
+      },
+      "attente_avant_de_redemander": {
+        "name": "Attente avant de redemander"
       },
       "avertir_avant_fermeture": {
         "name": "Avertir avant fermeture"

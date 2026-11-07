@@ -272,7 +272,7 @@ ENTITES: dict[str, dict[str, tuple[str, ...]]] = {
     },
     "notify": {"notify_": ("messages",)},
     "number": {
-        "avertissement": ("plages",), "delai_refus": ("demandes",), "duree_laissez_passer": _F,
+        "avertissement": ("plages",), "delai_refus": ("demandes",), "delai_redemande": ("demandes",), "duree_laissez_passer": _F,
         "rythme_liste_noire": _F, "pause_max_": ("pause",),
     },
     "select": {

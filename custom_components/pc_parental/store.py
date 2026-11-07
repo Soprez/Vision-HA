@@ -27,6 +27,7 @@ from .const import (
     ETIQUETTE_ECOLE,
     PAQUETS_VISION,
     DELAI_REFUS,
+    DELAI_REDEMANDE,
     APPS_INTOUCHABLES,
     MAX_ORIGINES,
     AUTORISE,
@@ -485,6 +486,7 @@ class PcStore:
         # Sans frappe ni souris pendant ce temps, la machine est inactive.
         self.idle_minutes: int = IDLE_MINUTES
         self.delai_refus: int = DELAI_REFUS
+        self.delai_redemande: int = DELAI_REDEMANDE
         # PC supprimés dont l'agent doit encore apprendre son congé.
         self.retraits: dict[str, dict[str, Any]] = {}
         # Étiquettes des logiciels et des sites. Elles appartiennent à la
@@ -645,6 +647,7 @@ class PcStore:
         self.warn_minutes = int(data.get("warn_minutes", WARN_MINUTES))
         self.idle_minutes = int(data.get("idle_minutes", IDLE_MINUTES))
         self.delai_refus = int(data.get("delai_refus", DELAI_REFUS))
+        self.delai_redemande = int(data.get("delai_redemande", DELAI_REDEMANDE))
         self.retraits = data.get("retraits") or {}
         etiquettes = data.get("etiquettes") or {}
         self.etiquettes = {
@@ -868,6 +871,7 @@ class PcStore:
                 "warn_minutes": self.warn_minutes,
                 "idle_minutes": self.idle_minutes,
                 "delai_refus": self.delai_refus,
+                "delai_redemande": self.delai_redemande,
                 "retraits": self.retraits,
                 "etiquettes": self.etiquettes,
                 "ajouts": self.ajouts,
@@ -2215,6 +2219,83 @@ class PcStore:
         vus: dict[str, float] = {}
         for a in self._siens(pc):
             fiches = a.get("refus") or {}
+            for nom in [n for n, fin in fiches.items() if float(fin or 0) <= maintenant]:
+                fiches.pop(nom, None)
+            for nom, fin in fiches.items():
+                vus[nom] = max(vus.get(nom, 0.0), min(float(fin), plafond))
+        sortie = []
+        for nom, fin in sorted(vus.items()):
+            if fin > maintenant and ":" in nom:
+                genre, cle = nom.split(":", 1)
+                sortie.append({"genre": genre, "nom": cle, "jusqua": int(fin)})
+        return sortie
+
+    # ------------------------------------------ Attente avant de redemander
+    #
+    # 1.94 : un enfant qui vient de faire une demande (temps, logiciel, site) ne peut pas refaire la même tout de suite
+    # (« delai_redemande », 5 min par défaut, réglable ; 0 : pas d'attente). La règle est ici, côté serveur : l'appli ne
+    # fait que la montrer (bouton grisé, « tu pourras redemander dans X min »). Elle vaut par demande (une autre appli,
+    # un autre site n'est pas retenu) et pour la personne (sur son PC comme sur son téléphone). Un délai propre à la
+    # personne (`delai_redemande` posé sur ses appareils) prend le pas sur celui de la maison.
+    TEMPS = ("temps", "demande")
+
+    def delai_redemande_de(self, pc: dict[str, Any]) -> int:
+        """Les minutes à attendre pour cette personne : le sien s'il y en a un, sinon celui de la maison."""
+        for a in self._siens(pc):
+            if a.get("delai_redemande") is not None:
+                try:
+                    return max(0, min(1440, int(a["delai_redemande"])))
+                except (TypeError, ValueError):
+                    continue
+        return max(0, min(1440, int(self.delai_redemande or 0)))
+
+    def delai_redemande_personne(self, pc: dict[str, Any]) -> int | None:
+        """Le délai propre à la personne de cet appareil (None : elle suit celui de la maison)."""
+        for a in self._siens(pc):
+            if a.get("delai_redemande") is not None:
+                try:
+                    return max(0, min(1440, int(a["delai_redemande"])))
+                except (TypeError, ValueError):
+                    continue
+        return None
+
+    def poser_delai_redemande_personne(self, pc: dict[str, Any], minutes: int | None) -> None:
+        """Pose (ou retire, avec None) le délai propre à la personne de cet appareil."""
+        for a in self._siens(pc):
+            if minutes is None:
+                a.pop("delai_redemande", None)
+            else:
+                a["delai_redemande"] = max(0, min(1440, int(minutes)))
+
+    def noter_demande(self, pc: dict[str, Any], genre: str, cle: str) -> float:
+        """Retient qu'une demande vient d'être faite. Rend l'heure à partir de laquelle elle peut être refaite (0 : pas d'attente)."""
+        minutes = self.delai_redemande_de(pc)
+        if not minutes or not cle:
+            return 0.0
+        jusqua = time.time() + minutes * 60
+        for a in self._siens(pc):
+            a.setdefault("redemande", {})["{}:{}".format(genre, str(cle).lower())] = jusqua
+        return jusqua
+
+    def redemande_jusqua(self, pc: dict[str, Any], genre: str, cle: str) -> float:
+        """Jusqu'à quand cette personne ne peut pas refaire cette demande (0 : elle peut)."""
+        nom = "{}:{}".format(genre, str(cle).lower())
+        maintenant = time.time()
+        # Le délai a pu être raccourci depuis : on ne fait jamais attendre plus que le réglage du moment.
+        plafond = maintenant + self.delai_redemande_de(pc) * 60
+        fin = 0.0
+        for a in self._siens(pc):
+            fin = max(fin, float((a.get("redemande") or {}).get(nom) or 0))
+        fin = min(fin, plafond)
+        return fin if fin > maintenant else 0.0
+
+    def redemandes_en_cours(self, pc: dict[str, Any]) -> list[dict[str, Any]]:
+        """Ce que cette personne ne peut pas refaire pour l'instant (envoyé à l'appli). Les attentes échues sont oubliées."""
+        maintenant = time.time()
+        plafond = maintenant + self.delai_redemande_de(pc) * 60
+        vus: dict[str, float] = {}
+        for a in self._siens(pc):
+            fiches = a.get("redemande") or {}
             for nom in [n for n, fin in fiches.items() if float(fin or 0) <= maintenant]:
                 fiches.pop(nom, None)
             for nom, fin in fiches.items():

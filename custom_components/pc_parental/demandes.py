@@ -98,6 +98,10 @@ def deposer(
     jusqua = coord.store.refus_jusqua(pc, genre, cle)
     if jusqua:
         return {"refus": jusqua, "cle": cle, "libelle": libelle.strip() or cle}
+    # 1.94 : faite il y a peu : elle ne peut pas être refaite avant la fin de l'attente (règle du serveur, pas de l'appli).
+    attente = coord.store.redemande_jusqua(pc, genre, cle)
+    if attente:
+        return {"delai": attente, "cle": cle, "libelle": libelle.strip() or cle}
     liste = en_attente(pc)
     for d in liste:
         if d.get("genre") == genre and d.get("cle") == cle:
@@ -145,6 +149,7 @@ def deposer(
     if sites:
         d["sites"] = sites
     liste.append(d)
+    coord.store.noter_demande(pc, genre, cle)
 
     def raison_en(langue: str) -> str:
         if not _r:
@@ -232,6 +237,11 @@ def sites_du_groupe(coord: PcParentalCoordinator, pc: dict[str, Any], app: str, 
     return gardes
 
 
+def minutes_restantes(jusqua: float) -> int:
+    """Les minutes à attendre encore, arrondies au-dessus (jamais « 0 min » alors qu'il reste des secondes)."""
+    return max(1, int((jusqua - time.time() + 59) // 60))
+
+
 class PcParentalDemandeView(HomeAssistantView):
     url = URL_DEMANDE
     name = "api:pc_parental:demande"
@@ -292,6 +302,13 @@ class PcParentalDemandeView(HomeAssistantView):
             return self.json({
                 "ok": False, "error": "refus", "jusqua": int(d["refus"]),
                 "retour": textes.t("dem.refusee", langue, nom=d["libelle"], heure=textes.heure(float(d["refus"]), langue)),
+            })
+        if d.get("delai"):
+            _LOGGER.info("Vision : demande d'accès de « %s » pour « %s » : à refaire plus tard, pas renvoyée.",
+                         pc.get("name"), d.get("libelle"))
+            return self.json({
+                "ok": False, "error": "delai", "jusqua": int(d["delai"]),
+                "retour": textes.t("dem.delai", langue, nom=d["libelle"], minutes=minutes_restantes(float(d["delai"]))),
             })
         await coord.store.async_save()
         _LOGGER.info("Vision : demande d'accès de « %s » pour « %s » enregistrée (%s).", pc.get("name"), d.get("libelle"), d["id"])

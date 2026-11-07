@@ -72,7 +72,8 @@ async def test_demande_de_temps_dans_la_liste_et_reponse(hass, hass_storage, has
     assert "15 min" in retour and enfant.get("demande") is None
     assert any("15 min" in m["text"] for m in enfant["messages"])
     assert not [d for d in parent.etat_maison(hass, coord, "p1")["demandes"] if d["genre"] == "temps"]
-    # Refus
+    # Refus (1.94 : une seconde demande de temps attend la fin du délai avant de redemander ; ici, sans délai)
+    coord.store.delai_redemande = 0
     _, ident2 = await _demander(client, hass, minutes=30)
     retour = await parent.agir(hass, coord, enfant, {"action": "acces", "demande": ident2, "decision": "non"}, "Nolan", "p1")
     assert "refusé" in retour and enfant.get("demande") is None

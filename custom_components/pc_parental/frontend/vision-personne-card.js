@@ -35,6 +35,9 @@ const TEXTES = /*i18n-json*/{
     "role_aide": "Ce que {prenom} peut faire dans Vision. Le rôle vaut pour tous ses appareils, sauf exception posée sur un appareil.",
     "role_defaut": "Rôle par défaut ({role})",
     "role_actuel": "Rôle actuel : {role}",
+    "delai_titre": "Attente avant de redemander",
+    "delai_aide": "{prenom} ne peut pas refaire la même demande avant ce délai. Réglage général : {general} min. Laissez vide pour le suivre.",
+    "delai_champ": "Minutes (vide : le réglage général)",
     "enregistrer": "Enregistrer",
     "annuler": "Annuler",
     "modifier": "Modifier",
@@ -101,6 +104,9 @@ const TEXTES = /*i18n-json*/{
     "role_aide": "What {prenom} can do in Vision. The role applies to all of their devices, unless an exception is set on a device.",
     "role_defaut": "Default role ({role})",
     "role_actuel": "Current role: {role}",
+    "delai_titre": "Wait before asking again",
+    "delai_aide": "{prenom} can't make the same request again before this delay. General setting: {general} min. Leave empty to follow it.",
+    "delai_champ": "Minutes (empty: the general setting)",
     "enregistrer": "Save",
     "annuler": "Cancel",
     "modifier": "Edit",
@@ -167,6 +173,9 @@ const TEXTES = /*i18n-json*/{
     "role_aide": "Was {prenom} in Vision tun darf. Die Rolle gilt für alle Geräte, außer bei einer Ausnahme auf einem Gerät.",
     "role_defaut": "Standardrolle ({role})",
     "role_actuel": "Aktuelle Rolle: {role}",
+    "delai_titre": "Wartezeit bis zur nächsten Anfrage",
+    "delai_aide": "{prenom} kann dieselbe Anfrage erst nach dieser Zeit erneut stellen. Allgemeine Einstellung: {general} Min. Leer lassen, um ihr zu folgen.",
+    "delai_champ": "Minuten (leer: allgemeine Einstellung)",
     "enregistrer": "Speichern",
     "annuler": "Abbrechen",
     "modifier": "Ändern",
@@ -233,6 +242,9 @@ const TEXTES = /*i18n-json*/{
     "role_aide": "Lo que {prenom} puede hacer en Vision. El rol vale para todos sus dispositivos, salvo excepción en un dispositivo.",
     "role_defaut": "Rol por defecto ({role})",
     "role_actuel": "Rol actual: {role}",
+    "delai_titre": "Espera antes de volver a pedir",
+    "delai_aide": "{prenom} no puede repetir la misma solicitud antes de este plazo. Ajuste general: {general} min. Déjelo vacío para seguirlo.",
+    "delai_champ": "Minutos (vacío: el ajuste general)",
     "enregistrer": "Guardar",
     "annuler": "Cancelar",
     "modifier": "Modificar",
@@ -299,6 +311,9 @@ const TEXTES = /*i18n-json*/{
     "role_aide": "Cosa può fare {prenom} in Vision. Il ruolo vale per tutti i suoi dispositivi, salvo eccezione su un dispositivo.",
     "role_defaut": "Ruolo predefinito ({role})",
     "role_actuel": "Ruolo attuale: {role}",
+    "delai_titre": "Attesa prima di richiedere",
+    "delai_aide": "{prenom} non può ripetere la stessa richiesta prima di questo tempo. Impostazione generale: {general} min. Lascia vuoto per seguirla.",
+    "delai_champ": "Minuti (vuoto: l'impostazione generale)",
     "enregistrer": "Salva",
     "annuler": "Annulla",
     "modifier": "Modifica",
@@ -365,6 +380,9 @@ const TEXTES = /*i18n-json*/{
     "role_aide": "Wat {prenom} in Vision mag doen. De rol geldt voor alle apparaten, behalve bij een uitzondering op een apparaat.",
     "role_defaut": "Standaardrol ({role})",
     "role_actuel": "Huidige rol: {role}",
+    "delai_titre": "Wachttijd voor opnieuw vragen",
+    "delai_aide": "{prenom} kan hetzelfde verzoek niet eerder herhalen dan na deze tijd. Algemene instelling: {general} min. Laat leeg om die te volgen.",
+    "delai_champ": "Minuten (leeg: de algemene instelling)",
     "enregistrer": "Opslaan",
     "annuler": "Annuleren",
     "modifier": "Wijzigen",
@@ -737,7 +755,22 @@ class VisionPersonneCard extends HTMLElement {
         ${choixHtml("role", tr("role_titre"), options.map((r) => ({ cle: r.id, libelle: r.nom })), actuel)}
       </fieldset>
       <div class="boutons"><button class="principal" data-action="role" ${this._occupe ? "disabled" : ""}>${esc(tr("enregistrer"))}</button></div>
+      ${this._delai()}
     </section>`;
+  }
+
+  // 1.94 : l'attente avant de refaire la même demande, propre à la personne (vide : celle de la maison).
+  _delai() {
+    const d = this._d;
+    const x = d.delai_redemande;
+    if (!x || !x.appareil) return "";
+    return `<div class="formulaire">
+      <h3>${esc(tr("delai_titre"))}</h3>
+      <p class="aide">${esc(tr("delai_aide", { prenom: d.personne.prenom, general: x.maison }))}</p>
+      <label class="champ"><span>${esc(tr("delai_champ"))}</span>
+        <input type="number" inputmode="numeric" min="0" max="1440" step="1" data-champ="delai" placeholder="${esc(x.maison)}" value="${esc(x.personne === null ? "" : x.personne)}"></label>
+      <div class="boutons"><button class="principal" data-action="delai" ${this._occupe ? "disabled" : ""}>${esc(tr("enregistrer"))}</button></div>
+    </div>`;
   }
 
   _recompenses() {
@@ -864,6 +897,7 @@ class VisionPersonneCard extends HTMLElement {
       try { const l = JSON.parse(x.getAttribute("valeurs") || "[]"); return Array.isArray(l) ? l : []; } catch (e) { return []; }
     };
     action("role", () => this._envoyer({ op: "role", role: radio("role") }));
+    action("delai", () => this._envoyer({ op: "delai_redemande", minutes: champ("delai").value.trim() }));
     action("recompense", () => this._envoyer({ op: "temps_gagne", liste: radio("liste"),
       minutes: Number(champ("minutes").value), max: Number(champ("max").value) }));
     action("recompense_retirer", () => this._envoyer({ op: "temps_gagne", liste: "", minutes: 0, max: 0 }));

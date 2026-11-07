@@ -1953,6 +1953,20 @@
         }
       }
     },
+    "delai_redemande_regler": {
+      "name": "Richieste — attesa prima di richiedere",
+      "description": "Quanto aspetta una persona prima di ripetere la stessa richiesta (solo amministratori e automazioni). Senza minuti, la persona segue l'impostazione generale.",
+      "fields": {
+        "personne": {
+          "name": "Persona",
+          "description": "La persona interessata."
+        },
+        "minutes": {
+          "name": "Minuti",
+          "description": "Attesa in minuti (0: nessuna). Vuoto: segue l'impostazione generale."
+        }
+      }
+    },
     "accueil_regler": {
       "name": "Schermata iniziale — elenco delle app",
       "description": "Mostra o nascondi l'elenco delle app nella schermata iniziale di un dispositivo Android (solo amministratori e automazioni). Nascosto, la schermata iniziale mostra solo i widget (cruscotto); tenere premuto sull'ora apre sempre le impostazioni, dietro il codice o l'impronta. Il dispositivo applica l'impostazione più recente, da Home Assistant o dal dispositivo stesso.",
@@ -2265,6 +2279,9 @@
     "number": {
       "attente_apres_un_refus": {
         "name": "Attesa dopo un rifiuto"
+      },
+      "attente_avant_de_redemander": {
+        "name": "Attesa prima di richiedere"
       },
       "avertir_avant_fermeture": {
         "name": "Avvisa prima del blocco"

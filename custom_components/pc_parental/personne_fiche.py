@@ -9,6 +9,7 @@ garde son accès (secondaire) jusqu'au lot 4.
     POST /api/pc_parental/personne/admin   {"op": "role", "personne", "role"}            ("" : rôle par défaut)
                                            {"op": "temps_gagne", "personne", "liste", "minutes", "max"} (liste "" : retirer)
                                            {"op": "regle_lieu", "personne", "zone", "etiquettes"}      ([] : retirer)
+                                           {"op": "delai_redemande", "personne", "minutes"}            (vide : celui de la maison)
 
 `resume_appli()` donne à l'appli (réponse /parent, lecture seule) un résumé de la même fiche.
 """
@@ -89,6 +90,26 @@ def _recompense(hass: HomeAssistant, store, personne: str) -> dict[str, Any] | N
     suivi = temps_gagne.suivi(store).get(personne) or {}
     return {"liste": r.get("liste"), "liste_nom": _nom(hass, str(r.get("liste") or "")), "minutes": int(r.get("minutes") or 0),
             "max": int(r.get("max") or 0), "accorde": int(suivi.get("accorde") or 0)}
+
+
+def _delai(store, personne: str) -> dict[str, Any]:
+    """L'attente avant de redemander : celle de la maison, celle de la personne (None : elle suit la maison), et ce qui s'applique."""
+    pc = next(iter(store.appareils_de(personne)), None)
+    propre = store.delai_redemande_personne(pc) if pc is not None else None
+    return {"maison": int(store.delai_redemande or 0), "personne": propre,
+            "effectif": propre if propre is not None else int(store.delai_redemande or 0), "appareil": pc is not None}
+
+
+def poser_delai(hass: HomeAssistant, store, personne: str, minutes: int | None) -> int:
+    """Pose (ou retire, avec None) l'attente propre à la personne ; rend ce qui s'applique ensuite. textes.Erreur si refusé."""
+    _exiger(store, "demandes")
+    pc = next(iter(store.appareils_de(personne)), None)
+    if pc is None:
+        raise textes.Erreur("fiche.delai_sans_appareil", prenom=lambda lg: _nom(hass, personne))
+    if minutes is not None and not 0 <= int(minutes) <= 1440:
+        raise textes.Erreur("fiche.delai_minutes")
+    store.poser_delai_redemande_personne(pc, None if minutes is None else int(minutes))
+    return store.delai_redemande_de(pc)
 
 
 def _cat(nom: str, langue: str | None) -> str:
@@ -176,6 +197,7 @@ def etat(hass: HomeAssistant, coord, personne: str) -> dict[str, Any]:
         "reveils": _reveils(hass, store, personne) if m["reveil"] else [],
         "widgets": len(store.entites_personnes.get(personne) or []),
         "minutes_defaut": temps_gagne.MINUTES_DEFAUT, "max_defaut": temps_gagne.MAX_DEFAUT,
+        "delai_redemande": _delai(store, personne) if not modules.coupe(store, "demandes") else None,
     }
 
 
@@ -212,6 +234,16 @@ async def regler(hass: HomeAssistant, coord, corps: dict[str, Any], par: str) ->
         await store.async_save()
         return textes.t("fiche.regle_faite" if etiquettes else "fiche.regle_retiree", langue,
                         zone=regles_lieu.nom_zone(hass, str(corps.get("zone") or "")))
+    if op == "delai_redemande":
+        brut = corps.get("minutes")
+        try:
+            minutes = None if brut in (None, "") else int(brut)
+            effectif = poser_delai(hass, store, personne, minutes)
+        except (TypeError, ValueError) as err:
+            raise textes.Erreur("fiche.delai_minutes") from err
+        await store.async_save()
+        return textes.t("fiche.delai_fait" if minutes is not None else "fiche.delai_retire", langue,
+                        prenom=_nom(hass, personne), minutes=effectif)
     raise textes.Erreur("fiche.reglage_inconnu")
 
 

@@ -1221,6 +1221,22 @@ def _async_register_services(hass: HomeAssistant) -> None:
         coord.async_update_listeners()
         return {"pc": pc["id"], "reglages": reglages}
 
+    async def _delai_redemande_regler(call: ServiceCall) -> dict:
+        """1.94 : l'attente avant de redemander d'une personne (sans ``minutes`` : elle suit celle de la maison)."""
+        from . import personne_fiche as _pf
+
+        coord = _coordinator()
+        personne = call.data["personne"]
+        if hass.states.get(personne) is None:
+            raise HomeAssistantError(textes.t("fiche.personne_inconnue", textes.ha(hass)))
+        try:
+            effectif = _pf.poser_delai(hass, coord.store, personne, call.data.get("minutes"))
+        except textes.Erreur as err:
+            raise HomeAssistantError(textes.erreur(err, textes.ha(hass))) from err
+        await coord.store.async_save()
+        coord.async_update_listeners()
+        return {"personne": personne, "minutes": effectif, "propre": call.data.get("minutes") is not None}
+
     async def _accueil_regler(call: ServiceCall) -> dict:
         """1.93.06.1 (l'auteur, tablettes tableau de bord) : « Afficher la liste des applications » d'un appareil Android."""
         from . import accueil_options as _ao
@@ -1286,6 +1302,11 @@ def _async_register_services(hass: HomeAssistant) -> None:
         vol.Optional("focus"): vol.In(["toujours", "applis", "jamais"]),
         vol.Optional("applis"): vol.Any(cv.string, [cv.string]),
         vol.Optional("reprise"): cv.boolean,
+    }), supports_response=SupportsResponse.OPTIONAL)
+
+    service_admin(hass, "delai_redemande_regler", _delai_redemande_regler, schema=vol.Schema({
+        vol.Required("personne"): cv.entity_id,
+        vol.Optional("minutes"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1440)),
     }), supports_response=SupportsResponse.OPTIONAL)
 
     service_admin(hass, "accueil_regler", _accueil_regler, schema=vol.Schema({

@@ -136,3 +136,45 @@ async def test_resume_pour_l_appli_et_page_du_tableau(hass, hass_storage, hass_c
     page = next(v for v in vues if v.get("path") == "personne-lou")
     carte = page["sections"][0]["cards"][0]
     assert carte["type"] == "custom:vision-personne-card" and carte["personne"] == "person.lou"
+
+
+async def test_delai_de_redemande_par_personne(hass, hass_storage, hass_client):
+    """1.94 : l'attente avant de redemander se règle par personne (fiche) ; vide, elle suit la maison ; les autres ne changent pas."""
+    coord = await _installer(hass, hass_storage)
+    client = await hass_client()
+    d = await (await client.get(URL + "?personne=person.lou")).json()
+    assert d["delai_redemande"] == {"maison": 5, "personne": None, "effectif": 5, "appareil": True}
+    r = await client.post(URL, json={"op": "delai_redemande", "personne": "person.lou", "minutes": 20})
+    d = await r.json()
+    assert r.status == 200 and d["delai_redemande"]["personne"] == 20 and d["delai_redemande"]["effectif"] == 20 and d["fait"]
+    assert coord.store.delai_redemande_de(coord.store.pcs["e1"]) == 20
+    assert coord.store.delai_redemande_de(coord.store.pcs["e2"]) == 5          # une autre personne : la maison
+    # 0 : aucune attente pour elle ; vide : elle suit de nouveau la maison.
+    d = await (await client.post(URL, json={"op": "delai_redemande", "personne": "person.lou", "minutes": 0})).json()
+    assert d["delai_redemande"]["personne"] == 0 and d["delai_redemande"]["effectif"] == 0
+    d = await (await client.post(URL, json={"op": "delai_redemande", "personne": "person.lou", "minutes": ""})).json()
+    assert d["delai_redemande"]["personne"] is None and d["delai_redemande"]["effectif"] == 5
+    # Hors bornes ou illisible : refusé en clair, rien de changé.
+    for faux in (-1, 5000, "abc"):
+        r = await client.post(URL, json={"op": "delai_redemande", "personne": "person.lou", "minutes": faux})
+        assert r.status == 400 and (await r.json())["retour"]
+    assert coord.store.delai_redemande_personne(coord.store.pcs["e1"]) is None
+
+
+async def test_service_delai_redemande_regler(hass, hass_storage):
+    coord = await _installer(hass, hass_storage)
+    r = await hass.services.async_call(DOMAIN, "delai_redemande_regler", {"personne": "person.noa", "minutes": 15},
+                                       blocking=True, return_response=True)
+    assert r == {"personne": "person.noa", "minutes": 15, "propre": True}
+    assert coord.store.delai_redemande_de(coord.store.pcs["e2"]) == 15
+    r = await hass.services.async_call(DOMAIN, "delai_redemande_regler", {"personne": "person.noa"}, blocking=True, return_response=True)
+    assert r == {"personne": "person.noa", "minutes": 5, "propre": False}
+
+
+async def test_fiche_sans_demandes_pas_de_champ(hass, hass_storage, hass_client):
+    await _installer(hass, hass_storage, modules={"demandes": False})
+    client = await hass_client()
+    d = await (await client.get(URL + "?personne=person.lou")).json()
+    assert d["delai_redemande"] is None
+    r = await client.post(URL, json={"op": "delai_redemande", "personne": "person.lou", "minutes": 10})
+    assert r.status == 400

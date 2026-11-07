@@ -1953,6 +1953,20 @@
         }
       }
     },
+    "delai_redemande_regler": {
+      "name": "Requests — wait before asking again",
+      "description": "How long a person waits before making the same request again (administrators and automations only). Without minutes, the person follows the general setting.",
+      "fields": {
+        "personne": {
+          "name": "Person",
+          "description": "The person concerned."
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "Wait in minutes (0: none). Leave empty to follow the general setting."
+        }
+      }
+    },
     "accueil_regler": {
       "name": "Home screen — apps list",
       "description": "Show or hide the apps list on an Android device's home screen (administrators and automations only). Hidden, the home screen shows only the widgets (dashboard); a long press on the time still opens the settings, behind the code or fingerprint. The device applies the most recent setting, from Home Assistant or from the device itself.",
@@ -2265,6 +2279,9 @@
     "number": {
       "attente_apres_un_refus": {
         "name": "Wait after a decline"
+      },
+      "attente_avant_de_redemander": {
+        "name": "Wait before asking again"
       },
       "avertir_avant_fermeture": {
         "name": "Warn before blocking"

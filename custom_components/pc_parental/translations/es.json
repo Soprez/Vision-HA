@@ -1953,6 +1953,20 @@
         }
       }
     },
+    "delai_redemande_regler": {
+      "name": "Solicitudes — espera antes de volver a pedir",
+      "description": "Cuánto espera una persona antes de repetir la misma solicitud (solo administradores y automatizaciones). Sin minutos, la persona sigue el ajuste general.",
+      "fields": {
+        "personne": {
+          "name": "Persona",
+          "description": "La persona afectada."
+        },
+        "minutes": {
+          "name": "Minutos",
+          "description": "Espera en minutos (0: ninguna). Vacío: sigue el ajuste general."
+        }
+      }
+    },
     "accueil_regler": {
       "name": "Inicio — lista de aplicaciones",
       "description": "Mostrar u ocultar la lista de aplicaciones en la pantalla de inicio de un dispositivo Android (solo administradores y automatizaciones). Oculta, la pantalla de inicio solo muestra los widgets (panel); mantener pulsada la hora sigue abriendo los ajustes, tras el código o la huella. El dispositivo aplica el ajuste más reciente, de Home Assistant o del propio dispositivo.",
@@ -2265,6 +2279,9 @@
     "number": {
       "attente_apres_un_refus": {
         "name": "Espera tras un rechazo"
+      },
+      "attente_avant_de_redemander": {
+        "name": "Espera antes de volver a pedir"
       },
       "avertir_avant_fermeture": {
         "name": "Avisar antes del bloqueo"

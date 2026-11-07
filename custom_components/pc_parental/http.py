@@ -374,6 +374,13 @@ class PcParentalPollView(HomeAssistantView):
                 _mins = max(1, min(240, int(_mins)))
             except (TypeError, ValueError):
                 _mins = 0
+            # 1.94 : une demande de temps vient d'être faite : pas de nouvelle avant la fin de l'attente (règle du serveur).
+            if _mins and coord.store.redemande_jusqua(pc, *coord.store.TEMPS):
+                _LOGGER.info("%s : demande de temps de « %s » ignorée (attente avant de redemander).",
+                             PRODUIT, pc.get("name") or pc_id)
+                _mins = 0
+            elif _mins:
+                coord.store.noter_demande(pc, *coord.store.TEMPS)
             if _mins:
                 _nom = pc.get("name") or pc_id
                 # 1.97.8 : le prénom d'abord (« Lou demande 20 minutes de plus (TEL-LOU). »), comme les autres demandes.
@@ -497,6 +504,12 @@ class PcParentalPollView(HomeAssistantView):
             reponse["refus"] = [] if modules.coupe(coord.store, "demandes") else coord.store.refus_en_cours(pc)
         except Exception:  # noqa: BLE001
             reponse["refus"] = []
+        # 1.94 : ce qu'elle vient de demander et ne peut pas refaire tout de suite (l'appli grise le bouton), et l'attente réglée.
+        try:
+            reponse["redemande"] = [] if modules.coupe(coord.store, "demandes") else coord.store.redemandes_en_cours(pc)
+            reponse["delai_redemande_min"] = coord.store.delai_redemande_de(pc)
+        except Exception:  # noqa: BLE001
+            reponse["redemande"] = []
         # 2.5.1 (ajouts 5 et 6 de l'auteur) : les sites bloqués récemment que le Demandeur peut demander, et les mêmes
         # regroupés par logiciel (« Roblox ne marche pas : 6 sites bloqués »), pour une demande d'un geste.
         try:

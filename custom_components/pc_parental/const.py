@@ -491,6 +491,8 @@ WARN_MINUTES = 5
 IDLE_MINUTES = 5
 # Après un refus, combien de minutes avant de pouvoir redemander la même chose (0 : tout de suite).
 DELAI_REFUS = 60
+# 1.94 : après une demande, combien de minutes avant que le même enfant puisse refaire la même (0 : pas d'attente).
+DELAI_REDEMANDE = 5
 # Durée d'affichage d'un message envoyé sur un PC, en secondes.
 MESSAGE_SECONDS = 30
 

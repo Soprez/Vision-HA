@@ -1953,6 +1953,20 @@
         }
       }
     },
+    "delai_redemande_regler": {
+      "name": "Verzoeken — wachttijd voor opnieuw vragen",
+      "description": "Hoe lang een persoon wacht voordat hetzelfde verzoek opnieuw kan (alleen beheerders en automatiseringen). Zonder minuten volgt de persoon de algemene instelling.",
+      "fields": {
+        "personne": {
+          "name": "Persoon",
+          "description": "De betrokken persoon."
+        },
+        "minutes": {
+          "name": "Minuten",
+          "description": "Wachttijd in minuten (0: geen). Leeg: volgt de algemene instelling."
+        }
+      }
+    },
     "accueil_regler": {
       "name": "Startscherm — app-lijst",
       "description": "De app-lijst op het startscherm van een Android-apparaat tonen of verbergen (alleen beheerders en automatiseringen). Verborgen toont het startscherm alleen de widgets (dashboard); de tijd ingedrukt houden opent nog steeds de instellingen, achter de code of vingerafdruk. Het apparaat past de nieuwste instelling toe, van Home Assistant of van het apparaat zelf.",
@@ -2265,6 +2279,9 @@
     "number": {
       "attente_apres_un_refus": {
         "name": "Wachttijd na een weigering"
+      },
+      "attente_avant_de_redemander": {
+        "name": "Wachttijd voor opnieuw vragen"
       },
       "avertir_avant_fermeture": {
         "name": "Waarschuwen voor het blokkeren"

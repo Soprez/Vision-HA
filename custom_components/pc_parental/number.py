@@ -30,6 +30,7 @@ async def async_setup_entry(
             WarnMinutes(coordinator),
             IdleMinutes(coordinator),
             DelaiRefus(coordinator),
+            DelaiRedemande(coordinator),
             DureeLaissezPasser(coordinator),
             RythmeListeNoire(coordinator),
         ]
@@ -105,6 +106,20 @@ class DelaiRefus(_Reglage):
     def __init__(self, coordinator: PcParentalCoordinator) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{DOMAIN}_delai_refus"
+
+
+class DelaiRedemande(_Reglage):
+    """Après une demande, combien de temps avant que l'enfant puisse refaire la même ? (0 : pas d'attente)"""
+
+    _attr_translation_key = "attente_avant_de_redemander"
+    _attr_icon = "mdi:timer-sand"
+    _attr_native_min_value = 0
+    _attr_native_max_value = 120
+    _champ = "delai_redemande"
+
+    def __init__(self, coordinator: PcParentalCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{DOMAIN}_delai_redemande"
 
 
 class DureeLaissezPasser(HubEntity, NumberEntity, RestoreEntity):

@@ -123,6 +123,10 @@
   "button.vision_remettre_a_trier_4",
   "Vision Remettre à trier"
  ],
+ "pc_parental_delai_redemande": [
+  "number.vision_attente_avant_de_redemander",
+  "Vision Attente avant de redemander"
+ ],
  "pc_parental_delai_refus": [
   "number.vision_attente_apres_un_refus",
   "Vision Attente après un refus"

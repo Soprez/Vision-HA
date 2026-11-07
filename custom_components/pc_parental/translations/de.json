@@ -1953,6 +1953,20 @@
         }
       }
     },
+    "delai_redemande_regler": {
+      "name": "Anfragen — Wartezeit bis zur nächsten Anfrage",
+      "description": "Wie lange eine Person wartet, bevor sie dieselbe Anfrage erneut stellen kann (nur Administratoren und Automationen). Ohne Minuten gilt die allgemeine Einstellung.",
+      "fields": {
+        "personne": {
+          "name": "Person",
+          "description": "Die betroffene Person."
+        },
+        "minutes": {
+          "name": "Minuten",
+          "description": "Wartezeit in Minuten (0: keine). Leer: allgemeine Einstellung."
+        }
+      }
+    },
     "accueil_regler": {
       "name": "Startbildschirm — App-Liste",
       "description": "App-Liste auf dem Startbildschirm eines Android-Geräts ein- oder ausblenden (nur Administratoren und Automatisierungen). Ausgeblendet zeigt der Startbildschirm nur die Widgets (Dashboard); langes Drücken auf die Uhrzeit öffnet weiterhin die Einstellungen, hinter Code oder Fingerabdruck. Das Gerät übernimmt die neueste Einstellung, aus Home Assistant oder vom Gerät selbst.",
@@ -2265,6 +2279,9 @@
     "number": {
       "attente_apres_un_refus": {
         "name": "Wartezeit nach einer Ablehnung"
+      },
+      "attente_avant_de_redemander": {
+        "name": "Wartezeit bis zur nächsten Anfrage"
       },
       "avertir_avant_fermeture": {
         "name": "Vor dem Sperren warnen"
