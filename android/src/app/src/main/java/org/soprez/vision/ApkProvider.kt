@@ -36,7 +36,8 @@ class ApkProvider : ContentProvider() {
     override fun update(uri: Uri, v: ContentValues?, s: String?, a: Array<String>?): Int = 0
 
     companion object {
-        const val AUTORITE = "org.soprez.vision.apk"
-        fun uri(nom: String): Uri = Uri.parse("content://$AUTORITE/$nom")
+        /** L'autorité suit l'identifiant de l'appli (la copie de recette n'entre pas en conflit avec la vraie). */
+        fun autorite(ctx: android.content.Context): String = ctx.packageName + ".apk"
+        fun uri(ctx: android.content.Context, nom: String): Uri = Uri.parse("content://${autorite(ctx)}/$nom")
     }
 }

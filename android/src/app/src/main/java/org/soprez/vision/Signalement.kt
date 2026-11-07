@@ -23,7 +23,9 @@ import java.util.zip.ZipOutputStream
  * Jamais dans le paquet : identifiant, secret, ANDROID_ID, adresse MAC, SSID, jetons (essai `SignalementTest`).
  */
 object Signalement {
-    const val URL_SITE = "https://soprez.org/api/signalement/"
+    const val URL_PRODUCTION = "https://soprez.org/api/signalement/"
+    /** La cible : le site de production, ou (copie de recette seulement) la cible de test locale. */
+    val URL_SITE: String get() = if (BuildConfig.RECETTE) BuildConfig.SITE_SIGNALEMENT else URL_PRODUCTION
     /** Clé de dépôt : publique, propre à la version de l'appli ; elle écarte les robots, ce n'est pas un secret. */
     const val CLE_DEPOT = "vision-android-1.94"
     const val DUREE_MAX_MS = 10 * 60_000L
@@ -159,6 +161,7 @@ object Signalement {
 
     /** Envoie le paquet ; lève une exception en cas d'échec réseau ou de refus (l'appelant le dit à l'écran). */
     fun envoyer(ctx: Context, b: Brouillon, paquet: File, url: String = URL_SITE): Recu {
+        garderLaProduction(url)
         val m = manifeste(b, emptyList())
         val r = Net.postMultipart(ctx, url, mapOf("manifeste" to m.toString(), "cle" to CLE_DEPOT), "paquet", "signalement.zip", paquet)
         val recu = Recu(r.optString("reference"), r.optString("effacement"), r.optInt("conservation_jours", 14))
@@ -170,7 +173,13 @@ object Signalement {
     fun effacer(ctx: Context, reference: String): Boolean {
         val liste = references(ctx)
         val lien = liste.firstOrNull { it.first == reference }?.second ?: return false
+        garderLaProduction(lien)
         return try { Net.postVide(ctx, lien); retirerReference(ctx, reference); true } catch (_: Exception) { false }
+    }
+
+    /** La copie de recette n'envoie JAMAIS vers la production (ni dépôt, ni effacement). */
+    internal fun garderLaProduction(url: String) {
+        if (BuildConfig.RECETTE && url.contains("soprez.org", ignoreCase = true)) throw java.io.IOException("recette : jamais la production")
     }
 
     /** Les signalements envoyés depuis cet appareil : (référence, lien d'effacement signé). */

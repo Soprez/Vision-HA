@@ -42,6 +42,8 @@ android {
         targetSdk = 36
         versionCode = 193
         versionName = "1.93.06.3"
+        buildConfigField("boolean", "RECETTE", "false")
+        buildConfigField("String", "SITE_SIGNALEMENT", "\"https://soprez.org/api/signalement/\"")
         // Essais sur émulateur (androidTest) : le lanceur d'essais du système, sans bibliothèque à télécharger.
         testInstrumentationRunner = "android.test.InstrumentationTestRunner"
     }
@@ -59,7 +61,21 @@ android {
         }
     }
 
+    // Recette sur un vrai téléphone, À CÔTÉ de la vraie Vision : autre identifiant (.recette), autre nom affiché, signée avec la clé
+    // de debug (jamais celle de release), envoi du signalement vers une cible de test locale (-PsiteRecette=…, par défaut
+    // http://127.0.0.1:8899 via « adb reverse »). Jamais publiée.
+    buildFeatures { buildConfig = true }
     buildTypes {
+        create("recette") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".recette"
+            versionNameSuffix = "-recette"
+            signingConfig = signingConfigs.getByName("debug")
+            buildConfigField("boolean", "RECETTE", "true")
+            buildConfigField("String", "SITE_SIGNALEMENT",
+                "\"" + (project.findProperty("siteRecette") ?: "http://127.0.0.1:8899/api/signalement/") + "\"")
+            matchingFallbacks += "debug"
+        }
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

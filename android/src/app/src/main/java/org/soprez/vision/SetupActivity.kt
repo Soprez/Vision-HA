@@ -1127,7 +1127,7 @@ class SetupActivity : Activity(), ZoneSure.Geree {
         }
         racine.addView(Ui.marge(this, large(v), haut = 12f))
         // 1.94 : « Signaler un problème », sous la version, pour les responsables (l'écran le vérifie aussi).
-        if (Profil.fonctions(this).let { "gerer" in it || "approuver" in it }) {
+        if (BuildConfig.RECETTE || Profil.fonctions(this).let { "gerer" in it || "approuver" in it }) {
             val l = Ui.texte(this, getString(R.string.signaler_titre), 13f, Ui.TEXTE_3, centre = true).apply {
                 isFocusable = true; isClickable = true
                 val p = Ui.dp(this@SetupActivity, 10f); setPadding(p, p, p, p)

@@ -51,7 +51,8 @@ class SignalerActivity : Activity() {
         setContentView(ScrollView(this).apply { isFillViewport = true; addView(c) })
     }
 
-    private fun estResponsable(): Boolean = Profil.fonctions(this).let { "gerer" in it || "approuver" in it }
+    // La copie de recette n'est reliée à aucun Home Assistant : elle se tient pour responsable (jamais la vraie Vision).
+    private fun estResponsable(): Boolean = BuildConfig.RECETTE || Profil.fonctions(this).let { "gerer" in it || "approuver" in it }
 
     // ------------------------------------------------------------------ intro
 
@@ -70,7 +71,8 @@ class SignalerActivity : Activity() {
             } else {
                 addView(Ui.marge(this@SignalerActivity, Ui.texte(this@SignalerActivity, getString(R.string.signaler_intro), 14f, Ui.TEXTE_2), haut = 12f))
                 addView(Ui.marge(this@SignalerActivity, Ui.boutonPrimaire(this@SignalerActivity, getString(R.string.signaler_commencer)) {
-                    Garde.exiger(this@SignalerActivity, getString(R.string.signaler_raison)) { demanderCapture() }
+                    if (BuildConfig.RECETTE) demanderCapture()   // pas de code ni d'empreinte : aucun responsable n'est enregistré ici
+                    else Garde.exiger(this@SignalerActivity, getString(R.string.signaler_raison)) { demanderCapture() }
                 }, haut = 16f))
             }
             for ((ref, _) in Signalement.references(this@SignalerActivity)) {
@@ -95,6 +97,8 @@ class SignalerActivity : Activity() {
     private fun lancer(avecCaptures: Boolean) {
         Signalement.commencer()
         Journal.i("Signalement", "début de l'enregistrement (captures : $avecCaptures)")
+        // Copie de recette seulement : des valeurs fausses de chaque sorte, pour vérifier à l'aperçu qu'elles disparaissent.
+        if (BuildConfig.RECETTE) Journal.i("Recette", "connexion depuis 10.1.1.23 par sam@example.org, jeton=abc123def, site roblox.com, tel 06 12 34 56 78")
         PastilleSignalement.poser(this, tele)
         if (!avecCaptures) Ui.toast(this, getString(R.string.signaler_sans_captures))
         finish()
@@ -154,7 +158,7 @@ class SignalerActivity : Activity() {
                 addView(Ui.marge(this@SignalerActivity, ligne, haut = 6f))
             }
             champ.apply {
-                hint = getString(R.string.signaler_description_indice); setText(b.description); setTextColor(Ui.TEXTE)
+                hint = getString(R.string.signaler_description_indice); setHintTextColor(Ui.TEXTE_3); setText(b.description); setTextColor(Ui.TEXTE)
                 filters = arrayOf(android.text.InputFilter.LengthFilter(Signalement.MAX_DESCRIPTION)); minLines = 2
             }
             ClavierTele.brancher(champ)
@@ -162,7 +166,7 @@ class SignalerActivity : Activity() {
             addView(Ui.marge(this@SignalerActivity, Ui.boutonSecondaire(this@SignalerActivity, getString(R.string.signaler_voir)) { voir(b) }, haut = 12f))
             val rangee = Ui.rangeeBoutons(this@SignalerActivity)
             rangee.addView(Ui.boutonPrimaire(this@SignalerActivity, getString(R.string.signaler_envoyer)) { b.description = champ.text.toString(); envoyer(b) })
-            rangee.addView(Ui.boutonDanger(this@SignalerActivity, getString(R.string.signaler_jeter)) { jeter() })
+            rangee.addView(Ui.marge(this@SignalerActivity, Ui.boutonDanger(this@SignalerActivity, getString(R.string.signaler_jeter)) { jeter() }, gauche = 12f))
             addView(Ui.marge(this@SignalerActivity, rangee, haut = 12f))
         }
     }

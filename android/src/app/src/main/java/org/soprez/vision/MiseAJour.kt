@@ -231,7 +231,7 @@ object MiseAJour {
     private fun installerParIntent(ctx: Context, f: File) {
         installationPropre()
         val i = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(ApkProvider.uri(f.name), "application/vnd.android.package-archive")
+            setDataAndType(ApkProvider.uri(ctx, f.name), "application/vnd.android.package-archive")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
             if (Build.VERSION.SDK_INT >= 24) putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
         }

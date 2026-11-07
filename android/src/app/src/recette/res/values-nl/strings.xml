@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copie de recette : nom distinct de la vraie Vision (jamais publiée). -->
+<resources>
+    <string name="app_name">Vision (recette)</string>
+</resources>

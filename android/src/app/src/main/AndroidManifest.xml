@@ -430,7 +430,7 @@
         <!-- Sert uniquement l'APK téléchargé à l'installateur système. -->
         <provider
             android:name=".ApkProvider"
-            android:authorities="org.soprez.vision.apk"
+            android:authorities="${applicationId}.apk"
             android:exported="false"
             android:grantUriPermissions="true" />
     </application>
