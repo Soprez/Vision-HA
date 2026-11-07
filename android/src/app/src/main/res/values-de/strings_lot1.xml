@@ -97,10 +97,10 @@
     </plurals>
     <string name="temps_autre_duree">Andere Dauer…</string>
     <string name="temps_jusqua_plage">Bis zum nächsten Zeitfenster (%1$s)</string>
-    <string name="temps_unite_h">Std.</string>
-    <string name="temps_unite_min">Min.</string>
+    <string name="temps_autre_puce">Andere…</string>
+    <string name="temps_moins">Weniger</string>
+    <string name="temps_plus">Mehr</string>
     <string name="temps_accorder">Gewähren</string>
-    <string name="temps_au_moins_5">Mindestens 5 Minuten.</string>
     <string name="geste_echec_droits">Dieses Gerät hat in Vision keine Verwaltungsrechte.</string>
     <string name="geste_echec_perime">Das ist nicht mehr aktuell: schon anderswo erledigt oder verschwunden.</string>
     <string name="geste_echec_interdit">Für alle Geräte gesperrt: in Vision aufheben.</string>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Lot C2 de l'i18n : généré depuis le catalogue (une clé par texte affiché, préfixe = écran ou fichier). -->
 <resources>
+    <string name="acces_redemander_dans">Potrai chiedere di nuovo tra %1$s.</string>
     <string name="acces_demande_envoyee">Richiesta inviata.</string>
     <string name="acces_envoi_impossible">Invio non riuscito, riprova.</string>
     <string name="acces_lien_page">Link della pagina (facoltativo)</string>

@@ -9,7 +9,7 @@ import java.io.File
 /**
  * Lot Accueil (point 6) : aucun composant Android au style par défaut. Les interrupteurs, glissières, cases à cocher
  * et sélecteurs de nombre se créent par les fabricants thémés de Ui.kt (Ui.interrupteur, Ui.glissiere,
- * Ui.caseACocher, Ui.selecteurNombre) ; les autres composants natifs sans fabricant Vision (bouton radio, liste
+ * Ui.caseACocher) et le sélecteur de nombre de Vision (SelecteurPas, qui remplace NumberPicker) ; les autres composants natifs sans fabricant Vision (bouton radio, liste
  * déroulante, bouton bascule, notation) sont refusés tant qu'il n'en existe pas un dans Ui.kt.
  */
 class ComposantsThemesTest {
@@ -46,8 +46,14 @@ class ComposantsThemesTest {
 
     @Test fun les_fabricants_existent() {
         val ui = sources["Ui.kt"] ?: error("Ui.kt introuvable")
-        for (f in listOf("fun interrupteur(", "fun glissiere(", "fun caseACocher(", "fun selecteurNombre(", "fun habillerSelecteur("))
+        for (f in listOf("fun interrupteur(", "fun glissiere(", "fun caseACocher("))
             assertTrue("Ui.kt : $f manquant", ui.contains(f))
+    }
+
+    @Test fun le_selecteur_de_nombre_est_celui_de_vision() {
+        assertTrue("SelecteurPas manquant", sources.containsKey("SelecteurPas.kt"))
+        val ui = sources["Ui.kt"] ?: error("Ui.kt introuvable")
+        assertTrue("Ui.kt ne doit plus fabriquer de NumberPicker", !ui.contains("NumberPicker"))
     }
 
     @Test fun les_exceptions_existent_encore() {

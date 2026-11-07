@@ -196,8 +196,22 @@ class BlockActivity : Activity(), ZoneSure.Geree {
     }
 
     /** Les durées à demander (Durees.DEMANDE, les mêmes partout) ; après l'envoi, on attend la réponse d'un Décideur. */
+    /** Quand l'attente avant de redemander se termine (ms) : l'écran se rebâtit alors, le bouton redevient actif. */
+    private var attenteVue = 0L
+
+    /** Un bouton de demande grisé, avec « Tu pourras redemander dans X min » dessous (dit aussi aux lecteurs d'écran). */
+    private fun boutonEnAttente(libelle: String, fin: Long) {
+        val texte = Acces.attenteTexte(this, fin)
+        val b = Ui.boutonPrimaire(this, libelle) {}
+        b.isEnabled = false; b.alpha = 0.45f; b.isFocusableInTouchMode = false; b.contentDescription = listOf(libelle, texte).joinToString(" — ")
+        zoneDemande.addView(Ui.marge(this, b, haut = 10f), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        zoneDemande.addView(Ui.marge(this, Ui.texte(this, texte, 13f, Ui.TEXTE_2, centre = true), haut = 6f))
+        attenteVue = fin
+    }
+
     private fun construireDemande() {
         zoneDemande.removeAllViews()
+        attenteVue = 0L
         construireDeverrouillage()
         // Module « demandes » coupé dans Home Assistant : ni accès ni temps à demander d'ici.
         if (!Modules.actif(this, Modules.DEMANDES)) return
@@ -212,11 +226,15 @@ class BlockActivity : Activity(), ZoneSure.Geree {
                 c.addView(Ui.texte(this, getString(R.string.block_demande_refusee), 15f, Ui.OR, gras = true, centre = true))
                 c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.block_redemander_a, Etat.heure(refuse)), 13f, Ui.TEXTE_2, centre = true), haut = 6f))
                 zoneDemande.addView(c)
-            } else if (Acces.dejaDemande("apps", pkg)) {
-                val c = Ui.carte(this, Ui.CARTE); c.gravity = Gravity.CENTER
-                c.addView(Ui.texte(this, getString(R.string.block_demande_envoyee), 15f, Ui.OR, gras = true, centre = true))
-                c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.block_prevenu_reponse, Vocabulaire.decideur(this)), 13f, Ui.TEXTE_2, centre = true), haut = 6f))
-                zoneDemande.addView(c)
+            } else if (Acces.redemandeJusqua("apps", pkg) > 0 || (Acces.delaiRedemandeMin == 0 && Acces.dejaDemande("apps", pkg))) {
+                if (Acces.dejaDemande("apps", pkg)) {
+                    val c = Ui.carte(this, Ui.CARTE); c.gravity = Gravity.CENTER
+                    c.addView(Ui.texte(this, getString(R.string.block_demande_envoyee), 15f, Ui.OR, gras = true, centre = true))
+                    c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.block_prevenu_reponse, Vocabulaire.decideur(this)), 13f, Ui.TEXTE_2, centre = true), haut = 6f))
+                    zoneDemande.addView(c)
+                }
+                // 1.94 : le bouton reste là, grisé, tant que l'attente dure (Home Assistant la refuserait de toute façon).
+                Acces.redemandeJusqua("apps", pkg).takeIf { it > 0 }?.let { boutonEnAttente(getString(R.string.acces_demander_acces, lib), it) }
             } else {
                 val btn = Ui.boutonPrimaire(this, getString(R.string.acces_demander_acces, lib)) {
                     dialogueDemande = Acces.dialogue(this, "apps", pkg, lib) { construireDemande() }
@@ -227,7 +245,8 @@ class BlockActivity : Activity(), ZoneSure.Geree {
             }
             return
         }
-        if (demandeEnvoyee > 0) {
+        val attenteTemps = Acces.redemandeTempsJusqua()
+        if (demandeEnvoyee > 0 && (attenteTemps > 0 || Acces.delaiRedemandeMin == 0)) {
             val c = Ui.carte(this, Ui.CARTE)
             c.gravity = Gravity.CENTER
             c.addView(Ui.texte(this, getString(R.string.block_demande_envoyee), 15f, Ui.OR, gras = true, centre = true))
@@ -235,7 +254,7 @@ class BlockActivity : Activity(), ZoneSure.Geree {
                 getString(R.string.block_ouvrira_seul, Vocabulaire.decideur(this)),
                 13f, Ui.TEXTE_2, centre = true), haut = 6f))
             zoneDemande.addView(c)
-            return
+            if (attenteTemps == 0L) return
         }
         zoneDemande.addView(Ui.texte(this, getString(R.string.block_demander_du_temps), 15f, Ui.TEXTE, gras = true, centre = true))
         val r = Ui.rangeeBoutons(this).apply { gravity = Gravity.CENTER }
@@ -243,10 +262,13 @@ class BlockActivity : Activity(), ZoneSure.Geree {
         Durees.DEMANDE.zip(Durees.libelles(Durees.DEMANDE)).forEachIndexed { k, (min, lbl) ->
             val btn = Ui.boutonSecondaire(this, lbl) { demander(min) }
             btn.isFocusableInTouchMode = false
+            // 1.94 : grisés tant que l'attente dure ; la phrase dessous dit quand on pourra redemander.
+            if (attenteTemps > 0) { btn.isEnabled = false; btn.alpha = 0.45f; btn.contentDescription = listOf(lbl, Acces.attenteTexte(this, attenteTemps)).joinToString(" — ") }
             r.addView(Ui.marge(this, btn, haut = 10f, gauche = if (k == 0) 0f else 10f))
-            if (premier == null) premier = btn
+            if (premier == null && attenteTemps == 0L) premier = btn
         }
         zoneDemande.addView(r)
+        if (attenteTemps > 0) { zoneDemande.addView(Ui.marge(this, Ui.texte(this, Acces.attenteTexte(this, attenteTemps), 13f, Ui.TEXTE_2, centre = true), haut = 6f)); attenteVue = attenteTemps }
         premier?.requestFocus()
     }
 
@@ -266,7 +288,9 @@ class BlockActivity : Activity(), ZoneSure.Geree {
     }
 
     private fun demander(minutes: Int) {
+        if (Acces.redemandeTempsJusqua() > 0) return  // l'attente n'est pas finie (les boutons sont grisés ; Home Assistant la ferait aussi respecter)
         Config(this).demandeTemps = minutes
+        Acces.marquerTemps()
         AgentService.demarrer(this)
         demandeEnvoyee = System.currentTimeMillis()
         construireDemande()
@@ -312,6 +336,8 @@ class BlockActivity : Activity(), ZoneSure.Geree {
         infos.contentDescription = listOf(t.resume(), t.detail, if (t.quand.isNotEmpty() && !t.resume().contains(t.quand)) t.quand else "")
             .filter { it.isNotEmpty() }.joinToString(" ")
         ligneQuand.visibility = if (t.quand.isEmpty()) View.GONE else View.VISIBLE
+        // 1.94 : l'attente avant de redemander est finie : le bouton redevient actif.
+        if (attenteVue > 0 && System.currentTimeMillis() >= attenteVue) { attenteVue = 0; construireDemande() }
         // Une demande restée sans réponse : au bout de dix minutes, on laisse redemander.
         if (demandeEnvoyee > 0 && System.currentTimeMillis() - demandeEnvoyee > 10 * 60_000L) {
             demandeEnvoyee = 0; construireDemande()

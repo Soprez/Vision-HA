@@ -97,10 +97,10 @@
     </plurals>
     <string name="temps_autre_duree">Other duration…</string>
     <string name="temps_jusqua_plage">Until the next time slot (%1$s)</string>
-    <string name="temps_unite_h">h</string>
-    <string name="temps_unite_min">min</string>
+    <string name="temps_autre_puce">Other…</string>
+    <string name="temps_moins">Less</string>
+    <string name="temps_plus">More</string>
     <string name="temps_accorder">Grant</string>
-    <string name="temps_au_moins_5">At least 5 minutes.</string>
     <string name="geste_echec_droits">This device doesn\'t have management rights in Vision.</string>
     <string name="geste_echec_perime">This is no longer current: already handled elsewhere, or gone.</string>
     <string name="geste_echec_interdit">Blocked for all devices: change it in Vision.</string>

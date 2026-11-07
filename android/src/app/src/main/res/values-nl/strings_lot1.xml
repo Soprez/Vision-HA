@@ -97,10 +97,10 @@
     </plurals>
     <string name="temps_autre_duree">Andere duur…</string>
     <string name="temps_jusqua_plage">Tot het volgende tijdvak (%1$s)</string>
-    <string name="temps_unite_h">u</string>
-    <string name="temps_unite_min">min</string>
+    <string name="temps_autre_puce">Anders…</string>
+    <string name="temps_moins">Minder</string>
+    <string name="temps_plus">Meer</string>
     <string name="temps_accorder">Toekennen</string>
-    <string name="temps_au_moins_5">Minstens 5 minuten.</string>
     <string name="geste_echec_droits">Dit apparaat heeft geen beheerrechten in Vision.</string>
     <string name="geste_echec_perime">Dit is niet meer actueel: al elders geregeld, of verdwenen.</string>
     <string name="geste_echec_interdit">Geblokkeerd voor alle apparaten: pas het aan in Vision.</string>

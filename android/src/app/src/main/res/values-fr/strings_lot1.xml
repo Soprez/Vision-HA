@@ -101,10 +101,10 @@
     </plurals>
     <string name="temps_autre_duree">Autre durée…</string>
     <string name="temps_jusqua_plage">Jusqu\'à la prochaine plage (%1$s)</string>
-    <string name="temps_unite_h">h</string>
-    <string name="temps_unite_min">min</string>
+    <string name="temps_autre_puce">Autre…</string>
+    <string name="temps_moins">Moins</string>
+    <string name="temps_plus">Plus</string>
     <string name="temps_accorder">Accorder</string>
-    <string name="temps_au_moins_5">Au moins 5 minutes.</string>
     <string name="geste_echec_droits">Cet appareil n\'a pas les droits de gestion dans Vision.</string>
     <string name="geste_echec_perime">Ce n\'est plus d\'actualité : déjà réglé ailleurs, ou disparu.</string>
     <string name="geste_echec_interdit">Interdit pour tous les appareils : à lever dans Vision.</string>

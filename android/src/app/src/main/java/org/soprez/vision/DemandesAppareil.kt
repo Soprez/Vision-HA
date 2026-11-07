@@ -13,10 +13,17 @@ object DemandesAppareil {
     /** Demander du temps : les mêmes durées que l'écran de blocage et l'accueil ; [apres] une fois la demande partie. */
     fun demanderTemps(act: Activity, apres: () -> Unit = {}) {
         val cfg = Config(act)
+        // 1.94 : une demande de temps vient de partir : pas de nouvelle avant la fin de l'attente (Home Assistant la ferait respecter aussi).
+        Acces.redemandeTempsJusqua().takeIf { it > 0 }?.let { fin ->
+            Ui.dialogue(act).setTitle(R.string.setup_demander_temps).setMessage(Acces.attenteTexte(act, fin))
+                .setPositiveButton(R.string.commun_ok, null).show()
+            return
+        }
         val choix = Durees.DEMANDE.zip(Durees.libelles(Durees.DEMANDE))
         Ui.dialogue(act).setTitle(R.string.setup_demander_temps)
             .setItems(choix.map { it.second }.toTypedArray()) { _, k ->
                 cfg.demandeTemps = choix[k].first
+                Acces.marquerTemps()
                 SetupActivity.demandeTempsA = System.currentTimeMillis()
                 AgentService.demarrer(act)
                 Ui.dialogue(act).setTitle(R.string.deva_envoyee)

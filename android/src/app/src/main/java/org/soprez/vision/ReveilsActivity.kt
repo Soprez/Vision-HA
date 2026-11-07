@@ -292,8 +292,10 @@ class ReveilsActivity : Activity() {
 
         // Heure et jours (réveils hebdo) ; sinon, l'heure vient d'une automatisation.
         val heures = (decl?.optString("heure") ?: "07:00").ifEmpty { "07:00" }
-        val selH = Ui.selecteurNombre(this, 0, 23, heures.substring(0, 2).toIntOrNull() ?: 7, Array(24) { String.format(java.util.Locale.ROOT, "%02d", it) })
-        val selM = Ui.selecteurNombre(this, 0, 59, heures.substring(3, 5).toIntOrNull() ?: 0, Array(60) { String.format(java.util.Locale.ROOT, "%02d", it) })
+        // 1.94 : le sélecteur de Vision (− / +, appui long qui répète) à la place de la molette d'Android ; 23 → 00 et 59 → 00 bouclent.
+        val deuxChiffres = { v: Int -> String.format(java.util.Locale.ROOT, "%02d", v) }
+        val selH = SelecteurPas(this, 0, 23, heures.substring(0, 2).toIntOrNull() ?: 7, cycle = true, format = deuxChiffres)
+        val selM = SelecteurPas(this, 0, 59, heures.substring(3, 5).toIntOrNull() ?: 0, cycle = true, format = deuxChiffres)
         val jours = ReveilsModele.jours(decl).toMutableSet()
         if (hebdo) {
             carte.addView(Ui.marge(this, Ui.section(this, getString(R.string.reveils_heure)), haut = 14f))

@@ -101,10 +101,10 @@
     </plurals>
     <string name="temps_autre_duree">Altra durata…</string>
     <string name="temps_jusqua_plage">Fino alla prossima fascia oraria (%1$s)</string>
-    <string name="temps_unite_h">h</string>
-    <string name="temps_unite_min">min</string>
+    <string name="temps_autre_puce">Altro…</string>
+    <string name="temps_moins">Meno</string>
+    <string name="temps_plus">Più</string>
     <string name="temps_accorder">Concedi</string>
-    <string name="temps_au_moins_5">Almeno 5 minuti.</string>
     <string name="geste_echec_droits">Questo dispositivo non ha i diritti di gestione in Vision.</string>
     <string name="geste_echec_perime">Non è più attuale: già sistemato altrove, o sparito.</string>
     <string name="geste_echec_interdit">Bloccato per tutti i dispositivi: da sbloccare in Vision.</string>

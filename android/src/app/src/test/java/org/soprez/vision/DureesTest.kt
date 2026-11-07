@@ -35,7 +35,9 @@ class DureesTest {
             assertTrue(f, t.contains("Durees.DEMANDE"))
             assertFalse(f, t.contains("listOf(15, 30, 60)"))
         }
-        for (f in listOf("Temps.kt", "ParentsActivity.kt")) assertTrue(f, lire(f).contains("Durees.REPONSE"))
+        assertTrue("Temps.kt", lire("Temps.kt").contains("Durees.REPONSE"))
+        // 1.94 : ParentsActivity passe par Temps.choisir (plus de liste de durées à part).
+        assertTrue(lire("ParentsActivity.kt").contains("Temps.choisir"))
         for (f in listOf("Messages.kt", "MessageActivity.kt", "ParentsActivity.kt")) {
             val t = lire(f)
             assertTrue(f, t.contains("Durees.reponsesTemps") && t.contains("Durees.reponsesAcces"))

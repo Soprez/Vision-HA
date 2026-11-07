@@ -280,8 +280,12 @@ object Ui {
         setPadding(dp(ctx, 14f), dp(ctx, 8f), dp(ctx, 14f), dp(ctx, 8f))
         sansCesure(this)
         isFocusable = true
+        tag = TAG_BOUTON
         setOnClickListener { Geste.retenir(this); action() }
     }
+
+    /** Le repère des boutons de Vision (primaire, secondaire) : posés dans une boîte de dialogue, ils gardent leurs couleurs (voir [habillerVue]). */
+    const val TAG_BOUTON = "bouton_vision"
 
     fun boutonSecondaire(ctx: Context, t: String, action: () -> Unit): Button = Button(ctx).apply {
         text = coupable(t); isAllCaps = false; textSize = 14f; minWidth = 0; minimumWidth = 0
@@ -293,6 +297,7 @@ object Ui {
         setPadding(dp(ctx, 14f), dp(ctx, 8f), dp(ctx, 14f), dp(ctx, 8f))
         sansCesure(this)
         isFocusable = true
+        tag = TAG_BOUTON
         setOnClickListener { Geste.retenir(this); action() }
     }
 
@@ -571,7 +576,7 @@ object Ui {
                 sansCesure(v)
                 // Aucun texte de boîte coupé : titre (une seule ligne par défaut), message, lignes de liste, boutons.
                 v.isSingleLine = false; v.maxLines = Int.MAX_VALUE; v.ellipsize = null
-                if (v is Button) { if (v.background !is StateListDrawable) { v.isAllCaps = false; v.setTextColor(th.or); v.typeface = Polices.gras(ctx) } }
+                if (v is Button) { if (v.tag != TAG_BOUTON && v.background !is StateListDrawable) { v.isAllCaps = false; v.setTextColor(th.or); v.typeface = Polices.gras(ctx) } }
                 else {
                     val c = v.currentTextColor
                     // Les textes de Vision gardent leur rôle (encre, encre secondaire, accent, alerte) dans le thème de la boîte.
@@ -594,7 +599,6 @@ object Ui {
                     if (v is android.widget.CompoundButton) v.buttonTintList = ColorStateList.valueOf(th.or)
                 }
             }
-            is android.widget.NumberPicker -> habillerSelecteur(v, th)
         }
         if (v is ViewGroup) for (i in 0 until v.childCount) habillerVue(v.getChildAt(i), th)
     }
@@ -691,63 +695,6 @@ object Ui {
         }
         anneauFocus(this, th, 10f, agrandir = false)
         if (change != null) setOnCheckedChangeListener { _, v -> change(v) }
-    }
-
-    /**
-     * Un sélecteur de nombre (NumberPicker) du thème [th] : chiffres à l'encre du thème, traits de sélection à l'or
-     * (au lieu des séparateurs Android). [libelles] : les valeurs affichées à la place des nombres (« 00 », « 05 »…).
-     */
-    fun selecteurNombre(ctx: Context, min: Int, max: Int, valeur: Int, libelles: Array<String>? = null,
-                        th: Theme = themeActif(ctx)): android.widget.NumberPicker = SelecteurVision(ctx, th).apply {
-        minValue = min; maxValue = max
-        if (libelles != null) displayedValues = libelles
-        value = valeur
-        habillerSelecteur(this, th)
-        anneauFocus(this, th, 14f, agrandir = false)
-    }
-
-    /**
-     * Les traits de sélection du sélecteur : à partir d'Android 10, ceux de la plateforme sont effacés
-     * (selectionDividerHeight = 0) et redessinés ici à l'or, aux mêmes places (48 dp d'écart, celui du style Material) ;
-     * avant Android 10, le dessin d'origine est remplacé par réflexion (protégée, voir [habillerSelecteur]).
-     */
-    private class SelecteurVision(ctx: Context, private val th: Theme) : android.widget.NumberPicker(ctx) {
-        private val trait = android.graphics.Paint().apply { color = th.or }
-        override fun onDraw(canvas: android.graphics.Canvas) {
-            super.onDraw(canvas)
-            if (Build.VERSION.SDK_INT < 29) return
-            val e = dp(context, 2f); val ecart = dp(context, 48f)
-            val haut = (height - ecart) / 2 - e
-            canvas.drawRect(0f, haut.toFloat(), width.toFloat(), (haut + e).toFloat(), trait)
-            canvas.drawRect(0f, (haut + e + ecart).toFloat(), width.toFloat(), (haut + 2 * e + ecart).toFloat(), trait)
-        }
-    }
-
-    /**
-     * Habille un NumberPicker au thème [th] (couleur des chiffres, traits de sélection, champ de saisie). Android 10+ :
-     * API publiques (textColor, selectionDividerHeight). Avant : champs privés mSelectorWheelPaint et
-     * mSelectionDivider (accessibles jusqu'à Android 9) ; un refus de la plateforme laisse le rendu Android, sans planter.
-     */
-    fun habillerSelecteur(np: android.widget.NumberPicker, th: Theme) {
-        val ctx = np.context
-        if (Build.VERSION.SDK_INT >= 29) {
-            np.textColor = th.encre
-            np.selectionDividerHeight = if (np is SelecteurVision) 0 else dp(ctx, 2f)
-        } else {
-            try {
-                val f = android.widget.NumberPicker::class.java.getDeclaredField("mSelectorWheelPaint").apply { isAccessible = true }
-                (f.get(np) as? android.graphics.Paint)?.color = th.encre
-            } catch (_: Throwable) {}
-            try {
-                android.widget.NumberPicker::class.java.getDeclaredField("mSelectionDivider").apply { isAccessible = true }
-                    .set(np, android.graphics.drawable.ColorDrawable(th.or))
-            } catch (_: Throwable) {}
-        }
-        for (i in 0 until np.childCount) (np.getChildAt(i) as? EditText)?.apply {
-            setTextColor(th.encre); setHintTextColor(th.encre3); typeface = Polices.texte(ctx)
-            backgroundTintList = ColorStateList.valueOf(th.or)
-        }
-        np.invalidate()
     }
 
     fun separateur(ctx: Context): View = View(ctx).apply {

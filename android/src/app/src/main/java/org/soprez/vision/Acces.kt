@@ -19,6 +19,58 @@ object Acces {
     /** Refus récents des parents (relevé, `refus`) : « genre:nom » → fin (ms). Comme l'agent Windows. */
     @Volatile private var refus: Map<String, Long> = emptyMap()
 
+    /**
+     * 1.94 : ce qu'on vient de demander et qu'on ne peut pas refaire tout de suite (relevé, `redemande`) : « genre:nom » → fin (ms).
+     * La règle est celle de Home Assistant (il la refuse aussi) ; ici, on la montre : bouton grisé et « tu pourras redemander dans X min ».
+     */
+    @Volatile private var redemande: Map<String, Long> = emptyMap()
+    /** L'attente réglée (minutes) ; 0 : pas d'attente (ou Home Assistant plus ancien : l'ancien comportement). */
+    @Volatile var delaiRedemandeMin = 0
+
+    /** La demande de temps a, elle aussi, son attente. */
+    const val TEMPS = "temps"
+    const val TEMPS_NOM = "demande"
+
+    fun poserRedemande(a: org.json.JSONArray?, delaiMin: Int) {
+        val m = HashMap<String, Long>()
+        if (a != null) for (i in 0 until a.length()) {
+            val r = a.optJSONObject(i) ?: continue
+            m[r.optString("genre") + ":" + r.optString("nom").lowercase()] = r.optLong("jusqua") * 1000L
+        }
+        redemande = m
+        delaiRedemandeMin = delaiMin
+    }
+
+    /**
+     * Jusqu'à quand cette demande ne peut pas être refaite (0 : on peut). Dès l'envoi, sans attendre le relevé suivant : l'heure
+     * d'envoi plus l'attente réglée. Pur côté calcul : voir [finAttente].
+     */
+    fun redemandeJusqua(genre: String, nom: String): Long {
+        val n = nom.lowercase(); val maintenant = System.currentTimeMillis()
+        return finAttente(redemande, envoyees["$genre:$nom"], delaiRedemandeMin, genre, n, maintenant)
+    }
+
+    fun redemandeTempsJusqua(): Long = redemandeJusqua(TEMPS, TEMPS_NOM)
+    fun marquerTemps() { envoyees["$TEMPS:$TEMPS_NOM"] = System.currentTimeMillis() }
+
+    /** « Tu pourras redemander dans 5 min. » (minutes arrondies au-dessus : jamais « 0 min » alors qu'il reste des secondes). */
+    fun attenteTexte(ctx: Context, fin: Long): String {
+        val min = ((fin - System.currentTimeMillis() + 59_999L) / 60_000L).toInt().coerceAtLeast(1)
+        return ctx.getString(R.string.acces_redemander_dans, Tr.duree(min))
+    }
+
+    /** Pur (essais JVM) : la fin de l'attente d'après le relevé, l'heure d'envoi et le délai réglé. */
+    fun finAttente(releve: Map<String, Long>, envoyeeA: Long?, delaiMin: Int, genre: String, nom: String, maintenant: Long): Long {
+        var fin = 0L
+        for ((cle, jusqua) in releve) {
+            if (jusqua <= maintenant || !cle.startsWith("$genre:")) continue
+            val c = cle.substringAfter(':')
+            if (c == nom || (genre == "sites" && nom.endsWith(".$c"))) fin = maxOf(fin, jusqua)
+        }
+        if (delaiMin > 0 && envoyeeA != null) fin = maxOf(fin, envoyeeA + delaiMin * 60_000L)
+        return if (fin > maintenant) fin else 0L
+    }
+
     /** HA 2.5.1 (ajouts 5 et 6 de l'auteur) : les sites bloqués récemment qu'on peut demander, et les mêmes par logiciel. */
     @Volatile var recents: org.json.JSONArray = org.json.JSONArray()
     @Volatile var groupes: org.json.JSONArray = org.json.JSONArray()
@@ -32,16 +84,19 @@ object Acces {
     fun demanderGroupe(ctx: Context, app: String, libelle: String, sites: List<String>, apres: ((Boolean) -> Unit)? = null) {
         val cfg = Config(ctx.applicationContext)
         val principal = Handler(Looper.getMainLooper())
+        if (redemandeJusqua("apps", app) > 0) { principal.post { Ui.toast(ctx, attenteTexte(ctx, redemandeJusqua("apps", app)), genre = OeilModele.Genre.ERREUR); apres?.invoke(false) }; return }
         envoyees["apps:$app"] = System.currentTimeMillis()
         Thread {
+            var retour = ""
             val ok = try {
-                Net.post(ctx, cfg, "/api/pc_parental/demande", JSONObject()
+                val r = Net.post(ctx, cfg, "/api/pc_parental/demande", JSONObject()
                     .put("id", cfg.id).put("secret", cfg.secret).put("genre", "apps").put("nom", app)
-                    .put("libelle", libelle).put("sites", org.json.JSONArray(sites))).optBoolean("ok")
+                    .put("libelle", libelle).put("sites", org.json.JSONArray(sites)))
+                retour = r.optString("retour"); r.optBoolean("ok")
             } catch (_: Exception) { false }
             if (!ok) envoyees.remove("apps:$app")
             principal.post {
-                Ui.toast(ctx, if (ok) ctx.getString(R.string.acces_demande_envoyee) else ctx.getString(R.string.acces_envoi_impossible), genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)
+                Ui.toast(ctx, if (ok) ctx.getString(R.string.acces_demande_envoyee) else retour.ifEmpty { ctx.getString(R.string.acces_envoi_impossible) }, genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)
                 apres?.invoke(ok)
             }
         }.start()
@@ -77,17 +132,20 @@ object Acces {
         val cfg = Config(ctx.applicationContext)
         val principal = Handler(Looper.getMainLooper())
         if (refuseJusqua(genre, nom) > 0) { principal.post { apres?.invoke(false) }; return }
+        if (redemandeJusqua(genre, nom) > 0) { principal.post { Ui.toast(ctx, attenteTexte(ctx, redemandeJusqua(genre, nom)), genre = OeilModele.Genre.ERREUR); apres?.invoke(false) }; return }
         envoyees["$genre:$nom"] = System.currentTimeMillis()
         Thread {
+            var retour = ""
             val ok = try {
-                Net.post(ctx, cfg, "/api/pc_parental/demande", JSONObject()
+                val r = Net.post(ctx, cfg, "/api/pc_parental/demande", JSONObject()
                     .put("id", cfg.id).put("secret", cfg.secret)
                     .put("genre", genre).put("nom", nom).put("libelle", libelle)
-                    .put("lien", lien).put("motif", motif).put("duree", duree)).optBoolean("ok")
+                    .put("lien", lien).put("motif", motif).put("duree", duree))
+                retour = r.optString("retour"); r.optBoolean("ok")
             } catch (_: Exception) { false }
             if (!ok) envoyees.remove("$genre:$nom")
             principal.post {
-                Ui.toast(ctx, if (ok) ctx.getString(R.string.acces_demande_envoyee) else ctx.getString(R.string.acces_envoi_impossible), genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)
+                Ui.toast(ctx, if (ok) ctx.getString(R.string.acces_demande_envoyee) else retour.ifEmpty { ctx.getString(R.string.acces_envoi_impossible) }, genre = if (ok) OeilModele.Genre.SUCCES else OeilModele.Genre.ERREUR)
                 apres?.invoke(ok)
             }
         }.start()

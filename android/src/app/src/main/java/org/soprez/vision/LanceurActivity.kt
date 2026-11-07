@@ -2891,9 +2891,12 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
 
     private fun demanderTemps() {
         // Lot 6 (APP-08) : les mêmes durées que l'écran de blocage et l'espace Moi.
+        // 1.94 : une demande de temps vient de partir : pas de nouvelle avant la fin de l'attente.
+        Acces.redemandeTempsJusqua().takeIf { it > 0 }?.let { fin -> Ui.toast(this, Acces.attenteTexte(this, fin), genre = OeilModele.Genre.ERREUR); return }
         val choix = Durees.libelles(Durees.DEMANDE).toTypedArray()
         Ui.dialogue(this).setTitle(getString(R.string.block_demander_du_temps)).setItems(choix) { _, k ->
             cfg.demandeTemps = Durees.DEMANDE[k]
+            Acces.marquerTemps()
             Ui.toast(this, this.getString(R.string.acces_demande_envoyee), genre = OeilModele.Genre.SUCCES)
         }.setNegativeButton(getString(R.string.commun_lot2_annuler), null).show()
     }

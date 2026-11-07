@@ -111,7 +111,15 @@ class FermesActivity : Activity() {
             val c = Ui.carte(this)
             c.addView(Ui.texte(this, lib, 15f, Ui.TEXTE, gras = true))
             c.addView(Ui.texte(this, resources.getQuantityString(R.plurals.el_groupe_sites, sites.size, sites.size) + " : " + sites.joinToString(", "), 12f, Ui.TEXTE_2))
-            if (Acces.dejaDemande("apps", app)) c.addView(Ui.marge(this, Ui.chip(this, getString(R.string.fermes_demande), Ui.OR), haut = 8f))
+            val attenteG = Acces.redemandeJusqua("apps", app)
+            if (attenteG > 0) {
+                // 1.94 : le bouton reste, grisé, avec le temps à attendre ; la liste se rebâtit à l'heure dite.
+                if (Acces.dejaDemande("apps", app)) c.addView(Ui.marge(this, Ui.chip(this, getString(R.string.fermes_demande), Ui.OR), haut = 8f))
+                c.addView(Ui.marge(this, enAttente(getString(R.string.el_demander_pour, lib), attenteG), haut = 8f))
+                c.addView(Ui.marge(this, Ui.texte(this, Acces.attenteTexte(this, attenteG), 12f, Ui.TEXTE_3), haut = 4f))
+                rebatirA(attenteG)
+            }
+            else if (Acces.delaiRedemandeMin == 0 && Acces.dejaDemande("apps", app)) c.addView(Ui.marge(this, Ui.chip(this, getString(R.string.fermes_demande), Ui.OR), haut = 8f))
             else c.addView(Ui.marge(this, Ui.boutonPrimaire(this, getString(R.string.el_demander_pour, lib)) {
                 Acces.demanderGroupe(this, app, lib, sites) { remplir() }
             }.apply { tag = "el_groupe:$app" }, haut = 8f))
@@ -139,13 +147,35 @@ class FermesActivity : Activity() {
         }
     }
 
+    /** Un bouton de demande grisé (attente avant de redemander) ; le texte dit pourquoi, aussi aux lecteurs d'écran. */
+    private fun enAttente(libelle: String, fin: Long): View =
+        Ui.boutonSecondaire(this, libelle) {}.apply {
+            isEnabled = false; alpha = 0.45f; contentDescription = listOf(libelle, Acces.attenteTexte(this@FermesActivity, fin)).joinToString(" — ")
+        }
+
+    private var rebatirPlanifie = 0L
+
+    /** La liste se rebâtit juste après la fin de l'attente (au plus un rappel pour tout l'écran). */
+    private fun rebatirA(fin: Long) {
+        if (rebatirPlanifie in 1..fin) return
+        rebatirPlanifie = fin
+        window.decorView.postDelayed({ rebatirPlanifie = 0L; if (!isFinishing) remplir() }, (fin - System.currentTimeMillis()).coerceAtLeast(0L) + 500L)
+    }
+
     private fun ligne(titre: String, raison: String, genre: String, nom: String, libelle: String, recent: Boolean = false): View {
         val r = Ui.rangee(this)
         val col = Ui.colonne(this)
         col.addView(Ui.texte(this, titre, 15f, if (recent) Ui.OR else Ui.TEXTE, gras = true))
         col.addView(Ui.texte(this, raison, 12f, Ui.TEXTE_2))
         r.addView(Ui.poids(col))
-        if (Acces.dejaDemande(genre, nom)) r.addView(Ui.chip(this, getString(R.string.fermes_demande), Ui.OR))
+        val attente = Acces.redemandeJusqua(genre, nom)
+        if (attente > 0) {
+            // 1.94 : le bouton reste, grisé, avec le temps à attendre ; la liste se rebâtit à l'heure dite.
+            col.addView(Ui.texte(this, Acces.attenteTexte(this, attente), 12f, Ui.TEXTE_3))
+            r.addView(enAttente(getString(R.string.fermes_demander), attente))
+            rebatirA(attente)
+        }
+        else if (Acces.delaiRedemandeMin == 0 && Acces.dejaDemande(genre, nom)) r.addView(Ui.chip(this, getString(R.string.fermes_demande), Ui.OR))
         else r.addView(Ui.boutonSecondaire(this, getString(R.string.fermes_demander)) { Acces.dialogue(this, genre, nom, libelle) { remplir() } })
         r.setPadding(0, Ui.dp(this, 6f), 0, Ui.dp(this, 6f))
         return r

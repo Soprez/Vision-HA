@@ -247,10 +247,8 @@ class ParentsActivity : Activity() {
                     c.addView(Ui.marge(this, Ui.texte(this, getString(R.string.parents_aide_autoriser), 12f, Ui.TEXTE_3), haut = 6f))
                 }
                 c.addView(Ui.marge(this, Ui.boutonSecondaire(this, getString(R.string.temps_autre_duree)) {
-                    Ui.dialogue(this).setTitle(getString(R.string.parents_ouvrir_pour, d.optString("libelle")))
-                        .setItems((Durees.libelles(Durees.REPONSE) + getString(R.string.parents_jusqua_ce_soir)).toTypedArray()) { _, k ->
-                            repondreAcces(pc, id, "temporaire", (Durees.REPONSE + 360)[k]) }
-                        .setNegativeButton(R.string.commun_annuler, null).show()
+                    // 1.94 : le même choix de durée que partout (puces, « Autre… » libre jusqu'à 12 h) ; avant, une liste à part avec « jusqu'à ce soir ».
+                    Temps.choisir(this, getString(R.string.parents_ouvrir_pour, d.optString("libelle")), 0L) { ch -> repondreAcces(pc, id, "temporaire", ch.minutes) }
                 }, haut = 8f))
                 racine.addView(c)
             }

@@ -152,6 +152,7 @@ class AgentService : Service() {
         if (cfg.personneAEnvoyer) cfg.personneAEnvoyer = false
         Deverrouillage.releve(this, r)
         Acces.poserRefus(r.optJSONArray("refus"))
+        Acces.poserRedemande(r.optJSONArray("redemande"), r.optInt("delai_redemande_min", 0))
         Acces.poserRecents(r)
         Pauses.releve(this, r)
         Profil.releve(this, r)
