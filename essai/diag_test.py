@@ -22,7 +22,7 @@ CORPUS = json.loads((pathlib.Path(__file__).with_name("corpus_anonymisation.json
 def test_corpus_commun(cas):
     from custom_components.pc_parental.diag import Anonymiseur
 
-    a = Anonymiseur(CORPUS["personnes"], CORPUS["appareils"])
+    a = Anonymiseur(CORPUS["personnes"], CORPUS["appareils"], CORPUS["titres"])
     assert a.ligne(cas["entree"]) == cas["sortie"]
     assert a.remplacements == cas["n"]
 
@@ -92,3 +92,24 @@ async def test_periode_bornee_a_un_mega(hass, hass_storage, hass_client):
     assert d["tronque"] is True
     assert sum(len(l.encode()) + 1 for l in d["lignes"]) <= 1_000_000
     assert "ligne 1499" in d["lignes"][-1]  # on garde la fin, le plus récent
+
+
+async def test_les_titres_de_musique_sont_masques_dans_le_journal_et_dans_les_noms_rendus(hass, hass_storage, hass_client):
+    from custom_components.pc_parental import journal_musique
+
+    client = await hass_client()
+    await _monter(hass, hass_storage)
+    debut = time.time() - 1
+    journal_musique.noter(hass, appareil="TEL-LOU", personne="Lou", action="jouer", type="track",
+                          titre="Bohemian Rhapsody", artiste="Queen", mode="remplacer", resultat="ok")
+    hass.states.async_set("media_player.salon", "playing", {"media_title": "Abbey Road", "media_artist": "The Beatles"})
+    logging.getLogger("custom_components.pc_parental.essai").warning("lecture : Abbey Road puis Bohemian Rhapsody")
+    await hass.async_block_till_done()
+    r = await client.post("/api/pc_parental/diag/periode", json={**PARENT, "depuis": debut, "jusqua": time.time() + 5})
+    d = await r.json()
+    texte = "\n".join(d["lignes"])
+    for interdit in ("Bohemian", "Rhapsody", "Queen", "Abbey Road", "Beatles"):
+        assert interdit not in texte, interdit
+    assert "titre-" in texte
+    # L'appli reçoit la liste pour masquer SON journal de la même façon.
+    assert {"Bohemian Rhapsody", "Queen", "Abbey Road", "The Beatles"} <= set(d["noms"]["titres"])

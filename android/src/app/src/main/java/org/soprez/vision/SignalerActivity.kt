@@ -121,7 +121,7 @@ class SignalerActivity : Activity() {
                 noms = r.optJSONObject("noms") ?: JSONObject()
             } catch (e: Exception) { Journal.w("Signalement", "journal de Home Assistant indisponible", e) }
             fun liste(a: JSONArray?) = if (a == null) emptyList() else List(a.length()) { a.optString(it) }
-            val anon = Anonymisation(liste(noms.optJSONArray("personnes")), liste(noms.optJSONArray("appareils")))
+            val anon = Anonymisation(liste(noms.optJSONArray("personnes")), liste(noms.optJSONArray("appareils")), liste(noms.optJSONArray("titres")))
             val appli = Signalement.journalAppli(debut, fin, anon)
             val octets = Signalement.fichiersCaptures().mapNotNull { try { it.readBytes() } catch (_: Exception) { null } }
             val b = Signalement.Brouillon(debut, fin, appli, ha, Signalement.fiche(app), anon.remplacements + remHa, octets)

@@ -2,7 +2,7 @@
 <resources>
     <string name="signaler_titre">Signaler un problème</string>
     <string name="signaler_raison">Signaler un problème</string>
-    <string name="signaler_intro">Refaire les gestes qui posent problème. Pendant 10 minutes au plus, Vision garde son journal et quelques captures d\'écran. Les adresses, noms, sites et secrets sont retirés avant l\'aperçu. Rien ne part de l\'appareil sans « Envoyer ». Un signalement est gardé 90 jours sur soprez.org et peut être effacé d\'ici.</string>
+    <string name="signaler_intro">Refaire les gestes qui posent problème. Pendant 10 minutes au plus, Vision garde son journal et quelques captures d\'écran. Les adresses, noms, sites et secrets sont retirés avant l\'aperçu. Rien ne part de l\'appareil sans « Envoyer ». Un signalement est gardé 14 jours sur soprez.org et peut être effacé d\'ici.</string>
     <string name="signaler_commencer">Commencer l\'enregistrement</string>
     <string name="signaler_terminer">Terminer</string>
     <string name="signaler_en_cours">Enregistrement en cours</string>

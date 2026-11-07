@@ -2,7 +2,7 @@
 <resources>
     <string name="signaler_titre">Segnala un problema</string>
     <string name="signaler_raison">Segnala un problema</string>
-    <string name="signaler_intro">Ripetere i passaggi che danno problemi. Per al massimo 10 minuti Vision conserva il suo registro e alcuni screenshot. Indirizzi, nomi, siti e segreti vengono rimossi prima dell\'anteprima. Nulla lascia il dispositivo senza «Invia». Una segnalazione resta 90 giorni su soprez.org e può essere cancellata da qui.</string>
+    <string name="signaler_intro">Ripetere i passaggi che danno problemi. Per al massimo 10 minuti Vision conserva il suo registro e alcuni screenshot. Indirizzi, nomi, siti e segreti vengono rimossi prima dell\'anteprima. Nulla lascia il dispositivo senza «Invia». Una segnalazione resta 14 giorni su soprez.org e può essere cancellata da qui.</string>
     <string name="signaler_commencer">Avvia la registrazione</string>
     <string name="signaler_terminer">Termina</string>
     <string name="signaler_en_cours">Registrazione in corso</string>

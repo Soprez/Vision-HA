@@ -2,6 +2,7 @@
   "_note": "Corpus d'essai commun (HA : essai/diag_test.py ; appli : AnonymisationTest.kt). Prénoms fictifs. Une ligne = une règle de la spécification 1.94 §2.4.",
   "personnes": ["Lou", "Sam"],
   "appareils": ["TEL-LOU", "TV-SALON"],
+  "titres": ["Bohemian Rhapsody", "Queen", "Abbey Road"],
   "cas": [
     {"nom": "ip stables", "entree": "connexion depuis 10.1.1.23 puis 10.1.1.23 et 10.1.1.40", "sortie": "connexion depuis ip-1 puis ip-1 et ip-2", "n": 3},
     {"nom": "ip locales gardees", "entree": "ecoute 127.0.0.1 et 0.0.0.0", "sortie": "ecoute 127.0.0.1 et 0.0.0.0", "n": 0},
@@ -15,6 +16,8 @@
     {"nom": "sites", "entree": "resolu roblox.com et soprez.org puis https://exemple.net/x?y=1", "sortie": "resolu [site] et soprez.org puis [site]", "n": 2},
     {"nom": "noms plus longs d'abord", "entree": "Lou demande du temps sur TEL-LOU, Sam regarde TV-SALON", "sortie": "personne-1 demande du temps sur appareil-1, personne-2 regarde appareil-2", "n": 4},
     {"nom": "mot entier seulement", "entree": "Samedi et Lousada restent", "sortie": "Samedi et Lousada restent", "n": 0},
-    {"nom": "musique gardee", "entree": "lecture Bohemian Rhapsody par Queen", "sortie": "lecture Bohemian Rhapsody par Queen", "n": 0}
+    {"nom": "titres et artistes masques", "entree": "lecture Bohemian Rhapsody par Queen", "sortie": "lecture titre-1 par titre-2", "n": 2},
+    {"nom": "album et casse ignoree", "entree": "ajoute l'album ABBEY ROAD (14 titres)", "sortie": "ajoute l'album titre-3 (14 titres)", "n": 1},
+    {"nom": "titre dans un mot plus long", "entree": "Queensland et Queens restent", "sortie": "Queensland et Queens restent", "n": 0}
   ]
 }

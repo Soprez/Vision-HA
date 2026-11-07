@@ -50,13 +50,16 @@ class Anonymiseur:
     """Remplace ce qui identifie un lieu, une personne ou un appareil ; la table reste stable pour toute la période
     (le même objet donne toujours le même pseudonyme), ce qui garde le journal lisible."""
 
-    def __init__(self, personnes: list[str] | None = None, appareils: list[str] | None = None) -> None:
+    def __init__(self, personnes: list[str] | None = None, appareils: list[str] | None = None,
+                 titres: list[str] | None = None) -> None:
         self.remplacements = 0
         self._ips: dict[str, str] = {}
         # Les pseudonymes se numérotent par groupe ; on remplace les noms les plus longs d'abord
         # (« TEL-LOU » avant « Lou »), sinon un prénom mangerait un bout du nom de l'appareil.
         noms = [(n, f"personne-{i}") for i, n in enumerate(_noms_utiles(personnes), 1)]
         noms += [(n, f"appareil-{i}") for i, n in enumerate(_noms_utiles(appareils), 1)]
+        # Décision de l'auteur (23/10) : titres, artistes et albums de musique aussi (un titre dit ce que l'on écoute).
+        noms += [(n, f"titre-{i}") for i, n in enumerate(_noms_utiles(titres), 1)]
         noms.sort(key=lambda x: -len(x[0]))
         self._noms: list[tuple[re.Pattern[str], str]] = [(_motif_nom(n), p) for n, p in noms]
 
@@ -187,7 +190,7 @@ def periode(hass: HomeAssistant, depuis: float, jusqua: float, anonymiseur: Anon
     for ts, niveau, texte in (tampon.lignes if tampon else ()):
         if depuis <= ts <= jusqua:
             sortie.append(f"{_horodatage(ts)} {niveau} {anonymiseur.ligne(texte)}")
-    # Le journal musique est lu à la volée : ses lignes sont déjà courtes et sans identifiant d'appareil.
+    # Le journal musique est lu à la volée ; ses titres, artistes et albums sont masqués comme le reste (titre-N).
     from . import journal_musique
 
     musique = [l for l in journal_musique._etat(hass)["lignes"] if depuis <= float(l.get("ts") or 0) <= jusqua]
@@ -203,10 +206,24 @@ def periode(hass: HomeAssistant, depuis: float, jusqua: float, anonymiseur: Anon
     return {"lignes": gardees, "tronque": len(gardees) < len(tout), "remplacements": anonymiseur.remplacements}
 
 
-def _anonymiseur(hass: HomeAssistant, store) -> Anonymiseur:
+def titres_musique(hass: HomeAssistant, depuis: float = 0.0, jusqua: float = float("inf")) -> list[str]:
+    """Titres, artistes et albums à masquer : ceux du journal musique de la période (champs « titre », « artiste »,
+    « album ») et ceux que les lecteurs de Home Assistant jouent en ce moment. Sans doublon, dans l'ordre d'apparition."""
+    from . import journal_musique
+
+    vus: list[str] = []
+    for ligne in journal_musique._etat(hass)["lignes"]:
+        if depuis <= float(ligne.get("ts") or 0) <= jusqua:
+            vus += [str(ligne.get(k) or "") for k in ("titre", "artiste", "album")]
+    for etat in hass.states.async_all("media_player"):
+        vus += [str(etat.attributes.get(k) or "") for k in ("media_title", "media_artist", "media_album_name")]
+    return [n for n in dict.fromkeys(vus) if n]
+
+
+def _anonymiseur(hass: HomeAssistant, store, depuis: float = 0.0, jusqua: float = float("inf")) -> Anonymiseur:
     personnes = [str(e.name or "") for e in hass.states.async_all("person")]
     appareils = [str(pc.get("name") or "") for pc in store.pcs.values()]
-    return Anonymiseur(personnes, appareils)
+    return Anonymiseur(personnes, appareils, titres_musique(hass, depuis, jusqua))
 
 
 def versions(hass: HomeAssistant) -> dict[str, str]:
@@ -257,12 +274,13 @@ class PcParentalDiagView(HomeAssistantView):
         if jusqua < depuis:
             return self.json({"ok": False, "error": "periode"}, status_code=400)
         depuis = max(depuis, jusqua - MAX_PERIODE_S)
-        anon = _anonymiseur(self.hass, coord.store)
+        anon = _anonymiseur(self.hass, coord.store, depuis, jusqua)
         res = periode(self.hass, depuis, jusqua, anon)
         # La table d'anonymisation n'est PAS rendue : l'appli applique ses propres règles (adresses, secrets)
         # et reçoit ici la liste des noms à masquer, utile seulement pour son propre journal.
         noms = {"personnes": [str(e.name or "") for e in self.hass.states.async_all("person") if len(str(e.name or "")) >= 3],
-                "appareils": [str(pc.get("name") or "") for pc in coord.store.pcs.values() if len(str(pc.get("name") or "")) >= 3]}
+                "appareils": [str(pc.get("name") or "") for pc in coord.store.pcs.values() if len(str(pc.get("name") or "")) >= 3],
+                "titres": titres_musique(self.hass, depuis, jusqua)}
         return self.json({"ok": True, **res, "versions": versions(self.hass), "noms": noms,
                           "depuis": _horodatage(depuis), "jusqua": _horodatage(jusqua)})
 

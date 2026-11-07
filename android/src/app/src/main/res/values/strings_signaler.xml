@@ -2,7 +2,7 @@
 <resources>
     <string name="signaler_titre">Report a problem</string>
     <string name="signaler_raison">Report a problem</string>
-    <string name="signaler_intro">Redo the steps that go wrong. For up to 10 minutes Vision keeps its log and a few screenshots. Addresses, names, sites and secrets are removed before the preview. Nothing leaves this device until you press Send. A report is kept 90 days on soprez.org and can be erased from here.</string>
+    <string name="signaler_intro">Redo the steps that go wrong. For up to 10 minutes Vision keeps its log and a few screenshots. Addresses, names, sites and secrets are removed before the preview. Nothing leaves this device until you press Send. A report is kept 14 days on soprez.org and can be erased from here.</string>
     <string name="signaler_commencer">Start recording</string>
     <string name="signaler_terminer">Finish</string>
     <string name="signaler_en_cours">Recording in progress</string>

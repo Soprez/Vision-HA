@@ -23,12 +23,12 @@
         "tele"
       ],
       "texte": {
-        "fr": "Rien ne part sans « Envoyer » ; un signalement est gardé 90 jours et s'efface depuis l'appli.",
-        "en": "Nothing leaves without \"Send\"; a report is kept 90 days and can be deleted from the app.",
-        "de": "Ohne „Senden“ geht nichts raus; 90 Tage gespeichert, in der App löschbar.",
-        "es": "Nada sale sin «Enviar»; un informe se guarda 90 días y se borra desde la app.",
-        "it": "Nulla parte senza «Invia»; una segnalazione resta 90 giorni e si cancella dall'app.",
-        "nl": "Niets gaat weg zonder „Verzenden“; 90 dagen bewaard, te wissen vanuit de app."
+        "fr": "Rien ne part sans « Envoyer » ; un signalement est gardé 14 jours et s'efface depuis l'appli.",
+        "en": "Nothing leaves without \"Send\"; a report is kept 14 days and can be deleted from the app.",
+        "de": "Ohne „Senden“ geht nichts raus; 14 Tage gespeichert, in der App löschbar.",
+        "es": "Nada sale sin «Enviar»; un informe se guarda 14 días y se borra desde la app.",
+        "it": "Nulla parte senza «Invia»; una segnalazione resta 14 giorni e si cancella dall'app.",
+        "nl": "Niets gaat weg zonder „Verzenden“; 14 dagen bewaard, te wissen vanuit de app."
       },
       "public": "decideurs"
     },

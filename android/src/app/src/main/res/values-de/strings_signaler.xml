@@ -2,7 +2,7 @@
 <resources>
     <string name="signaler_titre">Problem melden</string>
     <string name="signaler_raison">Problem melden</string>
-    <string name="signaler_intro">Die fehlerhaften Schritte noch einmal ausführen. Bis zu 10 Minuten lang speichert Vision sein Protokoll und einige Bildschirmfotos. Adressen, Namen, Websites und Geheimnisse werden vor der Vorschau entfernt. Ohne „Senden“ verlässt nichts das Gerät. Eine Meldung wird 90 Tage auf soprez.org aufbewahrt und kann von hier gelöscht werden.</string>
+    <string name="signaler_intro">Die fehlerhaften Schritte noch einmal ausführen. Bis zu 10 Minuten lang speichert Vision sein Protokoll und einige Bildschirmfotos. Adressen, Namen, Websites und Geheimnisse werden vor der Vorschau entfernt. Ohne „Senden“ verlässt nichts das Gerät. Eine Meldung wird 14 Tage auf soprez.org aufbewahrt und kann von hier gelöscht werden.</string>
     <string name="signaler_commencer">Aufnahme starten</string>
     <string name="signaler_terminer">Beenden</string>
     <string name="signaler_en_cours">Aufnahme läuft</string>

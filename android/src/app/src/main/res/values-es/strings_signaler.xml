@@ -2,7 +2,7 @@
 <resources>
     <string name="signaler_titre">Informar de un problema</string>
     <string name="signaler_raison">Informar de un problema</string>
-    <string name="signaler_intro">Repetir los pasos que fallan. Durante 10 minutos como máximo, Vision guarda su registro y algunas capturas de pantalla. Las direcciones, nombres, sitios y secretos se eliminan antes de la vista previa. Nada sale del dispositivo sin pulsar «Enviar». Un informe se conserva 90 días en soprez.org y se puede borrar desde aquí.</string>
+    <string name="signaler_intro">Repetir los pasos que fallan. Durante 10 minutos como máximo, Vision guarda su registro y algunas capturas de pantalla. Las direcciones, nombres, sitios y secretos se eliminan antes de la vista previa. Nada sale del dispositivo sin pulsar «Enviar». Un informe se conserva 14 días en soprez.org y se puede borrar desde aquí.</string>
     <string name="signaler_commencer">Iniciar la grabación</string>
     <string name="signaler_terminer">Terminar</string>
     <string name="signaler_en_cours">Grabación en curso</string>

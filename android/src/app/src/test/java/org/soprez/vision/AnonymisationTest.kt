@@ -29,10 +29,10 @@ class AnonymisationTest {
     @Test fun le_corpus_commun_donne_les_memes_resultats_que_home_assistant() {
         val c = corpus()
         val cas = c.getJSONArray("cas")
-        assertEquals(true, cas.length() >= 12)
+        assertEquals(true, cas.length() >= 15)
         for (i in 0 until cas.length()) {
             val k = cas.getJSONObject(i)
-            val a = Anonymisation(liste(c.getJSONArray("personnes")), liste(c.getJSONArray("appareils")))
+            val a = Anonymisation(liste(c.getJSONArray("personnes")), liste(c.getJSONArray("appareils")), liste(c.getJSONArray("titres")))
             assertEquals(k.getString("nom"), k.getString("sortie"), a.ligne(k.getString("entree")))
             assertEquals(k.getString("nom") + " (remplacements)", k.getInt("n"), a.remplacements)
         }

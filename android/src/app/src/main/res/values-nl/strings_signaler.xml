@@ -2,7 +2,7 @@
 <resources>
     <string name="signaler_titre">Probleem melden</string>
     <string name="signaler_raison">Probleem melden</string>
-    <string name="signaler_intro">Herhaal de stappen die misgaan. Maximaal 10 minuten bewaart Vision zijn logboek en enkele schermafbeeldingen. Adressen, namen, sites en geheimen worden vóór het voorbeeld verwijderd. Niets verlaat het apparaat zonder „Verzenden“. Een melding wordt 90 dagen op soprez.org bewaard en kan hier worden gewist.</string>
+    <string name="signaler_intro">Herhaal de stappen die misgaan. Maximaal 10 minuten bewaart Vision zijn logboek en enkele schermafbeeldingen. Adressen, namen, sites en geheimen worden vóór het voorbeeld verwijderd. Niets verlaat het apparaat zonder „Verzenden“. Een melding wordt 14 dagen op soprez.org bewaard en kan hier worden gewist.</string>
     <string name="signaler_commencer">Opname starten</string>
     <string name="signaler_terminer">Afronden</string>
     <string name="signaler_en_cours">Opname bezig</string>

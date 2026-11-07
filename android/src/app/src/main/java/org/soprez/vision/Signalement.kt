@@ -161,7 +161,7 @@ object Signalement {
     fun envoyer(ctx: Context, b: Brouillon, paquet: File, url: String = URL_SITE): Recu {
         val m = manifeste(b, emptyList())
         val r = Net.postMultipart(ctx, url, mapOf("manifeste" to m.toString(), "cle" to CLE_DEPOT), "paquet", "signalement.zip", paquet)
-        val recu = Recu(r.optString("reference"), r.optString("effacement"), r.optInt("conservation_jours", 90))
+        val recu = Recu(r.optString("reference"), r.optString("effacement"), r.optInt("conservation_jours", 14))
         if (recu.reference.isEmpty()) throw java.io.IOException("réponse sans référence")
         garder(ctx, recu)
         return recu

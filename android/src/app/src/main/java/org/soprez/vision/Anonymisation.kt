@@ -7,9 +7,10 @@ package org.soprez.vision
  * toute modification se fait des deux côtés, sinon l'un des deux essais échoue.
  *
  * La table est stable pour toute la période : une même adresse donne toujours le même pseudonyme (le journal reste
- * lisible). Les domaines de Vision restent lisibles ; titres et artistes de musique sont gardés (diagnostic musique).
+ * lisible). Les domaines de Vision restent lisibles. Titres, artistes et albums de musique sont masqués aussi (« titre-N »,
+ * décision de l'auteur du 23/10) : HA donne la liste, d'après son journal musique et ses lecteurs en cours.
  */
-class Anonymisation(personnes: List<String> = emptyList(), appareils: List<String> = emptyList()) {
+class Anonymisation(personnes: List<String> = emptyList(), appareils: List<String> = emptyList(), titres: List<String> = emptyList()) {
     var remplacements = 0
         private set
     private val ips = LinkedHashMap<String, String>()
@@ -19,7 +20,8 @@ class Anonymisation(personnes: List<String> = emptyList(), appareils: List<Strin
         // Pseudonymes numérotés dans l'ordre fourni, par groupe ; remplacés du plus long au plus court
         // (« TEL-LOU » avant « Lou »).
         val liste = utiles(personnes).mapIndexed { i, n -> n to "personne-${i + 1}" } +
-            utiles(appareils).mapIndexed { i, n -> n to "appareil-${i + 1}" }
+            utiles(appareils).mapIndexed { i, n -> n to "appareil-${i + 1}" } +
+            utiles(titres).mapIndexed { i, n -> n to "titre-${i + 1}" }
         noms = liste.sortedByDescending { it.first.length }
             .map { (n, p) -> Regex("(?<![\\p{L}\\p{N}_])" + Regex.escape(n) + "(?![\\p{L}\\p{N}_])", RegexOption.IGNORE_CASE) to p }
     }
