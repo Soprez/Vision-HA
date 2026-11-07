@@ -36,7 +36,7 @@ async def _monter(hass, hass_storage, module=True):
     for p in ("a", "b"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.upper()})
     lr.async_get(hass).async_create("Toujours autorisé")
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

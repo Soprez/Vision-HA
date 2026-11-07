@@ -1,0 +1,45 @@
+{
+  "version": "2.5.12.21",
+  "date": "2026-10-24",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "À l'installation, Vision demande s'il doit créer son tableau de bord ; « non » laisse le panneau et les cartes.",
+        "en": "At install, Vision asks whether to create its dashboard; “no” leaves the panel and the cards.",
+        "de": "Bei der Installation fragt Vision, ob es sein Dashboard erstellen soll; „nein“ lässt Panel und Karten.",
+        "es": "Al instalar, Vision pregunta si debe crear su panel; «no» deja el panel de Vision y las tarjetas.",
+        "it": "All'installazione, Vision chiede se creare la sua dashboard; «no» lascia il pannello e le schede.",
+        "nl": "Bij de installatie vraagt Vision of het zijn dashboard moet maken; „nee” laat paneel en kaarten."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Configurer › Réparer : « Créer le tableau de bord maintenant » ou « Ne plus gérer le tableau de bord ».",
+        "en": "Configure › Repair: “Create the dashboard now” or “Stop managing the dashboard”.",
+        "de": "Konfigurieren › Reparieren: „Dashboard jetzt erstellen“ oder „Dashboard nicht mehr verwalten“.",
+        "es": "Configurar › Reparar: «Crear el panel ahora» o «Dejar de gestionar el panel».",
+        "it": "Configura › Ripara: «Crea la dashboard adesso» o «Non gestire più la dashboard».",
+        "nl": "Configureren › Herstellen: „Dashboard nu maken” of „Dashboard niet meer beheren”."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Un tableau déjà là reste le vôtre ; sans tableau, la question est posée une fois dans Configurer.",
+        "en": "An existing dashboard stays yours; with none, the question is asked once in Configure.",
+        "de": "Ein vorhandenes Dashboard bleibt Ihres; ohne Dashboard wird die Frage einmal in Konfigurieren gestellt.",
+        "es": "Un panel existente sigue siendo suyo; sin panel, la pregunta se hace una vez en Configurar.",
+        "it": "Una dashboard esistente resta tua; senza, la domanda viene posta una volta in Configura.",
+        "nl": "Een bestaand dashboard blijft van jou; zonder dashboard wordt de vraag eenmaal gesteld in Configureren."
+      }
+    }
+  ]
+}

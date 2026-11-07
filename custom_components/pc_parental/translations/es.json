@@ -47,7 +47,14 @@
       },
       "pret": {
         "title": "Listo (5/5)",
-        "description": "Esto es lo que se pondrá en marcha:\n{resume}\n\nEl panel de Vision ({tableau}) se crea en la barra lateral.\n\n**Después**: {suite}"
+        "description": "Esto es lo que se pondrá en marcha:\n{resume}\n\n{ligne_tableau}\n\n**Después**: {suite}"
+      },
+      "tableau": {
+        "title": "Panel de Vision (opcional)",
+        "description": "¿Crear el panel de Vision?\n\nEl panel reúne Hoy, Personas, Dispositivos y Permisos en la barra lateral. Sin él, todo sigue accesible desde el panel de Vision y las tarjetas, que puede colocar donde quiera. Podrá cambiar de opinión después en Configurar.",
+        "data": {
+          "tableau": "Crear el panel de Vision (si no: haré el mío)"
+        }
       }
     },
     "abort": {
@@ -456,7 +463,9 @@
           "sauvegarde": "💾 Copia de seguridad y restauración",
           "installer": "📦 Enlaces de instalación y QR",
           "qr": "🔳 Generar un QR de vinculación a mano",
-          "cle": "🗝️ Clave de registro"
+          "cle": "🗝️ Clave de registro",
+          "tableau_creer": "🖥️ Crear el panel ahora",
+          "tableau_lacher": "🚫 Dejar de gestionar el panel"
         }
       },
       "autres": {
@@ -523,6 +532,21 @@
           "code": "Nuevo código",
           "confirmation": "El mismo código otra vez"
         }
+      },
+      "tableau_question": {
+        "title": "¿Panel de Vision?",
+        "description": "Vision no tiene panel aquí. ¿Quiere uno? Se rellena y después es suyo: no se reescribe nada sin usted. Si no, todo sigue accesible desde el panel de Vision y las tarjetas.",
+        "data": {
+          "tableau": "Crear el panel de Vision (si no: haré el mío)"
+        }
+      },
+      "tableau_creer": {
+        "title": "Crear el panel ahora",
+        "description": "Se rellena el panel «Vision»; su contenido anterior se guarda primero. Un panel debe existir de antemano: si falta, se le dice cómo crearlo."
+      },
+      "tableau_lacher": {
+        "title": "Dejar de gestionar el panel",
+        "description": "Vision deja de rellenar o regenerar un panel. El que existe se deja tal cual: es suyo. Los enlaces «Dónde decidir» llevan entonces al panel de Vision."
       }
     },
     "error": {
@@ -566,7 +590,10 @@
       "essai_aucun_android": "Ningún dispositivo Android en Vision: nada que ajustar.",
       "soutien_merci": "♥ ¡Gracias por tu apoyo! La insignia aparece en los dispositivos en su próxima consulta.",
       "soutien_retire": "Insignia retirada.",
-      "aucun_decideur": "Aún no hay responsables: da primero este rol a una persona."
+      "aucun_decideur": "Aún no hay responsables: da primero este rol a una persona.",
+      "tableau_cree": "El panel de Vision está relleno.",
+      "tableau_lache": "Vision ya no gestiona ningún panel; el existente se deja tal cual.",
+      "tableau_a_creer": "El panel «{titre}» aún no existe: Ajustes → Paneles → Añadir → Nuevo panel desde cero, con la dirección «{url}»; después vuelva a ejecutar «Crear el panel ahora»."
     }
   },
   "selector": {

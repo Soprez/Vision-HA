@@ -47,7 +47,14 @@
       },
       "pret": {
         "title": "È pronto (5/5)",
-        "description": "Ecco cosa verrà impostato:\n{resume}\n\nLa dashboard di Vision ({tableau}) viene creata nella barra laterale.\n\n**Poi**: {suite}"
+        "description": "Ecco cosa verrà impostato:\n{resume}\n\n{ligne_tableau}\n\n**Poi**: {suite}"
+      },
+      "tableau": {
+        "title": "Dashboard di Vision (facoltativa)",
+        "description": "Creare la dashboard di Vision?\n\nLa dashboard riunisce Oggi, Persone, Dispositivi e Autorizzazioni nella barra laterale. Senza, tutto resta raggiungibile dal pannello Vision e dalle schede, da collocare dove vuoi. Potrai cambiare idea più tardi in Configura.",
+        "data": {
+          "tableau": "Creare la dashboard di Vision (altrimenti: faccio la mia)"
+        }
       }
     },
     "abort": {
@@ -456,7 +463,9 @@
           "sauvegarde": "💾 Backup e ripristino",
           "installer": "📦 Link di installazione e QR",
           "qr": "🔳 Genera a mano un QR di abbinamento",
-          "cle": "🗝️ Chiave di registrazione"
+          "cle": "🗝️ Chiave di registrazione",
+          "tableau_creer": "🖥️ Crea la dashboard adesso",
+          "tableau_lacher": "🚫 Non gestire più la dashboard"
         }
       },
       "autres": {
@@ -523,6 +532,21 @@
           "code": "Nuovo codice",
           "confirmation": "Lo stesso codice di nuovo"
         }
+      },
+      "tableau_question": {
+        "title": "Dashboard di Vision?",
+        "description": "Vision qui non ha una dashboard. Ne vuoi una? Viene riempita e poi è tua: nulla viene riscritto senza di te. Altrimenti, tutto resta raggiungibile dal pannello Vision e dalle schede.",
+        "data": {
+          "tableau": "Creare la dashboard di Vision (altrimenti: faccio la mia)"
+        }
+      },
+      "tableau_creer": {
+        "title": "Crea la dashboard adesso",
+        "description": "La dashboard «Vision» viene riempita; il contenuto precedente viene prima salvato. Una dashboard deve esistere prima: se manca, ti diciamo come crearla."
+      },
+      "tableau_lacher": {
+        "title": "Non gestire più la dashboard",
+        "description": "Vision smette di riempire o rigenerare una dashboard. Quella esistente resta com'è: è tua. I link «Dove decidere» portano allora al pannello Vision."
       }
     },
     "error": {
@@ -566,7 +590,10 @@
       "essai_aucun_android": "Nessun dispositivo Android in Vision: niente da impostare.",
       "soutien_merci": "♥ Grazie per il tuo sostegno! Il badge appare sui dispositivi al loro prossimo controllo.",
       "soutien_retire": "Badge rimosso.",
-      "aucun_decideur": "Ancora nessun decisore: assegna prima questo ruolo a una persona."
+      "aucun_decideur": "Ancora nessun decisore: assegna prima questo ruolo a una persona.",
+      "tableau_cree": "La dashboard di Vision è riempita.",
+      "tableau_lache": "Vision non gestisce più una dashboard; quella esistente resta com'è.",
+      "tableau_a_creer": "La dashboard «{titre}» non esiste ancora: Impostazioni → Dashboard → Aggiungi → Nuova dashboard da zero, con l'indirizzo «{url}»; poi esegui di nuovo «Crea la dashboard adesso»."
     }
   },
   "selector": {

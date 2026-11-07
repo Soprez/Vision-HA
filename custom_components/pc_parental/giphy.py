@@ -144,28 +144,28 @@ class Giphy:
         courant, param = url, params
         for _ in range(4):
             if not hote_giphy(courant):
-                raise ErreurReseau("hôte refusé")
+                raise ErreurReseau("hote_refuse")
             try:
                 async with session.get(courant, params=param, allow_redirects=False, timeout=15) as r:
                     if r.status in (301, 302, 303, 307, 308):
                         courant, param = str(r.headers.get("Location") or ""), None
                         continue
                     if r.status != 200:
-                        raise ErreurReseau(f"état {r.status}")
+                        raise ErreurReseau(f"etat_{r.status}")
                     if int(r.headers.get("Content-Length") or 0) > max_octets:
-                        raise ErreurReseau("trop lourd")
+                        raise ErreurReseau("trop_lourd")
                     morceaux, total = [], 0
                     async for bloc in r.content.iter_chunked(65536):
                         total += len(bloc)
                         if total > max_octets:
-                            raise ErreurReseau("trop lourd")
+                            raise ErreurReseau("trop_lourd")
                         morceaux.append(bloc)
                     return b"".join(morceaux)
             except ErreurReseau:
                 raise
             except Exception as err:  # noqa: BLE001 - jamais l'adresse (elle porte la clé) dans le message
                 raise ErreurReseau(type(err).__name__) from err
-        raise ErreurReseau("trop de redirections")
+        raise ErreurReseau("redirections")
 
     def _limiter(self) -> None:
         maintenant = self.horloge()
@@ -320,10 +320,10 @@ async def image_par_url(hass: HomeAssistant, url: str, dossier: str, fetch: Fetc
                 try:
                     async with async_get_clientsession(hass).get(u, allow_redirects=False, timeout=15) as r:
                         if r.status != 200 or int(r.headers.get("Content-Length") or 0) > maxi:
-                            raise ErreurReseau("refusé")
+                            raise ErreurReseau("refuse")
                         octets = await r.content.read(maxi + 1)
                         if len(octets) > maxi:
-                            raise ErreurReseau("trop lourd")
+                            raise ErreurReseau("trop_lourd")
                         return octets
                 except ErreurReseau:
                     raise

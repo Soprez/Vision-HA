@@ -43,7 +43,7 @@ async def _monter(hass, hass_storage, fete="off"):
         hass.services.async_register("media_player", s, noter)
     for s in ("turn_on", "turn_off"):
         hass.services.async_register("input_boolean", s, noter)
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

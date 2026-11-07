@@ -64,7 +64,7 @@ async def _monter(hass, hass_storage, **vus):
         pcs[pc_id]["nouveautes_vu"] = v
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": pcs}}
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

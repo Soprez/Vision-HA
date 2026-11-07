@@ -97,7 +97,7 @@ async def _monter(hass, hass_storage, code: str | None = CODE):
     if code:
         donnees["code_gestion"] = code_gestion.fabriquer(code)
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": donnees}
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

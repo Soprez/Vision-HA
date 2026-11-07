@@ -1007,5 +1007,6 @@
   "images.url_https": "De afbeelding moet van een https-adres komen.",
   "images.indisponible": "De afbeelding kon niet worden gedownload.",
   "images.refusee": "Deze afbeelding wordt niet geaccepteerd (JPEG, PNG, WebP of GIF, niet te groot).",
-  "msg.un_seul_media": "Eén media per bericht: media, image of gif."
+  "msg.un_seul_media": "Eén media per bericht: media, image of gif.",
+  "notif.lien_panneau": "{produit}-paneel"
 }

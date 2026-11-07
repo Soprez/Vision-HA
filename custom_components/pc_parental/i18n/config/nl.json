@@ -96,5 +96,7 @@
   "assistant_suite_telephone": "open Vision → Configureren → Apparaat toevoegen. „Een telefoon of tablet” is daar al gekozen; je krijgt de app-link en de QR-code om te scannen.",
   "assistant_suite_tele": "open Vision → Configureren → Apparaat toevoegen. „Een Android-tv” is daar al gekozen; je krijgt de app-link en de stappen.",
   "assistant_suite_pc": "open Vision → Configureren → Apparaat toevoegen. „Een Windows-pc” is daar al gekozen; je krijgt de agent-link en de stappen.",
-  "assistant_suite_plus_tard": "wanneer je wilt: Vision → Configureren → Apparaat toevoegen."
+  "assistant_suite_plus_tard": "wanneer je wilt: Vision → Configureren → Apparaat toevoegen.",
+  "assistant_tableau_oui": "Het Vision-dashboard ({tableau}) wordt in de zijbalk gemaakt.",
+  "assistant_tableau_non": "Geen Vision-dashboard: alles blijft bereikbaar via het Vision-paneel en de kaarten."
 }

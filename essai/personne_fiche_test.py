@@ -35,7 +35,7 @@ async def _installer(hass, hass_storage, modules=None):
     hass.states.async_set("todo.taches_lou", "2", {"friendly_name": "Tâches de Lou"})
     hass.states.async_set("zone.college", "0", {"friendly_name": "Collège"})
     hass.states.async_set("sensor.salon", "21.5", {"friendly_name": "Température salon"})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

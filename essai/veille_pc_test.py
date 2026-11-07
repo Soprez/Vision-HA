@@ -36,7 +36,7 @@ async def _monter(hass, hass_storage):
             "e2": _fiche("e2", "TELE", ENFANT2["secret"], platform="android", role="enfant", type="tv"),
             "p1": _fiche("p1", "PIXEL-NOLAN", PARENT["secret"], platform="android", role="parent"),
         }}}
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     return entree
 

@@ -74,7 +74,7 @@ async def _monter(hass, hass_storage, donnees, biometrie_globale=False, etiquett
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {"enroll_key": "x" * 16, "enroll_key_v": 2, **donnees}}
     hass_storage[f"{DOMAIN}.deverrouillage"] = {"version": 1, "minor_version": 1, "key": f"{DOMAIN}.deverrouillage",
                                                 "data": {"biometrie": biometrie_globale}}
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     etiquette = lr.async_get(hass).async_create("Parents")
     for pc_id, pc in donnees["pcs"].items():

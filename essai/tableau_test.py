@@ -55,7 +55,7 @@ async def test_aucune_carte_nulle(hass, hass_storage, prereglage):
         }}}
     for p in ("lou", "noa", "nolan"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
@@ -116,7 +116,7 @@ async def test_retouche_de_l_utilisateur_survit_au_redemarrage_et_a_la_mise_a_jo
         return next(v for v in tableau.config["views"] if v.get("path") == chemin)
 
     # Installation : aucun onglet de Vision encore → le tableau est rempli (l'onglet fait main reste devant).
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
@@ -169,7 +169,7 @@ async def test_recreer_sans_sauvegarde_possible_ne_touche_a_rien(hass, hass_stor
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": {}}}
     tableau = _TableauLovelace({"views": [{"path": "maison", "title": "Mon accueil"}]})
     hass.data["lovelace"] = types.SimpleNamespace(dashboards={dashboard.URL_PATH: tableau})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
@@ -196,7 +196,7 @@ async def test_pages_des_personnes(hass, hass_storage):
         }}}
     for p in ("lou", "mia", "nolan", "affichage"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
@@ -216,7 +216,7 @@ async def test_type_dans_la_fiche_maison(hass, hass_storage):
             "e2": _fiche("e2", "PC-NOA", ENFANT2["secret"], person="person.noa"),
             "t1": _fiche("t1", "Télé du salon", "t" * 32, platform="android", type="tv"),
         }}}
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
@@ -250,7 +250,7 @@ async def test_simplification(hass, hass_storage):
                          rules=[{"id": 1, "name": "Soir", "start": 72000, "end": 25200, "weekdays": [True] * 7, "enabled": True}]),
         }}}
     hass.states.async_set("person.lou", "home", {"friendly_name": "Lou"})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
@@ -286,7 +286,7 @@ async def test_activite_en_barres_et_tuiles(hass, hass_storage):
             "e1": _fiche("e1", "TEL-LOU", ENFANT["secret"], person="person.lou", platform="android", role="enfant"),
         }}}
     hass.states.async_set("person.lou", "home", {"friendly_name": "Lou"})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
@@ -340,7 +340,7 @@ async def test_chaque_vue_sans_carte_en_erreur(hass, hass_storage):
         }}}
     hass.states.async_set("person.lou", "home", {"friendly_name": "Lou"})
     hass.states.async_set("person.nolan", "home", {"friendly_name": "Nolan"})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

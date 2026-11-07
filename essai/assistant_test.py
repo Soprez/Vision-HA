@@ -34,10 +34,13 @@ def _personnes(hass):
 
 
 async def _jusqu_au_resume(hass, lieu="École", mots=None, decideurs=("person.alex",), objectifs=("horaires", "demandes"),
-                           appareil="tele"):
+                           appareil="tele", tableau=True):
     flux = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     assert flux["step_id"] == "user" and flux["last_step"] is False
     flux = await hass.config_entries.flow.async_configure(flux["flow_id"], {"lieu": lieu, "mots": dict(mots or {})})
+    # 1.94 (point 6) : « Créer le tableau de bord Vision ? » vient juste après le lieu (oui par défaut).
+    assert flux["step_id"] == "tableau" and flux["last_step"] is False
+    flux = await hass.config_entries.flow.async_configure(flux["flow_id"], {"tableau": tableau})
     assert flux["step_id"] == "personnes" and flux["last_step"] is False
     flux = await hass.config_entries.flow.async_configure(flux["flow_id"], {"decideurs": list(decideurs)})
     assert flux["step_id"] == "objectifs"
@@ -97,6 +100,7 @@ async def test_objectifs_dependances_et_mots(hass, hass_storage):
     flux = await hass.config_entries.flow.async_configure(flux["flow_id"], {"lieu": "Club", "mots": {"decideur": "x" * 31}})
     assert flux["step_id"] == "user" and flux["errors"] == {"base": "vocabulaire_trop_long"}
     flux = await hass.config_entries.flow.async_configure(flux["flow_id"], {"lieu": "Club", "mots": {"decideur": "responsable"}})
+    flux = await hass.config_entries.flow.async_configure(flux["flow_id"], {"tableau": True})
     flux = await hass.config_entries.flow.async_configure(flux["flow_id"], {"decideurs": []})
     # Les demandes seules : il manque de quoi demander, et la phrase le dit.
     flux = await hass.config_entries.flow.async_configure(flux["flow_id"], {"objectifs": ["demandes"]})
@@ -125,7 +129,7 @@ async def _monter(hass, hass_storage, admin_par_appareil=True):
             "p1": _fiche("p1", "PIXEL-ALEX", PARENT["secret"], person="person.alex", platform="android", role="parent"),
         }}}
     _personnes(hass)
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
@@ -204,7 +208,7 @@ async def test_configurer_reduit(hass, hass_storage):
     flux = await hass.config_entries.options.async_init(entree.entry_id)
     assert flux["menu_options"] == ["assistant", "ajouter", "appairage", "reparer", "autres", "soutien"]
     reparer = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "reparer"})
-    assert reparer["menu_options"] == ["appareils_relier", "sauvegarde", "installer", "qr", "cle"]
+    assert reparer["menu_options"] == ["appareils_relier", "sauvegarde", "installer", "qr", "cle", "tableau_creer", "tableau_lacher"]
     flux = await hass.config_entries.options.async_init(entree.entry_id)
     autres = await hass.config_entries.options.async_configure(flux["flow_id"], {"next_step_id": "autres"})
     # Aucun réglage perdu : le reste de l'ancien menu est là. Lot 5 : modules et vocabulaire sont dans

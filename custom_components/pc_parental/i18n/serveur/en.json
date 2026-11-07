@@ -1007,5 +1007,6 @@
   "images.url_https": "The image must come from an https address.",
   "images.indisponible": "The image could not be downloaded.",
   "images.refusee": "This image is not accepted (JPEG, PNG, WebP or GIF, not too large).",
-  "msg.un_seul_media": "One media per message: media, image or gif."
+  "msg.un_seul_media": "One media per message: media, image or gif.",
+  "notif.lien_panneau": "{produit} panel"
 }

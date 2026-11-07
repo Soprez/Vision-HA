@@ -69,7 +69,7 @@ def _cartes():
 
 async def _monter(hass: HomeAssistant):
     hass.states.async_set("person.decideur", "home", {"friendly_name": "Décideur"})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

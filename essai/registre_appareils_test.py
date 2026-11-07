@@ -45,7 +45,7 @@ DOMAIN = "pc_parental"
 
 
 def _entree(hass) -> MockConfigEntry:
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     return entree
 

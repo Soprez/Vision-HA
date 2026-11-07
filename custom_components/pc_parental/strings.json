@@ -47,7 +47,14 @@
       },
       "pret": {
         "title": "All set (5/5)",
-        "description": "Here is what will be set up:\n{resume}\n\nThe Vision dashboard ({tableau}) is created in the sidebar.\n\n**Next**: {suite}"
+        "description": "Here is what will be set up:\n{resume}\n\n{ligne_tableau}\n\n**Next**: {suite}"
+      },
+      "tableau": {
+        "title": "Vision dashboard (optional)",
+        "description": "Create the Vision dashboard?\n\nThe dashboard gathers Today, People, Devices and Permissions in the sidebar. Without it, everything stays reachable through the Vision panel and the cards, which you can place wherever you like. You can change your mind later in Configure.",
+        "data": {
+          "tableau": "Create the Vision dashboard (otherwise: I will make my own)"
+        }
       }
     },
     "abort": {
@@ -456,7 +463,9 @@
           "sauvegarde": "💾 Backup and restore",
           "installer": "📦 Install links and QR codes",
           "qr": "🔳 Create a pairing QR code by hand",
-          "cle": "🗝️ Enrollment key"
+          "cle": "🗝️ Enrollment key",
+          "tableau_creer": "🖥️ Create the dashboard now",
+          "tableau_lacher": "🚫 Stop managing the dashboard"
         }
       },
       "autres": {
@@ -523,6 +532,21 @@
           "code": "New code",
           "confirmation": "The same code again"
         }
+      },
+      "tableau_question": {
+        "title": "Vision dashboard?",
+        "description": "Vision has no dashboard here. Do you want one? It gets filled in, then it is yours: nothing is rewritten without you. Otherwise, everything stays reachable through the Vision panel and the cards.",
+        "data": {
+          "tableau": "Create the Vision dashboard (otherwise: I will make my own)"
+        }
+      },
+      "tableau_creer": {
+        "title": "Create the dashboard now",
+        "description": "The “Vision” dashboard is filled in; its previous content is saved first. A dashboard has to exist beforehand: if it is missing, you are told how to create it."
+      },
+      "tableau_lacher": {
+        "title": "Stop managing the dashboard",
+        "description": "Vision stops filling in or regenerating a dashboard. The existing one is left as it is: it is yours. The “Where to decide” links then lead to the Vision panel."
       }
     },
     "error": {
@@ -566,7 +590,10 @@
       "essai_aucun_android": "No Android device in Vision: nothing to set.",
       "soutien_merci": "♥ Thank you for your support! The badge appears on devices at their next check-in.",
       "soutien_retire": "Badge removed.",
-      "aucun_decideur": "No Decider yet: give this role to a person first."
+      "aucun_decideur": "No Decider yet: give this role to a person first.",
+      "tableau_cree": "The Vision dashboard is filled in.",
+      "tableau_lache": "Vision no longer manages a dashboard; the existing one is left as it is.",
+      "tableau_a_creer": "The “{titre}” dashboard does not exist yet: Settings → Dashboards → Add → New dashboard from scratch, with the address “{url}”; then run “Create the dashboard now” again."
     }
   },
   "selector": {

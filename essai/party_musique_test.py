@@ -93,7 +93,7 @@ async def _monter(hass, hass_storage, monkeypatch):
     hass.services.async_register("music_assistant", "get_library", library, supports_response=SupportsResponse.ONLY)
     hass.services.async_register("music_assistant", "play_media", play_media)
     hass.services.async_register("music_assistant", "get_queue", get_queue, supports_response=SupportsResponse.ONLY)
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

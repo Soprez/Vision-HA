@@ -67,7 +67,7 @@ async def _monter(hass, hass_storage, module=True, roles=None, **plus):
     # Le premier relevé crée l'étiquette « Toujours autorisé », ce qui recharge Vision (comportement existant) :
     # elle existe d'avance, pour garder le même coordinateur pendant tout l'essai.
     lr.async_get(hass).async_create("Toujours autorisé")
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

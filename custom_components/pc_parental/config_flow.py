@@ -148,13 +148,24 @@ class PcParentalConfigFlow(_Assistant, ConfigFlow, domain=DOMAIN):
                 mots = {m: vocabulaire.nettoyer((user_input.get("mots") or {}).get(m)) for m in vocabulaire.MOTS}
             else:
                 self._choix.update(lieu="" if nom_lieu == lieu.defaut(lg) else nom_lieu, mots=mots)
-                return await self.async_step_personnes()
+                return await self.async_step_tableau()
         return self.async_show_form(
             step_id="user", data_schema=self._schema_lieu(self._choix.get("lieu") or lieu.defaut(lg), mots),
             errors=erreurs, last_step=False,
             description_placeholders={"defauts": ", ".join(vocabulaire.defauts(lg)[m] for m in vocabulaire.MOTS),
                                       "longueur": str(vocabulaire.LONGUEUR_MAX)},
         )
+
+    async def async_step_tableau(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """1.94 (point 6) : « Créer le tableau de bord Vision ? » Oui par défaut ; Non, tout reste par le panneau et les cartes."""
+        from homeassistant.helpers.selector import BooleanSelector
+
+        if user_input is not None:
+            self._choix["tableau"] = bool(user_input.get("tableau", True))
+            return await self.async_step_personnes()
+        return self.async_show_form(step_id="tableau", data_schema=vol.Schema({
+            vol.Required("tableau", default=bool(self._choix.get("tableau", True))): BooleanSelector(),
+        }), last_step=False)
 
     async def async_step_personnes(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
         """2/5 : qui décide ? Les autres sont Demandeurs (le rôle par défaut)."""
@@ -205,6 +216,7 @@ class PcParentalConfigFlow(_Assistant, ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             return self.async_create_entry(title=PRODUIT_AFFICHE, data={
                 "modules_initiaux": list(c.get("modules") or []),
+                "tableau_voulu": bool(c.get("tableau", True)),
                 "assistant": {"lieu": c.get("lieu", ""), "mots": {"langue": self._lg(), "mots": dict(c.get("mots") or {})},
                               "decideurs": list(c.get("decideurs") or []), "appareil": c.get("appareil", "plus_tard")},
             })
@@ -215,6 +227,8 @@ class PcParentalConfigFlow(_Assistant, ConfigFlow, domain=DOMAIN):
                                              set(c.get("groupes") or []), genre),
             "suite": self._tx(f"assistant_suite_{genre}"),
             "tableau": f"/{dashboard.URL_PATH}",
+            "ligne_tableau": self._tx("assistant_tableau_oui", tableau=f"/{dashboard.URL_PATH}") if c.get("tableau", True)
+            else self._tx("assistant_tableau_non"),
         })
 
 
@@ -235,8 +249,12 @@ class PcParentalOptionsFlow(_Assistant, OptionsFlow):
     ) -> "ConfigFlowResult":
         """Le menu (refonte UX lot 4) : relancer l'assistant, ajouter un appareil, réparer ; le reste sous « Autres
         réglages » en attendant le panneau Réglages (lot 5) — aucun réglage n'est perdu."""
-        from . import appairage
+        from . import appairage, dashboard
 
+        # 1.94 (point 6) : installation d'avant sans tableau Vision, jamais interrogée : la question d'abord, une fois.
+        if dashboard.tableau_voulu(self.hass, self.config_entry) is None and not (self.config_entry.data or {}).get("tableau_demande"):
+            self.hass.config_entries.async_update_entry(self.config_entry, data={**dict(self.config_entry.data or {}), "tableau_demande": True})
+            return await self.async_step_tableau_question()
         attente = sum(1 for d in appairage._demandes(self.hass).values() if d["etat"] == "en_attente")
         return self.async_show_menu(
             step_id="init", menu_options=["assistant", "ajouter", "appairage", "reparer", "autres", "soutien"],
@@ -244,7 +262,49 @@ class PcParentalOptionsFlow(_Assistant, OptionsFlow):
         )
 
     async def async_step_reparer(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
-        return self.async_show_menu(step_id="reparer", menu_options=["appareils_relier", "sauvegarde", "installer", "qr", "cle"])
+        return self.async_show_menu(step_id="reparer", menu_options=["appareils_relier", "sauvegarde", "installer", "qr", "cle",
+                                                                      "tableau_creer", "tableau_lacher"])
+
+    # ------------------------------------------------ Le tableau de bord (1.94, point 6)
+
+    def _poser_tableau_voulu(self, voulu: bool) -> None:
+        self.hass.config_entries.async_update_entry(self.config_entry, data={**dict(self.config_entry.data or {}), "tableau_voulu": voulu})
+        textes.poser_tableau(voulu)
+
+    async def async_step_tableau_question(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """Installation d'avant la 1.94, sans tableau Vision : la question est posée une fois, jamais un tableau créé sans l'avoir demandé."""
+        from homeassistant.helpers.selector import BooleanSelector
+
+        if user_input is not None:
+            voulu = bool(user_input.get("tableau", False))
+            self._poser_tableau_voulu(voulu)
+            if voulu:
+                return await self.async_step_tableau_creer()
+            return await self.async_step_init()
+        return self.async_show_form(step_id="tableau_question", data_schema=vol.Schema({
+            vol.Required("tableau", default=False): BooleanSelector(),
+        }))
+
+    async def async_step_tableau_creer(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """« Créer le tableau maintenant » : le tableau existant est sauvegardé, puis rempli ; s'il n'existe pas encore, on dit comment le créer."""
+        from . import dashboard
+
+        coord = self.hass.data.get(DOMAIN, {}).get(self.config_entry.entry_id)
+        if coord is None:
+            return self.async_abort(reason="not_loaded")
+        if user_input is None:
+            return self.async_show_form(step_id="tableau_creer", data_schema=vol.Schema({}))
+        self._poser_tableau_voulu(True)
+        if await coord.async_maj_tableau(force=True):
+            return self.async_abort(reason="tableau_cree")
+        return self.async_abort(reason="tableau_a_creer", description_placeholders={"titre": dashboard.TITRE, "url": dashboard.URL_PATH})
+
+    async def async_step_tableau_lacher(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """« Ne plus gérer le tableau » : le tableau existant est laissé tel quel (il appartient à l'utilisateur)."""
+        if user_input is None:
+            return self.async_show_form(step_id="tableau_lacher", data_schema=vol.Schema({}))
+        self._poser_tableau_voulu(False)
+        return self.async_abort(reason="tableau_lache")
 
     async def async_step_autres(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
         """Les réglages d'avant, tous, le temps que le panneau Réglages (lot 5) les accueille."""

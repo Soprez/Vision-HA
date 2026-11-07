@@ -52,7 +52,7 @@ async def test_accord_minecraft_rouvre_bedrock(hass, hass_storage):
           "bloques": ["minecraft"], "autorises": [], "override": None, "last_seen": 0, "agent": {}, "person": "",
           "update_asked": False, "tags": [], "messages": [], "next_message_id": 1}
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {"pcs": {"pc1": pc}}}
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
@@ -79,7 +79,7 @@ async def test_demande_app_prefixe_est_un_logiciel(hass, hass_storage, hass_clie
           "bloques": ["minecraft"], "autorises": [], "override": None, "last_seen": 0, "agent": {}, "person": "",
           "update_asked": False, "tags": [], "messages": [], "next_message_id": 1}
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN, "data": {"pcs": {"pc1": pc}}}
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

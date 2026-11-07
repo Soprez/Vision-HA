@@ -147,8 +147,21 @@ def ha(hass: Any = None) -> str:
 VUE_DECIDER = "maison"
 
 
+# 1.94 (point 6) : « Créer le tableau de bord Vision ? » — Non : rien ne pointe vers un tableau qui n'existe pas, on décide dans le panneau.
+_TABLEAU_VOULU = True
+PANNEAU_DECIDER = "/vision-appairage"
+
+
+def poser_tableau(voulu: bool) -> None:
+    """Retient si l'installation a un tableau de bord Vision (posé au démarrage et à chaque changement dans Configurer)."""
+    global _TABLEAU_VOULU  # noqa: PLW0603 - une seule installation
+    _TABLEAU_VOULU = bool(voulu)
+
+
 def chemin_tableau() -> str:
-    """Le chemin de la vue où se décident les demandes d'accès, de temps et de déverrouillage."""
+    """Le chemin de la vue où se décident les demandes d'accès, de temps et de déverrouillage (le panneau Vision, sans tableau)."""
+    if not _TABLEAU_VOULU:
+        return PANNEAU_DECIDER
     try:
         from .dashboard import URL_PATH
     except ImportError:  # pragma: no cover - tableau absent d'un banc réduit
@@ -175,7 +188,8 @@ def ou_decider(langue: str | None, chemin: str | None = None, lien: str | None =
     """« Où décider : [tableau de bord Vision](/vision-maison/maison) », pour une notification persistante."""
     from .const import PRODUIT_AFFICHE
 
-    return t("notif.ou_decider", langue, lien=lien or t("notif.lien_tableau", langue, produit=PRODUIT_AFFICHE),
+    cle_lien = "notif.lien_tableau" if _TABLEAU_VOULU else "notif.lien_panneau"
+    return t("notif.ou_decider", langue, lien=lien or t(cle_lien, langue, produit=PRODUIT_AFFICHE),
              chemin=chemin or chemin_tableau())
 
 

@@ -56,7 +56,7 @@ async def test_tache_cochee_donne_du_temps(hass, hass_storage):
 
     hass.services.async_register("todo", "get_items", get_items, supports_response=SupportsResponse.ONLY)
     hass.states.async_set("todo.lou", "1", {"friendly_name": "Tâches de Lou"})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
@@ -85,7 +85,7 @@ async def test_parcours_fiche(hass, hass_storage, hass_client):
     hass.states.async_set("person.lou", "home", {"friendly_name": "Lou"})
     hass.states.async_set("todo.lou", "0", {"friendly_name": "Tâches de Lou"})
     hass.services.async_register("todo", "get_items", lambda call: {"todo.lou": {"items": []}}, supports_response=SupportsResponse.ONLY)
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

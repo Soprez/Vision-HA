@@ -96,5 +96,7 @@
   "assistant_suite_telephone": "apri Vision → Configura → Aggiungi un dispositivo. «Un telefono o un tablet» è già scelto; avrai il link dell'app e il QR da scansionare.",
   "assistant_suite_tele": "apri Vision → Configura → Aggiungi un dispositivo. «Una TV Android» è già scelto; avrai il link dell'app e i passaggi da seguire.",
   "assistant_suite_pc": "apri Vision → Configura → Aggiungi un dispositivo. «Un PC Windows» è già scelto; avrai il link dell'agente e i passaggi da seguire.",
-  "assistant_suite_plus_tard": "quando vuoi, Vision → Configura → Aggiungi un dispositivo."
+  "assistant_suite_plus_tard": "quando vuoi, Vision → Configura → Aggiungi un dispositivo.",
+  "assistant_tableau_oui": "La dashboard di Vision ({tableau}) viene creata nella barra laterale.",
+  "assistant_tableau_non": "Nessuna dashboard di Vision: tutto resta raggiungibile dal pannello Vision e dalle schede."
 }

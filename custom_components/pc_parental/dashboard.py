@@ -1772,9 +1772,27 @@ async def async_sauvegarder(hass: HomeAssistant, store) -> str | None:
         _ecrire_sauvegarde, hass.config.path("vision_outils", "sauvegardes"), nom, json.dumps(config, ensure_ascii=False, indent=1))
 
 
+def tableau_voulu(hass: HomeAssistant, entry: Any = None) -> bool | None:
+    """1.94 (point 6) : l'installation veut-elle un tableau de bord Vision ?
+
+    True / False : le choix fait à l'installation (ou dans Configurer › Réparer › tableau), gardé dans l'entrée.
+    None : pas encore choisi (installation d'avant la 1.94 sans tableau Vision) : rien n'est créé tant qu'on ne l'a pas demandé.
+    Installation d'avant la 1.94 qui a déjà un tableau Vision : True (il lui appartient déjà)."""
+    if entry is None:
+        entrees = hass.config_entries.async_entries(DOMAIN)
+        entry = entrees[0] if entrees else None
+    valeur = (entry.data or {}).get("tableau_voulu") if entry is not None else None
+    if isinstance(valeur, bool):
+        return valeur
+    tableaux = _tableaux(hass)
+    return True if tableaux is not None and tableaux.get(URL_PATH) is not None else None
+
+
 async def async_remplir_si_vide(hass: HomeAssistant, coord: PcParentalCoordinator) -> bool:
     """2.5.10 (l'auteur, retour 28) : au démarrage, le tableau n'est rempli que s'il ne contient encore aucun onglet de Vision.
     Déjà rempli, il appartient à l'utilisateur : ni le démarrage ni une mise à jour ne le réécrivent."""
+    if tableau_voulu(hass) is not True:
+        return False
     tableaux = _tableaux(hass)
     store = tableaux.get(URL_PATH) if tableaux is not None else None
     if store is None:
@@ -1796,6 +1814,8 @@ async def async_build(hass: HomeAssistant, coord: PcParentalCoordinator, sauvega
     Ajouter, chemin « vision-maison »). Une fois créé, Vision y tient
     ses onglets — et laisse devant ceux qu'on a faits à la main.
     """
+    if tableau_voulu(hass) is False:
+        return False  # 1.94 (point 6) : « Non, je fais le mien » : Vision ne touche à aucun tableau
     try:
         tableaux = _tableaux(hass)
         if tableaux is None:

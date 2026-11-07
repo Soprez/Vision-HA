@@ -326,7 +326,7 @@ async def _monter_langue(hass, hass_storage, langue: str) -> MockConfigEntry:
                          rules=[dict(regle, etiquettes=["Réseaux sociaux"])]),
         }}}
     hass.states.async_set("person.alex", "home", {"friendly_name": "Alex"})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

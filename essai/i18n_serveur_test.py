@@ -103,6 +103,7 @@ EXCEPTIONS: dict[str, set[str]] = {
     # Noms propres et identifiants.
     "__init__.py": {"Tous les jours", "Home Assistant", "Toujours autorisé"},  # clé de DAY_PRESETS ; auteur d'une action ; étiquette (donnée)
     "messages_v2.py": {"Home Assistant"},
+    "giphy.py": {"Powered by GIPHY"},  # l'attribution exigée par les conditions de Giphy (nom propre, jamais traduite)
     "store.py": {"Tous les PC", "Home Assistant", "Program Files", "pub & traçage"},  # ancien destinataire accepté
     "http.py": {"pub & traçage", "système", "Toujours autorisé"},  # noms d'étiquettes (données, en minuscules)
     "parent.py": {"pub & traçage", "Toujours autorisé"},
@@ -227,7 +228,7 @@ async def _monter(hass, hass_storage, langue_ha: str = "fr"):
         "enroll_key": "x" * 16, "enroll_key_v": 2, "roles_migres": True, "pcs": pcs}}
     for p in ("lou", "noa", "nolan"):
         hass.states.async_set(f"person.{p}", "home", {"friendly_name": p.capitalize()})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

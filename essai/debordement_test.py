@@ -281,7 +281,7 @@ async def test_aucune_carte_ne_deborde(hass, hass_storage, hass_client, tmp_path
         "tableau-de-la-maison-principale": _Tableau("Tableau de la maison principale et des dépendances",
                                                     [{"title": "Énergie et chauffage du séjour", "path": "energie-et-chauffage-du-sejour"}]),
     }}
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

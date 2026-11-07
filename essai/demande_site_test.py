@@ -24,7 +24,7 @@ async def _installer(hass, hass_storage, version_appli="1.77.0"):
         }}}
     hass.states.async_set("person.camille", "home", {"friendly_name": "Camille"})
     hass.states.async_set("person.nolan", "home", {"friendly_name": "Nolan"})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

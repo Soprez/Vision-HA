@@ -47,7 +47,14 @@
       },
       "pret": {
         "title": "Klaar (5/5)",
-        "description": "Dit wordt ingesteld:\n{resume}\n\nHet Vision-dashboard ({tableau}) wordt in de zijbalk aangemaakt.\n\n**Daarna**: {suite}"
+        "description": "Dit wordt ingesteld:\n{resume}\n\n{ligne_tableau}\n\n**Daarna**: {suite}"
+      },
+      "tableau": {
+        "title": "Vision-dashboard (optioneel)",
+        "description": "Het Vision-dashboard maken?\n\nHet dashboard bundelt Vandaag, Personen, Apparaten en Machtigingen in de zijbalk. Zonder blijft alles bereikbaar via het Vision-paneel en de kaarten, die je plaatst waar je wilt. Je kunt later in Configureren van gedachten veranderen.",
+        "data": {
+          "tableau": "Het Vision-dashboard maken (anders: ik maak mijn eigen)"
+        }
       }
     },
     "abort": {
@@ -456,7 +463,9 @@
           "sauvegarde": "💾 Back-up en herstel",
           "installer": "📦 Installatielinks en QR-codes",
           "qr": "🔳 Zelf een koppel-QR-code maken",
-          "cle": "🗝️ Registratiesleutel"
+          "cle": "🗝️ Registratiesleutel",
+          "tableau_creer": "🖥️ Dashboard nu maken",
+          "tableau_lacher": "🚫 Dashboard niet meer beheren"
         }
       },
       "autres": {
@@ -523,6 +532,21 @@
           "code": "Nieuwe code",
           "confirmation": "Dezelfde code nog eens"
         }
+      },
+      "tableau_question": {
+        "title": "Vision-dashboard?",
+        "description": "Vision heeft hier geen dashboard. Wil je er een? Het wordt gevuld en is dan van jou: niets wordt zonder jou herschreven. Anders blijft alles bereikbaar via het Vision-paneel en de kaarten.",
+        "data": {
+          "tableau": "Het Vision-dashboard maken (anders: ik maak mijn eigen)"
+        }
+      },
+      "tableau_creer": {
+        "title": "Dashboard nu maken",
+        "description": "Het dashboard „Vision” wordt gevuld; de vorige inhoud wordt eerst bewaard. Een dashboard moet vooraf bestaan: ontbreekt het, dan lees je hoe je het maakt."
+      },
+      "tableau_lacher": {
+        "title": "Dashboard niet meer beheren",
+        "description": "Vision vult of hergenereert geen dashboard meer. Het bestaande blijft zoals het is: het is van jou. De links „Waar beslissen” leiden dan naar het Vision-paneel."
       }
     },
     "error": {
@@ -566,7 +590,10 @@
       "essai_aucun_android": "Geen Android-apparaat in Vision: niets in te stellen.",
       "soutien_merci": "♥ Bedankt voor je steun! De badge verschijnt op de apparaten bij hun volgende controle.",
       "soutien_retire": "Badge verwijderd.",
-      "aucun_decideur": "Nog geen beslisser: geef deze rol eerst aan een persoon."
+      "aucun_decideur": "Nog geen beslisser: geef deze rol eerst aan een persoon.",
+      "tableau_cree": "Het Vision-dashboard is gevuld.",
+      "tableau_lache": "Vision beheert geen dashboard meer; het bestaande blijft zoals het is.",
+      "tableau_a_creer": "Het dashboard „{titre}” bestaat nog niet: Instellingen → Dashboards → Toevoegen → Nieuw dashboard vanaf nul, met het adres „{url}”; voer daarna „Dashboard nu maken” opnieuw uit."
     }
   },
   "selector": {

@@ -47,7 +47,14 @@
       },
       "pret": {
         "title": "Fertig (5/5)",
-        "description": "Das wird eingerichtet:\n{resume}\n\nDas Vision-Dashboard ({tableau}) wird in der Seitenleiste angelegt.\n\n**Danach**: {suite}"
+        "description": "Das wird eingerichtet:\n{resume}\n\n{ligne_tableau}\n\n**Danach**: {suite}"
+      },
+      "tableau": {
+        "title": "Vision-Dashboard (optional)",
+        "description": "Das Vision-Dashboard erstellen?\n\nDas Dashboard bündelt Heute, Personen, Geräte und Berechtigungen in der Seitenleiste. Ohne es bleibt alles über das Vision-Panel und die Karten erreichbar, die Sie platzieren können, wo Sie möchten. Sie können Ihre Meinung später in „Konfigurieren“ ändern.",
+        "data": {
+          "tableau": "Vision-Dashboard erstellen (sonst: ich baue mein eigenes)"
+        }
       }
     },
     "abort": {
@@ -456,7 +463,9 @@
           "sauvegarde": "💾 Sicherung und Wiederherstellung",
           "installer": "📦 Installationslinks und QR-Codes",
           "qr": "🔳 Kopplungs-QR-Code von Hand erstellen",
-          "cle": "🗝️ Registrierungsschlüssel"
+          "cle": "🗝️ Registrierungsschlüssel",
+          "tableau_creer": "🖥️ Dashboard jetzt erstellen",
+          "tableau_lacher": "🚫 Dashboard nicht mehr verwalten"
         }
       },
       "autres": {
@@ -523,6 +532,21 @@
           "code": "Neuer Code",
           "confirmation": "Derselbe Code noch einmal"
         }
+      },
+      "tableau_question": {
+        "title": "Vision-Dashboard?",
+        "description": "Vision hat hier kein Dashboard. Möchten Sie eines? Es wird gefüllt und gehört dann Ihnen: nichts wird ohne Sie überschrieben. Sonst bleibt alles über das Vision-Panel und die Karten erreichbar.",
+        "data": {
+          "tableau": "Vision-Dashboard erstellen (sonst: ich baue mein eigenes)"
+        }
+      },
+      "tableau_creer": {
+        "title": "Dashboard jetzt erstellen",
+        "description": "Das Dashboard „Vision“ wird gefüllt; sein bisheriger Inhalt wird zuvor gesichert. Ein Dashboard muss vorher existieren: Fehlt es, erfahren Sie, wie Sie es anlegen."
+      },
+      "tableau_lacher": {
+        "title": "Dashboard nicht mehr verwalten",
+        "description": "Vision hört auf, ein Dashboard zu füllen oder neu zu erzeugen. Das vorhandene bleibt, wie es ist: Es gehört Ihnen. Die Links „Wo entscheiden“ führen dann zum Vision-Panel."
       }
     },
     "error": {
@@ -566,7 +590,10 @@
       "essai_aucun_android": "Kein Android-Gerät in Vision: nichts einzustellen.",
       "soutien_merci": "♥ Danke für deine Unterstützung! Das Abzeichen erscheint auf den Geräten bei ihrer nächsten Abfrage.",
       "soutien_retire": "Abzeichen entfernt.",
-      "aucun_decideur": "Noch kein Entscheider: Gib diese Rolle zuerst einer Person."
+      "aucun_decideur": "Noch kein Entscheider: Gib diese Rolle zuerst einer Person.",
+      "tableau_cree": "Das Vision-Dashboard ist gefüllt.",
+      "tableau_lache": "Vision verwaltet kein Dashboard mehr; das vorhandene bleibt, wie es ist.",
+      "tableau_a_creer": "Das Dashboard „{titre}“ gibt es noch nicht: Einstellungen → Dashboards → Hinzufügen → Neues Dashboard von Grund auf, mit der Adresse „{url}“; dann „Dashboard jetzt erstellen“ erneut ausführen."
     }
   },
   "selector": {

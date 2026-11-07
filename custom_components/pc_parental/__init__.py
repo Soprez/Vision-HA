@@ -524,11 +524,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # une mise à jour), Vision ne remplit le tableau que s'il ne contient encore aucun de ses onglets ; il ne le
     # réécrit plus quand son empreinte change. Pour revenir au modèle : le bouton « Régénérer le tableau de bord » (il sauvegarde l'ancien).
     async def _tableau_au_demarrage(_hass: HomeAssistant) -> None:
-        from .dashboard import async_remplir_si_vide, signature
+        from .dashboard import async_remplir_si_vide, signature, tableau_voulu
 
         c = hass.data.get(DOMAIN, {}).get(entry.entry_id)
         if c is None:
             return
+        # 1.94 (point 6) : les liens « Où décider » pointent vers le tableau seulement s'il y en a un voulu.
+        textes.poser_tableau(tableau_voulu(hass, entry) is True)
         if await async_remplir_si_vide(hass, c):
             c.store.signature_tableau = signature(c)
             await c.store.async_save()

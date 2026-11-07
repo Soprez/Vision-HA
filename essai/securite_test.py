@@ -103,7 +103,7 @@ async def _monter(hass: HomeAssistant, hass_storage, appareils=None, veille_jeto
         hass.states.async_set(p, "idle", {"friendly_name": p})
     hass.states.async_set("person.enfant", "home", {"friendly_name": "Enfant"})
     hass.states.async_set("person.parent", "home", {"friendly_name": "Parent"})
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN, title="Vision")
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN, title="Vision")
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()
@@ -149,7 +149,7 @@ async def test_cle_tournee_et_absente_des_etats(hass, hass_storage, hass_client)
 async def test_cle_pas_retournee_deux_fois(hass, hass_storage):
     hass_storage[DOMAIN] = {"version": 1, "minor_version": 1, "key": DOMAIN,
                             "data": {"pcs": {}, "enroll_key": "deja-tournee", "enroll_key_v": 2}}
-    entree = MockConfigEntry(domain=DOMAIN, data={}, unique_id=DOMAIN)
+    entree = MockConfigEntry(domain=DOMAIN, data={"tableau_voulu": True}, unique_id=DOMAIN)
     entree.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entree.entry_id)
     await hass.async_block_till_done()

@@ -47,7 +47,14 @@
       },
       "pret": {
         "title": "C'est prêt (5/5)",
-        "description": "Voici ce qui sera mis en place :\n{resume}\n\nLe tableau de bord Vision ({tableau}) est créé dans la barre latérale.\n\n**Ensuite** : {suite}"
+        "description": "Voici ce qui sera mis en place :\n{resume}\n\n{ligne_tableau}\n\n**Ensuite** : {suite}"
+      },
+      "tableau": {
+        "title": "Tableau de bord Vision (facultatif)",
+        "description": "Créer le tableau de bord Vision ?\n\nLe tableau regroupe Aujourd'hui, Personnes, Appareils et Autorisations dans la barre latérale. Sans lui, tout reste accessible par le panneau Vision et par les cartes, à poser où vous voulez. Vous pourrez changer d'avis dans Configurer.",
+        "data": {
+          "tableau": "Créer le tableau de bord Vision (sinon : je fais le mien)"
+        }
       }
     },
     "abort": {
@@ -456,7 +463,9 @@
           "sauvegarde": "💾 Sauvegarde et restauration",
           "installer": "📦 Liens d'installation et QR",
           "qr": "🔳 Générer un QR d'appairage à la main",
-          "cle": "🗝️ Clé d'inscription"
+          "cle": "🗝️ Clé d'inscription",
+          "tableau_creer": "🖥️ Créer le tableau de bord maintenant",
+          "tableau_lacher": "🚫 Ne plus gérer le tableau de bord"
         }
       },
       "autres": {
@@ -523,6 +532,21 @@
           "code": "Nouveau code",
           "confirmation": "Le même code, encore une fois"
         }
+      },
+      "tableau_question": {
+        "title": "Tableau de bord Vision ?",
+        "description": "Vision n'a pas de tableau de bord ici. En voulez-vous un ? Il est rempli, puis il vous appartient : rien n'est réécrit sans vous. Sinon, tout reste accessible par le panneau Vision et par les cartes.",
+        "data": {
+          "tableau": "Créer le tableau de bord Vision (sinon : je fais le mien)"
+        }
+      },
+      "tableau_creer": {
+        "title": "Créer le tableau de bord maintenant",
+        "description": "Le tableau de bord « Vision » est rempli ; l'ancien contenu est d'abord sauvegardé. Un tableau de bord doit exister au préalable : s'il manque, on vous dira comment le créer."
+      },
+      "tableau_lacher": {
+        "title": "Ne plus gérer le tableau de bord",
+        "description": "Vision cesse de remplir ou de régénérer un tableau de bord. Celui qui existe est laissé tel quel : il vous appartient. Les liens « Où décider » mènent alors au panneau Vision."
       }
     },
     "error": {
@@ -566,7 +590,10 @@
       "essai_aucun_android": "Aucun appareil Android dans Vision : rien à régler.",
       "soutien_merci": "♥ Merci pour ton soutien ! Le badge s'affiche sur les appareils au prochain relevé.",
       "soutien_retire": "Badge retiré.",
-      "aucun_decideur": "Aucun Décideur pour l'instant : donne d'abord ce rôle à une personne."
+      "aucun_decideur": "Aucun Décideur pour l'instant : donne d'abord ce rôle à une personne.",
+      "tableau_cree": "Le tableau de bord Vision est rempli.",
+      "tableau_lache": "Vision ne gère plus de tableau de bord ; l'existant est laissé tel quel.",
+      "tableau_a_creer": "Le tableau de bord « {titre} » n'existe pas encore : Paramètres → Tableaux de bord → Ajouter → Nouveau tableau de bord à partir de zéro, avec l'adresse « {url} » ; puis relancez « Créer le tableau de bord maintenant »."
     }
   },
   "selector": {
