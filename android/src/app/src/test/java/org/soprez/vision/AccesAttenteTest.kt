@@ -44,7 +44,8 @@ class AccesAttenteTest {
         for (f in listOf("BlockActivity.kt", "FermesActivity.kt", "DemandesAppareil.kt", "LanceurActivity.kt"))
             assertTrue(f, source(f).contains("Acces.attenteTexte"))
         // Le bouton reste visible, grisé : BlockActivity et FermesActivity le désactivent plutôt que de le retirer.
-        assertTrue(source("BlockActivity.kt").contains("isEnabled = false"))
-        assertTrue(source("FermesActivity.kt").contains("isEnabled = false"))
+        assertTrue(source("Ui.kt").contains("fun boutonEnAttente(") && source("Ui.kt").contains("isEnabled = false"))
+        assertTrue(source("BlockActivity.kt").contains("Ui.boutonEnAttente("))
+        assertTrue(source("FermesActivity.kt").contains("Ui.boutonEnAttente("))
     }
 }

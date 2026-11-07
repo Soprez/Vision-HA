@@ -284,6 +284,17 @@ object Ui {
         setOnClickListener { Geste.retenir(this); action() }
     }
 
+    /**
+     * 1.94 : un bouton de demande grisé pendant l'attente avant de redemander ; le texte « Tu pourras redemander dans X min »
+     * se pose dessous (voir [Acces.attenteTexte]) et se dit aussi aux lecteurs d'écran.
+     */
+    fun boutonEnAttente(ctx: Context, libelle: String, fin: Long, primaire: Boolean = true): Button {
+        val b = if (primaire) boutonPrimaire(ctx, libelle) {} else boutonSecondaire(ctx, libelle) {}
+        b.isEnabled = false; b.alpha = 0.45f; b.isFocusableInTouchMode = false
+        b.contentDescription = listOf(libelle, Acces.attenteTexte(ctx, fin)).joinToString(" — ")
+        return b
+    }
+
     /** Le repère des boutons de Vision (primaire, secondaire) : posés dans une boîte de dialogue, ils gardent leurs couleurs (voir [habillerVue]). */
     const val TAG_BOUTON = "bouton_vision"
 

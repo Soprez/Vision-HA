@@ -148,10 +148,7 @@ class FermesActivity : Activity() {
     }
 
     /** Un bouton de demande grisé (attente avant de redemander) ; le texte dit pourquoi, aussi aux lecteurs d'écran. */
-    private fun enAttente(libelle: String, fin: Long): View =
-        Ui.boutonSecondaire(this, libelle) {}.apply {
-            isEnabled = false; alpha = 0.45f; contentDescription = listOf(libelle, Acces.attenteTexte(this@FermesActivity, fin)).joinToString(" — ")
-        }
+    private fun enAttente(libelle: String, fin: Long): View = Ui.boutonEnAttente(this, libelle, fin, primaire = false)
 
     private var rebatirPlanifie = 0L
 

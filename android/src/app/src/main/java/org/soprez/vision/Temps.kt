@@ -52,6 +52,7 @@ object Temps {
 
         val selecteur = SelecteurPas(act, MIN, MAX, libre, PAS, th = th, format = { Tr.duree(it) }) { libre = it }
         val zoneLibre = Ui.rangee(act).apply { gravity = android.view.Gravity.CENTER; visibility = View.GONE; addView(selecteur) }
+        val pleineLargeur = { haut: Float -> LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = Ui.dp(act, haut) } }
 
         fun peindre() {
             for ((cle, v) in puces) {
@@ -81,11 +82,12 @@ object Temps {
         tout.chunked(3).forEachIndexed { i, ligne ->
             val r = Ui.rangee(act)
             ligne.forEachIndexed { k, v -> r.addView(Ui.marge(act, Ui.poids(v), gauche = if (k == 0) 0f else 8f)) }
-            repeat(3 - ligne.size) { r.addView(Ui.poids(View(act))) }
-            colonne.addView(Ui.marge(act, r, haut = if (i == 0) 0f else 8f))
+            // Une vue vide sans hauteur (une vue simple en WRAP_CONTENT prendrait toute la place offerte, et la boîte serait pleine hauteur).
+            repeat(3 - ligne.size) { r.addView(View(act), LinearLayout.LayoutParams(0, 0, 1f)) }
+            colonne.addView(r, pleineLargeur(if (i == 0) 0f else 8f))
         }
         if (avecPlage) colonne.addView(Ui.marge(act, puce(PLAGE, act.getString(R.string.temps_jusqua_plage, Etat.heure(prochain))).apply { layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }, haut = 8f))
-        colonne.addView(Ui.marge(act, zoneLibre, haut = 16f))
+        colonne.addView(zoneLibre, pleineLargeur(16f))
 
         val boutons = Ui.rangeeBoutons(act).apply { gravity = android.view.Gravity.END }
         boutons.addView(Ui.marge(act, Ui.boutonSecondaire(act, act.getString(R.string.commun_annuler)) { dialogue.cancel() }, haut = 20f))
@@ -93,7 +95,7 @@ object Temps {
             choisi = true; dialogue.dismiss()
             ok(when (sel) { PLAGE -> Choix(0, true); AUTRE -> Choix(libre, false); else -> Choix(sel, false) })
         }, haut = 20f, gauche = 8f))
-        colonne.addView(boutons)
+        colonne.addView(boutons, pleineLargeur(0f))
         peindre()
 
         dialogue.setView(colonne, Ui.dp(act, 20f), Ui.dp(act, 8f), Ui.dp(act, 20f), Ui.dp(act, 4f))

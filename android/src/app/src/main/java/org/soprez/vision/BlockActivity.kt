@@ -202,10 +202,9 @@ class BlockActivity : Activity(), ZoneSure.Geree {
     /** Un bouton de demande grisé, avec « Tu pourras redemander dans X min » dessous (dit aussi aux lecteurs d'écran). */
     private fun boutonEnAttente(libelle: String, fin: Long) {
         val texte = Acces.attenteTexte(this, fin)
-        val b = Ui.boutonPrimaire(this, libelle) {}
-        b.isEnabled = false; b.alpha = 0.45f; b.isFocusableInTouchMode = false; b.contentDescription = listOf(libelle, texte).joinToString(" — ")
+        val b = Ui.boutonEnAttente(this, libelle, fin)
         zoneDemande.addView(Ui.marge(this, b, haut = 10f), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-        zoneDemande.addView(Ui.marge(this, Ui.texte(this, texte, 13f, Ui.TEXTE_2, centre = true), haut = 6f))
+        zoneDemande.addView(Ui.marge(this, Ui.texte(this, texte, 13f, Ui.TEXTE_2, centre = true), haut = 6f), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = Ui.dp(this@BlockActivity, 6f) })
         attenteVue = fin
     }
 
@@ -268,7 +267,7 @@ class BlockActivity : Activity(), ZoneSure.Geree {
             if (premier == null && attenteTemps == 0L) premier = btn
         }
         zoneDemande.addView(r)
-        if (attenteTemps > 0) { zoneDemande.addView(Ui.marge(this, Ui.texte(this, Acces.attenteTexte(this, attenteTemps), 13f, Ui.TEXTE_2, centre = true), haut = 6f)); attenteVue = attenteTemps }
+        if (attenteTemps > 0) { zoneDemande.addView(Ui.texte(this, Acces.attenteTexte(this, attenteTemps), 13f, Ui.TEXTE_2, centre = true), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = Ui.dp(this@BlockActivity, 6f) }); attenteVue = attenteTemps }
         premier?.requestFocus()
     }
 
