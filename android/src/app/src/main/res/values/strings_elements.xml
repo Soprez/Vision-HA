@@ -58,4 +58,11 @@
         <item quantity="one">%d site blocked with it</item>
         <item quantity="other">%d sites blocked with it</item>
     </plurals>
+    <!-- 1.94 : découverte appli → sites (badge, preuve, secours, appareil regardé). -->
+    <string name="el_badge_partiel">Partly blocked</string>
+    <string name="el_sites_fermes">Closed: %1$s</string>
+    <string name="el_preuve">Linked on its own: %1$d requests over %2$d days, %3$d%%</string>
+    <string name="el_secours">Fallback link</string>
+    <string name="el_a_verifier">To check</string>
+    <string name="el_sur_appareil">On: %1$s</string>
 </resources>

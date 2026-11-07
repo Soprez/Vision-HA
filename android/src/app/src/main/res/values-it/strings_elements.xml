@@ -58,4 +58,11 @@
         <item quantity="one">%d sito bloccato con esso</item>
         <item quantity="other">%d siti bloccati con esso</item>
     </plurals>
+    <!-- 1.94 : découverte appli → sites (badge, preuve, secours, appareil regardé). -->
+    <string name="el_badge_partiel">Parzialmente bloccato</string>
+    <string name="el_sites_fermes">Chiusi: %1$s</string>
+    <string name="el_preuve">Collegato da solo: %1$d richieste in %2$d giorni, %3$d %%</string>
+    <string name="el_secours">Collegamento di riserva</string>
+    <string name="el_a_verifier">Da verificare</string>
+    <string name="el_sur_appareil">Su: %1$s</string>
 </resources>

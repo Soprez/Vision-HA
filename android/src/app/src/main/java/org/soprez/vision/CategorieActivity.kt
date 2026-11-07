@@ -29,6 +29,9 @@ class CategorieActivity : Activity() {
     private lateinit var liste: LinearLayout
     private val principal = Handler(Looper.getMainLooper())
     private var detail: JSONObject? = null
+
+    /** Essais : montre un détail de catégorie déjà prêt (rien n'est lu chez Home Assistant). */
+    internal fun montrer(d: JSONObject) { detail = d; dessiner() }
     private var recents: JSONArray? = null
     private var resultats: JSONArray? = null
     private var recherche = ""
@@ -147,6 +150,10 @@ class CategorieActivity : Activity() {
 
     private fun dessinerCategorie() {
         val d = detail ?: run { liste.addView(Ui.texte(this, getString(R.string.commun_chargement), 14f, Ui.TEXTE_2)); return }
+        // 1.94 : l'appareil dont on regarde les autorisations (le badge change avec lui).
+        d.optJSONObject("appareil")?.optString("nom")?.takeIf { it.isNotEmpty() }?.let {
+            liste.addView(Ui.marge(this, Ui.texte(this, getString(R.string.el_sur_appareil, it), 13f, Ui.TEXTE_2).apply { tag = "el_sur_appareil" }, bas = 8f))
+        }
         val logiciels = d.optJSONArray("logiciels") ?: JSONArray()
         if (logiciels.length() > 0) {
             liste.addView(Ui.section(this, getString(R.string.el_section_logiciels)))
@@ -221,11 +228,23 @@ class CategorieActivity : Activity() {
         val tete = if (accordeon != null) (if (deplie) "▾ " else "▸ ") + libelle else libelle
         col.addView(Ui.texte(this, tete, 15f, Ui.TEXTE, gras = accordeon != null))
         val badges = Pastilles(this, Ui.dp(this, 6f))
-        badges.addView(Ui.chip(this, badge(o, logiciel), if (ouvertEl) Ui.VERT else Ui.ROUGE))
+        // 1.94 : un logiciel ouvert dont un site lié reste fermé est « partiellement bloqué » (orange) ; la liste des sites fermés suit.
+        val partiel = genre == "apps" && o.optString("badge") == "orange"
+        badges.addView(if (partiel) Ui.chip(this, getString(R.string.el_badge_partiel), Ui.OR)
+                       else Ui.chip(this, badge(o, logiciel), if (ouvertEl) Ui.VERT else Ui.ROUGE))
         if (o.optBoolean("suit") && !o.optBoolean("par_logiciel") && logiciel.isNotEmpty()) badges.addView(Ui.chip(this, getString(R.string.el_suit, logiciel), Ui.TEXTE_3))
         if (o.optBoolean("attente")) badges.addView(Ui.chip(this, getString(R.string.el_attente), Ui.OR))
         else if (o.optBoolean("auto")) badges.addView(Ui.chip(this, getString(R.string.el_auto), Ui.TEXTE_3))
+        if (o.optBoolean("secours")) badges.addView(Ui.chip(this, getString(R.string.el_secours), Ui.TEXTE_3))
+        if (o.optBoolean("a_verifier")) badges.addView(Ui.chip(this, getString(R.string.el_a_verifier), Ui.OR))
         col.addView(Ui.marge(this, badges, haut = 4f))
+        o.optJSONObject("preuve")?.let { p ->
+            col.addView(Ui.marge(this, Ui.texte(this, getString(R.string.el_preuve, p.optInt("n"), p.optInt("jours"), Math.round(p.optDouble("part") * 100).toInt()), 12f, Ui.TEXTE_2).apply { tag = "el_preuve:$nom" }, haut = 2f))
+        }
+        if (partiel) o.optJSONArray("sites_fermes")?.let { a ->
+            val noms = (0 until a.length()).map { a.optString(it) }
+            if (noms.isNotEmpty()) col.addView(Ui.marge(this, Ui.texte(this, getString(R.string.el_sites_fermes, noms.take(5).joinToString(", ") + if (noms.size > 5) "…" else ""), 12f, Ui.TEXTE_2).apply { tag = "el_sites_fermes:$nom" }, haut = 2f))
+        }
         o.optString("raison").takeIf { it.isNotEmpty() && !ouvertEl }?.let { col.addView(Ui.marge(this, Ui.texte(this, it, 12f, Ui.TEXTE_2), haut = 2f)) }
         if (accordeon != null) {
             col.isClickable = true; col.isFocusable = true

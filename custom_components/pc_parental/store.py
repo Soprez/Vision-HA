@@ -2928,7 +2928,8 @@ class PcStore:
         seuls.sort(key=lambda s: (s["ouvert"], s["nom"]))
         fermee = bool(self._dans(pc.get("bloques"), etiquette) or self.fermeture_de(pc, [etiquette]) is not None)
         return {"etiquette": etiquette, "fermee": fermee, "logiciels": logiciels,
-                "sites": seuls[:sites_max], "autres": max(0, len(seuls) - sites_max)}
+                "sites": seuls[:sites_max], "autres": max(0, len(seuls) - sites_max),
+                "appareil": {"id": pc.get("id"), "nom": pc.get("name") or pc.get("id")}}
 
     def rechercher(self, pc: dict[str, Any], texte: str, langue: str | None = None,
                    maximum: int = 30) -> list[dict[str, Any]]:

@@ -58,4 +58,11 @@
         <item quantity="one">%d site samen ermee geblokkeerd</item>
         <item quantity="other">%d sites samen ermee geblokkeerd</item>
     </plurals>
+    <!-- 1.94 : découverte appli → sites (badge, preuve, secours, appareil regardé). -->
+    <string name="el_badge_partiel">Gedeeltelijk geblokkeerd</string>
+    <string name="el_sites_fermes">Gesloten: %1$s</string>
+    <string name="el_preuve">Zelf gekoppeld: %1$d verzoeken over %2$d dagen, %3$d %%</string>
+    <string name="el_secours">Noodkoppeling</string>
+    <string name="el_a_verifier">Te controleren</string>
+    <string name="el_sur_appareil">Op: %1$s</string>
 </resources>

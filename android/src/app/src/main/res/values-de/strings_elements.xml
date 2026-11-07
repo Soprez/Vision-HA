@@ -58,4 +58,11 @@
         <item quantity="one">%d Website damit gesperrt</item>
         <item quantity="other">%d Websites damit gesperrt</item>
     </plurals>
+    <!-- 1.94 : découverte appli → sites (badge, preuve, secours, appareil regardé). -->
+    <string name="el_badge_partiel">Teilweise gesperrt</string>
+    <string name="el_sites_fermes">Gesperrt: %1$s</string>
+    <string name="el_preuve">Selbst verknüpft: %1$d Anfragen an %2$d Tagen, %3$d %%</string>
+    <string name="el_secours">Ersatzverknüpfung</string>
+    <string name="el_a_verifier">Zu prüfen</string>
+    <string name="el_sur_appareil">Auf: %1$s</string>
 </resources>
