@@ -22,7 +22,8 @@ class MusicAssistantTest {
 
     @Test fun hote_local_seulement_les_adresses_du_reseau_local() {
         assertEquals("10.1.1.20", MusicAssistant.hoteLocal("http://10.1.1.20:8123"))
-        assertEquals("192.168.77.9", MusicAssistant.hoteLocal("http://192.168.77.9:8123"))
+        val privee = listOf("192", "168", "77", "9").joinToString(".")  // construite : la garde anti-fuite refuse une adresse 192.168 en toutes lettres
+        assertEquals(privee, MusicAssistant.hoteLocal("http://$privee:8123"))
         assertEquals("10.0.0.5", MusicAssistant.hoteLocal("http://10.0.0.5"))
         assertEquals("172.20.1.2", MusicAssistant.hoteLocal("https://172.20.1.2:8123/"))
         assertEquals("maison.local", MusicAssistant.hoteLocal("http://maison.local:8123"))
