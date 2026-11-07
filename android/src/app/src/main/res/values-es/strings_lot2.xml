@@ -821,4 +821,10 @@
     <string name="ma_qr_titre">Abre Music Assistant en tu teléfono</string>
     <string name="ma_qr_texte">Escanea este código: la cola, los favoritos y los ajustes se gestionan allí.</string>
     <string name="ma_qr_description">Código QR para abrir Music Assistant en un teléfono</string>
+    <string name="gif_bouton">GIF</string>
+    <string name="gif_retirer">Quitar el GIF</string>
+    <string name="gif_choisi">GIF elegido</string>
+    <string name="gif_chercher_indice">Buscar un GIF (palabra clave)</string>
+    <string name="gif_chercher">Buscar</string>
+    <string name="gif_deux_lettres">Escribe al menos dos letras.</string>
 </resources>

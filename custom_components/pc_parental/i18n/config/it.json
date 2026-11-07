@@ -98,5 +98,7 @@
   "assistant_suite_pc": "apri Vision → Configura → Aggiungi un dispositivo. «Un PC Windows» è già scelto; avrai il link dell'agente e i passaggi da seguire.",
   "assistant_suite_plus_tard": "quando vuoi, Vision → Configura → Aggiungi un dispositivo.",
   "assistant_tableau_oui": "La dashboard di Vision ({tableau}) viene creata nella barra laterale.",
-  "assistant_tableau_non": "Nessuna dashboard di Vision: tutto resta raggiungibile dal pannello Vision e dalle schede."
+  "assistant_tableau_non": "Nessuna dashboard di Vision: tutto resta raggiungibile dal pannello Vision e dalle schede.",
+  "giphy_cle_posee": "Una chiave è già impostata.",
+  "giphy_cle_absente": "Nessuna chiave impostata per ora."
 }

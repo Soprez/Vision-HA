@@ -169,6 +169,13 @@ async def envoyer(hass: HomeAssistant, coord, donnees: dict[str, Any], expediteu
     important = bool(donnees.get("important")) or t["priorite"] == "importante"
     de = str(expediteur.get("nom") or expediteur.get("user") or "Vision")[:40]
     envoi_id = secrets.token_hex(6)
+    # 1.94 (point 4) : un GIF Giphy (identifiant choisi dans la recherche, mot-clé ou adresse Giphy) accompagne le texte ; HA le
+    # télécharge une fois (giphy.py), l'appareil ne voit qu'un média servi par jeton.
+    media = None
+    if donnees.get("gif"):
+        from . import giphy
+
+        media = await giphy.instance(hass, coord).gif(str(donnees["gif"]))
     base = {
         "titre": str(donnees.get("titre") or de)[:60],
         "message": texte,
@@ -177,13 +184,14 @@ async def envoyer(hass: HomeAssistant, coord, donnees: dict[str, Any], expediteu
         "bloquant": t["bloquant"],
         "duree": 0 if important else 30,
         "expire": 60,
+        **({"type": "image"} if media else {}),
     }
     plus = {"v": 2, "de": de, "reponses": _reponses(donnees.get("reponses")), "important": important,
             "pause_tele": bool(donnees.get("pause_tele")), "voix": bool(donnees.get("voix")),
             "type_message": t["id"], "type_nom": t["nom"], "envoi": envoi_id, "libre": True}
     suivi = []
     for pc_id in pcs:
-        m = messages.preparer(store, pc_id, base, None)
+        m = messages.preparer(store, pc_id, base, media)
         # Le nom du type, dans la langue de l'appareil qui le reçoit.
         m.update(plus, type_nom=type_de(store, t["id"], textes.pour(hass, store.pcs.get(pc_id)))["nom"])
         s = store.pcs[pc_id]["messages_suivi"][str(m["id"])]
@@ -277,7 +285,16 @@ def _etat(hass: HomeAssistant, store, langue: str | None = None) -> dict[str, An
     langue = langue or textes.ha(hass)
     return {"ok": True, "destinataires": destinataires(hass, store), "types": types(store, langue),
             "sons": list(SOUNDS), "priorites": list(PRIORITES), "bloquants": list(messages.BLOQUANTS),
-            "reponses_proposees": reponses_proposees(langue), "envois": suivi(store, langue=langue)}
+            "reponses_proposees": reponses_proposees(langue), "envois": suivi(store, langue=langue),
+            "giphy": _giphy_pret(store)}
+
+
+def _giphy_pret(store) -> bool:
+    """1.94 : le bouton GIF de l'appli n'existe que si Giphy est activé ET qu'une clé est posée (jamais la clé elle-même)."""
+    from . import giphy
+
+    r = giphy.reglages(store)
+    return bool(r["actif"] and r["cle"])
 
 
 class PcParentalMessagesView(HomeAssistantView):

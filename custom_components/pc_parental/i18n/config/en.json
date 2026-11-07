@@ -98,5 +98,7 @@
   "assistant_suite_pc": "open Vision → Configure → Add a device. \"A Windows PC\" is already chosen there; you get the agent link and the steps to follow.",
   "assistant_suite_plus_tard": "whenever you like, Vision → Configure → Add a device.",
   "assistant_tableau_oui": "The Vision dashboard ({tableau}) is created in the sidebar.",
-  "assistant_tableau_non": "No Vision dashboard: everything stays reachable through the Vision panel and the cards."
+  "assistant_tableau_non": "No Vision dashboard: everything stays reachable through the Vision panel and the cards.",
+  "giphy_cle_posee": "A key is already set.",
+  "giphy_cle_absente": "No key is set yet."
 }

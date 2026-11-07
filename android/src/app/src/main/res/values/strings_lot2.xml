@@ -821,4 +821,10 @@
     <string name="ma_qr_titre">Open Music Assistant on your phone</string>
     <string name="ma_qr_texte">Scan this code: the queue, favourites and settings are managed there.</string>
     <string name="ma_qr_description">QR code to open Music Assistant on a phone</string>
+    <string name="gif_bouton">GIF</string>
+    <string name="gif_retirer">Remove the GIF</string>
+    <string name="gif_choisi">GIF chosen</string>
+    <string name="gif_chercher_indice">Search a GIF (keyword)</string>
+    <string name="gif_chercher">Search</string>
+    <string name="gif_deux_lettres">Type at least two letters.</string>
 </resources>

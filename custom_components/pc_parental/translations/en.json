@@ -479,7 +479,8 @@
           "accueil": "👋 Welcome messages",
           "musique": "🎵 Music",
           "journal_musique": "📜 Music log",
-          "appareils_essai": "🧪 Android test devices"
+          "appareils_essai": "🧪 Android test devices",
+          "giphy": "🎞️ Giphy GIFs (messages)"
         }
       },
       "assistant": {
@@ -547,6 +548,18 @@
       "tableau_lacher": {
         "title": "Stop managing the dashboard",
         "description": "Vision stops filling in or regenerating a dashboard. The existing one is left as it is: it is yours. The “Where to decide” links then lead to the Vision panel."
+      },
+      "giphy": {
+        "title": "Giphy GIFs in messages",
+        "description": "Off by default. Home Assistant fetches the GIFs from Giphy (devices never contact Giphy); you need your own API key, free at developers.giphy.com. {cle_posee}\n\nThe “g” rating (all audiences) is the default. Above it, it is for you to decide: some recipients may be young. Limit: 10 searches per minute.",
+        "data": {
+          "actif": "Turn Giphy GIFs on",
+          "cle": "Giphy API key",
+          "classification": "Rating"
+        },
+        "data_description": {
+          "cle": "Leave empty to keep the current key."
+        }
       }
     },
     "error": {
@@ -578,7 +591,9 @@
       "objectifs_dependances": "A goal is missing: see the message at the top.",
       "entites_rien_a_piloter": "No controllable entity is given to a person or device: choose some entities first (lights, switches, scripts, scenes, buttons, covers, thermostats).",
       "code_court_deverrouillage": "At least 4 characters.",
-      "personne_inconnue": "This Decider doesn't exist."
+      "personne_inconnue": "This Decider doesn't exist.",
+      "giphy_cle": "This key has the wrong shape (16 to 64 letters and digits).",
+      "giphy_classification": "Unknown rating."
     },
     "abort": {
       "not_loaded": "Vision is not loaded: try again in a moment.",
@@ -593,7 +608,8 @@
       "aucun_decideur": "No Decider yet: give this role to a person first.",
       "tableau_cree": "The Vision dashboard is filled in.",
       "tableau_lache": "Vision no longer manages a dashboard; the existing one is left as it is.",
-      "tableau_a_creer": "The “{titre}” dashboard does not exist yet: Settings → Dashboards → Add → New dashboard from scratch, with the address “{url}”; then run “Create the dashboard now” again."
+      "tableau_a_creer": "The “{titre}” dashboard does not exist yet: Settings → Dashboards → Add → New dashboard from scratch, with the address “{url}”; then run “Create the dashboard now” again.",
+      "giphy_ok": "Giphy GIF settings saved."
     }
   },
   "selector": {

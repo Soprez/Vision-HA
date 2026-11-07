@@ -215,7 +215,7 @@ async def test_configurer_reduit(hass, hass_storage):
     # Réglages › Réservé, temps gagné et règles selon le lieu sur la fiche de la personne.
     # Lot 6 : sans doublon — « Appareils existants » et « Avancé » répétaient Réparer et Personnes et rôles.
     assert set(autres["menu_options"]) == {"roles", "securite", "entites", "general", "accueil", "musique",
-                                           "journal_musique", "appareils_essai"}
+                                           "journal_musique", "appareils_essai", "giphy"}
 
 
 async def test_ajouter_propose_le_premier_appareil(hass, hass_storage):

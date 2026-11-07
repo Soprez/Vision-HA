@@ -1,0 +1,46 @@
+{
+  "version": "2.5.12.23",
+  "date": "2026-10-25",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone"
+      ],
+      "texte": {
+        "fr": "Envoyer un message : un bouton GIF (recherche faite par Home Assistant) quand Giphy est prêt.",
+        "en": "Send a message: a GIF button (search done by Home Assistant) when Giphy is ready.",
+        "de": "Nachricht senden: eine GIF-Schaltfläche (Suche über Home Assistant), wenn Giphy bereit ist.",
+        "es": "Enviar un mensaje: un botón GIF (búsqueda hecha por Home Assistant) cuando Giphy está listo.",
+        "it": "Invia un messaggio: un pulsante GIF (ricerca fatta da Home Assistant) quando Giphy è pronto.",
+        "nl": "Bericht sturen: een GIF-knop (zoeken via Home Assistant) als Giphy klaar is."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Configurer › Autres réglages › GIF Giphy : activer, votre clé API, la classification.",
+        "en": "Configure › Other settings › Giphy GIFs: turn on, your API key, the rating.",
+        "de": "Konfigurieren › Weitere Einstellungen › Giphy-GIFs: aktivieren, Ihr API-Schlüssel, Einstufung.",
+        "es": "Configurar › Otros ajustes › GIF de Giphy: activar, su clave API, la clasificación.",
+        "it": "Configura › Altre impostazioni › GIF di Giphy: attiva, la tua chiave API, la classificazione.",
+        "nl": "Configureren › Overige instellingen › Giphy-GIF's: inschakelen, je API-sleutel, de classificatie."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Les GIF sont réencodés en WebP animé de 6 s au plus ; l'appareil ne contacte jamais Giphy.",
+        "en": "GIFs are re-encoded as animated WebP of 6 s at most; the device never contacts Giphy.",
+        "de": "GIFs werden als animiertes WebP von höchstens 6 s neu kodiert; das Gerät kontaktiert Giphy nie.",
+        "es": "Los GIF se recodifican como WebP animado de 6 s como máximo; el dispositivo nunca contacta con Giphy.",
+        "it": "Le GIF vengono ricodificate in WebP animato di al massimo 6 s; il dispositivo non contatta mai Giphy.",
+        "nl": "GIF's worden herkodeerd als geanimeerde WebP van hoogstens 6 s; het toestel neemt nooit contact op met Giphy."
+      }
+    }
+  ]
+}

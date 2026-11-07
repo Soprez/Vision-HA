@@ -479,7 +479,8 @@
           "accueil": "👋 Messaggi di benvenuto",
           "musique": "🎵 Musica",
           "journal_musique": "📜 Registro Musica",
-          "appareils_essai": "🧪 Dispositivi Android di prova"
+          "appareils_essai": "🧪 Dispositivi Android di prova",
+          "giphy": "🎞️ GIF di Giphy (messaggi)"
         }
       },
       "assistant": {
@@ -547,6 +548,18 @@
       "tableau_lacher": {
         "title": "Non gestire più la dashboard",
         "description": "Vision smette di riempire o rigenerare una dashboard. Quella esistente resta com'è: è tua. I link «Dove decidere» portano allora al pannello Vision."
+      },
+      "giphy": {
+        "title": "GIF di Giphy nei messaggi",
+        "description": "Disattivato di default. Home Assistant cerca le GIF su Giphy (i dispositivi non contattano mai Giphy); serve la tua chiave API, gratuita su developers.giphy.com. {cle_posee}\n\nLa classificazione «g» (per tutti) è quella predefinita. Oltre, decidi tu: alcuni destinatari possono essere giovani. Limite: 10 ricerche al minuto.",
+        "data": {
+          "actif": "Attiva le GIF di Giphy",
+          "cle": "Chiave API di Giphy",
+          "classification": "Classificazione"
+        },
+        "data_description": {
+          "cle": "Lascia vuoto per tenere la chiave attuale."
+        }
       }
     },
     "error": {
@@ -578,7 +591,9 @@
       "objectifs_dependances": "Manca un obiettivo: vedi il messaggio in alto.",
       "entites_rien_a_piloter": "Nessuna entità comandabile è data a una persona o a un dispositivo: scegli prima delle entità (luci, interruttori, script, scene, pulsanti, tapparelle, termostati).",
       "code_court_deverrouillage": "Almeno 4 caratteri.",
-      "personne_inconnue": "Questo decisore non esiste."
+      "personne_inconnue": "Questo decisore non esiste.",
+      "giphy_cle": "Questa chiave non ha la forma giusta (da 16 a 64 lettere e cifre).",
+      "giphy_classification": "Classificazione sconosciuta."
     },
     "abort": {
       "not_loaded": "Vision non è caricato: riprova tra un attimo.",
@@ -593,7 +608,8 @@
       "aucun_decideur": "Ancora nessun decisore: assegna prima questo ruolo a una persona.",
       "tableau_cree": "La dashboard di Vision è riempita.",
       "tableau_lache": "Vision non gestisce più una dashboard; quella esistente resta com'è.",
-      "tableau_a_creer": "La dashboard «{titre}» non esiste ancora: Impostazioni → Dashboard → Aggiungi → Nuova dashboard da zero, con l'indirizzo «{url}»; poi esegui di nuovo «Crea la dashboard adesso»."
+      "tableau_a_creer": "La dashboard «{titre}» non esiste ancora: Impostazioni → Dashboard → Aggiungi → Nuova dashboard da zero, con l'indirizzo «{url}»; poi esegui di nuovo «Crea la dashboard adesso».",
+      "giphy_ok": "Impostazioni delle GIF di Giphy salvate."
     }
   },
   "selector": {

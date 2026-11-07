@@ -39,6 +39,9 @@ class MessageEnvoiActivity : Activity() {
     private var important = false
     private var pause = false
     private var voix = false
+    // 1.94 (point 4) : le GIF Giphy choisi (identifiant) et sa vignette.
+    private var gif = ""
+    private var gifVignette: android.graphics.Bitmap? = null
     private var suiviVue: LinearLayout? = null
     private var suiviEmpreinte = ""
     private var visible = false
@@ -75,6 +78,60 @@ class MessageEnvoiActivity : Activity() {
         }.also { it.isDaemon = true }.start()
     }
 
+    /**
+     * 1.94 (point 4) : la recherche de GIF. Home Assistant interroge Giphy (la clé et la classification sont les siennes) et renvoie de
+     * petites vignettes ; l'appareil ne contacte jamais Giphy. « Powered by GIPHY » reste affiché (conditions de Giphy).
+     */
+    private fun chercherGif() {
+        val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(px(20f), px(8f), px(20f), px(4f)) }
+        val champ = EditText(this).also { ClavierTele.brancher(it) }.apply {
+            hint = getString(R.string.gif_chercher_indice); textSize = 16f; setTextColor(theme.encre); setHintTextColor(theme.encre3)
+            background = Ui.fondChamp(this@MessageEnvoiActivity, theme.carte, theme.encre, theme.carteBord)
+            setPadding(px(14f), px(10f), px(14f), px(10f)); inputType = InputType.TYPE_CLASS_TEXT; imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH
+        }
+        val etat = t("", 13f, theme.encre2).apply { setPadding(0, px(8f), 0, px(4f)) }
+        val grille = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        col.addView(champ); col.addView(etat); col.addView(grille)
+        col.addView(t("Powered by GIPHY", 11f, theme.encre3).apply { setPadding(0, px(8f), 0, 0) })  // i18n-exception : mention exigée par Giphy (nom propre)
+        val dialogue = Ui.dialogue(this).setTitle(R.string.gif_bouton).setView(ScrollView(this).apply { addView(col) })
+            .setNegativeButton(R.string.commun_annuler, null).create()
+        fun lancer() {
+            val q = champ.text.toString().trim()
+            if (q.length < 2) { etat.text = getString(R.string.gif_deux_lettres); return }
+            etat.text = getString(R.string.commun_chargement); grille.removeAllViews()
+            Thread {
+                var liste: JSONArray? = null; var err = ""
+                try {
+                    val cfg = Config(this)
+                    val r = Net.post(this, cfg, "/api/pc_parental/giphy", JSONObject().put("id", cfg.id).put("secret", cfg.secret).put("q", q), 20_000)
+                    liste = r.optJSONArray("resultats")
+                } catch (e: Net.Echec) { err = e.corps?.optString("retour").orEmpty().ifEmpty { Geste.messageEchec(e.code) } } catch (_: Exception) { err = getString(R.string.msgenv_ha_ne_repond_pas) }
+                main.post {
+                    if (isFinishing) return@post
+                    etat.text = err
+                    val n = liste?.length() ?: 0
+                    var rangee: LinearLayout? = null
+                    for (i in 0 until n) {
+                        val x = liste!!.getJSONObject(i)
+                        val octets = try { android.util.Base64.decode(x.optString("vignette").substringAfter("base64,"), android.util.Base64.DEFAULT) } catch (_: Exception) { continue }
+                        val bmp = android.graphics.BitmapFactory.decodeByteArray(octets, 0, octets.size) ?: continue
+                        if (rangee == null || rangee.childCount == 3) { rangee = LinearLayout(this); grille.addView(rangee) }
+                        val v = android.widget.ImageView(this).apply {
+                            setImageBitmap(bmp); scaleType = android.widget.ImageView.ScaleType.CENTER_CROP; isFocusable = true; isClickable = true
+                            contentDescription = x.optString("titre").ifEmpty { getString(R.string.gif_choisi) }
+                            Ui.anneauFocus(this, theme, 10f, agrandir = false)
+                            setOnClickListener { gif = x.optString("id"); gifVignette = bmp; dialogue.dismiss(); construire() }
+                        }
+                        rangee.addView(v, LinearLayout.LayoutParams(0, px(96f), 1f).apply { setMargins(px(3f), px(3f), px(3f), px(3f)) })
+                    }
+                }
+            }.also { it.isDaemon = true }.start()
+        }
+        champ.setOnEditorActionListener { _, _, _ -> lancer(); true }
+        col.addView(Ui.marge(this, Ui.boutonPrimaire(this, getString(R.string.gif_chercher)) { lancer() }, haut = 8f))
+        dialogue.show()
+    }
+
     private fun envoyer() {
         if (occupe) return
         occupe = true; statut = getString(R.string.commun_en_cours); statutKo = false
@@ -82,6 +139,7 @@ class MessageEnvoiActivity : Activity() {
         main.postDelayed(finOccupe, 10_000)
         val corps = JSONObject().put("action", "envoyer").put("destinataires", JSONArray(choix.toList())).put("type", type)
             .put("texte", texte).put("reponses", JSONArray(reponses)).put("important", important).put("pause_tele", pause).put("voix", voix)
+            .apply { if (gif.isNotEmpty()) put("gif", gif) }
         Thread {
             var ok = false; var msg = ""
             try { val r = appeler(corps, 9_000); ok = r.optBoolean("ok"); msg = r.optString("retour") }
@@ -91,7 +149,7 @@ class MessageEnvoiActivity : Activity() {
                 main.removeCallbacks(finOccupe)
                 if (isFinishing) return@post
                 occupe = false; statut = msg.ifEmpty { getString(if (ok) R.string.msgenv_envoye else R.string.msgenv_pas_parti) }; statutKo = !ok
-                if (ok) texte = ""
+                if (ok) { texte = ""; gif = ""; gifVignette = null }
                 construire(); charger()
             }
         }.also { it.isDaemon = true }.start()
@@ -160,6 +218,17 @@ class MessageEnvoiActivity : Activity() {
             })
         }
         c.addView(champ, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(14f) })
+        // 1.94 (point 4) : le bouton GIF n'existe que si Home Assistant dit que Giphy est prêt (activé, clé posée).
+        if (d.optBoolean("giphy")) {
+            val ligneGif = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+            val vignette = gifVignette
+            if (gif.isNotEmpty() && vignette != null) {
+                ligneGif.addView(android.widget.ImageView(this).apply { setImageBitmap(vignette); adjustViewBounds = true; contentDescription = getString(R.string.gif_choisi) },
+                    LinearLayout.LayoutParams(px(72f), px(72f)).apply { rightMargin = px(10f) })
+                ligneGif.addView(Ui.boutonSecondaire(this, getString(R.string.gif_retirer)) { gif = ""; gifVignette = null; construire() }.apply { tag = "gif_retirer" })
+            } else ligneGif.addView(Ui.boutonSecondaire(this, getString(R.string.gif_bouton)) { chercherGif() }.apply { tag = "gif_bouton" })
+            c.addView(ligneGif, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(10f) })
+        }
         section(c, getString(R.string.msgenv_reponses))
         val proposees = (0 until (d.optJSONArray("reponses_proposees")?.length() ?: 0)).map { d.optJSONArray("reponses_proposees")!!.optString(it) }
         c.addView(ChoixAdaptatif(this, getString(R.string.msgenv_reponses), (proposees + reponses.filter { it !in proposees }).map { ChoixAdaptatif.Option(it, it) },

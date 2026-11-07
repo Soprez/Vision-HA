@@ -386,3 +386,55 @@ async def test_recherche_de_l_appli_decideurs_seulement(hass, hass_storage, hass
     assert r.status == 401
     r = await client.post("/api/pc_parental/giphy", json={**PARENT, "q": "a"})                  # trop court : refus en clair
     assert r.status == 400 and (await r.json())["retour"]
+
+
+# ------------------------------------------------------------------ messages V2 (bouton GIF de l'appli) et Configurer
+
+
+async def test_message_v2_avec_un_gif(hass, hass_storage, tmp_path):
+    coord = await _installer(hass, hass_storage)
+    giphy.regler(coord.store, actif=True, cle="k" * 24)
+    hass.data[f"{DOMAIN}_giphy"] = giphy.Giphy(hass, coord.store, str(tmp_path / "gc"), lambda: "fr", fetch=FauxGiphy())
+    from importlib import import_module
+
+    v2 = import_module("custom_components.pc_parental.messages_v2")
+    r = await v2.envoyer(hass, coord, {"destinataires": ["e1"], "texte": "Bravo !", "gif": "AAAAAAAAAA1"}, {"user": "Nolan"})
+    m = coord.store.pcs["e1"]["messages"][-1]
+    assert r["messages"] and m["type"] == "image" and m["media"]["mime"] == "image/webp" and m["text"] == "Bravo !"
+    # Sans GIF : un message de texte, comme avant.
+    await v2.envoyer(hass, coord, {"destinataires": ["e1"], "texte": "Salut"}, {"user": "Nolan"})
+    assert coord.store.pcs["e1"]["messages"][-1]["type"] == "texte" and "media" not in coord.store.pcs["e1"]["messages"][-1]
+
+
+async def test_le_bouton_gif_n_existe_que_si_giphy_est_pret(hass, hass_storage, hass_client):
+    coord = await _installer(hass, hass_storage)
+    client = await hass_client()
+    corps = await (await client.post("/api/pc_parental/messages/app", json={**PARENT, "action": "lire"})).json()
+    assert corps["giphy"] is False
+    giphy.regler(coord.store, actif=True)
+    assert (await (await client.post("/api/pc_parental/messages/app", json={**PARENT, "action": "lire"})).json())["giphy"] is False   # pas de clé
+    giphy.regler(coord.store, cle="k" * 24)
+    corps = await (await client.post("/api/pc_parental/messages/app", json={**PARENT, "action": "lire"})).json()
+    assert corps["giphy"] is True and "k" * 24 not in repr(corps)
+
+
+async def test_configurer_giphy(hass, hass_storage):
+    coord = await _installer(hass, hass_storage)
+    entree = hass.config_entries.async_entries(DOMAIN)[0]
+    o = await hass.config_entries.options.async_init(entree.entry_id)
+    o = await hass.config_entries.options.async_configure(o["flow_id"], {"next_step_id": "autres"})
+    assert "giphy" in o["menu_options"]
+    o = await hass.config_entries.options.async_configure(o["flow_id"], {"next_step_id": "giphy"})
+    assert o["step_id"] == "giphy"
+    # Une clé de mauvaise forme : refusée en clair, rien de changé.
+    o = await hass.config_entries.options.async_configure(o["flow_id"], {"actif": True, "cle": "trop court !", "classification": "g"})
+    assert o["type"] == "form" and o["errors"] == {"base": "giphy_cle"} and giphy.etat(coord.store)["actif"] is False
+    o = await hass.config_entries.options.async_configure(o["flow_id"], {"actif": True, "cle": "a" * 32, "classification": "pg"})
+    assert o["type"] == "abort" and o["reason"] == "giphy_ok"
+    assert giphy.reglages(coord.store) == {"actif": True, "cle": "a" * 32, "classification": "pg"}
+    # Clé laissée vide : l'actuelle est gardée.
+    o = await hass.config_entries.options.async_init(entree.entry_id)
+    o = await hass.config_entries.options.async_configure(o["flow_id"], {"next_step_id": "autres"})
+    o = await hass.config_entries.options.async_configure(o["flow_id"], {"next_step_id": "giphy"})
+    o = await hass.config_entries.options.async_configure(o["flow_id"], {"actif": False, "classification": "g"})
+    assert giphy.reglages(coord.store) == {"actif": False, "cle": "a" * 32, "classification": "g"}

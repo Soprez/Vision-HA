@@ -479,7 +479,8 @@
           "accueil": "👋 Mensajes de bienvenida",
           "musique": "🎵 Música",
           "journal_musique": "📜 Registro de Música",
-          "appareils_essai": "🧪 Dispositivos Android de prueba"
+          "appareils_essai": "🧪 Dispositivos Android de prueba",
+          "giphy": "🎞️ GIF de Giphy (mensajes)"
         }
       },
       "assistant": {
@@ -547,6 +548,18 @@
       "tableau_lacher": {
         "title": "Dejar de gestionar el panel",
         "description": "Vision deja de rellenar o regenerar un panel. El que existe se deja tal cual: es suyo. Los enlaces «Dónde decidir» llevan entonces al panel de Vision."
+      },
+      "giphy": {
+        "title": "GIF de Giphy en los mensajes",
+        "description": "Desactivado por defecto. Home Assistant busca los GIF en Giphy (los dispositivos nunca contactan con Giphy); necesita su propia clave API, gratuita en developers.giphy.com. {cle_posee}\n\nLa clasificación «g» (todo público) es la predeterminada. Por encima decide usted: algunos destinatarios pueden ser jóvenes. Límite: 10 búsquedas por minuto.",
+        "data": {
+          "actif": "Activar los GIF de Giphy",
+          "cle": "Clave API de Giphy",
+          "classification": "Clasificación"
+        },
+        "data_description": {
+          "cle": "Déjelo vacío para conservar la clave actual."
+        }
       }
     },
     "error": {
@@ -578,7 +591,9 @@
       "objectifs_dependances": "Falta un objetivo: mira el mensaje de arriba.",
       "entites_rien_a_piloter": "No se ha dado ninguna entidad controlable a una persona o a un dispositivo: elige primero entidades (luces, interruptores, scripts, escenas, botones, persianas, termostatos).",
       "code_court_deverrouillage": "Al menos 4 caracteres.",
-      "personne_inconnue": "Este responsable no existe."
+      "personne_inconnue": "Este responsable no existe.",
+      "giphy_cle": "Esta clave no tiene la forma correcta (16 a 64 letras y cifras).",
+      "giphy_classification": "Clasificación desconocida."
     },
     "abort": {
       "not_loaded": "Vision no está cargado: vuelve a intentarlo en un momento.",
@@ -593,7 +608,8 @@
       "aucun_decideur": "Aún no hay responsables: da primero este rol a una persona.",
       "tableau_cree": "El panel de Vision está relleno.",
       "tableau_lache": "Vision ya no gestiona ningún panel; el existente se deja tal cual.",
-      "tableau_a_creer": "El panel «{titre}» aún no existe: Ajustes → Paneles → Añadir → Nuevo panel desde cero, con la dirección «{url}»; después vuelva a ejecutar «Crear el panel ahora»."
+      "tableau_a_creer": "El panel «{titre}» aún no existe: Ajustes → Paneles → Añadir → Nuevo panel desde cero, con la dirección «{url}»; después vuelva a ejecutar «Crear el panel ahora».",
+      "giphy_ok": "Ajustes de los GIF de Giphy guardados."
     }
   },
   "selector": {

@@ -479,7 +479,8 @@
           "accueil": "👋 Welkomstberichten",
           "musique": "🎵 Muziek",
           "journal_musique": "📜 Muzieklogboek",
-          "appareils_essai": "🧪 Android-testapparaten"
+          "appareils_essai": "🧪 Android-testapparaten",
+          "giphy": "🎞️ Giphy-GIF's (berichten)"
         }
       },
       "assistant": {
@@ -547,6 +548,18 @@
       "tableau_lacher": {
         "title": "Dashboard niet meer beheren",
         "description": "Vision vult of hergenereert geen dashboard meer. Het bestaande blijft zoals het is: het is van jou. De links „Waar beslissen” leiden dan naar het Vision-paneel."
+      },
+      "giphy": {
+        "title": "Giphy-GIF's in berichten",
+        "description": "Standaard uit. Home Assistant haalt de GIF's bij Giphy (toestellen nemen nooit contact op met Giphy); je hebt je eigen API-sleutel nodig, gratis op developers.giphy.com. {cle_posee}\n\nDe classificatie „g” (voor iedereen) is de standaard. Daarboven bepaal je zelf: sommige ontvangers kunnen jong zijn. Limiet: 10 zoekopdrachten per minuut.",
+        "data": {
+          "actif": "Giphy-GIF's inschakelen",
+          "cle": "Giphy-API-sleutel",
+          "classification": "Classificatie"
+        },
+        "data_description": {
+          "cle": "Laat leeg om de huidige sleutel te houden."
+        }
       }
     },
     "error": {
@@ -578,7 +591,9 @@
       "objectifs_dependances": "Er ontbreekt een doel: zie het bericht bovenaan.",
       "entites_rien_a_piloter": "Er is geen bedienbare entiteit aan een persoon of apparaat gegeven: kies eerst entiteiten (lampen, schakelaars, scripts, scènes, knoppen, rolluiken, thermostaten).",
       "code_court_deverrouillage": "Minstens 4 tekens.",
-      "personne_inconnue": "Deze beslisser bestaat niet."
+      "personne_inconnue": "Deze beslisser bestaat niet.",
+      "giphy_cle": "Deze sleutel heeft niet de juiste vorm (16 tot 64 letters en cijfers).",
+      "giphy_classification": "Onbekende classificatie."
     },
     "abort": {
       "not_loaded": "Vision is niet geladen: probeer het zo opnieuw.",
@@ -593,7 +608,8 @@
       "aucun_decideur": "Nog geen beslisser: geef deze rol eerst aan een persoon.",
       "tableau_cree": "Het Vision-dashboard is gevuld.",
       "tableau_lache": "Vision beheert geen dashboard meer; het bestaande blijft zoals het is.",
-      "tableau_a_creer": "Het dashboard „{titre}” bestaat nog niet: Instellingen → Dashboards → Toevoegen → Nieuw dashboard vanaf nul, met het adres „{url}”; voer daarna „Dashboard nu maken” opnieuw uit."
+      "tableau_a_creer": "Het dashboard „{titre}” bestaat nog niet: Instellingen → Dashboards → Toevoegen → Nieuw dashboard vanaf nul, met het adres „{url}”; voer daarna „Dashboard nu maken” opnieuw uit.",
+      "giphy_ok": "Instellingen van de Giphy-GIF's opgeslagen."
     }
   },
   "selector": {

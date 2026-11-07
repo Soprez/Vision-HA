@@ -98,5 +98,7 @@
   "assistant_suite_pc": "abre Vision → Configurar → Añadir un dispositivo. «Un PC Windows» ya está elegido; tendrás el enlace del agente y los pasos a seguir.",
   "assistant_suite_plus_tard": "cuando quieras, Vision → Configurar → Añadir un dispositivo.",
   "assistant_tableau_oui": "El panel de Vision ({tableau}) se crea en la barra lateral.",
-  "assistant_tableau_non": "Sin panel de Vision: todo sigue accesible desde el panel de Vision y las tarjetas."
+  "assistant_tableau_non": "Sin panel de Vision: todo sigue accesible desde el panel de Vision y las tarjetas.",
+  "giphy_cle_posee": "Ya hay una clave.",
+  "giphy_cle_absente": "Todavía no hay ninguna clave."
 }

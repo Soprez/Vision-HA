@@ -309,7 +309,34 @@ class PcParentalOptionsFlow(_Assistant, OptionsFlow):
     async def async_step_autres(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
         """Les réglages d'avant, tous, le temps que le panneau Réglages (lot 5) les accueille."""
         return self.async_show_menu(step_id="autres", menu_options=[
-            "roles", "securite", "entites", "general", "accueil", "musique", "journal_musique", "appareils_essai"])
+            "roles", "securite", "entites", "general", "accueil", "musique", "journal_musique", "appareils_essai", "giphy"])
+
+    async def async_step_giphy(self, user_input: dict[str, Any] | None = None) -> "ConfigFlowResult":
+        """1.94 (point 4) : les GIF Giphy dans les messages : activer, votre clé API (jamais montrée), la classification (g par défaut)."""
+        from homeassistant.helpers.selector import (
+            BooleanSelector, SelectSelector, SelectSelectorConfig, SelectSelectorMode, TextSelector, TextSelectorConfig, TextSelectorType)
+        from . import giphy
+
+        coord = self._coord()
+        if coord is None:
+            return self.async_abort(reason="not_loaded")
+        erreurs: dict[str, str] = {}
+        r = giphy.reglages(coord.store)
+        if user_input is not None:
+            try:
+                giphy.regler(coord.store, actif=bool(user_input.get("actif")), cle=(user_input.get("cle") or None),
+                             classification=str(user_input.get("classification") or giphy.CLASSIFICATION_DEFAUT))
+            except textes.Erreur as err:
+                erreurs["base"] = "giphy_cle" if err.cle == "giphy.cle_forme" else "giphy_classification"
+            else:
+                await coord.store.async_save()
+                return self.async_abort(reason="giphy_ok")
+        return self.async_show_form(step_id="giphy", errors=erreurs, data_schema=vol.Schema({
+            vol.Required("actif", default=r["actif"]): BooleanSelector(),
+            vol.Optional("cle"): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
+            vol.Required("classification", default=r["classification"]): SelectSelector(SelectSelectorConfig(
+                options=list(giphy.CLASSIFICATIONS), mode=SelectSelectorMode.DROPDOWN)),
+        }), description_placeholders={"cle_posee": self._tx("giphy_cle_posee") if r["cle"] else self._tx("giphy_cle_absente")})
 
     # ------------------------------------------------ Relancer l'assistant (refonte UX lot 4)
 

@@ -479,7 +479,8 @@
           "accueil": "👋 Begrüßungstexte",
           "musique": "🎵 Musik",
           "journal_musique": "📜 Musik-Protokoll",
-          "appareils_essai": "🧪 Android-Testgeräte"
+          "appareils_essai": "🧪 Android-Testgeräte",
+          "giphy": "🎞️ Giphy-GIFs (Nachrichten)"
         }
       },
       "assistant": {
@@ -547,6 +548,18 @@
       "tableau_lacher": {
         "title": "Dashboard nicht mehr verwalten",
         "description": "Vision hört auf, ein Dashboard zu füllen oder neu zu erzeugen. Das vorhandene bleibt, wie es ist: Es gehört Ihnen. Die Links „Wo entscheiden“ führen dann zum Vision-Panel."
+      },
+      "giphy": {
+        "title": "Giphy-GIFs in Nachrichten",
+        "description": "Standardmäßig aus. Home Assistant holt die GIFs bei Giphy (Geräte kontaktieren Giphy nie); Sie brauchen Ihren eigenen API-Schlüssel, kostenlos auf developers.giphy.com. {cle_posee}\n\nDie Einstufung „g“ (für alle) ist der Standard. Darüber entscheiden Sie selbst: Manche Empfänger können jung sein. Grenze: 10 Suchen pro Minute.",
+        "data": {
+          "actif": "Giphy-GIFs aktivieren",
+          "cle": "Giphy-API-Schlüssel",
+          "classification": "Einstufung"
+        },
+        "data_description": {
+          "cle": "Leer lassen, um den aktuellen Schlüssel zu behalten."
+        }
       }
     },
     "error": {
@@ -578,7 +591,9 @@
       "objectifs_dependances": "Ein Ziel fehlt: siehe die Meldung oben.",
       "entites_rien_a_piloter": "Keiner Person und keinem Gerät ist eine steuerbare Entität gegeben: Wähle zuerst Entitäten aus (Lichter, Schalter, Skripte, Szenen, Tasten, Rollläden, Thermostate).",
       "code_court_deverrouillage": "Mindestens 4 Zeichen.",
-      "personne_inconnue": "Diesen Entscheider gibt es nicht."
+      "personne_inconnue": "Diesen Entscheider gibt es nicht.",
+      "giphy_cle": "Dieser Schlüssel hat die falsche Form (16 bis 64 Buchstaben und Ziffern).",
+      "giphy_classification": "Unbekannte Einstufung."
     },
     "abort": {
       "not_loaded": "Vision ist nicht geladen: Versuch es gleich noch einmal.",
@@ -593,7 +608,8 @@
       "aucun_decideur": "Noch kein Entscheider: Gib diese Rolle zuerst einer Person.",
       "tableau_cree": "Das Vision-Dashboard ist gefüllt.",
       "tableau_lache": "Vision verwaltet kein Dashboard mehr; das vorhandene bleibt, wie es ist.",
-      "tableau_a_creer": "Das Dashboard „{titre}“ gibt es noch nicht: Einstellungen → Dashboards → Hinzufügen → Neues Dashboard von Grund auf, mit der Adresse „{url}“; dann „Dashboard jetzt erstellen“ erneut ausführen."
+      "tableau_a_creer": "Das Dashboard „{titre}“ gibt es noch nicht: Einstellungen → Dashboards → Hinzufügen → Neues Dashboard von Grund auf, mit der Adresse „{url}“; dann „Dashboard jetzt erstellen“ erneut ausführen.",
+      "giphy_ok": "Giphy-GIF-Einstellungen gespeichert."
     }
   },
   "selector": {

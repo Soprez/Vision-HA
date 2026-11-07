@@ -98,5 +98,7 @@
   "assistant_suite_pc": "öffne Vision → Konfigurieren → Gerät hinzufügen. „Ein Windows-PC“ ist dort schon gewählt; du bekommst den Agent-Link und die Schritte.",
   "assistant_suite_plus_tard": "wann du willst: Vision → Konfigurieren → Gerät hinzufügen.",
   "assistant_tableau_oui": "Das Vision-Dashboard ({tableau}) wird in der Seitenleiste erstellt.",
-  "assistant_tableau_non": "Kein Vision-Dashboard: alles bleibt über das Vision-Panel und die Karten erreichbar."
+  "assistant_tableau_non": "Kein Vision-Dashboard: alles bleibt über das Vision-Panel und die Karten erreichbar.",
+  "giphy_cle_posee": "Ein Schlüssel ist bereits gesetzt.",
+  "giphy_cle_absente": "Noch kein Schlüssel gesetzt."
 }

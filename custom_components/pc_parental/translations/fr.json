@@ -479,7 +479,8 @@
           "accueil": "👋 Messages d'accueil",
           "musique": "🎵 Musique",
           "journal_musique": "📜 Journal Musique",
-          "appareils_essai": "🧪 Appareils Android d'essai"
+          "appareils_essai": "🧪 Appareils Android d'essai",
+          "giphy": "🎞️ GIF Giphy (messages)"
         }
       },
       "assistant": {
@@ -547,6 +548,18 @@
       "tableau_lacher": {
         "title": "Ne plus gérer le tableau de bord",
         "description": "Vision cesse de remplir ou de régénérer un tableau de bord. Celui qui existe est laissé tel quel : il vous appartient. Les liens « Où décider » mènent alors au panneau Vision."
+      },
+      "giphy": {
+        "title": "GIF Giphy dans les messages",
+        "description": "Option coupée par défaut. Home Assistant va chercher les GIF chez Giphy (l'appareil ne contacte jamais Giphy) ; il faut votre propre clé API, gratuite sur developers.giphy.com. {cle_posee}\n\nLa classification « g » (tout public) est celle par défaut. Au-dessus, c'est à vous de décider : certains destinataires peuvent être jeunes. Limite : 10 recherches par minute.",
+        "data": {
+          "actif": "Activer les GIF Giphy",
+          "cle": "Clé API Giphy",
+          "classification": "Classification"
+        },
+        "data_description": {
+          "cle": "Laissez vide pour garder la clé actuelle."
+        }
       }
     },
     "error": {
@@ -578,7 +591,9 @@
       "objectifs_dependances": "Il manque un objectif : voir le message en tête.",
       "entites_rien_a_piloter": "Aucune entité pilotable n'est donnée à une personne ou à un appareil : choisis d'abord des entités (lumières, interrupteurs, scripts, scènes, boutons, volets, thermostats).",
       "code_court_deverrouillage": "Au moins 4 caractères.",
-      "personne_inconnue": "Ce Décideur n'existe pas."
+      "personne_inconnue": "Ce Décideur n'existe pas.",
+      "giphy_cle": "Cette clé n'a pas la bonne forme (16 à 64 lettres et chiffres).",
+      "giphy_classification": "Classification inconnue."
     },
     "abort": {
       "not_loaded": "Vision n'est pas chargé : réessaie dans un instant.",
@@ -593,7 +608,8 @@
       "aucun_decideur": "Aucun Décideur pour l'instant : donne d'abord ce rôle à une personne.",
       "tableau_cree": "Le tableau de bord Vision est rempli.",
       "tableau_lache": "Vision ne gère plus de tableau de bord ; l'existant est laissé tel quel.",
-      "tableau_a_creer": "Le tableau de bord « {titre} » n'existe pas encore : Paramètres → Tableaux de bord → Ajouter → Nouveau tableau de bord à partir de zéro, avec l'adresse « {url} » ; puis relancez « Créer le tableau de bord maintenant »."
+      "tableau_a_creer": "Le tableau de bord « {titre} » n'existe pas encore : Paramètres → Tableaux de bord → Ajouter → Nouveau tableau de bord à partir de zéro, avec l'adresse « {url} » ; puis relancez « Créer le tableau de bord maintenant ».",
+      "giphy_ok": "Réglages des GIF Giphy enregistrés."
     }
   },
   "selector": {

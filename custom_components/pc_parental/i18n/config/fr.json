@@ -98,5 +98,7 @@
   "assistant_suite_pc": "ouvre Vision → Configurer → Ajouter un appareil. « Un PC Windows » y est déjà choisi ; tu auras le lien de l'agent et la marche à suivre.",
   "assistant_suite_plus_tard": "quand tu veux, Vision → Configurer → Ajouter un appareil.",
   "assistant_tableau_oui": "Le tableau de bord Vision ({tableau}) est créé dans la barre latérale.",
-  "assistant_tableau_non": "Pas de tableau de bord Vision : tout reste accessible par le panneau Vision et par les cartes."
+  "assistant_tableau_non": "Pas de tableau de bord Vision : tout reste accessible par le panneau Vision et par les cartes.",
+  "giphy_cle_posee": "Une clé est déjà posée.",
+  "giphy_cle_absente": "Aucune clé n'est posée pour l'instant."
 }

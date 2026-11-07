@@ -821,4 +821,10 @@
     <string name="ma_qr_titre">Öffne Music Assistant auf deinem Handy</string>
     <string name="ma_qr_texte">Scanne diesen Code: Warteschlange, Favoriten und Einstellungen verwaltest du dort.</string>
     <string name="ma_qr_description">QR-Code, um Music Assistant auf einem Handy zu öffnen</string>
+    <string name="gif_bouton">GIF</string>
+    <string name="gif_retirer">GIF entfernen</string>
+    <string name="gif_choisi">GIF gewählt</string>
+    <string name="gif_chercher_indice">GIF suchen (Stichwort)</string>
+    <string name="gif_chercher">Suchen</string>
+    <string name="gif_deux_lettres">Gib mindestens zwei Buchstaben ein.</string>
 </resources>
