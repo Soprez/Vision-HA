@@ -21,6 +21,7 @@ import java.lang.ref.WeakReference
  * absent sinon : la tuile n'existe pas dans le catalogue, un Demandeur ne la voit jamais). Il donne le port de l'interface et le
  * chemin du panneau d'ingress ; jamais d'adresse interne.
  *
+ * Sur la télé, sans l'appli : un écran avec un QR code (MaQrActivity), jamais l'interface web (décision de l'auteur).
  * Ce qui s'ouvre, dans l'ordre ([choisir], pur) : l'appli Music Assistant si elle est installée ; sinon, sur le réseau local,
  * l'interface web à l'adresse locale de Home Assistant que l'appareil connaît déjà, au port donné ; sinon l'ingress de Home
  * Assistant, par l'adresse où l'appareil joint Home Assistant (d'où qu'on soit).
@@ -99,8 +100,9 @@ object MusicAssistant {
 
     private fun ouvrirWeb(act: Activity, info: Info, cfg: Config): Boolean {
         val o = choisir(info, null, cfg.urlActive.ifEmpty { cfg.adresses().firstOrNull().orEmpty() }) as? Ouverture.Web ?: return false
-        // Télé : l'interface s'ouvre dans la fenêtre de Vision (le navigateur de la télé, quand il y en a un, ne se pilote pas à la télécommande).
-        if (ReglagesTvActivity.estTele(act)) { act.startActivity(Intent(act, MaWebActivity::class.java).putExtra("url", o.url)); return true }
+        // Télé (décision de l'auteur) : l'interface web ne se pilote pas à la télécommande, pas de WebView. L'appli Music Assistant si elle est
+        // installée (déjà choisie par [choisir]) ; sinon « Ouvre Music Assistant sur ton téléphone », avec un QR code vers l'interface.
+        if (ReglagesTvActivity.estTele(act)) { act.startActivity(Intent(act, MaQrActivity::class.java).putExtra("url", o.url)); return true }
         return try { act.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(o.url))); true } catch (_: Exception) {
             act.startActivity(Intent(act, MaWebActivity::class.java).putExtra("url", o.url)); true
         }

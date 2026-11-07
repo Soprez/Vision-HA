@@ -2274,6 +2274,24 @@ class PcStore:
             else:
                 a["delai_redemande"] = max(0, min(1440, int(minutes)))
 
+    # ------------------------------------------ Music Assistant, par profil (1.94)
+    #
+    # La tuile « Music Assistant » est réservée aux Décideurs (droit de rôle `musique_ma`). L'administrateur peut l'ouvrir ou la fermer
+    # pour une personne : oui / non posé sur ses appareils ; sans réponse, la personne suit son rôle.
+    def musique_ma_personne(self, pc: dict[str, Any]) -> bool | None:
+        for a in self._siens(pc):
+            if isinstance(a.get("musique_ma"), bool):
+                return a["musique_ma"]
+        return None
+
+    def poser_musique_ma_personne(self, pc: dict[str, Any], voulu: bool | None) -> None:
+        """Pose (oui / non) ou retire (None : suivre le rôle) le choix de la personne de cet appareil."""
+        for a in self._siens(pc):
+            if voulu is None:
+                a.pop("musique_ma", None)
+            else:
+                a["musique_ma"] = bool(voulu)
+
     def noter_demande(self, pc: dict[str, Any], genre: str, cle: str) -> float:
         """Retient qu'une demande vient d'être faite. Rend l'heure à partir de laquelle elle peut être refaite (0 : pas d'attente)."""
         minutes = self.delai_redemande_de(pc)

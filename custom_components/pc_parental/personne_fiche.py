@@ -10,6 +10,7 @@ garde son accès (secondaire) jusqu'au lot 4.
                                            {"op": "temps_gagne", "personne", "liste", "minutes", "max"} (liste "" : retirer)
                                            {"op": "regle_lieu", "personne", "zone", "etiquettes"}      ([] : retirer)
                                            {"op": "delai_redemande", "personne", "minutes"}            (vide : celui de la maison)
+                                           {"op": "musique_ma", "personne", "valeur"}   ("role" : suivre le rôle, "oui", "non" ; code demandé)
 
 `resume_appli()` donne à l'appli (réponse /parent, lecture seule) un résumé de la même fiche.
 """
@@ -98,6 +99,18 @@ def _delai(store, personne: str) -> dict[str, Any]:
     propre = store.delai_redemande_personne(pc) if pc is not None else None
     return {"maison": int(store.delai_redemande or 0), "personne": propre,
             "effectif": propre if propre is not None else int(store.delai_redemande or 0), "appareil": pc is not None}
+
+
+def _ma(hass: HomeAssistant, store, personne: str) -> dict[str, Any] | None:
+    """Music Assistant pour cette personne : seulement s'il est installé ; ce que dit son rôle, son choix, et ce qui s'applique."""
+    from . import musique_ma
+
+    pc = next(iter(store.appareils_de(personne)), None)
+    if pc is None or not musique_ma.installe(hass):
+        return None
+    choix = store.musique_ma_personne(pc)
+    role = roles.a(store, pc, musique_ma.FONCTION)
+    return {"role": role, "personne": choix, "effectif": choix if choix is not None else role}
 
 
 def poser_delai(hass: HomeAssistant, store, personne: str, minutes: int | None) -> int:
@@ -198,6 +211,7 @@ def etat(hass: HomeAssistant, coord, personne: str) -> dict[str, Any]:
         "widgets": len(store.entites_personnes.get(personne) or []),
         "minutes_defaut": temps_gagne.MINUTES_DEFAUT, "max_defaut": temps_gagne.MAX_DEFAUT,
         "delai_redemande": _delai(store, personne) if not modules.coupe(store, "demandes") else None,
+        "musique_ma": _ma(hass, store, personne) if not modules.coupe(store, "accueil") else None,
     }
 
 
@@ -244,6 +258,20 @@ async def regler(hass: HomeAssistant, coord, corps: dict[str, Any], par: str) ->
         await store.async_save()
         return textes.t("fiche.delai_fait" if minutes is not None else "fiche.delai_retire", langue,
                         prenom=_nom(hass, personne), minutes=effectif)
+    if op == "musique_ma":
+        from . import musique_ma
+
+        _exiger(store, "accueil")
+        valeur = str(corps.get("valeur") or "")
+        if valeur not in ("role", "oui", "non"):
+            raise textes.Erreur("fiche.ma_valeur")
+        pc = next(iter(store.appareils_de(personne)), None)
+        if pc is None:
+            raise textes.Erreur("fiche.delai_sans_appareil", prenom=lambda lg: _nom(hass, personne))
+        store.poser_musique_ma_personne(pc, None if valeur == "role" else valeur == "oui")
+        await store.async_save()
+        coord.async_update_listeners()
+        return textes.t({"role": "fiche.ma_role", "oui": "fiche.ma_oui", "non": "fiche.ma_non"}[valeur], langue, prenom=_nom(hass, personne))
     raise textes.Erreur("fiche.reglage_inconnu")
 
 

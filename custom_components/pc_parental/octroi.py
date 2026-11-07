@@ -46,7 +46,7 @@ RESTRICTIFS = frozenset({"fermer", "message", "concentration", "pause_generale",
 LECTURES = frozenset({"", "categorie", "recherche", "recents", "canaux"})
 BLOCAGES = frozenset({"bloquer", "bloque", "non", "fermer"})
 # La fiche d'une personne : donner un rôle (Décideur…) ou du temps gagné accorde ; une règle de lieu restreint.
-OPS_FICHE = frozenset({"role", "temps_gagne"})
+OPS_FICHE = frozenset({"role", "temps_gagne", "musique_ma"})
 
 ESSAIS_FAUX_MAX = 5
 FENETRE_S = 15 * 60

@@ -141,3 +141,61 @@ def test_textes_serveur_six_langues():
     for lg in LANGUES:
         srv = json.loads((RACINE / "i18n" / "serveur" / f"{lg}.json").read_text(encoding="utf-8"))
         assert "Music Assistant" in srv["roles.f_musique_ma"] and "Music Assistant" in srv["mus.a_faire_dans_ma"]
+
+
+# ------------------------------------------------------------------ le choix par profil (décision de l'auteur)
+
+
+async def test_par_profil_un_administrateur_ouvre_la_tuile_a_un_demandeur(hass, hass_storage, monkeypatch):
+    from custom_components.pc_parental import roles
+
+    coord = await _installer(hass, hass_storage)
+    _ma_installe(monkeypatch)
+    s = coord.store
+    e1 = s.pcs["e1"]
+    assert s.musique_ma_personne(e1) is None and (await _etat(hass, coord, "e1"))["musique_ma"] is None       # par défaut : fermée
+    s.poser_musique_ma_personne(e1, True)
+    e = await _etat(hass, coord, "e1")
+    assert e["musique_ma"] and "ma" in e["widgets_disponibles"]
+    s.poser_musique_ma_personne(e1, None)                                                                       # suit de nouveau son rôle
+    assert (await _etat(hass, coord, "e1"))["musique_ma"] is None
+    # Un « non » ferme la tuile même à un Décideur.
+    s.poser_musique_ma_personne(s.pcs["p1"], False)
+    assert (await _etat(hass, coord, "p1"))["musique_ma"] is None
+    assert roles.a(s, s.pcs["p1"], "musique_ma") is True          # le rôle, lui, n'a pas changé
+
+
+async def test_fiche_de_la_personne_choix_de_music_assistant(hass, hass_storage, hass_client, monkeypatch):
+    from octroi_banc import CODE_OCTROI, poser_code_octroi
+
+    coord = await _installer(hass, hass_storage)
+    poser_code_octroi(hass)
+    client = await hass_client()
+    url = "/api/pc_parental/personne/admin"
+    # Music Assistant absent : le champ n'existe pas dans la fiche.
+    d = await (await client.get(url + "?personne=person.camille")).json()
+    assert d["musique_ma"] is None
+    _ma_installe(monkeypatch)
+    d = await (await client.get(url + "?personne=person.camille")).json()
+    assert d["musique_ma"] == {"role": False, "personne": None, "effectif": False}
+    # Accorder Music Assistant est un octroi (il demande le code, comme un rôle) ; l'administrateur de Home Assistant en est dispensé.
+    from custom_components.pc_parental import octroi
+
+    assert "musique_ma" in octroi.OPS_FICHE
+    r = await client.post(url, json={"code_octroi": CODE_OCTROI, "op": "musique_ma", "personne": "person.camille", "valeur": "oui"})
+    d = await r.json()
+    assert r.status == 200 and d["musique_ma"] == {"role": False, "personne": True, "effectif": True} and d["fait"]
+    r = await client.post(url, json={"code_octroi": CODE_OCTROI, "op": "musique_ma", "personne": "person.camille", "valeur": "role"})
+    assert (await r.json())["musique_ma"]["personne"] is None
+    r = await client.post(url, json={"code_octroi": CODE_OCTROI, "op": "musique_ma", "personne": "person.camille", "valeur": "peut-etre"})
+    assert r.status == 400 and (await r.json())["retour"]
+
+
+def test_textes_du_choix_par_profil():
+    carte = (RACINE / "frontend" / "vision-personne-card.js").read_text(encoding="utf-8")
+    for cle in ("ma_titre", "ma_aide", "ma_role", "ma_oui", "ma_non"):
+        assert carte.count(f'"{cle}":') == 6, cle
+    for lg in LANGUES:
+        srv = json.loads((RACINE / "i18n" / "serveur" / f"{lg}.json").read_text(encoding="utf-8"))
+        for cle in ("fiche.ma_oui", "fiche.ma_non", "fiche.ma_role", "fiche.ma_valeur"):
+            assert srv[cle], (lg, cle)

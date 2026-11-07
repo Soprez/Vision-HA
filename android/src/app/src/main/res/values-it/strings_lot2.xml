@@ -818,4 +818,7 @@
     <string name="ma_ouvrir">Apri Music Assistant</string>
     <string name="ma_detail">Coda, preferiti e impostazioni</string>
     <string name="ma_indisponible">Music Assistant non si può aprire da qui.</string>
+    <string name="ma_qr_titre">Apri Music Assistant sul tuo telefono</string>
+    <string name="ma_qr_texte">Inquadra questo codice: coda, preferiti e impostazioni si gestiscono lì.</string>
+    <string name="ma_qr_description">Codice QR per aprire Music Assistant su un telefono</string>
 </resources>

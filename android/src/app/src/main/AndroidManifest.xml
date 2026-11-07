@@ -140,6 +140,11 @@
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:theme="@android:style/Theme.Material.NoActionBar" />
         <activity
+            android:name=".MaQrActivity"
+            android:exported="false"
+            android:label="@string/accueil_widget_ma"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
+        <activity
             android:name=".MaWebActivity"
             android:exported="false"
             android:label="@string/accueil_widget_ma"

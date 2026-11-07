@@ -818,4 +818,7 @@
     <string name="ma_ouvrir">Music Assistant openen</string>
     <string name="ma_detail">Wachtrij, favorieten en instellingen</string>
     <string name="ma_indisponible">Music Assistant kan hier niet worden geopend.</string>
+    <string name="ma_qr_titre">Open Music Assistant op je telefoon</string>
+    <string name="ma_qr_texte">Scan deze code: wachtrij, favorieten en instellingen beheer je daar.</string>
+    <string name="ma_qr_description">QR-code om Music Assistant op een telefoon te openen</string>
 </resources>

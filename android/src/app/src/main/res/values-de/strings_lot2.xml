@@ -818,4 +818,7 @@
     <string name="ma_ouvrir">Music Assistant öffnen</string>
     <string name="ma_detail">Warteschlange, Favoriten und Einstellungen</string>
     <string name="ma_indisponible">Music Assistant lässt sich von hier nicht öffnen.</string>
+    <string name="ma_qr_titre">Öffne Music Assistant auf deinem Handy</string>
+    <string name="ma_qr_texte">Scanne diesen Code: Warteschlange, Favoriten und Einstellungen verwaltest du dort.</string>
+    <string name="ma_qr_description">QR-Code, um Music Assistant auf einem Handy zu öffnen</string>
 </resources>

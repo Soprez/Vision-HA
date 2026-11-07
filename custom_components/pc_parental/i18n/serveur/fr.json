@@ -1009,5 +1009,9 @@
   "images.indisponible": "L'image n'a pas pu être téléchargée.",
   "images.refusee": "Cette image n'est pas acceptée (JPEG, PNG, WebP ou GIF, pas trop grande).",
   "msg.un_seul_media": "Un seul média par message : media, image ou gif.",
-  "notif.lien_panneau": "panneau {produit}"
+  "notif.lien_panneau": "panneau {produit}",
+  "fiche.ma_oui": "{prenom} peut ouvrir Music Assistant.",
+  "fiche.ma_non": "{prenom} ne peut pas ouvrir Music Assistant.",
+  "fiche.ma_role": "{prenom} suit son rôle pour Music Assistant.",
+  "fiche.ma_valeur": "Choix inconnu : suivre le rôle, oui ou non."
 }

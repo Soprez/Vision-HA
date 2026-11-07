@@ -85,4 +85,21 @@ class MusicAssistantTest {
         val manifeste = listOf(File("src/main/AndroidManifest.xml"), File("app/src/main/AndroidManifest.xml")).first { it.isFile }.readText()
         assertTrue(manifeste.contains(".MaWebActivity") && manifeste.contains("io.music_assistant.companion"))
     }
+
+    @Test fun sur_la_tele_sans_l_appli_un_ecran_avec_un_qr_code_jamais_une_webview() {
+        val i = android.content.Intent(ctx, MaQrActivity::class.java).putExtra("url", "http://10.1.1.20:8095/")
+        val a = org.robolectric.Robolectric.buildActivity(MaQrActivity::class.java, i).setup().get()
+        val image = ArrayList<android.view.View>()
+        a.window.decorView.findViewsWithText(image, a.getString(R.string.ma_qr_description), android.view.View.FIND_VIEWS_WITH_CONTENT_DESCRIPTION)
+        assertEquals("le QR code est là", 1, image.size)
+        val textes = ArrayList<android.view.View>()
+        a.window.decorView.findViewsWithText(textes, a.getString(R.string.ma_qr_titre), android.view.View.FIND_VIEWS_WITH_TEXT)
+        assertEquals("le titre dit d'ouvrir Music Assistant sur le téléphone", 1, textes.size)
+        // Une adresse qui n'est pas http(s) : rien n'est montré (jamais un QR vers autre chose).
+        val ko = org.robolectric.Robolectric.buildActivity(MaQrActivity::class.java, android.content.Intent(ctx, MaQrActivity::class.java).putExtra("url", "file:///etc/passwd")).setup().get()
+        assertTrue(ko.isFinishing)
+        fun source(f: String) = listOf(File("src/main/java/org/soprez/vision/$f"), File("app/src/main/java/org/soprez/vision/$f")).first { it.isFile }.readText()
+        val tele = source("MusicAssistant.kt").substringAfter("if (ReglagesTvActivity.estTele(act))").substringBefore("return try")
+        assertTrue(tele.contains("MaQrActivity") && !tele.contains("MaWebActivity"))
+    }
 }

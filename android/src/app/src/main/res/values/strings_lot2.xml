@@ -818,4 +818,7 @@
     <string name="ma_ouvrir">Open Music Assistant</string>
     <string name="ma_detail">Queue, favourites and settings</string>
     <string name="ma_indisponible">Music Assistant cannot be opened from here.</string>
+    <string name="ma_qr_titre">Open Music Assistant on your phone</string>
+    <string name="ma_qr_texte">Scan this code: the queue, favourites and settings are managed there.</string>
+    <string name="ma_qr_description">QR code to open Music Assistant on a phone</string>
 </resources>

@@ -62,8 +62,12 @@ def port(hass: HomeAssistant) -> int:
 
 
 def autorise(store, pc: dict[str, Any] | None) -> bool:
-    """Cet appareil peut-il ouvrir Music Assistant ? (module Accueil actif, fonction de rôle accordée)"""
-    return pc is not None and not modules.coupe(store, "accueil") and roles.a(store, pc, FONCTION)
+    """Cet appareil peut-il ouvrir Music Assistant ? Module Accueil actif ; puis le choix de la personne (oui / non, posé par un
+    administrateur) s'il y en a un, sinon la fonction de rôle (Décideur par défaut ; jamais un Demandeur d'office)."""
+    if pc is None or modules.coupe(store, "accueil"):
+        return False
+    choix = store.musique_ma_personne(pc)
+    return choix if choix is not None else roles.a(store, pc, FONCTION)
 
 
 def infos(hass: HomeAssistant, coord, pc: dict[str, Any] | None) -> dict[str, Any] | None:

@@ -35,12 +35,25 @@
         "ha"
       ],
       "texte": {
-        "fr": "Nouveau droit de rôle « Ouvrir Music Assistant » : à accorder à un Demandeur seulement si vous le voulez.",
-        "en": "New role right “Open Music Assistant”: give it to a Requester only if you want to.",
-        "de": "Neues Rollenrecht „Music Assistant öffnen“: nur dann einem Anfragenden geben, wenn Sie es wollen.",
-        "es": "Nuevo derecho de rol «Abrir Music Assistant»: concédalo a un Solicitante solo si lo desea.",
-        "it": "Nuovo diritto di ruolo «Aprire Music Assistant»: concedilo a un Richiedente solo se vuoi.",
-        "nl": "Nieuw rolrecht „Music Assistant openen”: geef het alleen aan een Aanvrager als je dat wilt."
+        "fr": "Droit « Ouvrir Music Assistant » par rôle, et par personne dans sa fiche (le code est demandé).",
+        "en": "“Open Music Assistant” right by role, and per person on their page (the code is asked).",
+        "de": "Recht „Music Assistant öffnen“ pro Rolle und pro Person auf ihrer Seite (der Code wird verlangt).",
+        "es": "Derecho «Abrir Music Assistant» por rol y por persona en su ficha (se pide el código).",
+        "it": "Diritto «Aprire Music Assistant» per ruolo e per persona nella sua scheda (viene chiesto il codice).",
+        "nl": "Recht „Music Assistant openen” per rol en per persoon op de pagina (de code wordt gevraagd)."
+      }
+    },
+    {
+      "cibles": [
+        "tele"
+      ],
+      "texte": {
+        "fr": "Sur la télé, sans l'appli : « Ouvre Music Assistant sur ton téléphone », avec un QR code.",
+        "en": "On the TV, without the app: “Open Music Assistant on your phone”, with a QR code.",
+        "de": "Am Fernseher ohne die App: „Öffne Music Assistant auf deinem Handy“, mit QR-Code.",
+        "es": "En la tele, sin la app: «Abre Music Assistant en tu teléfono», con un código QR.",
+        "it": "Sulla TV, senza l'app: «Apri Music Assistant sul tuo telefono», con un codice QR.",
+        "nl": "Op de tv, zonder de app: „Open Music Assistant op je telefoon”, met een QR-code."
       }
     }
   ]

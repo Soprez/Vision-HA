@@ -38,6 +38,11 @@ const TEXTES = /*i18n-json*/{
     "delai_titre": "Attente avant de redemander",
     "delai_aide": "{prenom} ne peut pas refaire la même demande avant ce délai. Réglage général : {general} min. Laissez vide pour le suivre.",
     "delai_champ": "Minutes (vide : le réglage général)",
+    "ma_titre": "Music Assistant",
+    "ma_aide": "Ouvrir Music Assistant (la tuile de l'accueil) change la musique, les comptes et les réglages du lieu. Par défaut, seul le rôle qui décide le peut ; ici, vous l'ouvrez ou le fermez pour {prenom}. Le code est demandé.",
+    "ma_role": "Suivre le rôle ({role})",
+    "ma_oui": "Oui",
+    "ma_non": "Non",
     "enregistrer": "Enregistrer",
     "annuler": "Annuler",
     "modifier": "Modifier",
@@ -107,6 +112,11 @@ const TEXTES = /*i18n-json*/{
     "delai_titre": "Wait before asking again",
     "delai_aide": "{prenom} can't make the same request again before this delay. General setting: {general} min. Leave empty to follow it.",
     "delai_champ": "Minutes (empty: the general setting)",
+    "ma_titre": "Music Assistant",
+    "ma_aide": "Opening Music Assistant (the start-screen tile) changes the music, accounts and settings of the place. By default only the role that decides can; here you open or close it for {prenom}. The code is asked.",
+    "ma_role": "Follow the role ({role})",
+    "ma_oui": "Yes",
+    "ma_non": "No",
     "enregistrer": "Save",
     "annuler": "Cancel",
     "modifier": "Edit",
@@ -176,6 +186,11 @@ const TEXTES = /*i18n-json*/{
     "delai_titre": "Wartezeit bis zur nächsten Anfrage",
     "delai_aide": "{prenom} kann dieselbe Anfrage erst nach dieser Zeit erneut stellen. Allgemeine Einstellung: {general} Min. Leer lassen, um ihr zu folgen.",
     "delai_champ": "Minuten (leer: allgemeine Einstellung)",
+    "ma_titre": "Music Assistant",
+    "ma_aide": "Music Assistant öffnen (die Kachel des Startbildschirms) ändert Musik, Konten und Einstellungen des Ortes. Standardmäßig darf es nur die Rolle, die entscheidet; hier öffnen oder schließen Sie es für {prenom}. Der Code wird verlangt.",
+    "ma_role": "Der Rolle folgen ({role})",
+    "ma_oui": "Ja",
+    "ma_non": "Nein",
     "enregistrer": "Speichern",
     "annuler": "Abbrechen",
     "modifier": "Ändern",
@@ -245,6 +260,11 @@ const TEXTES = /*i18n-json*/{
     "delai_titre": "Espera antes de volver a pedir",
     "delai_aide": "{prenom} no puede repetir la misma solicitud antes de este plazo. Ajuste general: {general} min. Déjelo vacío para seguirlo.",
     "delai_champ": "Minutos (vacío: el ajuste general)",
+    "ma_titre": "Music Assistant",
+    "ma_aide": "Abrir Music Assistant (el mosaico de la pantalla de inicio) cambia la música, las cuentas y los ajustes del lugar. Por defecto solo puede el rol que decide; aquí lo abre o lo cierra para {prenom}. Se pide el código.",
+    "ma_role": "Seguir el rol ({role})",
+    "ma_oui": "Sí",
+    "ma_non": "No",
     "enregistrer": "Guardar",
     "annuler": "Cancelar",
     "modifier": "Modificar",
@@ -314,6 +334,11 @@ const TEXTES = /*i18n-json*/{
     "delai_titre": "Attesa prima di richiedere",
     "delai_aide": "{prenom} non può ripetere la stessa richiesta prima di questo tempo. Impostazione generale: {general} min. Lascia vuoto per seguirla.",
     "delai_champ": "Minuti (vuoto: l'impostazione generale)",
+    "ma_titre": "Music Assistant",
+    "ma_aide": "Aprire Music Assistant (il riquadro della schermata iniziale) cambia musica, account e impostazioni del luogo. Per impostazione predefinita può solo il ruolo che decide; qui lo apri o lo chiudi per {prenom}. Viene chiesto il codice.",
+    "ma_role": "Segui il ruolo ({role})",
+    "ma_oui": "Sì",
+    "ma_non": "No",
     "enregistrer": "Salva",
     "annuler": "Annulla",
     "modifier": "Modifica",
@@ -383,6 +408,11 @@ const TEXTES = /*i18n-json*/{
     "delai_titre": "Wachttijd voor opnieuw vragen",
     "delai_aide": "{prenom} kan hetzelfde verzoek niet eerder herhalen dan na deze tijd. Algemene instelling: {general} min. Laat leeg om die te volgen.",
     "delai_champ": "Minuten (leeg: de algemene instelling)",
+    "ma_titre": "Music Assistant",
+    "ma_aide": "Music Assistant openen (de tegel van het startscherm) verandert de muziek, accounts en instellingen van de plek. Standaard mag alleen de rol die beslist dat; hier open of sluit je het voor {prenom}. De code wordt gevraagd.",
+    "ma_role": "De rol volgen ({role})",
+    "ma_oui": "Ja",
+    "ma_non": "Nee",
     "enregistrer": "Opslaan",
     "annuler": "Annuleren",
     "modifier": "Wijzigen",
@@ -756,7 +786,28 @@ class VisionPersonneCard extends HTMLElement {
       </fieldset>
       <div class="boutons"><button class="principal" data-action="role" ${this._occupe ? "disabled" : ""}>${esc(tr("enregistrer"))}</button></div>
       ${this._delai()}
+      ${this._ma()}
     </section>`;
+  }
+
+  // 1.94 : Music Assistant pour cette personne : suivre le rôle, oui, non (un administrateur ; le code est demandé).
+  _ma() {
+    const d = this._d;
+    const x = d.musique_ma;
+    if (!x) return "";
+    const actuel = x.personne === true ? "oui" : x.personne === false ? "non" : "role";
+    const options = [
+      { cle: "role", libelle: tr("ma_role", { role: x.role ? tr("ma_oui") : tr("ma_non") }) },
+      { cle: "oui", libelle: tr("ma_oui") }, { cle: "non", libelle: tr("ma_non") },
+    ];
+    return `<div class="formulaire">
+      <h3>${esc(tr("ma_titre"))}</h3>
+      <p class="aide">${esc(tr("ma_aide", { prenom: d.personne.prenom }))}</p>
+      <fieldset class="choix-liste"><legend>${esc(tr("ma_titre"))}</legend>
+        ${choixHtml("ma", tr("ma_titre"), options, actuel)}
+      </fieldset>
+      <div class="boutons"><button class="principal" data-action="ma" ${this._occupe ? "disabled" : ""}>${esc(tr("enregistrer"))}</button></div>
+    </div>`;
   }
 
   // 1.94 : l'attente avant de refaire la même demande, propre à la personne (vide : celle de la maison).
@@ -898,6 +949,7 @@ class VisionPersonneCard extends HTMLElement {
     };
     action("role", () => this._envoyer({ op: "role", role: radio("role") }));
     action("delai", () => this._envoyer({ op: "delai_redemande", minutes: champ("delai").value.trim() }));
+    action("ma", () => this._envoyer({ op: "musique_ma", valeur: radio("ma") }));
     action("recompense", () => this._envoyer({ op: "temps_gagne", liste: radio("liste"),
       minutes: Number(champ("minutes").value), max: Number(champ("max").value) }));
     action("recompense_retirer", () => this._envoyer({ op: "temps_gagne", liste: "", minutes: 0, max: 0 }));
