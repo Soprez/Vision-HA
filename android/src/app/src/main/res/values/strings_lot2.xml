@@ -808,4 +808,9 @@
     <string name="vuewidget_min_max">%1$s · min %2$s · max %3$s</string>
     <string name="vuewidget_plage">%1$s – %2$s</string>
     <string name="lanceur_tuile_parametres">Settings</string>
+    <string name="cache_images_titre">Image cache</string>
+    <string name="cache_images_utilise">Used: %1$d MB of %2$d</string>
+    <string name="cache_images_vider">Clear the cache</string>
+    <string name="cache_images_vider_texte">The pictures and GIFs kept on this device will be deleted; they are downloaded again when needed.</string>
+    <string name="cache_images_vide">Cache cleared.</string>
 </resources>

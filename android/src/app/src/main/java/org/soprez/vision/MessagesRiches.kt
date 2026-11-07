@@ -377,6 +377,24 @@ object MessagesRiches {
         return cadre
     }
 
+    /**
+     * L'image d'un message, décodée en réduisant ce qui dépasse 1920 × 1080 ; animée (AnimatedImageDrawable) quand c'est un WebP ou
+     * un GIF animé et que l'appareil a Android 9 ou plus, fixe sinon. Null si les octets ne sont pas une image.
+     */
+    private fun decoderImage(b: ByteArray): android.graphics.drawable.Drawable? {
+        val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(b, 0, b.size, o)
+        var echelle = 1
+        while (o.outWidth / (echelle * 2) >= 1920 || o.outHeight / (echelle * 2) >= 1080) echelle *= 2
+        if (android.os.Build.VERSION.SDK_INT >= 28) try {
+            return android.graphics.ImageDecoder.decodeDrawable(android.graphics.ImageDecoder.createSource(java.nio.ByteBuffer.wrap(b))) { dec, _, _ ->
+                if (echelle > 1) dec.setTargetSampleSize(echelle)
+            }
+        } catch (_: Exception) { /* pas décodable par ImageDecoder : on essaie la voie classique */ }
+        return BitmapFactory.decodeByteArray(b, 0, b.size, BitmapFactory.Options().apply { inSampleSize = echelle })
+            ?.let { android.graphics.drawable.BitmapDrawable(null, it) }
+    }
+
     /** Image, son ou vidéo, lus directement chez Home Assistant (URL propre à ce message). */
     private fun media(ctx: Context, m: JSONObject, carte: LinearLayout, pleinEcran: Boolean) {
         val media = m.optJSONObject("media") ?: return
@@ -389,15 +407,18 @@ object MessagesRiches {
                 val img = ImageView(ctx).apply { adjustViewBounds = true; scaleType = ImageView.ScaleType.FIT_CENTER }
                 carte.addView(img, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, hauteur).apply { topMargin = Ui.dp(ctx, 10f) })
                 Thread {
-                    val octets = Net.getBytes(ctx, url)
-                    val bmp = octets?.let { b ->
-                        val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                        BitmapFactory.decodeByteArray(b, 0, b.size, o)
-                        var echelle = 1
-                        while (o.outWidth / (echelle * 2) >= 1920 || o.outHeight / (echelle * 2) >= 1080) echelle *= 2
-                        BitmapFactory.decodeByteArray(b, 0, b.size, BitmapFactory.Options().apply { inSampleSize = echelle })
+                    // 1.94 (point 4) : l'image du message est gardée dans le cache des images (clé : le message, pas le jeton) ;
+                    // un WebP ou un GIF animé est lu par ImageDecoder (Android 9 et plus), 3 boucles puis figé (batterie).
+                    val cle = "msg:" + m.optString("uid")
+                    val octets = CacheImages.lire(ctx, CacheImages.NOTIF, cle)
+                        ?: Net.getBytes(ctx, url)?.also { CacheImages.ecrire(ctx, CacheImages.NOTIF, cle, it) }
+                    val dessin = octets?.let { b -> decoderImage(b) }
+                    main.post {
+                        if (dessin != null) {
+                            img.setImageDrawable(dessin)
+                            (dessin as? android.graphics.drawable.AnimatedImageDrawable)?.let { it.repeatCount = 2; it.start() }
+                        } else accuser(ctx, m, "erreur", "media")
                     }
-                    main.post { if (bmp != null) img.setImageBitmap(bmp) else accuser(ctx, m, "erreur", "media") }
                 }.start()
             }
             "audio", "video" -> {

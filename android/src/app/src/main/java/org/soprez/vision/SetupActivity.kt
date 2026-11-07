@@ -1044,6 +1044,10 @@ class SetupActivity : Activity(), ZoneSure.Geree {
             }.apply { tag = "liste_applis" })
             racine.addView(Ui.marge(this, Ui.texte(this, getString(R.string.listeapplis_note), 13f, Ui.TEXTE_2), bas = 8f))
         }
+        // 1.94 (point 4) : le cache des images (messages riches, GIF) : ce qu'il tient, et le vider.
+        racine.addView(ligneReglage(getString(R.string.cache_images_titre), CacheImages.libelle(this)) {
+            CacheImages.proposerVider(this, apres)
+        }.apply { tag = "cache_images" })
         // L'œil sur le bouton Accueil de la barre de navigation (prototype, désactivé par défaut) et sa note.
         racine.addView(ligneReglage(getString(R.string.oeilaccueil_titre), ReglagesPartages.nomOeilAccueil(this)) {
             ReglagesPartages.basculerOeilAccueil(this, apres)

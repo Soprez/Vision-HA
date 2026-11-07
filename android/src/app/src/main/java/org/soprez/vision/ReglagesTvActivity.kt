@@ -467,6 +467,8 @@ class ReglagesTvActivity : Activity(), ZoneSure.Geree {
             getString(R.string.reglagestv_mode_sombre) to { ligne(getString(R.string.reglagestv_mode_sombre), Themes.MODES_SOMBRE.first { it.first == modeSombre }.second, "sombre") { choisirModeSombre() } },
             getString(R.string.reglagestv_couleurs_carte) to { ligne(getString(R.string.reglagestv_couleurs_carte), if (Palette.personnalisee(this, Palette.LANCEUR) || Palette.personnalisee(this, Palette.APPLI)) getString(R.string.reglagestv_personnalisees) else getString(R.string.reglagestv_celles_theme), "couleurs") { startActivity(Intent(this, CouleursActivity::class.java)) } },
             getString(R.string.reglagestv_mode_nuit) to { ligne(getString(R.string.reglagestv_mode_nuit), if (nuit.isEmpty()) getString(R.string.reglagestv_jamais) else libelleNuit(nuit), "nuit") { choisirNuit() } },
+            // 1.94 (point 4) : le cache des images (messages riches, GIF) : ce qu'il tient, et le vider.
+            getString(R.string.cache_images_titre) to { ligne(getString(R.string.cache_images_titre), CacheImages.libelle(this), "cache_images") { CacheImages.proposerVider(this) { repeindre() } } },
         ) + (if (!ReglagesTvActivity.estTele(this)) emptyList() else listOf<Pair<String, () -> View>>(
             // 17-10 (l'auteur, point 12) : la zone sûre de CETTE télé (les bords que l'écran rogne), réglée au cadre à flèches.
             getString(R.string.zonesure_titre) to { ligne(getString(R.string.zonesure_titre), getString(R.string.zonesure_court, ZoneSure.pourcentX(this), ZoneSure.pourcentY(this)) + "  ›", "zone_sure") { AjusterEcranActivity.ouvrir(this) } },

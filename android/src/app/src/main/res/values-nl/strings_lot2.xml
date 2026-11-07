@@ -808,4 +808,9 @@
     <string name="vuewidget_min_max">%1$s · min %2$s · max %3$s</string>
     <string name="vuewidget_plage">%1$s – %2$s</string>
     <string name="lanceur_tuile_parametres">Instellingen</string>
+    <string name="cache_images_titre">Afbeeldingscache</string>
+    <string name="cache_images_utilise">Gebruikt: %1$d MB van %2$d</string>
+    <string name="cache_images_vider">Cache wissen</string>
+    <string name="cache_images_vider_texte">De afbeeldingen en GIF\'s op dit toestel worden verwijderd; ze worden zo nodig opnieuw geladen.</string>
+    <string name="cache_images_vide">Cache gewist.</string>
 </resources>
