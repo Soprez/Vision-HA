@@ -228,15 +228,22 @@ class ChoixAdaptatif(
     override fun onMeasure(largeurSpec: Int, hauteurSpec: Int) {
         val dispo = if (MeasureSpec.getMode(largeurSpec) == MeasureSpec.UNSPECIFIED) 0 else MeasureSpec.getSize(largeurSpec) - paddingLeft - paddingRight
         rangee.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED))
-        val etiquettes = enEtiquettes(options.size, rangee.measuredWidth, dispo, maxEtiquettes)
+        // 1.94 (l'auteur, TCL : « onglet Musique, quand on descend, on revient à l'accueil ») : une passe de mesure sans largeur connue
+        // (UNSPECIFIED : dispo = 0) faisait croire que les étiquettes tiennent, et le composant passait en étiquettes puis
+        // revenait en liste à la passe suivante. Le champ qui avait le focus était retiré : Android rendait le focus au premier
+        // élément de la fenêtre (le menu, rubrique « Accueil »), dont la page remplaçait Musique. Sans largeur, le mode reste.
+        val decide = enEtiquettes(options.size, rangee.measuredWidth, dispo, maxEtiquettes)
+        val etiquettes = if (dispo <= 0 && modeEtiquettes != null) modeEtiquettes!! else decide
         if (etiquettes != modeEtiquettes) {
-            // Le focus suit (une étiquette qui disparaît le rend au champ, et inversement).
+            // Le focus suit (une étiquette qui disparaît le rend au champ, et inversement) : la nouvelle vue est posée et prend le
+            // focus AVANT que l'ancienne soit retirée ; retirer d'abord la vue qui a le focus le rend à la fenêtre entière.
             val avaitFocus = hasFocus()
-            removeAllViews()
+            val ancienne: View? = if (etiquettes) champ.takeIf { it.parent === this } else rangee.takeIf { it.parent === this }
             if (etiquettes) addView(rangee, LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
             else addView(champ, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            if (avaitFocus) (if (etiquettes) rangee.getChildAt(0) else champ)?.requestFocus()
+            ancienne?.let { removeView(it) }
             modeEtiquettes = etiquettes
-            if (avaitFocus) post { (if (etiquettes) rangee.getChildAt(0) else champ)?.requestFocus() }
         }
         super.onMeasure(largeurSpec, hauteurSpec)
     }
