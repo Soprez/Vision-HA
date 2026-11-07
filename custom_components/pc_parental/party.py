@@ -87,6 +87,35 @@ ACTIONS_LECTURE = {
 }
 
 
+# 1.94 (entités pour les automatisations) : la soirée survit à un redémarrage de Home Assistant (avant : oubliée, d'où des
+# redémarrages pour la remettre à zéro). Seul ce qui décrit la soirée est gardé ; les images et propositions ne le sont pas.
+SIGNAL_PARTY = f"{DOMAIN}_party_maj"
+PERSISTE = ("actif", "ecran", "lecteur", "par", "depuis", "invites_mode", "invites_ouverts", "similaires", "jeton", "jeton_ts")
+
+
+async def charger(hass: HomeAssistant) -> None:
+    """Relit la soirée gardée dans `.storage/pc_parental_party` (au démarrage, avant les entités)."""
+    from homeassistant.helpers.storage import Store
+
+    magasin = Store(hass, 1, "pc_parental_party")
+    hass.data[_CLE + "_magasin"] = magasin
+    donnees = await magasin.async_load() or {}
+    st = etat(hass)
+    for k in PERSISTE:
+        if k in donnees:
+            st[k] = donnees[k]
+
+
+def sauver(hass: HomeAssistant) -> None:
+    """Garde l'état de la soirée et prévient l'entité `sensor.vision_party`."""
+    from homeassistant.helpers.dispatcher import async_dispatcher_send
+
+    magasin = hass.data.get(_CLE + "_magasin")
+    if magasin is not None:
+        magasin.async_delay_save(lambda: {k: etat(hass).get(k) for k in PERSISTE}, 1)
+    async_dispatcher_send(hass, SIGNAL_PARTY)
+
+
 def etat(hass: HomeAssistant) -> dict[str, Any]:
     """L'état de la Party, en mémoire (un redémarrage de Home Assistant l'arrête)."""
     return hass.data.setdefault(_CLE, {"actif": False, "ecran": "", "lecteur": "", "par": "", "depuis": 0,
@@ -495,6 +524,7 @@ async def lancer(hass: HomeAssistant, store, ecran: str, lecteur: str, par: str,
         noms = {e["id"]: e["nom"] for e in ecrans(store)}
         hass.bus.async_fire(EVENEMENT_DEBUT, {"ecran": ecran, "ecran_nom": noms.get(ecran, ""), "lecteur": lecteur, **_qui(hass, pc)})
     _LOGGER.info("%s : %s lance le Mode Party sur %s (%s)", PRODUIT, par, ecran, lecteur)
+    sauver(hass)
     return textes.t("party.lance", langue)
 
 
@@ -508,6 +538,7 @@ async def arreter(hass: HomeAssistant, par: str, pc: dict[str, Any] | None = Non
                "refs": {}, "propositions": []})
     hass.bus.async_fire(EVENEMENT_FIN, {"ecran": ecran, "lecteur": lecteur, **_qui(hass, pc)})
     _LOGGER.info("%s : %s arrête le Mode Party", PRODUIT, par)
+    sauver(hass)
     return textes.t("party.arrete", langue)
 
 
@@ -788,6 +819,7 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
         # automatique de Music Assistant est coupé (sinon la file se remplirait aussitôt) : l'option de la soirée suit.
         n = await musique.vider_suite(hass, st["lecteur"] or lecteur_par_defaut(hass, store, pc))
         st["similaires"] = False
+        sauver(hass)
         return textes.t("party.file_videe", lg, n=n)
     if action == "enchainement":
         # 2.2.4 (retour d'essai) : « sans blanc » ou « fondu de X s », sur le lecteur de la soirée ; décideurs et télé de la soirée.
@@ -834,6 +866,7 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
         # (toute page ouverte ne peut plus rien) ; rouvrir en donne un NOUVEAU. Le choix vaut aussi pour la Party suivante.
         ouvrir = bool(corps.get("actif"))
         st["invites_ouverts"] = ouvrir
+        sauver(hass)
         if not ouvrir:
             st.update({"jeton": None, "jeton_ts": 0, "refs": {}})
             return textes.t("party.invites_fermes", lg)
@@ -846,6 +879,7 @@ async def commande(hass: HomeAssistant, store, pc: dict[str, Any], corps: dict[s
         if mode not in MODES_INVITES:
             raise textes.Erreur("commun.choix_inconnu")
         st["invites_mode"] = mode
+        sauver(hass)
         if isinstance(getattr(store, "musique", None), dict):
             store.musique["invites_mode"] = mode
             await store.async_save()

@@ -1161,6 +1161,13 @@ son_regler:
           max: 0
           unit_of_measurement: dBFS
           mode: box
+    seuil_nuit_dbfs:
+      selector:
+        number:
+          min: -70
+          max: 0
+          unit_of_measurement: dBFS
+          mode: box
     marge_plancher_db:
       selector:
         number:
@@ -1185,3 +1192,15 @@ son_regler:
     plancher_auto:
       selector:
         boolean: null
+party_lancer:
+  fields:
+    ecran:
+      required: true
+      selector:
+        text: null
+    lecteur:
+      selector:
+        entity:
+          domain: media_player
+party_arreter:
+  fields: {}

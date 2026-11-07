@@ -204,10 +204,14 @@ def regler_service(pc: dict[str, Any], e: dict[str, Any], data: dict[str, Any]) 
         changements["plancher_manuel_dbfs"] = None
     seuils = dict(reglages(pc)["seuils_plages"])
     toucher_plages = False
-    if "seuil_nuit_db" in data:
+    # 1.94 : le seuil de nuit s'écrit aussi en dBFS (comme le seuil du jour) ; les champs relatifs restent acceptés.
+    nuit_db = data.get("seuil_nuit_db")
+    if "seuil_nuit_dbfs" in data:
+        nuit_db = int(round(float(data["seuil_nuit_dbfs"]))) + 100
+    if nuit_db is not None:
         # Compatibilité : « la nuit » = les plages de session de l'appareil.
         for r in _plages_session(pc):
-            seuils[str(r["id"])] = int(data["seuil_nuit_db"])
+            seuils[str(r["id"])] = int(nuit_db)
         toucher_plages = True
         changements.setdefault("seuil_mode", "plages")
     plancher = plancher_effectif_db(pc, e)

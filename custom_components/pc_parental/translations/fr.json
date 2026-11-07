@@ -2100,8 +2100,30 @@
         "plancher_auto": {
           "name": "Plancher mesuré",
           "description": "Oublier le plancher saisi et reprendre celui mesuré sur 24 h."
+        },
+        "seuil_nuit_dbfs": {
+          "name": "Seuil de nuit (dBFS)",
+          "description": "Seuil de nuit en dBFS (−70 à 0), appliqué aux plages de session de l'appareil. Remplace le seuil de nuit relatif (seuil_nuit_db), qui reste accepté mais est obsolète."
         }
       }
+    },
+    "party_lancer": {
+      "name": "Soirée : lancer",
+      "description": "Lance le Mode Party sur un écran (réservé aux administrateurs et aux automatisations). Le lecteur est celui de l'écran par défaut.",
+      "fields": {
+        "ecran": {
+          "name": "Écran",
+          "description": "Identifiant ou nom de l'écran de la soirée."
+        },
+        "lecteur": {
+          "name": "Lecteur",
+          "description": "Lecteur multimédia à utiliser (facultatif)."
+        }
+      }
+    },
+    "party_arreter": {
+      "name": "Soirée : arrêter",
+      "description": "Arrête le Mode Party en cours (réservé aux administrateurs et aux automatisations)."
     }
   },
   "entity": {
@@ -2120,6 +2142,12 @@
       },
       "fenetre_reveil": {
         "name": "Fenêtre des réveils"
+      },
+      "concentration_personne": {
+        "name": "Concentration {prenom}"
+      },
+      "ecran": {
+        "name": "Écran"
       }
     },
     "button": {
@@ -2221,6 +2249,12 @@
       },
       "verrouiller_maintenant": {
         "name": "Verrouiller maintenant"
+      },
+      "reveil_reporter_personne": {
+        "name": "Reporter le réveil {prenom}"
+      },
+      "reveil_arreter_personne": {
+        "name": "Arrêter le réveil {prenom}"
       }
     },
     "notify": {
@@ -2435,6 +2469,18 @@
       },
       "processus_a_valider": {
         "name": "Processus à valider"
+      },
+      "prochain_reveil_personne": {
+        "name": "Prochain réveil {prenom}"
+      },
+      "temps_restant_personne": {
+        "name": "Temps restant {prenom}"
+      },
+      "temps_restant": {
+        "name": "Temps restant"
+      },
+      "party": {
+        "name": "Soirée Party"
       }
     },
     "switch": {

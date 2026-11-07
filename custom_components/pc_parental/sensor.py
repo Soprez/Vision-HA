@@ -93,6 +93,11 @@ async def async_setup_entry(
     from . import reveil_entites
 
     valides |= reveil_entites.valides(coordinator.store, "sensor")
+    # 1.94 (entités pour les automatisations) : prochain réveil, temps restant, état de la Party.
+    from . import entites_auto
+
+    valides |= entites_auto.uids_valides(coordinator, "sensor")
+    entites.extend(entites_auto.entites(coordinator, "sensor"))
     prune_stale(hass, coordinator, "sensor", f"{DOMAIN}_", valides)
 
     async_add_entities(entites)

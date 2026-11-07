@@ -28,6 +28,10 @@ async def async_setup_entry(
     }
     valides.add(f"{DOMAIN}_pause_generale")
     valides.add(f"{DOMAIN}_fenetre_reveil")
+    # 1.94 (entités pour les automatisations) : concentration par personne, écran des télés et tablettes.
+    from . import entites_auto
+
+    valides |= entites_auto.uids_valides(coordinator, "binary_sensor")
     prune_stale(hass, coordinator, "binary_sensor", f"{DOMAIN}_", valides)
 
     from .reveil_entites import FenetreReveilBinarySensor
@@ -37,6 +41,7 @@ async def async_setup_entry(
         entites.append(AgentOnline(coordinator, pc_id))
         entites.append(CompteAdministrateur(coordinator, pc_id))
         entites.append(ProtectionDesactivee(coordinator, pc_id))
+    entites.extend(entites_auto.entites(coordinator, "binary_sensor"))
     async_add_entities(entites)
 
 

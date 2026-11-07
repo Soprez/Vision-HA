@@ -2100,8 +2100,30 @@
         "plancher_auto": {
           "name": "Gemessener Grundpegel",
           "description": "Eingegebenen Grundpegel vergessen und den 24-h-Messwert nutzen."
+        },
+        "seuil_nuit_dbfs": {
+          "name": "Nachtschwelle (dBFS)",
+          "description": "Nachtschwelle in dBFS (−70 bis 0), angewendet auf die Sitzungszeiten des Geräts. Ersetzt die relative Nachtschwelle (seuil_nuit_db), die weiter akzeptiert wird, aber veraltet ist."
         }
       }
+    },
+    "party_lancer": {
+      "name": "Party: starten",
+      "description": "Startet den Party-Modus auf einem Bildschirm (nur Administratoren und Automationen). Der Player ist der Standard-Player des Bildschirms.",
+      "fields": {
+        "ecran": {
+          "name": "Bildschirm",
+          "description": "Kennung oder Name des Party-Bildschirms."
+        },
+        "lecteur": {
+          "name": "Player",
+          "description": "Zu verwendender Media-Player (optional)."
+        }
+      }
+    },
+    "party_arreter": {
+      "name": "Party: beenden",
+      "description": "Beendet den laufenden Party-Modus (nur Administratoren und Automationen)."
     }
   },
   "entity": {
@@ -2120,6 +2142,12 @@
       },
       "fenetre_reveil": {
         "name": "Weckerfenster"
+      },
+      "concentration_personne": {
+        "name": "Konzentration {prenom}"
+      },
+      "ecran": {
+        "name": "Bildschirm"
       }
     },
     "button": {
@@ -2221,6 +2249,12 @@
       },
       "verrouiller_maintenant": {
         "name": "Jetzt sperren"
+      },
+      "reveil_reporter_personne": {
+        "name": "Wecker {prenom} verschieben"
+      },
+      "reveil_arreter_personne": {
+        "name": "Wecker {prenom} stoppen"
       }
     },
     "notify": {
@@ -2435,6 +2469,18 @@
       },
       "processus_a_valider": {
         "name": "Zu bestätigende Prozesse"
+      },
+      "prochain_reveil_personne": {
+        "name": "Nächster Wecker {prenom}"
+      },
+      "temps_restant_personne": {
+        "name": "Verbleibende Zeit {prenom}"
+      },
+      "temps_restant": {
+        "name": "Verbleibende Zeit"
+      },
+      "party": {
+        "name": "Party-Modus"
       }
     },
     "switch": {

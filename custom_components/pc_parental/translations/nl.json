@@ -2100,8 +2100,30 @@
         "plancher_auto": {
           "name": "Gemeten bodem",
           "description": "Ingevoerde bodem vergeten en de over 24 u gemeten gebruiken."
+        },
+        "seuil_nuit_dbfs": {
+          "name": "Nachtdrempel (dBFS)",
+          "description": "Nachtdrempel in dBFS (−70 tot 0), toegepast op de sessietijden van het apparaat. Vervangt de relatieve nachtdrempel (seuil_nuit_db), die nog wordt geaccepteerd maar verouderd is."
         }
       }
+    },
+    "party_lancer": {
+      "name": "Feest: starten",
+      "description": "Start de feestmodus op een scherm (alleen beheerders en automatiseringen). De speler is de standaardspeler van het scherm.",
+      "fields": {
+        "ecran": {
+          "name": "Scherm",
+          "description": "Id of naam van het feestscherm."
+        },
+        "lecteur": {
+          "name": "Speler",
+          "description": "Te gebruiken mediaspeler (optioneel)."
+        }
+      }
+    },
+    "party_arreter": {
+      "name": "Feest: stoppen",
+      "description": "Stopt de lopende feestmodus (alleen beheerders en automatiseringen)."
     }
   },
   "entity": {
@@ -2120,6 +2142,12 @@
       },
       "fenetre_reveil": {
         "name": "Wekkervenster"
+      },
+      "concentration_personne": {
+        "name": "Concentratie {prenom}"
+      },
+      "ecran": {
+        "name": "Scherm"
       }
     },
     "button": {
@@ -2221,6 +2249,12 @@
       },
       "verrouiller_maintenant": {
         "name": "Nu vergrendelen"
+      },
+      "reveil_reporter_personne": {
+        "name": "Wekker {prenom} uitstellen"
+      },
+      "reveil_arreter_personne": {
+        "name": "Wekker {prenom} stoppen"
       }
     },
     "notify": {
@@ -2435,6 +2469,18 @@
       },
       "processus_a_valider": {
         "name": "Te bevestigen processen"
+      },
+      "prochain_reveil_personne": {
+        "name": "Volgende wekker {prenom}"
+      },
+      "temps_restant_personne": {
+        "name": "Resterende tijd {prenom}"
+      },
+      "temps_restant": {
+        "name": "Resterende tijd"
+      },
+      "party": {
+        "name": "Feestmodus"
       }
     },
     "switch": {

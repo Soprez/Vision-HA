@@ -242,6 +242,7 @@ class PcParentalPollView(HomeAssistantView):
         pc["agent"]["platform"] = str(corps.get("platform") or "")[:16]
         # 2.4.0 (retour d'essai) : écran éteint (appli Vision, DisplayManager) → la lecture du lecteur « · Vision » se met en pause.
         if str(corps.get("ecran") or "") in ("eteint", "allume"):
+            pc["ecran_releve"] = {"etat": str(corps["ecran"]), "ts": time.time()}  # 1.94 : binary_sensor « écran »
             from . import musique_arret
             await musique_arret.ecran(self.hass, coord.store, pc, str(corps["ecran"]))
         # L'app a fait choisir la personne : ce n'est qu'une proposition. Seul un

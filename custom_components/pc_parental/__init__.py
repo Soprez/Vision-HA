@@ -410,6 +410,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     from . import journal_gestes
 
     await journal_gestes.charger(hass)  # 1.94 : le journal « qui a fait quoi » des gestes d'autorisation
+    from . import party as _party_etat
+
+    await _party_etat.charger(hass)  # 1.94 : la soirée survit à un redémarrage de Home Assistant
     # Appairage par QR (1.62.0) : l'appareil demande, un administrateur valide.
     from . import appairage
 
@@ -607,9 +610,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             from . import reveil_services
 
             reveil_services.retirer(hass)
-            from . import diag
+            from . import diag, entites_auto
 
             diag.retirer(hass)
+            entites_auto.retirer_services(hass)
     return decharge
 
 
@@ -1322,6 +1326,7 @@ def _async_register_services(hass: HomeAssistant) -> None:
         # 2.5.12.10 : seuil général ou par plage Vision ; seuils en dBFS ou en marge au-dessus du plancher.
         vol.Optional("seuil_mode"): vol.In(["general", "plages"]),
         vol.Optional("seuil_dbfs"): vol.All(vol.Coerce(int), vol.Range(min=-70, max=0)),
+        vol.Optional("seuil_nuit_dbfs"): vol.All(vol.Coerce(int), vol.Range(min=-70, max=0)),  # 1.94 : la nuit, en dBFS
         vol.Optional("marge_plancher_db"): vol.All(vol.Coerce(int), vol.Range(min=0, max=60)),
         vol.Optional("seuils_plages"): [vol.Schema({
             vol.Required("plage"): cv.string,
@@ -1337,3 +1342,6 @@ def _async_register_services(hass: HomeAssistant) -> None:
     from . import reveil_services
 
     reveil_services.enregistrer(hass, _coordinator)
+    from . import entites_auto
+
+    entites_auto.enregistrer_services(hass, _coordinator)  # 1.94 : party_lancer, party_arreter

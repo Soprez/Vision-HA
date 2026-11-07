@@ -1038,6 +1038,12 @@ class PcParentalWidgetsActionView(_Porte):
                               "retour": textes.t("wid.confirmer", textes.pour(self.hass, pc), nom=nom)}, status_code=409)
         if _trop_vite(str(pc.get("id"))):
             return self.json({"ok": False, "error": "trop_vite"}, status_code=429)
+        # 1.94 (entités pour les automatisations) : qui pilote quoi, AVANT l'appel du service (l'action elle-même arrive sans
+        # utilisateur) ; rien de plus que ce que l'appareil a envoyé.
+        self.hass.bus.async_fire("pc_parental_entite_pilotee", {
+            "entite": eid, "service": service, "donnees": dict(donnees), "appareil": str(pc.get("name") or pc.get("id") or ""),
+            "appareil_id": str(pc.get("id") or ""), "personne": str(pc.get("person") or ""),
+            "widget": str(corps.get("widget") or "")[:60]})
         try:
             # Contexte sans utilisateur : jamais les droits d'un administrateur.
             await self.hass.services.async_call(

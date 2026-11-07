@@ -2100,8 +2100,30 @@
         "plancher_auto": {
           "name": "Measured floor",
           "description": "Forget the entered floor and use the one measured over 24 h."
+        },
+        "seuil_nuit_dbfs": {
+          "name": "Night threshold (dBFS)",
+          "description": "Night threshold in dBFS (−70 to 0), applied to the device session time slots. Replaces the relative night threshold (seuil_nuit_db), which is still accepted but obsolete."
         }
       }
+    },
+    "party_lancer": {
+      "name": "Party: start",
+      "description": "Starts Party mode on a screen (administrators and automations only). The player is the screen's default one.",
+      "fields": {
+        "ecran": {
+          "name": "Screen",
+          "description": "Identifier or name of the party screen."
+        },
+        "lecteur": {
+          "name": "Player",
+          "description": "Media player to use (optional)."
+        }
+      }
+    },
+    "party_arreter": {
+      "name": "Party: stop",
+      "description": "Stops the running Party mode (administrators and automations only)."
     }
   },
   "entity": {
@@ -2120,6 +2142,12 @@
       },
       "fenetre_reveil": {
         "name": "Alarm window"
+      },
+      "concentration_personne": {
+        "name": "Focus {prenom}"
+      },
+      "ecran": {
+        "name": "Screen"
       }
     },
     "button": {
@@ -2221,6 +2249,12 @@
       },
       "verrouiller_maintenant": {
         "name": "Lock now"
+      },
+      "reveil_reporter_personne": {
+        "name": "Snooze alarm {prenom}"
+      },
+      "reveil_arreter_personne": {
+        "name": "Stop alarm {prenom}"
       }
     },
     "notify": {
@@ -2435,6 +2469,18 @@
       },
       "processus_a_valider": {
         "name": "Processes to approve"
+      },
+      "prochain_reveil_personne": {
+        "name": "Next alarm {prenom}"
+      },
+      "temps_restant_personne": {
+        "name": "Time left {prenom}"
+      },
+      "temps_restant": {
+        "name": "Time left"
+      },
+      "party": {
+        "name": "Party mode"
       }
     },
     "switch": {

@@ -128,6 +128,11 @@ async def async_setup_entry(
         f"{DOMAIN}_pause_generale_30",
         f"{DOMAIN}_pause_generale_fin",
     }
+    # 1.94 (entités pour les automatisations) : « reporter » et « arrêter » le réveil de chaque personne.
+    from . import entites_auto
+
+    valides |= entites_auto.uids_valides(coordinator, "button")
+    entites.extend(entites_auto.entites(coordinator, "button"))
     prune_stale(hass, coordinator, "button", f"{DOMAIN}_", valides)
 
     async_add_entities(entites)

@@ -95,6 +95,10 @@
   "binary_sensor.pc_alex_compte_administrateur",
   "PC-ALEX Compte administrateur"
  ],
+ "pc_parental_concentration_alex": [
+  "binary_sensor.vision_concentration_alex",
+  "Vision Concentration Alex"
+ ],
  "pc_parental_creer_pc": [
   "button.vision_creer_l_appareil",
   "Vision Créer l'appareil"
@@ -142,6 +146,10 @@
  "pc_parental_duree_laissez_passer": [
   "number.vision_duree_du_laissez_passer",
   "Vision Durée du laissez-passer"
+ ],
+ "pc_parental_ecran_g1": [
+  "binary_sensor.google_pixel_8a_ecran",
+  "Google Pixel 8a Écran"
  ],
  "pc_parental_envoyer": [
   "button.vision_envoyer_le_message",
@@ -339,6 +347,10 @@
   "button.vision_page_suivante",
   "Vision Page suivante"
  ],
+ "pc_parental_party": [
+  "sensor.vision_soiree_party",
+  "Vision Soirée Party"
+ ],
  "pc_parental_pause_generale": [
   "binary_sensor.vision_pause_generale_en_cours",
   "Vision Tout fermé"
@@ -407,6 +419,10 @@
   "sensor.vision_processus_a_valider",
   "Vision Processus à valider"
  ],
+ "pc_parental_prochain_reveil_alex": [
+  "sensor.vision_prochain_reveil_alex",
+  "Vision Prochain réveil Alex"
+ ],
  "pc_parental_protection_g1": [
   "binary_sensor.google_pixel_8a_protection_desactivee",
   "Google Pixel 8a Protection désactivée"
@@ -446,6 +462,14 @@
  "pc_parental_retirer_site": [
   "button.vision_retirer_ce_site_de_la_liste",
   "Vision Retirer ce site de la liste"
+ ],
+ "pc_parental_reveil_arreter_alex": [
+  "button.vision_arreter_le_reveil_alex",
+  "Vision Arrêter le réveil Alex"
+ ],
+ "pc_parental_reveil_reporter_alex": [
+  "button.vision_reporter_le_reveil_alex",
+  "Vision Reporter le réveil Alex"
  ],
  "pc_parental_role_g1": [
   "select.google_pixel_8a_role_de_l_appareil",
@@ -598,6 +622,18 @@
  "pc_parental_temps_ecran_j1": [
   "sensor.pc_alex_temps_d_ecran",
   "PC-ALEX Temps d'écran"
+ ],
+ "pc_parental_temps_restant_alex": [
+  "sensor.vision_temps_restant_alex",
+  "Vision Temps restant Alex"
+ ],
+ "pc_parental_temps_restant_g1": [
+  "sensor.google_pixel_8a_temps_restant",
+  "Google Pixel 8a Temps restant"
+ ],
+ "pc_parental_temps_restant_j1": [
+  "sensor.pc_alex_temps_restant",
+  "PC-ALEX Temps restant"
  ],
  "pc_parental_veille_cameras": [
   "text.vision_ecran_de_veille_cameras",

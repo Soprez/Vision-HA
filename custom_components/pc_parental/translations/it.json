@@ -2100,8 +2100,30 @@
         "plancher_auto": {
           "name": "Fondo misurato",
           "description": "Dimentica il fondo inserito e usa quello misurato su 24 h."
+        },
+        "seuil_nuit_dbfs": {
+          "name": "Soglia notturna (dBFS)",
+          "description": "Soglia notturna in dBFS (da −70 a 0), applicata alle fasce di sessione del dispositivo. Sostituisce la soglia notturna relativa (seuil_nuit_db), ancora accettata ma obsoleta."
         }
       }
+    },
+    "party_lancer": {
+      "name": "Festa: avvia",
+      "description": "Avvia la modalità festa su uno schermo (solo amministratori e automazioni). Il lettore è quello predefinito dello schermo.",
+      "fields": {
+        "ecran": {
+          "name": "Schermo",
+          "description": "Identificatore o nome dello schermo della festa."
+        },
+        "lecteur": {
+          "name": "Lettore",
+          "description": "Lettore multimediale da usare (facoltativo)."
+        }
+      }
+    },
+    "party_arreter": {
+      "name": "Festa: ferma",
+      "description": "Ferma la modalità festa in corso (solo amministratori e automazioni)."
     }
   },
   "entity": {
@@ -2120,6 +2142,12 @@
       },
       "fenetre_reveil": {
         "name": "Finestra sveglie"
+      },
+      "concentration_personne": {
+        "name": "Concentrazione {prenom}"
+      },
+      "ecran": {
+        "name": "Schermo"
       }
     },
     "button": {
@@ -2221,6 +2249,12 @@
       },
       "verrouiller_maintenant": {
         "name": "Blocca ora"
+      },
+      "reveil_reporter_personne": {
+        "name": "Posticipa la sveglia {prenom}"
+      },
+      "reveil_arreter_personne": {
+        "name": "Ferma la sveglia {prenom}"
       }
     },
     "notify": {
@@ -2435,6 +2469,18 @@
       },
       "processus_a_valider": {
         "name": "Processi da convalidare"
+      },
+      "prochain_reveil_personne": {
+        "name": "Prossima sveglia {prenom}"
+      },
+      "temps_restant_personne": {
+        "name": "Tempo rimasto {prenom}"
+      },
+      "temps_restant": {
+        "name": "Tempo rimasto"
+      },
+      "party": {
+        "name": "Modalità festa"
       }
     },
     "switch": {

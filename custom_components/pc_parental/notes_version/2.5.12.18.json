@@ -1,0 +1,71 @@
+{
+  "version": "2.5.12.18",
+  "date": "2026-10-23",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Pour les automatisations : prochain réveil, temps restant et concentration de chaque personne, en entités.",
+        "en": "For automations: each person's next alarm, time left and focus mode, as entities.",
+        "de": "Für Automationen: nächster Wecker, verbleibende Zeit und Konzentration jeder Person als Entitäten.",
+        "es": "Para automatizaciones: próxima alarma, tiempo restante y concentración de cada persona, como entidades.",
+        "it": "Per le automazioni: prossima sveglia, tempo rimasto e concentrazione di ogni persona, come entità.",
+        "nl": "Voor automatiseringen: volgende wekker, resterende tijd en concentratie van elke persoon als entiteiten."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Boutons « reporter » et « arrêter » le réveil de chaque personne ; l'écran des télés devient une entité.",
+        "en": "\"Snooze\" and \"stop\" buttons for each person's alarm; the TV screen becomes an entity.",
+        "de": "Schaltflächen „Verschieben“ und „Stoppen“ für den Wecker jeder Person; der TV-Bildschirm wird zur Entität.",
+        "es": "Botones «posponer» y «detener» para la alarma de cada persona; la pantalla de la TV es una entidad.",
+        "it": "Pulsanti «posticipa» e «ferma» per la sveglia di ogni persona; lo schermo della TV diventa un'entità.",
+        "nl": "Knoppen „uitstellen“ en „stoppen“ voor de wekker van elke persoon; het tv-scherm wordt een entiteit."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "La soirée (Party) a son entité, gardée au redémarrage, et les services party_lancer et party_arreter.",
+        "en": "The party has its own entity, kept across restarts, and the party_lancer and party_arreter services.",
+        "de": "Die Party hat eine eigene Entität, die einen Neustart übersteht, und die Dienste party_lancer und party_arreter.",
+        "es": "La fiesta tiene su entidad, conservada tras reiniciar, y los servicios party_lancer y party_arreter.",
+        "it": "La festa ha la sua entità, conservata al riavvio, e i servizi party_lancer e party_arreter.",
+        "nl": "Het feest heeft een eigen entiteit, behouden na een herstart, en de diensten party_lancer en party_arreter."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Quand un appareil pilote une entité par un widget, un événement dit quel appareil et quelle personne.",
+        "en": "When a device controls an entity through a widget, an event says which device and which person.",
+        "de": "Steuert ein Gerät eine Entität per Widget, nennt ein Ereignis das Gerät und die Person.",
+        "es": "Cuando un dispositivo controla una entidad con un widget, un evento indica qué dispositivo y qué persona.",
+        "it": "Quando un dispositivo comanda un'entità con un widget, un evento indica quale dispositivo e quale persona.",
+        "nl": "Bestuurt een apparaat een entiteit via een widget, dan meldt een gebeurtenis welk apparaat en welke persoon."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Niveau sonore : le seuil de nuit s'écrit en dBFS, comme celui du jour.",
+        "en": "Sound level: the night threshold is set in dBFS, like the day one.",
+        "de": "Geräuschpegel: Die Nachtschwelle wird wie die Tagschwelle in dBFS angegeben.",
+        "es": "Nivel de sonido: el umbral nocturno se indica en dBFS, como el diurno.",
+        "it": "Livello sonoro: la soglia notturna si imposta in dBFS, come quella diurna.",
+        "nl": "Geluidsniveau: de nachtdrempel wordt in dBFS ingesteld, net als die van overdag."
+      }
+    }
+  ]
+}

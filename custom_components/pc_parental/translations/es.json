@@ -2100,8 +2100,30 @@
         "plancher_auto": {
           "name": "Fondo medido",
           "description": "Olvidar el fondo introducido y usar el medido en 24 h."
+        },
+        "seuil_nuit_dbfs": {
+          "name": "Umbral nocturno (dBFS)",
+          "description": "Umbral nocturno en dBFS (−70 a 0), aplicado a las franjas de sesión del dispositivo. Sustituye al umbral nocturno relativo (seuil_nuit_db), que se sigue aceptando pero está obsoleto."
         }
       }
+    },
+    "party_lancer": {
+      "name": "Fiesta: iniciar",
+      "description": "Inicia el modo fiesta en una pantalla (solo administradores y automatizaciones). El reproductor es el predeterminado de la pantalla.",
+      "fields": {
+        "ecran": {
+          "name": "Pantalla",
+          "description": "Identificador o nombre de la pantalla de la fiesta."
+        },
+        "lecteur": {
+          "name": "Reproductor",
+          "description": "Reproductor multimedia que usar (opcional)."
+        }
+      }
+    },
+    "party_arreter": {
+      "name": "Fiesta: detener",
+      "description": "Detiene el modo fiesta en curso (solo administradores y automatizaciones)."
     }
   },
   "entity": {
@@ -2120,6 +2142,12 @@
       },
       "fenetre_reveil": {
         "name": "Ventana de alarmas"
+      },
+      "concentration_personne": {
+        "name": "Concentración {prenom}"
+      },
+      "ecran": {
+        "name": "Pantalla"
       }
     },
     "button": {
@@ -2221,6 +2249,12 @@
       },
       "verrouiller_maintenant": {
         "name": "Bloquear ahora"
+      },
+      "reveil_reporter_personne": {
+        "name": "Posponer la alarma {prenom}"
+      },
+      "reveil_arreter_personne": {
+        "name": "Detener la alarma {prenom}"
       }
     },
     "notify": {
@@ -2435,6 +2469,18 @@
       },
       "processus_a_valider": {
         "name": "Procesos por validar"
+      },
+      "prochain_reveil_personne": {
+        "name": "Próxima alarma {prenom}"
+      },
+      "temps_restant_personne": {
+        "name": "Tiempo restante {prenom}"
+      },
+      "temps_restant": {
+        "name": "Tiempo restante"
+      },
+      "party": {
+        "name": "Modo fiesta"
       }
     },
     "switch": {
