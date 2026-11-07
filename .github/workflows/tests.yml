@@ -37,7 +37,7 @@ jobs:
       # Roboto : la police de Home Assistant (et du banc Windows) ; sans elle, Chrome prend DejaVu Sans, plus
       # large, et l'essai anti-débordement voit des textes coupés qui ne le sont pas dans Home Assistant.
       - name: Paquets système
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libturbojpeg ffmpeg fonts-roboto
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libturbojpeg0 ffmpeg fonts-roboto
       - name: Dépendances
         run: pip install -r essai/requirements.txt
       - name: Essais

@@ -33,7 +33,7 @@ class PlurielsTuLot6Test {
     @Test fun tutoiement() {
         val chaines = TrJvm.dossier("values-fr").chaines
         val vous = Regex("""\b(vous|votre|vos)\b|\b\w+(ez)\b""", RegexOption.IGNORE_CASE)
-        val permis = setOf("chez", "assez", "rendez", "nez")
+        val permis = setOf("chez", "assez", "rendez", "nez", "soprez")  // « soprez » : le nom du site (soprez.org) dans « Signaler un problème »
         // l'auteur (14/10) : la carte de don garde mot pour mot « ☕ Payez-moi un café » (formule de Buy Me a Coffee).
         val exceptions = setOf("soutien_carte")
         val fautes = chaines.filter { (k, v) -> k !in exceptions && vous.findAll(v).any { it.value.lowercase() !in permis } }.keys
