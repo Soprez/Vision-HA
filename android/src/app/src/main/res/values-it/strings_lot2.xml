@@ -813,4 +813,9 @@
     <string name="cache_images_vider">Svuota la cache</string>
     <string name="cache_images_vider_texte">Le immagini e le GIF conservate su questo dispositivo saranno eliminate; vengono riscaricate quando serve.</string>
     <string name="cache_images_vide">Cache svuotata.</string>
+    <string name="accueil_widget_ma">Music Assistant</string>
+    <string name="ma_titre">Music Assistant</string>
+    <string name="ma_ouvrir">Apri Music Assistant</string>
+    <string name="ma_detail">Coda, preferiti e impostazioni</string>
+    <string name="ma_indisponible">Music Assistant non si può aprire da qui.</string>
 </resources>

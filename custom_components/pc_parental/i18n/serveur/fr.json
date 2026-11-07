@@ -819,6 +819,7 @@
   "veille.objet.package": "Colis",
   "veille.objet.face": "Visage",
   "veille.objet.license_plate": "Plaque",
+  "roles.f_musique_ma": "Ouvrir Music Assistant (musique, comptes et réglages du lieu)",
   "roles.f_reveil_gerer": "Gérer les réveils de tous les profils",
   "roles.f_reveil_propres": "Créer et modifier ses propres réveils",
   "cle.notif_titre": "{produit} : clé d'inscription remplacée",

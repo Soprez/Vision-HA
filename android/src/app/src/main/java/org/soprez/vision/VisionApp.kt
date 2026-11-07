@@ -32,6 +32,7 @@ class VisionApp : Application() {
         if (Config(this).inscrit) AgentService.demarrer(this)
         registerActivityLifecycleCallbacks(Bords)
         registerActivityLifecycleCallbacks(ThemeUi)
+        MusicAssistant.suivre(this)
     }
 
     /**

@@ -398,7 +398,16 @@ def widgets_disponibles(d: dict[str, Any]) -> list[str]:
     # Les personnes (et celles qui sont là) : des appareils inscrits, rangés par personne.
     if d.get("maison"):
         disponibles += ["enfants", "maison"]
+    # 1.94 : « Music Assistant » : seulement s'il est installé et que le rôle de l'appareil le permet (le bloc `musique_ma` n'existe pas sinon).
+    if d.get("musique_ma"):
+        disponibles.append("ma")
     return disponibles
+
+
+async def _ma(hass: HomeAssistant, coord: PcParentalCoordinator, pc: dict[str, Any] | None) -> dict[str, Any] | None:
+    from . import musique_ma
+
+    return musique_ma.infos(hass, coord, pc)
 
 
 async def etat_veille(hass: HomeAssistant, coord: PcParentalCoordinator, moi: dict[str, Any] | None = None, ecran: str = "tele", locaux: Any = None) -> dict[str, Any]:
@@ -430,6 +439,7 @@ async def etat_veille(hass: HomeAssistant, coord: PcParentalCoordinator, moi: di
         "batteries": await _sans_erreur(plus.batteries(hass), []),
         "tableaux": await _sans_erreur(tableaux.pour_appareil(hass, coord, moi, ecran), None),
         "moi": _moi(hass, coord, moi),
+        "musique_ma": await _sans_erreur(_ma(hass, coord, moi), None),
         "locaux": await _sans_erreur(tableaux.resoudre_locaux(hass, locaux), []),
         "erreurs": list(_dernieres_erreurs),
     }

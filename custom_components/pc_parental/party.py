@@ -1266,7 +1266,9 @@ class PcParentalPartyCommandeView(_Porte):
                              status_code=409)
         except ValueError as e:
             _journal(self.hass, coord.store, pc, corps, "refuse", textes.erreur(e, textes.ha(self.hass)))
-            return self.json({"ok": False, "error": "commande", "retour": textes.erreur(e, lg)}, status_code=400)
+            from . import musique_ma
+
+            return self.json({"ok": False, "error": "commande", **musique_ma.reponse_erreur(e, lg)}, status_code=400)
         except Exception as e:  # noqa: BLE001 - l'appli reçoit une phrase, le journal le détail
             _LOGGER.info("%s : commande Party %s échouée : %s", PRODUIT, corps.get("action"), e)
             _journal(self.hass, coord.store, pc, corps, "echec_enceinte")
@@ -1345,7 +1347,9 @@ class PcParentalPartyMusiqueView(_Porte):
                 return self.json({"ok": True, "favori": favori})
             return self.json({"ok": True, "items": avec_refs(self.hass, await musique.bibliotheque(self.hass, quoi))})
         except musique.MusiqueIndisponible as e:
-            return self.json({"ok": False, "error": "musique", "retour": textes.erreur(e, lg)}, status_code=503)
+            from . import musique_ma
+
+            return self.json({"ok": False, "error": "musique", **musique_ma.reponse_erreur(e, lg)}, status_code=503)
 
 
 class PcParentalPartyImageView(_Porte):

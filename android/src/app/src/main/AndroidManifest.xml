@@ -4,6 +4,9 @@
 
     <!-- Recherche de musique à la voix : savoir si l'appareil a un service de reconnaissance (bouton micro). -->
     <queries>
+        <!-- 1.94 : l'appli Music Assistant (Companion), pour l'ouvrir depuis la tuile de l'accueil. -->
+        <package android:name="io.music_assistant.companion" />
+        <package android:name="io.music_assistant.client" />
         <intent>
             <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
         </intent>
@@ -136,6 +139,11 @@
             android:label="@string/manifeste_choisir_musique"
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
+            android:name=".MaWebActivity"
+            android:exported="false"
+            android:label="@string/accueil_widget_ma"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
         <activity
             android:name=".ReglagesTvActivity"
             android:exported="false"

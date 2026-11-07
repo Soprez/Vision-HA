@@ -282,7 +282,9 @@ def _vue():
                 if action == "suite":
                     return self.json({"ok": True, "relance": await suite(self.hass, pc)})
             except musique.MusiqueIndisponible as e:
-                return self.json({"ok": False, "error": "musique", "retour": textes.erreur(e, lg)}, status_code=503)
+                from . import musique_ma
+
+                return self.json({"ok": False, "error": "musique", **musique_ma.reponse_erreur(e, lg)}, status_code=503)
             return self.json({"ok": False, "error": "action", "retour": textes.t("commun.choix_inconnu", lg)}, status_code=400)
 
     return PcParentalVeilleMusiqueView

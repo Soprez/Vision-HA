@@ -44,6 +44,8 @@ _SENSIBLES: dict[str, bool] = {
     "messages": False, "accueil": False, "entites_voir": False, "entites_piloter": False, "veille": False,
     # Module Réveil : gérer les réveils de tout Demandeur (★), ou seulement les siens.
     "reveil_gerer": True, "reveil_propres": False,
+    # 1.94 : ouvrir l'interface de Music Assistant (tuile de l'accueil) : change la musique, les comptes et les réglages du lieu.
+    "musique_ma": True,
 }
 
 
@@ -63,7 +65,7 @@ ADMINISTRATION = {"gerer", "approuver"}
 MODELES: dict[str, dict[str, Any]] = {
     PARENT: {"nom": vocabulaire.termes("fr")["Decideur"], "fonctions": ["gerer", "approuver", "regles", "pause", "code", "protege", "temps",
                                             "messages", "accueil", "entites_voir", "entites_piloter", "veille",
-                                            "reveil_gerer"],
+                                            "reveil_gerer", "musique_ma"],
              "pause_max": PAUSE_MAX_DEFAUT},
     ENFANT: {"nom": vocabulaire.termes("fr")["Demandeur"], "fonctions": ["protege", "demander_acces", "demander_deverrouillage", "temps",
                                             "messages", "entites_voir"],
@@ -414,6 +416,19 @@ def fonctions_reveil(store) -> bool:
     return True
 
 
+def fonctions_ma(store) -> bool:
+    """1.94, une fois : le rôle Décideur déjà enregistré reçoit « Ouvrir Music Assistant » (comme un rôle neuf), s'il a toujours
+    « Gérer ». Les autres rôles ne changent pas : un Demandeur n'a jamais l'interface de Music Assistant d'office. True si fait."""
+    if getattr(store, "roles_ma", False):
+        return False
+    r = store.roles.get(PARENT)
+    if r is not None and "gerer" in (r.get("fonctions") or []) and "musique_ma" not in r["fonctions"]:
+        r["fonctions"] = [f for f in FONCTIONS if f in set(r["fonctions"]) | {"musique_ma"}]
+        _LOGGER.warning("%s : rôle « %s » : + Ouvrir Music Assistant.", PRODUIT, r.get("nom"))
+    store.roles_ma = True
+    return True
+
+
 def migrer(hass: HomeAssistant, store, biometrie_globale: bool) -> bool:
     """Une fois : modèles par défaut ; anciens réglages (étiquette, 1.69/1.70) → surcharges. True si fait.
 
@@ -421,7 +436,7 @@ def migrer(hass: HomeAssistant, store, biometrie_globale: bool) -> bool:
     """
     if store.roles:
         neutre = neutraliser(hass, store)
-        return fonctions_reveil(store) or neutre
+        return fonctions_ma(store) | fonctions_reveil(store) | neutre
     # Avant la 1.69 : l'étiquette « Parents » faisait le parent, l'interrupteur global la biométrie.
     if not store.roles_migres:
         from . import labels

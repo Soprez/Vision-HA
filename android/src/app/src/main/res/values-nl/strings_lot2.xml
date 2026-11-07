@@ -813,4 +813,9 @@
     <string name="cache_images_vider">Cache wissen</string>
     <string name="cache_images_vider_texte">De afbeeldingen en GIF\'s op dit toestel worden verwijderd; ze worden zo nodig opnieuw geladen.</string>
     <string name="cache_images_vide">Cache gewist.</string>
+    <string name="accueil_widget_ma">Music Assistant</string>
+    <string name="ma_titre">Music Assistant</string>
+    <string name="ma_ouvrir">Music Assistant openen</string>
+    <string name="ma_detail">Wachtrij, favorieten en instellingen</string>
+    <string name="ma_indisponible">Music Assistant kan hier niet worden geopend.</string>
 </resources>

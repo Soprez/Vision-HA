@@ -819,6 +819,7 @@
   "veille.objet.package": "Pacco",
   "veille.objet.face": "Volto",
   "veille.objet.license_plate": "Targa",
+  "roles.f_musique_ma": "Aprire Music Assistant (musica, account e impostazioni del luogo)",
   "roles.f_reveil_gerer": "Gestire le sveglie di tutti i profili",
   "roles.f_reveil_propres": "Creare e modificare le proprie sveglie",
   "cle.notif_titre": "{produit}: chiave di registrazione sostituita",

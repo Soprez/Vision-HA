@@ -819,6 +819,7 @@
   "veille.objet.package": "Paket",
   "veille.objet.face": "Gesicht",
   "veille.objet.license_plate": "Kennzeichen",
+  "roles.f_musique_ma": "Music Assistant öffnen (Musik, Konten und Einstellungen des Ortes)",
   "roles.f_reveil_gerer": "Wecker aller Profile verwalten",
   "roles.f_reveil_propres": "Eigene Wecker erstellen und ändern",
   "cle.notif_titre": "{produit}: Registrierungsschlüssel ersetzt",

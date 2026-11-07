@@ -46,7 +46,7 @@ class PcParentalSendspinAppairageView(HomeAssistantView):
             return self.json({"ok": False, "error": "auth"}, status_code=401)
         if str(pc.get("platform") or "") != "android":
             return self.json({"ok": False, "error": "appareil"}, status_code=403)
-        return self.json({"ok": False, "resultat": "ma", "retour": textes.t("mus.a_faire_dans_ma", textes.pour(self.hass, pc))})
+        return self.json({"ok": False, "resultat": "ma", "ouvrir_ma": True, "retour": textes.t("mus.a_faire_dans_ma", textes.pour(self.hass, pc))})
 
 
 def enregistrer_vues(hass: HomeAssistant) -> None:

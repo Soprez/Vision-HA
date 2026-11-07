@@ -813,4 +813,9 @@
     <string name="cache_images_vider">Clear the cache</string>
     <string name="cache_images_vider_texte">The pictures and GIFs kept on this device will be deleted; they are downloaded again when needed.</string>
     <string name="cache_images_vide">Cache cleared.</string>
+    <string name="accueil_widget_ma">Music Assistant</string>
+    <string name="ma_titre">Music Assistant</string>
+    <string name="ma_ouvrir">Open Music Assistant</string>
+    <string name="ma_detail">Queue, favourites and settings</string>
+    <string name="ma_indisponible">Music Assistant cannot be opened from here.</string>
 </resources>

@@ -209,6 +209,7 @@ FONCTIONS_MODULES: dict[str, tuple[str, ...]] = {
     "veille": ("veille",),
     "reveil_gerer": ("reveil",),
     "reveil_propres": ("reveil",),
+    "musique_ma": ("accueil",),
 }
 
 

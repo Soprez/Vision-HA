@@ -2774,6 +2774,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
             "camera" -> widgetCamera()
             "batteries" -> widgetBatteries()
             "maison" -> widgetMaison()
+            "ma" -> widgetMusicAssistant()
             else -> carte().also { it.addView(texte(code, 13f, theme.encre3)) }
         }
         if (donnees == null && code != "horloge" && code != ZoneHaut.HORLOGE) c.alpha = 0.6f
@@ -3090,6 +3091,19 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         return c
     }
 
+    /** 1.94 : « Music Assistant » : un geste ouvre son interface (l'appli, sinon l'interface web) pour la file, les favoris, les réglages. */
+    private fun widgetMusicAssistant(): View {
+        val c = w(null, LinearLayout.HORIZONTAL).apply { gravity = Gravity.CENTER_VERTICAL }
+        val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        col.addView(texte(getString(R.string.accueil_widget_ma), 14f, theme.encre, Polices.demiGras(this)))
+        col.addView(texte(getString(R.string.ma_detail), 11.5f, theme.encre2))
+        c.addView(col, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        c.addView(bouton(getString(R.string.ma_ouvrir), true) {
+            if (!MusicAssistant.ouvrir(this)) Ui.toast(this, getString(R.string.ma_indisponible), genre = OeilModele.Genre.ERREUR)
+        }.apply { tag = "ma_ouvrir" })
+        return c
+    }
+
     private fun widgetMaison(): View {
         val maison = donnees?.optJSONArray("maison")
         val c = w(null, LinearLayout.HORIZONTAL).apply { gravity = Gravity.CENTER_VERTICAL }
@@ -3145,6 +3159,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
                     val r = Net.post(this, cfg, "/api/pc_parental/veille", JSONObject().put("id", cfg.id).put("secret", cfg.secret).put("ecran", if (tele) "tele" else "telephone").put("locaux", Local.locaux(this)), 20_000)
                     Local.amorcer(this, r.optJSONObject("reglages"))
                     Accueil.noterDisponibles(this, r)
+                    MusicAssistant.noter(this, r)
                     donnees = r
                     val p = r.optJSONObject("moi")?.optString("public").orEmpty()
                     val profilChange = p.isNotEmpty() && p != profilConnu

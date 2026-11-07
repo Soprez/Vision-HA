@@ -819,6 +819,7 @@
   "veille.objet.package": "Pakket",
   "veille.objet.face": "Gezicht",
   "veille.objet.license_plate": "Kenteken",
+  "roles.f_musique_ma": "Music Assistant openen (muziek, accounts en instellingen van de plek)",
   "roles.f_reveil_gerer": "Wekkers van alle profielen beheren",
   "roles.f_reveil_propres": "Eigen wekkers maken en wijzigen",
   "cle.notif_titre": "{produit}: registratiesleutel vervangen",

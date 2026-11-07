@@ -374,6 +374,9 @@ object Accueil {
         Widget("camera", Tr.s(R.string.accueil_widget_camera), 2, 2),
         Widget("batteries", Tr.s(R.string.accueil_widget_batteries), 2, 2),
         Widget("maison", Tr.s(R.string.accueil_widget_presents), 4, 1),
+        // 1.94 : ouvre l'interface de Music Assistant ; Home Assistant ne le propose (widgets_disponibles) que si Music Assistant
+        // est installé et que le rôle de l'appareil le permet.
+        Widget("ma", Tr.s(R.string.accueil_widget_ma), 2, 1),
     )
     fun widget(code: String): Widget? = WIDGETS.firstOrNull { it.code == code }
 
@@ -384,7 +387,7 @@ object Accueil {
      * personnes…) : proposés seulement si le lieu a ces données (l'auteur : Vision va dans d'autres foyers, rien en dur).
      * Les autres (horloge stylisée, temps d'écran, demandes) suivent seulement les modules.
      */
-    val DEPENDANTS = setOf("horloge", "chauffage", "fioul", "ecole", "infos", "devoirs", "camera", "batteries", "enfants", "maison")
+    val DEPENDANTS = setOf("horloge", "chauffage", "fioul", "ecole", "infos", "devoirs", "camera", "batteries", "enfants", "maison", "ma")
 
     /** Retient « widgets_disponibles » du dernier relevé /veille (absent : un ancien Home Assistant, rien ne change). */
     fun noterDisponibles(ctx: Context, r: JSONObject) {

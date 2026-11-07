@@ -1,0 +1,47 @@
+{
+  "version": "2.5.12.22",
+  "date": "2026-10-25",
+  "points": [
+    {
+      "cibles": [
+        "ha",
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Un widget « Music Assistant » ouvre son interface ; les « à faire dans Music Assistant » y mènent aussi.",
+        "en": "A “Music Assistant” widget opens its interface; the “to do in Music Assistant” messages lead there too.",
+        "de": "Ein Widget „Music Assistant“ öffnet dessen Oberfläche; die Hinweise „In Music Assistant erledigen“ auch.",
+        "es": "Un widget «Music Assistant» abre su interfaz; los avisos «Hay que hacerlo en Music Assistant» también llevan allí.",
+        "it": "Un widget «Music Assistant» ne apre l'interfaccia; anche gli avvisi «Da fare in Music Assistant» portano lì.",
+        "nl": "Een widget „Music Assistant” opent de interface; ook de meldingen „Te doen in Music Assistant” leiden erheen."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Il n'existe que si Music Assistant est installé et que le rôle de l'appareil le permet (Décideur par défaut).",
+        "en": "It exists only if Music Assistant is installed and the device's role allows it (Decider by default).",
+        "de": "Es gibt es nur, wenn Music Assistant installiert ist und die Rolle des Geräts es erlaubt (standardmäßig Entscheider).",
+        "es": "Solo existe si Music Assistant está instalado y el rol del dispositivo lo permite (Decisor por defecto).",
+        "it": "Esiste solo se Music Assistant è installato e il ruolo del dispositivo lo permette (Decisore di default).",
+        "nl": "Het bestaat alleen als Music Assistant is geïnstalleerd en de rol van het toestel het toestaat (standaard Beslisser)."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "Nouveau droit de rôle « Ouvrir Music Assistant » : à accorder à un Demandeur seulement si vous le voulez.",
+        "en": "New role right “Open Music Assistant”: give it to a Requester only if you want to.",
+        "de": "Neues Rollenrecht „Music Assistant öffnen“: nur dann einem Anfragenden geben, wenn Sie es wollen.",
+        "es": "Nuevo derecho de rol «Abrir Music Assistant»: concédalo a un Solicitante solo si lo desea.",
+        "it": "Nuovo diritto di ruolo «Aprire Music Assistant»: concedilo a un Richiedente solo se vuoi.",
+        "nl": "Nieuw rolrecht „Music Assistant openen”: geef het alleen aan een Aanvrager als je dat wilt."
+      }
+    }
+  ]
+}

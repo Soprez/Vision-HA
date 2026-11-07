@@ -441,6 +441,7 @@ class PcStore:
         self.reveils: dict[str, dict[str, Any]] = {}
         self.reveil_reglages: dict[str, Any] = {}
         self.roles_reveil: bool = False
+        self.roles_ma: bool = False
         # 1.86.1 : l'empreinte du dernier tableau de bord généré (refait au démarrage si elle change).
         self.signature_tableau: str = ""
         # Pause générale (pause_generale.py) : {"fin", "debut", "par", "appareils": {pc_id: dérogation d'avant}} ou None.
@@ -604,6 +605,7 @@ class PcStore:
         self.reveils = {str(k): dict(v) for k, v in dict(data.get("reveils") or {}).items() if isinstance(v, dict)}
         self.reveil_reglages = dict(data.get("reveil_reglages") or {}) if isinstance(data.get("reveil_reglages"), dict) else {}
         self.roles_reveil = bool(data.get("roles_reveil", False))
+        self.roles_ma = bool(data.get("roles_ma", False))
         self.signature_tableau = str(data.get("signature_tableau") or "")
         self.code_gestion = dict(data.get("code_gestion") or {})
         self.codes_decideurs = {str(k): dict(v) for k, v in dict(data.get("codes_decideurs") or {}).items()
@@ -844,6 +846,7 @@ class PcStore:
                 "reveils": getattr(self, "reveils", {}),
                 "reveil_reglages": getattr(self, "reveil_reglages", {}),
                 "roles_reveil": getattr(self, "roles_reveil", False),
+                "roles_ma": getattr(self, "roles_ma", False),
                 "signature_tableau": self.signature_tableau,
                 "pause_generale": self.pause_generale,
                 "concentration_choix": getattr(self, "concentration_choix", {}),

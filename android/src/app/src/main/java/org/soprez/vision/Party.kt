@@ -360,7 +360,11 @@ object Party {
 
     /** Un échec, dans la langue de l'appareil, jamais un code. */
     fun messageErreur(code: Int, corps: JSONObject?): String {
-        corps?.optString("retour")?.takeIf { it.isNotEmpty() }?.let { return it }
+        corps?.optString("retour")?.takeIf { it.isNotEmpty() }?.let {
+            // 1.94 : « À faire dans Music Assistant » : la phrase reste là où elle s'affiche, un geste mène à Music Assistant.
+            if (corps.optBoolean("ouvrir_ma")) MusicAssistant.proposer(it)
+            return it
+        }
         return when (code) {
             401 -> Tr.s(R.string.party_err_inconnu)
             403 -> Tr.s(R.string.party_err_decideurs, Vocabulaire.decideurs())

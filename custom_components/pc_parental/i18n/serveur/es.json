@@ -819,6 +819,7 @@
   "veille.objet.package": "Paquete",
   "veille.objet.face": "Cara",
   "veille.objet.license_plate": "Matrícula",
+  "roles.f_musique_ma": "Abrir Music Assistant (música, cuentas y ajustes del lugar)",
   "roles.f_reveil_gerer": "Gestionar las alarmas de todos los perfiles",
   "roles.f_reveil_propres": "Crear y modificar sus propias alarmas",
   "cle.notif_titre": "{produit}: clave de registro sustituida",

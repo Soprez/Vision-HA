@@ -819,6 +819,7 @@
   "veille.objet.package": "Package",
   "veille.objet.face": "Face",
   "veille.objet.license_plate": "License plate",
+  "roles.f_musique_ma": "Open Music Assistant (music, accounts and settings of the place)",
   "roles.f_reveil_gerer": "Manage everyone's alarms",
   "roles.f_reveil_propres": "Create and edit their own alarms",
   "cle.notif_titre": "{produit}: enrollment key replaced",

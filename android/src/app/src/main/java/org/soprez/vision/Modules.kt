@@ -83,6 +83,7 @@ object Modules {
         code.startsWith(WidgetsAndroid.PREFIXE) -> actifDans(a, WIDGETS)
         code.startsWith(WidgetsHa.PREFIXE) -> actifDans(a, ENTITES)
         code == "horloge" -> true
+        code == "ma" -> true   // 1.94 : Home Assistant décide (Music Assistant installé, rôle de l'appareil) : widgets_disponibles
         code == "temps" -> horaires(a)
         code == "demandes" -> actifDans(a, DEMANDES)
         code == "enfants" -> regles(a)
