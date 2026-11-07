@@ -7,12 +7,26 @@
         "ha"
       ],
       "texte": {
-        "fr": "Un enfant qui vient de faire une demande (temps, logiciel, site) attend 5 minutes avant de refaire la même ; Home Assistant le fait respecter, l'appli grise le bouton. Une autre demande n'est pas retenue.",
-        "en": "A child who just made a request (time, app, site) waits 5 minutes before making the same one again; Home Assistant enforces it and the app greys the button out. A different request is not held back.",
-        "de": "Ein Kind, das gerade eine Anfrage gestellt hat (Zeit, App, Website), wartet 5 Minuten, bevor es dieselbe erneut stellen kann; Home Assistant setzt das durch, die App graut die Schaltfläche aus. Eine andere Anfrage wird nicht aufgehalten.",
-        "es": "Un niño que acaba de hacer una solicitud (tiempo, aplicación, sitio) espera 5 minutos antes de repetir la misma; Home Assistant lo hace respetar y la app atenúa el botón. Otra solicitud no se retiene.",
-        "it": "Un bambino che ha appena fatto una richiesta (tempo, app, sito) aspetta 5 minuti prima di ripetere la stessa; Home Assistant lo fa rispettare e l'app disattiva il pulsante. Un'altra richiesta non viene trattenuta.",
-        "nl": "Een kind dat net een verzoek deed (tijd, app, site) wacht 5 minuten voordat hetzelfde verzoek opnieuw kan; Home Assistant dwingt dat af en de app maakt de knop grijs. Een ander verzoek wordt niet tegengehouden."
+        "fr": "Après une demande, la même ne peut pas être refaite avant 5 minutes ; Home Assistant le fait respecter.",
+        "en": "After a request, the same one can't be made again for 5 minutes; Home Assistant enforces it.",
+        "de": "Nach einer Anfrage kann dieselbe 5 Minuten lang nicht erneut gestellt werden; Home Assistant setzt das durch.",
+        "es": "Tras una solicitud, no se puede repetir la misma durante 5 minutos; Home Assistant lo hace respetar.",
+        "it": "Dopo una richiesta, la stessa non si può ripetere per 5 minuti; Home Assistant lo fa rispettare.",
+        "nl": "Na een verzoek kan hetzelfde 5 minuten niet opnieuw worden gedaan; Home Assistant dwingt dat af."
+      }
+    },
+    {
+      "cibles": [
+        "telephone",
+        "tele"
+      ],
+      "texte": {
+        "fr": "Pendant l'attente, le bouton de demande reste là, grisé : « Tu pourras redemander dans X min ».",
+        "en": "While waiting, the request button stays, greyed out: “You can ask again in X min”.",
+        "de": "Während der Wartezeit bleibt die Schaltfläche grau: „Du kannst in X Min. erneut fragen“.",
+        "es": "Durante la espera, el botón sigue ahí, atenuado: «Podrás volver a pedirlo dentro de X min».",
+        "it": "Durante l'attesa il pulsante resta, disattivato: «Potrai chiedere di nuovo tra X min».",
+        "nl": "Tijdens het wachten blijft de knop grijs staan: „Je kunt het over X min opnieuw vragen”."
       }
     },
     {
@@ -20,12 +34,12 @@
         "ha"
       ],
       "texte": {
-        "fr": "L'attente se règle pour la maison (entité « Attente avant de redemander », 0 : aucune) et, si besoin, pour une personne (fiche de la personne, onglet Rôle, ou service delai_redemande_regler).",
-        "en": "The wait is set for the whole place (\"Wait before asking again\" entity, 0: none) and, if needed, per person (the person's page, Role tab, or the delai_redemande_regler service).",
-        "de": "Die Wartezeit wird allgemein eingestellt (Entität „Wartezeit bis zur nächsten Anfrage“, 0: keine) und bei Bedarf pro Person (Seite der Person, Reiter Rolle, oder Dienst delai_redemande_regler).",
-        "es": "La espera se ajusta en general (entidad «Espera antes de volver a pedir», 0: ninguna) y, si hace falta, por persona (ficha de la persona, pestaña Rol, o servicio delai_redemande_regler).",
-        "it": "L'attesa si imposta in generale (entità «Attesa prima di richiedere», 0: nessuna) e, se serve, per persona (scheda della persona, scheda Ruolo, o servizio delai_redemande_regler).",
-        "nl": "De wachttijd stel je algemeen in (entiteit „Wachttijd voor opnieuw vragen”, 0: geen) en, indien nodig, per persoon (pagina van de persoon, tabblad Rol, of dienst delai_redemande_regler)."
+        "fr": "Réglable en général (entité « Attente avant de redemander ») et par personne (sa fiche, onglet Rôle).",
+        "en": "Set in general (“Wait before asking again” entity) and per person (their page, Role tab).",
+        "de": "Allgemein (Entität „Wartezeit bis zur nächsten Anfrage“) und pro Person (Seite, Reiter Rolle) einstellbar.",
+        "es": "Ajustable en general (entidad «Espera antes de volver a pedir») y por persona (su ficha, pestaña Rol).",
+        "it": "Impostabile in generale (entità «Attesa prima di richiedere») e per persona (sua scheda, scheda Ruolo).",
+        "nl": "Algemeen (entiteit „Wachttijd voor opnieuw vragen”) en per persoon (pagina, tabblad Rol) instelbaar."
       }
     }
   ]
