@@ -428,7 +428,7 @@ class EditeurWidgetHaActivity : Activity() {
             } catch (e: Net.Echec) {
                 main.post { erreur = WidgetsHa.messageErreur(e.code, e.corps?.optString("error").orEmpty()); hors = true; repli() }
             } catch (e: Exception) {
-                android.util.Log.w("Vision", "Widgets HA : liste des entités injoignable", e)
+                Journal.w("Vision", "Widgets HA : liste des entités injoignable", e)
                 main.post { erreur = WidgetsHa.messageErreur(0, ""); hors = true; repli() }
             }
         }.also { it.isDaemon = true }.start()

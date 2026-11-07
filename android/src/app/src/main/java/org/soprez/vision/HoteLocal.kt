@@ -5,7 +5,6 @@ import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.SystemClock
-import android.util.Log
 import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.URL
@@ -139,11 +138,11 @@ object HoteLocal {
                     if (!Reseau.estPrivee("http://${a.ip}")) continue
                     if (estLaNotre(a, nomsCertificat(a.ip, a.port), connues)) {
                         cfg.hoteLocal = a.ip
-                        Log.i(TAG, "adresse locale de Home Assistant : ${a.ip}")
+                        Journal.i(TAG, "adresse locale de Home Assistant : ${a.ip}")
                         return@Thread
                     }
                 }
-                Log.i(TAG, "adresse locale de Home Assistant introuvable")
+                Journal.i(TAG, "adresse locale de Home Assistant introuvable")
             } finally { enCours = false }
         }.apply { isDaemon = true }.start()
     }

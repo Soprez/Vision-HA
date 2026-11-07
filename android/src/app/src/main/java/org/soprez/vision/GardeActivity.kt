@@ -15,6 +15,8 @@ import android.os.Bundle
 class GardeActivity : Activity() {
     override fun onCreate(b: Bundle?) {
         super.onCreate(b)
+        // 1.94 : jamais dans une capture de « Signaler un problème » (la saisie du code se fait sur cet écran).
+        window.setFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE, android.view.WindowManager.LayoutParams.FLAG_SECURE)
         val i = intent
         val pc = i.getStringExtra(ReponseReceiver.EXTRA_PC)
         val demande = i.getStringExtra(ReponseReceiver.EXTRA_DEMANDE)

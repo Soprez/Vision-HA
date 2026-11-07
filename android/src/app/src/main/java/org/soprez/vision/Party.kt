@@ -413,9 +413,9 @@ object Party {
             val devant = try { Usage.premierPlan(ctx) } catch (_: Exception) { null }
             val raison = ouvertureAutoPermise(depuis, System.currentTimeMillis() / 1000, pr.getLong("lancee_ici", 0L), devant != null && devant != ctx.packageName)
             if (raison == null) {
-                android.util.Log.i("VisionParty", "relevé : soirée lancée sur cette télé à $depuis, ouverture automatique de l'écran Musique")
+                Journal.i("VisionParty", "relevé : soirée lancée sur cette télé à $depuis, ouverture automatique de l'écran Musique")
                 ouvrir(ctx, auto = true)
-            } else android.util.Log.i("VisionParty", "relevé : soirée lancée sur cette télé à $depuis, pas d'ouverture automatique ($raison)")
+            } else Journal.i("VisionParty", "relevé : soirée lancée sur cette télé à $depuis, pas d'ouverture automatique ($raison)")
         }
     }
 
@@ -439,7 +439,7 @@ object Party {
 
     fun ouvrir(ctx: Context, auto: Boolean = false) {
         // 1.93.06.1 (l'auteur, 19/10 : « une action qui part toute seule ») : qui ouvre l'écran Musique, et pourquoi.
-        android.util.Log.i("VisionParty", "ouverture de l'écran Musique (${if (auto) "automatique : soirée lancée sur cette télé" else "demandée"}) par " +
+        Journal.i("VisionParty", "ouverture de l'écran Musique (${if (auto) "automatique : soirée lancée sur cette télé" else "demandée"}) par " +
             (Thread.currentThread().stackTrace.getOrNull(3)?.let { "${it.className.substringAfterLast('.')}.${it.methodName}" } ?: "?"))
         try {
             ctx.startActivity(Intent(ctx, PartyActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)

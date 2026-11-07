@@ -20,6 +20,8 @@ class VisionApp : Application() {
     override fun onCreate() {
         super.onCreate()
         Tr.installer(this)
+        // 1.94 : les plantages laissent leur pile dans le journal que « Signaler un problème » peut envoyer.
+        Journal.surveillerPlantages()
         // 1.93.06 (l'auteur, « un vrai cache ») : les pochettes restent sur disque d'un lancement à l'autre (bornées à 20 Mo et
         // 120 images, les plus anciennes partent d'abord) ; elles ne se vident qu'à la fin de la Party (avant : à chaque
         // démarrage de l'appli, 1.90.2).

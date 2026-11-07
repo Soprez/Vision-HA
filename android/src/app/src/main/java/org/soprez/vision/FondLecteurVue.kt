@@ -106,7 +106,7 @@ class FondLecteurVue(ctx: Context, private val th: Theme, private val tele: Bool
         c.drawColor(montrees[0])
         // L'écart réel avec l'image précédente, quand celle-ci en avait programmé une (pas après une pause).
         if (programmee && dernier > 0L && profil.noter(maintenant - dernier))
-            android.util.Log.i("Vision", "Fond animé : profil ${profil.niveau} (${"%.0f".format(1000f / maxOf(1f, profil.moyenneMs))} images/s mesurées), ${profil.cadence()} images/s visées")
+            Journal.i("Vision", "Fond animé : profil ${profil.niveau} (${"%.0f".format(1000f / maxOf(1f, profil.moyenneMs))} images/s mesurées), ${profil.cadence()} images/s visées")
         val brut = if (anime) (niveau?.invoke() ?: 0f) else 0f
         sonLisse += (brut - sonLisse) * 0.25f
         val son = sonLisse

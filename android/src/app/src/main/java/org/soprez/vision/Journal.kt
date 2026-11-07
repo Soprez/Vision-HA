@@ -32,11 +32,12 @@ object Journal {
     }
     @Volatile internal var horloge: () -> Long = { System.currentTimeMillis() }
 
-    fun d(tag: String, texte: String) = noter('D', tag, texte)
-    fun i(tag: String, texte: String) = noter('I', tag, texte)
-    fun w(tag: String, texte: String) = noter('W', tag, texte)
-    fun e(tag: String, texte: String, erreur: Throwable? = null) =
-        noter('E', tag, if (erreur == null) texte else texte + " : " + pile(erreur))
+    fun d(tag: String, texte: String, erreur: Throwable? = null) = noter('D', tag, avec(texte, erreur))
+    fun i(tag: String, texte: String, erreur: Throwable? = null) = noter('I', tag, avec(texte, erreur))
+    fun w(tag: String, texte: String, erreur: Throwable? = null) = noter('W', tag, avec(texte, erreur))
+    fun e(tag: String, texte: String, erreur: Throwable? = null) = noter('E', tag, avec(texte, erreur))
+
+    private fun avec(texte: String, erreur: Throwable?) = if (erreur == null) texte else texte + " : " + pile(erreur)
 
     private fun noter(niveau: Char, tag: String, texte: String) {
         sortie(niveau, tag, texte)

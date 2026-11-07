@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="signaler_titre">Signaler un problème</string>
+    <string name="signaler_raison">Signaler un problème</string>
+    <string name="signaler_intro">Refaire les gestes qui posent problème. Pendant 10 minutes au plus, Vision garde son journal et quelques captures d\'écran. Les adresses, noms, sites et secrets sont retirés avant l\'aperçu. Rien ne part de l\'appareil sans « Envoyer ». Un signalement est gardé 90 jours sur soprez.org et peut être effacé d\'ici.</string>
+    <string name="signaler_commencer">Commencer l\'enregistrement</string>
+    <string name="signaler_terminer">Terminer</string>
+    <string name="signaler_en_cours">Enregistrement en cours</string>
+    <string name="signaler_en_cours_aide">Refaire les gestes, puis appuyer sur Terminer.</string>
+    <string name="signaler_pastille">● Enregistrement · Terminer</string>
+    <string name="signaler_pastille_tele">● Enregistrement · OK long pour terminer</string>
+    <string name="signaler_sans_captures">La capture d\'écran a été refusée : seuls les journaux et la fiche de l\'appareil seront enregistrés.</string>
+    <string name="signaler_capture_prise">Capture prise</string>
+    <string name="signaler_capture_impossible">Capture impossible</string>
+    <string name="signaler_preparation">Préparation de l\'aperçu…</string>
+    <string name="signaler_apercu_journaux">Journaux : %1$d lignes · %2$d remplacements</string>
+    <string name="signaler_apercu_captures">Les captures ne sont pas retouchées : retirer celles qui montrent quelque chose de privé.</string>
+    <string name="signaler_retirer">✕ Retirer</string>
+    <string name="signaler_description_indice">Ce qui s\'est passé (facultatif, 500 caractères)</string>
+    <string name="signaler_voir">Voir ce qui sera envoyé</string>
+    <string name="signaler_envoyer">Envoyer</string>
+    <string name="signaler_jeter">Jeter</string>
+    <string name="signaler_envoi">Envoi…</string>
+    <string name="signaler_echec">L\'envoi a échoué. Rien n\'est gardé en ligne ; réessayer.</string>
+    <string name="signaler_envoye">Envoyé. Référence : %1$s. Gardé %2$d jours.</string>
+    <string name="signaler_effacer">Supprimer ce signalement (%1$s)</string>
+    <string name="signaler_efface">Signalement supprimé</string>
+    <string name="signaler_efface_echec">La suppression a échoué ; réessayer plus tard.</string>
+    <string name="signaler_reserve">Réservé aux %1$s.</string>
+    <string name="signaler_fermer">Fermer</string>
+</resources>

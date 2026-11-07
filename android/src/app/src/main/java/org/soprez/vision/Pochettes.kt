@@ -96,7 +96,7 @@ object Pochettes {
             // Pas encore d'image (titre qui vient de changer) ou échec : nouvel essai bientôt, si la vue montre encore ce titre.
             val n = (essais[cle]?.first ?: 0) + 1
             // 1.93.06 (essai 9.7 de la TCL) : une pochette qui n'arrive pas se lit dans le journal.
-            android.util.Log.i("VisionPochette", "pochette de $entite pas encore là (essai $n${if (attente(n) == null) ", abandon jusqu'au titre suivant" else ""})")
+            Journal.i("VisionPochette", "pochette de $entite pas encore là (essai $n${if (attente(n) == null) ", abandon jusqu'au titre suivant" else ""})")
             val delai = attente(n) ?: return@Thread
             essais[cle] = n to (System.currentTimeMillis() + delai)
             main.postDelayed({ if (vue.tag == cle) poser(app, vue, entite, empreinte, attente, garderAncienne) }, delai)

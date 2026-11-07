@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="signaler_titre">Problem melden</string>
+    <string name="signaler_raison">Problem melden</string>
+    <string name="signaler_intro">Die fehlerhaften Schritte noch einmal ausführen. Bis zu 10 Minuten lang speichert Vision sein Protokoll und einige Bildschirmfotos. Adressen, Namen, Websites und Geheimnisse werden vor der Vorschau entfernt. Ohne „Senden“ verlässt nichts das Gerät. Eine Meldung wird 90 Tage auf soprez.org aufbewahrt und kann von hier gelöscht werden.</string>
+    <string name="signaler_commencer">Aufnahme starten</string>
+    <string name="signaler_terminer">Beenden</string>
+    <string name="signaler_en_cours">Aufnahme läuft</string>
+    <string name="signaler_en_cours_aide">Die Schritte wiederholen und dann auf Beenden tippen.</string>
+    <string name="signaler_pastille">● Aufnahme · Beenden</string>
+    <string name="signaler_pastille_tele">● Aufnahme · OK gedrückt halten zum Beenden</string>
+    <string name="signaler_sans_captures">Die Bildschirmaufnahme wurde abgelehnt: Es werden nur die Protokolle und das Gerätedatenblatt aufgezeichnet.</string>
+    <string name="signaler_capture_prise">Bildschirmfoto gemacht</string>
+    <string name="signaler_capture_impossible">Bildschirmfoto nicht möglich</string>
+    <string name="signaler_preparation">Vorschau wird vorbereitet …</string>
+    <string name="signaler_apercu_journaux">Protokolle: %1$d Zeilen · %2$d Ersetzungen</string>
+    <string name="signaler_apercu_captures">Bildschirmfotos werden nicht bearbeitet: Private Inhalte bitte entfernen.</string>
+    <string name="signaler_retirer">✕ Entfernen</string>
+    <string name="signaler_description_indice">Was passiert ist (optional, 500 Zeichen)</string>
+    <string name="signaler_voir">Ansehen, was gesendet wird</string>
+    <string name="signaler_envoyer">Senden</string>
+    <string name="signaler_jeter">Verwerfen</string>
+    <string name="signaler_envoi">Senden …</string>
+    <string name="signaler_echec">Das Senden ist fehlgeschlagen. Online wurde nichts gespeichert; bitte erneut versuchen.</string>
+    <string name="signaler_envoye">Gesendet. Referenz: %1$s. %2$d Tage aufbewahrt.</string>
+    <string name="signaler_effacer">Diese Meldung löschen (%1$s)</string>
+    <string name="signaler_efface">Meldung gelöscht</string>
+    <string name="signaler_efface_echec">Löschen fehlgeschlagen; später erneut versuchen.</string>
+    <string name="signaler_reserve">Nur für %1$s.</string>
+    <string name="signaler_fermer">Schließen</string>
+</resources>

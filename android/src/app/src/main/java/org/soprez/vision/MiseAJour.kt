@@ -53,7 +53,7 @@ object MiseAJour {
     private fun dire(ctx: Context, t: String, technique: String = "") {
         etat = t
         detail = technique
-        android.util.Log.i("Vision", "MiseAJour : $t" + if (technique.isNotEmpty()) " [$technique]" else "")
+        Journal.i("Vision", "MiseAJour : $t" + if (technique.isNotEmpty()) " [$technique]" else "")
         surEtat?.let { cb -> android.os.Handler(ctx.mainLooper).post { cb(t) } }
     }
 

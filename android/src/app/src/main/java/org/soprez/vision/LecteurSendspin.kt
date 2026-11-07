@@ -4,7 +4,6 @@ package org.soprez.vision
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.media3.common.C
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -57,7 +56,7 @@ object LecteurSendspin {
         })
         client = c
         c.demarrer()
-        Log.i(TAG, "lecteur Sendspin démarré (${LecteurMusique.nom(ctx)} → $hote, ${codecs.joinToString()})")
+        Journal.i(TAG, "lecteur Sendspin démarré (${LecteurMusique.nom(ctx)} → $hote, ${codecs.joinToString()})")
     }
 
     @Synchronized fun arreter() {
@@ -151,9 +150,9 @@ object LecteurSendspin {
                 if (cfg.id.isEmpty()) "" else
                     Net.post(ctx, cfg, "/api/pc_parental/sendspin/appairage", corps.put("id", cfg.id).put("secret", cfg.secret), 30_000).optString("resultat")
             } catch (ex: Exception) {
-                Log.i(TAG, "appairage par Home Assistant impossible ($etape) : ${ex.javaClass.simpleName}"); ""
+                Journal.i(TAG, "appairage par Home Assistant impossible ($etape) : ${ex.javaClass.simpleName}"); ""
             }
-            Log.i(TAG, "appairage par Home Assistant : $etape → $resultat")
+            Journal.i(TAG, "appairage par Home Assistant : $etape → $resultat")
             main.post { fin(resultat) }
         }.start()
     }
@@ -172,8 +171,8 @@ object LecteurSendspin {
 
     /** 1.93.06 : la pause et la reprise demandées par [FocusMusique] passent par Music Assistant ; jamais de volume. */
     private val moteurFocus = object : FocusMusique.Moteur {
-        override fun pauseFocus() { if (etat == "lecture") { commande("pause"); Log.i(TAG, "pause : une autre appli joue du son") } }
-        override fun repriseFocus() { if (etat == "pause") { commande("play"); Log.i(TAG, "reprise après le son d'une autre appli") } }
+        override fun pauseFocus() { if (etat == "lecture") { commande("pause"); Journal.i(TAG, "pause : une autre appli joue du son") } }
+        override fun repriseFocus() { if (etat == "pause") { commande("play"); Journal.i(TAG, "reprise après le son d'une autre appli") } }
         override fun volumeFocus(facteur: Float) {}
     }
     private var lisait = false
@@ -191,7 +190,7 @@ object LecteurSendspin {
         etaitConnecte = e.connecte
         if (e.lit && !lisait && maintenant - connecteA < LecteurSlim.GARDE_MS && autreSonALaLiaison) {
             autreSonALaLiaison = false
-            commande("pause"); Log.i(TAG, "départ refusé après la liaison : autre chose joue sur l'appareil")
+            commande("pause"); Journal.i(TAG, "départ refusé après la liaison : autre chose joue sur l'appareil")
         }
         // 1.93.06 : le focus audio suit la lecture (demandé quand le son part, rendu à l'arrêt).
         else if (e.lit && !lisait) FocusMusique.demander(ctx, moteurFocus)
@@ -212,7 +211,7 @@ object LecteurSendspin {
                 val j = Joueur()
                 joueur = j
                 session = MediaSession.Builder(ctx, j).setId("vision-sendspin").build()
-            } catch (ex: Exception) { Log.w(TAG, "MediaSession impossible : $ex") }
+            } catch (ex: Exception) { Journal.w(TAG, "MediaSession impossible : $ex") }
         }
         joueur?.majEtat()
     }

@@ -10,7 +10,6 @@ import android.media.MediaCodecList
 import android.media.MediaFormat
 import android.os.Build
 import android.os.Process
-import android.util.Log
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.ArrayDeque
@@ -125,7 +124,7 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
                     "flac" -> decoder(g, ts, donnees)
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "morceau illisible : $e")
+                Journal.w(TAG, "morceau illisible : $e")
                 // Banc Musique (2026-10-12) : un décodeur en erreur (« work failed to complete », puis « Released state »)
                 // refusait tous les morceaux suivants : silence jusqu'au titre suivant. On le referme ; le morceau suivant
                 // en rouvre un ([decodeurPret]).
@@ -159,7 +158,7 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
             c.configure(mf, null, null, 0); c.start()
             decodeur = c
         } catch (e: Exception) {
-            Log.w(TAG, "décodeur FLAC indisponible : $e")
+            Journal.w(TAG, "décodeur FLAC indisponible : $e")
             // Banc Musique : un codec créé mais pas configuré restait ouvert (les décodeurs de l'appareil s'épuisent).
             try { c?.release() } catch (_: Exception) {}
             decodeur = null
@@ -181,7 +180,7 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
         if (maintenant - dernierEssaiDecodeur < 500) return null
         dernierEssaiDecodeur = maintenant
         ouvrirDecodeur(f)
-        if (decodeur != null) { mesures.decodeurRelances++; Log.i(TAG, "décodeur FLAC rouvert") }
+        if (decodeur != null) { mesures.decodeurRelances++; Journal.i(TAG, "décodeur FLAC rouvert") }
         return decodeur
     }
 
@@ -266,7 +265,7 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
                 }
                 if (finPrecedente != Long.MIN_VALUE && b.ts - finPrecedente > 5_000) {
                     mesures.trous++; mesures.trouMaxMs = maxOf(mesures.trouMaxMs, (b.ts - finPrecedente) / 1000)
-                    Log.i(TAG, "trou de ${(b.ts - finPrecedente) / 1000} ms dans le flux")
+                    Journal.i(TAG, "trou de ${(b.ts - finPrecedente) / 1000} ms dans le flux")
                 }
                 finPrecedente = b.ts + (b.pcm.size / f.canaux) * 1_000_000L / f.debit
                 val p = piste
@@ -277,7 +276,7 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
                 // Flux livré en retard (démarrage d'un titre chez MA) : on se recale au lieu de tout jeter.
                 SendspinSynchro.reancrage(prevue - voulue).takeIf { it > 0 }?.let { d ->
                     decalageFlux += d; voulue += d; mesures.reancrages++; mesures.decalageUs = decalageFlux
-                    Log.i(TAG, "flux en retard de ${d / 1000} ms : recalé (décalage ${decalageFlux / 1000} ms)")
+                    Journal.i(TAG, "flux en retard de ${d / 1000} ms : recalé (décalage ${decalageFlux / 1000} ms)")
                 }
                 val ecart = prevue - voulue
                 mesures.ecartUs = ecart
@@ -286,7 +285,7 @@ class SendspinSortie(private val horloge: SendspinHorloge, private val retardMs:
                 val d = SendspinSynchro.decider(ecart, trames, f.debit)
                 if (d.recalage) {
                     mesures.recalages++
-                    Log.i(TAG, "recalage : ${ecart / 1000} ms ${if (ecart > 0) "en retard (trames jetées)" else "en avance (silence)"}, tampon ${mesures.tamponMs} ms, horloge ±${horloge.erreur / 1000} ms, génération ${b.generation}, écrites ${ecrits}")
+                    Journal.i(TAG, "recalage : ${ecart / 1000} ms ${if (ecart > 0) "en retard (trames jetées)" else "en avance (silence)"}, tampon ${mesures.tamponMs} ms, horloge ±${horloge.erreur / 1000} ms, génération ${b.generation}, écrites ${ecrits}")
                 }
                 var pcm = b.pcm
                 if (d.jeter > 0) {

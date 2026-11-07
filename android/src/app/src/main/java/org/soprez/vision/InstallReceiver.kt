@@ -19,7 +19,7 @@ class InstallReceiver : BroadcastReceiver() {
         if (i.action != ACTION) return
         val statut = i.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
         MiseAJour.resultat(ctx, statut, i.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE))
-        android.util.Log.i("Vision", "MiseAJour : résultat statut=$statut message=${i.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)} " +
+        Journal.i("Vision", "MiseAJour : résultat statut=$statut message=${i.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)} " +
             "legacy=${i.getIntExtra("android.content.pm.extra.LEGACY_STATUS", 0)} extras=${i.extras?.keySet()}")
         when (statut) {
             PackageInstaller.STATUS_PENDING_USER_ACTION -> {

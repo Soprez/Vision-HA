@@ -180,7 +180,7 @@ class I18nVeilleLotTest {
             }
             for ((no, t) in littéraux(src)) {
                 val l = lignes[no - 1]
-                if (no in sautees || l.contains("i18n-exception") || Regex("""\bLog\.[diwev]\(""").containsMatchIn(l) || l.trimStart().startsWith("@")) continue
+                if (no in sautees || l.contains("i18n-exception") || Regex("""\b(?:Log|Journal)\.[diwev]\(""").containsMatchIn(l) || l.trimStart().startsWith("@")) continue
                 if (!suspect(t) || t.trim() in nomsPropres || (nom to t) in exceptions) continue
                 fautes += "$nom:$no : « $t »"
             }

@@ -139,7 +139,7 @@ object Paquets {
         val accueilChange = !presente && !garderPlace && try { nettoyerAccueil(ctx, pkg, s.etaitPresente(pkg)) } catch (_: Exception) { false }
         if (!s.constat(pkg, presente, accueilChange)) return
         // Pour le contrôle sur appareil : quelle voie a vu le changement, et le constat (logcat -s VisionPaquets).
-        android.util.Log.i("VisionPaquets", "$pkg ${if (presente) "présente" else "absente"} (vu par $source)")
+        Journal.i("VisionPaquets", "$pkg ${if (presente) "présente" else "absente"} (vu par $source)")
         generation++
         oublierListes()
         // Home Assistant apprend la nouvelle liste au relevé suivant, qu'on lance tout de suite.

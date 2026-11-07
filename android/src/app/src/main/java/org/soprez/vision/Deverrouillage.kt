@@ -4,7 +4,6 @@ package org.soprez.vision
 import android.content.Context
 import android.net.Uri
 import android.util.Base64
-import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import java.security.KeyFactory
@@ -205,7 +204,7 @@ object Deverrouillage {
         val maintenant = System.currentTimeMillis()
         appliquer(ctx, "parent", a.optInt("minutes"), maintenant)
         BandeauDeverrouille.maintenant()
-        Log.i("VisionDeverrouillage", "accès total ${a.optInt("minutes")} min, à l'initiative de ${a.optString("par")}")
+        Journal.i("VisionDeverrouillage", "accès total ${a.optInt("minutes")} min, à l'initiative de ${a.optString("par")}")
         consommerPlusTard(ctx, id, maintenant / 1000)
         Thread { envoyerConsommations(ctx) }.start()
         val qui = a.optString("par").ifEmpty { ctx.getString(R.string.dev_un_gestionnaire, Vocabulaire.decideur(ctx)) }
@@ -229,7 +228,7 @@ object Deverrouillage {
         val etait = cfg.modeParent || reglagesOuverts(ctx)
         cfg.parentJusqua = 0L
         prefs(ctx).edit().putLong("reglages_jusqua", 0L).apply()
-        if (etait) Log.i("VisionDeverrouillage", "reverrouillé ($pourquoi)")
+        if (etait) Journal.i("VisionDeverrouillage", "reverrouillé ($pourquoi)")
         BandeauDeverrouille.maintenant()
     }
 

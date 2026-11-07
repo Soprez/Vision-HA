@@ -107,7 +107,7 @@ object Flux {
             msm.addOnActiveSessionsChangedListener(l, composant(app), main)
             ecoute = l
             suivre(msm.getActiveSessions(composant(app)))
-        } catch (e: Exception) { android.util.Log.i(TAG, "Flux : sessions illisibles (${e.javaClass.simpleName})") }
+        } catch (e: Exception) { Journal.i(TAG, "Flux : sessions illisibles (${e.javaClass.simpleName})") }
     }
 
     private fun debrancher(ctx: Context) {
@@ -133,13 +133,13 @@ object Flux {
         private fun regarder() {
             if (!actif) return
             val pk = try { Local.appEnFond(app) } catch (_: Exception) { null }
-            if (pk != null && pk != dernier) { dernier = pk; android.util.Log.i(TAG, "Flux : $pk joue pendant la veille"); autorise(pk); return }
+            if (pk != null && pk != dernier) { dernier = pk; Journal.i(TAG, "Flux : $pk joue pendant la veille"); autorise(pk); return }
             if (pk == null) {
                 dernier = null
                 val la = interdits(app)
                 val nouveaux = la - dejaLa
                 dejaLa = dejaLa intersect la
-                if (nouveaux.isNotEmpty()) { android.util.Log.i(TAG, "Flux : $nouveaux démarre, la veille lui laisse l'écran"); interdit() }
+                if (nouveaux.isNotEmpty()) { Journal.i(TAG, "Flux : $nouveaux démarre, la veille lui laisse l'écran"); interdit() }
             }
         }
 
@@ -176,7 +176,7 @@ object Flux {
         finApres.run()
         val g = Guetteur(app, { _ ->
             finApres.run(); main.removeCallbacks(finApres)
-            if (!Veille.ouverte && Usage.ecranAllume(app)) { android.util.Log.i(TAG, "Flux : la veille revient en couche"); Veille.ouvrir(app) }
+            if (!Veille.ouverte && Usage.ecranAllume(app)) { Journal.i(TAG, "Flux : la veille revient en couche"); Veille.ouvrir(app) }
         })
         apres = g
         g.demarrer()

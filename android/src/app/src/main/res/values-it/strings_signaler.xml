@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="signaler_titre">Segnala un problema</string>
+    <string name="signaler_raison">Segnala un problema</string>
+    <string name="signaler_intro">Ripetere i passaggi che danno problemi. Per al massimo 10 minuti Vision conserva il suo registro e alcuni screenshot. Indirizzi, nomi, siti e segreti vengono rimossi prima dell\'anteprima. Nulla lascia il dispositivo senza «Invia». Una segnalazione resta 90 giorni su soprez.org e può essere cancellata da qui.</string>
+    <string name="signaler_commencer">Avvia la registrazione</string>
+    <string name="signaler_terminer">Termina</string>
+    <string name="signaler_en_cours">Registrazione in corso</string>
+    <string name="signaler_en_cours_aide">Ripetere i passaggi, poi premere Termina.</string>
+    <string name="signaler_pastille">● Registrazione · Termina</string>
+    <string name="signaler_pastille_tele">● Registrazione · tenere premuto OK per terminare</string>
+    <string name="signaler_sans_captures">La cattura dello schermo è stata rifiutata: verranno registrati solo i registri e la scheda del dispositivo.</string>
+    <string name="signaler_capture_prise">Screenshot eseguito</string>
+    <string name="signaler_capture_impossible">Screenshot non possibile</string>
+    <string name="signaler_preparation">Preparazione dell\'anteprima…</string>
+    <string name="signaler_apercu_journaux">Registri: %1$d righe · %2$d sostituzioni</string>
+    <string name="signaler_apercu_captures">Gli screenshot non vengono ritoccati: rimuovere quelli che mostrano qualcosa di privato.</string>
+    <string name="signaler_retirer">✕ Rimuovi</string>
+    <string name="signaler_description_indice">Che cosa è successo (facoltativo, 500 caratteri)</string>
+    <string name="signaler_voir">Vedi cosa verrà inviato</string>
+    <string name="signaler_envoyer">Invia</string>
+    <string name="signaler_jeter">Scarta</string>
+    <string name="signaler_envoi">Invio…</string>
+    <string name="signaler_echec">Invio non riuscito. Nulla è stato conservato online; riprovare.</string>
+    <string name="signaler_envoye">Inviato. Riferimento: %1$s. Conservato %2$d giorni.</string>
+    <string name="signaler_effacer">Elimina questa segnalazione (%1$s)</string>
+    <string name="signaler_efface">Segnalazione eliminata</string>
+    <string name="signaler_efface_echec">Eliminazione non riuscita; riprovare più tardi.</string>
+    <string name="signaler_reserve">Solo per %1$s.</string>
+    <string name="signaler_fermer">Chiudi</string>
+</resources>

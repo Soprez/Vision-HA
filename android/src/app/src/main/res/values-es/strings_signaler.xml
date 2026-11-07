@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="signaler_titre">Informar de un problema</string>
+    <string name="signaler_raison">Informar de un problema</string>
+    <string name="signaler_intro">Repetir los pasos que fallan. Durante 10 minutos como máximo, Vision guarda su registro y algunas capturas de pantalla. Las direcciones, nombres, sitios y secretos se eliminan antes de la vista previa. Nada sale del dispositivo sin pulsar «Enviar». Un informe se conserva 90 días en soprez.org y se puede borrar desde aquí.</string>
+    <string name="signaler_commencer">Iniciar la grabación</string>
+    <string name="signaler_terminer">Terminar</string>
+    <string name="signaler_en_cours">Grabación en curso</string>
+    <string name="signaler_en_cours_aide">Repetir los pasos y pulsar Terminar.</string>
+    <string name="signaler_pastille">● Grabando · Terminar</string>
+    <string name="signaler_pastille_tele">● Grabando · mantener OK para terminar</string>
+    <string name="signaler_sans_captures">Se rechazó la captura de pantalla: solo se registrarán los registros y la ficha del dispositivo.</string>
+    <string name="signaler_capture_prise">Captura realizada</string>
+    <string name="signaler_capture_impossible">No se pudo capturar</string>
+    <string name="signaler_preparation">Preparando la vista previa…</string>
+    <string name="signaler_apercu_journaux">Registros: %1$d líneas · %2$d sustituciones</string>
+    <string name="signaler_apercu_captures">Las capturas no se retocan: quitar las que muestren algo privado.</string>
+    <string name="signaler_retirer">✕ Quitar</string>
+    <string name="signaler_description_indice">Qué ocurrió (opcional, 500 caracteres)</string>
+    <string name="signaler_voir">Ver lo que se enviará</string>
+    <string name="signaler_envoyer">Enviar</string>
+    <string name="signaler_jeter">Descartar</string>
+    <string name="signaler_envoi">Enviando…</string>
+    <string name="signaler_echec">El envío ha fallado. No se ha guardado nada en línea; vuelva a intentarlo.</string>
+    <string name="signaler_envoye">Enviado. Referencia: %1$s. Se conserva %2$d días.</string>
+    <string name="signaler_effacer">Eliminar este informe (%1$s)</string>
+    <string name="signaler_efface">Informe eliminado</string>
+    <string name="signaler_efface_echec">No se pudo eliminar; inténtelo más tarde.</string>
+    <string name="signaler_reserve">Solo para %1$s.</string>
+    <string name="signaler_fermer">Cerrar</string>
+</resources>

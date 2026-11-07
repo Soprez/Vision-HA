@@ -4,7 +4,6 @@ package org.soprez.vision
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.util.Log
 
 /**
  * 1.90.2 (l'auteur, télé du bureau : « 3 notifications, dont Alarme insistant, sans aucun son ; Free TV a du son ») : sur
@@ -40,7 +39,7 @@ object SonTele {
             p.prepare(); p.start()
             joueur = p
             true
-        } catch (e: Exception) { Log.w(TAG, "son impossible : $e"); false }
+        } catch (e: Exception) { Journal.w(TAG, "son impossible : $e"); false }
     }
 
     val joue: Boolean get() = try { joueur?.isPlaying == true } catch (_: Exception) { false }

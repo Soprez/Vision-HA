@@ -10,7 +10,6 @@ import android.media.MediaPlayer
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
-import android.util.Log
 import java.io.DataInputStream
 import java.io.OutputStream
 import java.net.InetSocketAddress
@@ -146,9 +145,9 @@ object LecteurSlim {
      * Assistant (STMp, comme une pause qu'il aurait demandée) ; la reprise aussi (STMr). Tout passe par le fil du lecteur.
      */
     private val moteurFocus = object : FocusMusique.Moteur {
-        override fun pauseFocus() { h?.post { if (etat == "lecture" && lecteur != null) { mettreEnPause(); Log.i(TAG, "pause : une autre appli joue du son") } } }
+        override fun pauseFocus() { h?.post { if (etat == "lecture" && lecteur != null) { mettreEnPause(); Journal.i(TAG, "pause : une autre appli joue du son") } } }
         override fun repriseFocus() { h?.post {
-            if (etat == "pause" && lecteur != null) { reprendre(); Log.i(TAG, "reprise après le son d'une autre appli") }
+            if (etat == "pause" && lecteur != null) { reprendre(); Journal.i(TAG, "reprise après le son d'une autre appli") }
             // 1.93.06 (point 6a) : après une longue pause (une partie sur HDMI), Music Assistant a arrêté le lecteur
             // (30 s) : la reprise passe par Home Assistant, pour la seule soirée de cet appareil.
             else if (etat == "arrêt") ctxApp?.let { relancerParHa(it) }
@@ -177,9 +176,9 @@ object LecteurSlim {
             var toutDeSuite = false
             if (hote != null) try { session(ctx, hote) } catch (_: LiaisonMuette) {
                 // 1.93.06.1 : Music Assistant a déjà abandonné une liaison muette ; on se reconnecte sans attendre.
-                Log.i(TAG, "aucune commande de Music Assistant depuis ${sansCommandeMs / 1000} s : liaison tenue pour morte, reconnexion")
+                Journal.i(TAG, "aucune commande de Music Assistant depuis ${sansCommandeMs / 1000} s : liaison tenue pour morte, reconnexion")
                 toutDeSuite = true
-            } catch (e: Exception) { Log.i(TAG, "liaison coupée : ${e.message}") }
+            } catch (e: Exception) { Journal.i(TAG, "liaison coupée : ${e.message}") }
             connecte = false
             if (moi.isInterrupted || fil !== moi) return
             // 1.93.06.1 (TCL éteinte au bouton, 19/10 13:38 → 13:57) : écran éteint, le réseau de la télé somnole (la
@@ -207,7 +206,7 @@ object LecteurSlim {
     @Volatile var veilleEssaiMs = VEILLE_ESSAI_MS
 
     private fun attendreReveil(ctx: Context, moi: Thread) {
-        Log.i(TAG, "écran éteint : liaison en attente du réveil de la télé")
+        Journal.i(TAG, "écran éteint : liaison en attente du réveil de la télé")
         val fin = horlogeMs() + veilleEssaiMs
         while (!moi.isInterrupted && fil === moi && !ecranAllume(ctx) && !reconnexionDemandee && horlogeMs() < fin) {
             try { Thread.sleep(500) } catch (_: InterruptedException) { return }
@@ -332,7 +331,7 @@ object LecteurSlim {
         val s = socket
         if (s != null && connecte && !liaisonMorte(horlogeMs() - derniereCommandeA, sansCommandeMs)) return true
         if (!enMarche) return false
-        Log.i(TAG, "liaison ${if (s == null) "absente" else "muette"} ($pourquoi) : reconnexion tout de suite")
+        Journal.i(TAG, "liaison ${if (s == null) "absente" else "muette"} ($pourquoi) : reconnexion tout de suite")
         reconnexionDemandee = true
         retourReseauA = 0L
         s?.let { fermer(it) }
@@ -351,7 +350,7 @@ object LecteurSlim {
         // lecteur en tâche de fond juste après le HELO, et ignore le nom s'il arrive avant la fin (course selon la
         // vitesse de l'appareil). Le nom est donc renvoyé, sans qu'on le demande, une fois le lecteur connu de MA.
         for (delai in RENVOIS_NOM_MS) h?.postDelayed({ if (socket === s && connecte) envoyerNom(ctx) }, delai)
-        Log.i(TAG, "relié à Music Assistant ($hote:$PORT)")
+        Journal.i(TAG, "relié à Music Assistant ($hote:$PORT)")
         val entree = DataInputStream(s.getInputStream().buffered())
         while (!Thread.currentThread().isInterrupted) {
             val longueur = entree.readUnsignedShort()
@@ -359,7 +358,7 @@ object LecteurSlim {
             val data = ByteArray(longueur - 4); entree.readFully(data)
             derniereCommandeA = horlogeMs()
             val c = String(cmd, Charsets.US_ASCII)
-            h?.post { try { traiter(ctx, c, data, hote) } catch (e: Exception) { Log.w(TAG, "commande $c ignorée : $e") } }
+            h?.post { try { traiter(ctx, c, data, hote) } catch (e: Exception) { Journal.w(TAG, "commande $c ignorée : $e") } }
         }
     }
 
@@ -408,9 +407,9 @@ object LecteurSlim {
                 // 1.93.06 (incident du salon) : jamais par-dessus une autre appli ou une entrée de la télé.
                 if (relancePermise(e.actif, e.ici, e.lecteurNom, e.maintenant.etat, nom(ctx)) && !FocusMusique.autreSonEnCours(ctx)) {
                     Net.post(ctx, cfg, "/api/pc_parental/party/commande", org.json.JSONObject().put("id", cfg.id).put("secret", cfg.secret).put("action", "lecture"), 9_000)
-                    Log.i(TAG, "lecture relancée par Home Assistant")
+                    Journal.i(TAG, "lecture relancée par Home Assistant")
                 }
-            } catch (e: Exception) { Log.i(TAG, "relance par Home Assistant : ${e.message}") }
+            } catch (e: Exception) { Journal.i(TAG, "relance par Home Assistant : ${e.message}") }
         }.apply { isDaemon = true; start() }
     }
 
@@ -438,7 +437,7 @@ object LecteurSlim {
         // Le son qui sort encore de Vision (reconnexion en pleine lecture) n'est pas « autre chose ».
         if (try { lecteur?.isPlaying == true } catch (_: Exception) { false }) return true
         val ok = departApresLiaisonPermis(FocusMusique.autreSonEnCours(ctx))
-        if (!ok) Log.i(TAG, "départ refusé après la liaison : autre chose joue sur l'appareil")
+        if (!ok) Journal.i(TAG, "départ refusé après la liaison : autre chose joue sur l'appareil")
         return ok
     }
 
@@ -551,7 +550,7 @@ object LecteurSlim {
         val battement = b.int
         val port = b.short.toInt() and 0xFFFF
         val ip = b.int
-        if (commande != 't') Log.d(TAG, "strm $commande (démarrage $autostart, position ${positionMs()} ms)")
+        if (commande != 't') Journal.d(TAG, "strm $commande (démarrage $autostart, position ${positionMs()} ms)")
         when (commande) {
             't' -> stat("STMt", battement)
             'p' -> { FocusMusique.gesteUtilisateur(); mettreEnPause() }
@@ -580,7 +579,7 @@ object LecteurSlim {
                 val chemin = Regex("^GET (\\S+) HTTP").find(requete)?.groupValues?.get(1) ?: return
                 // 1.93.05 (retour 40, endurance) : l'identifiant du flux demandé (fin du chemin de Music Assistant, sans hôte),
                 // pour vérifier à chaque titre que le son décodé est celui que Music Assistant annonce.
-                Log.d(TAG, "flux ${chemin.substringBefore('?').split('/').filter { it.isNotEmpty() }.takeLast(2).joinToString("/")}")
+                Journal.d(TAG, "flux ${chemin.substringBefore('?').split('/').filter { it.isNotEmpty() }.takeLast(2).joinToString("/")}")
                 val hoteHttp = if (ip != 0) "%d.%d.%d.%d".format(ip ushr 24 and 255, ip ushr 16 and 255, ip ushr 8 and 255, ip and 255) else hote
                 val https = (drapeaux and 0x20) != 0
                 val url = (if (https) "https://" else "http://") + hoteHttp + (if (port != 0 && port != 80 && port != 443) ":$port" else "") + chemin
@@ -641,7 +640,7 @@ object LecteurSlim {
             mp.setOnCompletionListener { fini -> fin(fini) }
             val numero = ++fluxDemandes
             mp.setOnErrorListener { m, quoi, extra ->
-                Log.w(TAG, "lecture impossible ($quoi/$extra) : $url")
+                Journal.w(TAG, "lecture impossible ($quoi/$extra) : $url")
                 if (rouvrirFlux(essai, SystemClock.elapsedRealtime() - relieA)) {
                     // Rouvert seulement si aucun autre flux n'a été demandé entre-temps.
                     if (lecteur === m) lecteur = null
@@ -653,7 +652,7 @@ object LecteurSlim {
             mp.prepareAsync()
             if (!enchainer) { liberer(except = mp) }
         } catch (e: Exception) {
-            Log.w(TAG, "flux refusé : ${e.message}"); stat("STMn")
+            Journal.w(TAG, "flux refusé : ${e.message}"); stat("STMn")
         }
     }
 
@@ -805,7 +804,7 @@ object LecteurSlim {
         sortant = ancien
         lecteur = n; decodeurPret = false; debutTitre(); etat = "lecture"
         stat("STMs"); surveillerFin()
-        Log.i(TAG, "fondu enchaîné de ${duree} ms")
+        Journal.i(TAG, "fondu enchaîné de ${duree} ms")
         val debut = SystemClock.elapsedRealtime()
         h?.post(object : Runnable {
             override fun run() {

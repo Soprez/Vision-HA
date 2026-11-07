@@ -2,8 +2,8 @@
 
 - un `logging.Handler` garde les derniers enregistrements de l'intégration (INFO et plus) et les événements
   `pc_parental_*` / `vision_musique_commande` ;
-- `GET`-like `POST /api/pc_parental/diag/periode` (appareil d'un responsable + code, id et secret dans le corps, jamais
-  dans l'adresse) rend les lignes de la période, **déjà anonymisées**, avec le nombre de remplacements ;
+- `GET`-like `POST /api/pc_parental/diag/periode` (appareil d'un responsable, id et secret dans le corps, jamais dans
+  l'adresse) rend les lignes de la période, **déjà anonymisées**, avec le nombre de remplacements ;
 - l'anonymisation est un module sans dépendance (`Anonymiseur`) : les mêmes règles et le même corpus d'essai
   (`essai/corpus_anonymisation.json`) servent côté appli (Kotlin).
 """
@@ -227,10 +227,11 @@ def versions(hass: HomeAssistant) -> dict[str, str]:
 
 
 class PcParentalDiagView(HomeAssistantView):
-    """Le journal d'une période pour « Signaler un problème » : appareil d'un responsable + preuve d'octroi.
+    """Le journal d'une période pour « Signaler un problème » : l'appareil d'un responsable (fonction « gérer »).
 
-    POST (et non GET comme dans la spécification) : l'identifiant et le secret de l'appareil, et le code, ne doivent
-    jamais figurer dans une adresse.
+    La preuve (empreinte ou code) est demandée par l'appli avant l'appel (Garde.exiger), comme pour les autres gestes
+    de gestion ; lire un journal n'accorde rien, donc pas de preuve d'octroi. POST (et non GET comme dans la
+    spécification) : l'identifiant et le secret de l'appareil ne doivent jamais figurer dans une adresse.
     """
 
     url = URL_DIAG
@@ -254,12 +255,6 @@ class PcParentalDiagView(HomeAssistantView):
             return self.json({"ok": False, "error": "auth"}, status_code=401)
         if moi["id"] not in roles.avec(coord.store, "gerer"):
             return self.json({"ok": False, "error": "parent"}, status_code=403)
-        from . import octroi
-
-        personne = str(moi.get("person") or "") or None
-        erreur = await octroi.verifier(self.hass, coord.store, "appareil:" + str(moi["id"]), corps.get("code_octroi"), personne)
-        if erreur:
-            return self.json({"ok": False, "error": erreur}, status_code=403)
         try:
             jusqua = float(corps.get("jusqua") or time.time())
             depuis = float(corps.get("depuis") or (jusqua - 600))

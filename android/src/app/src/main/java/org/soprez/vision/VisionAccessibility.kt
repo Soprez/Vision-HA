@@ -87,6 +87,12 @@ class VisionAccessibility : AccessibilityService() {
         // Veille-lot : toute touche de la télécommande est une personne devant l'écran, même quand elle ne fait que
         // déplacer le focus (l'accueil d'une Google TV ne produit alors aucun « geste ») : le repli de la veille en tient compte.
         if (event.action == KeyEvent.ACTION_DOWN) Usage.derniereInteraction = System.currentTimeMillis()
+        // 1.94 « Signaler un problème » : pendant un enregistrement SEULEMENT, appui long sur OK = Terminer, sur Menu = capture.
+        // Hors enregistrement, aucune touche n'est filtrée ici.
+        if (Signalement.enCours && event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 1 && PastilleSignalement.touchesTele(event.keyCode)) {
+            if (event.keyCode == KeyEvent.KEYCODE_MENU) PastilleSignalement.toucheMenuLongue(this) else PastilleSignalement.toucheOkLongue(this)
+            return false
+        }
         if (event.keyCode != KeyEvent.KEYCODE_HOME || !prendAccueil()) return false
         // Appui long laissé au système (tableau de bord Google TV).
         if (event.action == KeyEvent.ACTION_DOWN) return event.repeatCount == 0

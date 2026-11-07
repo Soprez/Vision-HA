@@ -160,7 +160,7 @@ class I18nLot1Test {
             code.forEachIndexed { i, l ->
                 val origine = brut.getOrNull(i).orEmpty()
                 if (origine.contains("i18n-exception")) return@forEachIndexed
-                if (Regex("""\bLog\.[dviwe]\(|@Suppress|@SuppressLint|const val TAG""").containsMatchIn(l)) return@forEachIndexed
+                if (Regex("""\b(?:Log|Journal)\.[dviwe]\(|@Suppress|@SuppressLint|const val TAG""").containsMatchIn(l)) return@forEachIndexed
                 // Identifiants de thème (le premier argument de Theme(…)) : données, traduites par Themes.libelle.
                 val ligne = l.replace(Regex("""Theme\("[^"]*""""), "Theme(X")
                     .replace(Regex(""""[^"]*" to R\.string\.theme_"""), "X to R.string.theme_")  // la table Themes.LIBELLES : identifiants

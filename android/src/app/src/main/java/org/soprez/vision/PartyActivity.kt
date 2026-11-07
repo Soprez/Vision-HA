@@ -7,7 +7,6 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -197,7 +196,7 @@ class PartyActivity : Activity(), ZoneSure.Geree {
                 if (nouveauTitre.isNotEmpty() && nouveauTitre != actuelTitre) {
                     titrePrecedent = actuelTitre; titreChangeA = System.currentTimeMillis()
                     // 1.93.06.1 : à comparer avec le dernier « jouer_element » du journal (titre affiché = titre joué).
-                    Log.i(TAG_PARTY, "titre joué : « ${e?.maintenant?.titre} » — ${e?.maintenant?.artiste}")
+                    Journal.i(TAG_PARTY, "titre joué : « ${e?.maintenant?.titre} » — ${e?.maintenant?.artiste}")
                 }
                 // 1.93.06 (retour 40) : le bouton suit le lecteur réel de cet appareil (Party.corrigerParLocal).
                 val f = e?.let { tenirVoulu(filtrerFile(it, avant), avant) }?.let { Party.corrigerParLocal(this, it, voulu.isNotEmpty()) }
@@ -421,7 +420,7 @@ class PartyActivity : Activity(), ZoneSure.Geree {
         if (ev.action == android.view.KeyEvent.ACTION_DOWN) {
             if (ev.repeatCount == 0) {
                 okCleBas = cleFocus(f); okVueBas = f
-                Log.i(TAG_PARTY, "OK ↓ sur « ${okCleBas ?: "rien"} » (rang ${rangFile(f)} de la file, écran n° $constructions)")
+                Journal.i(TAG_PARTY, "OK ↓ sur « ${okCleBas ?: "rien"} » (rang ${rangFile(f)} de la file, écran n° $constructions)")
             }
             return false
         }
@@ -430,8 +429,8 @@ class PartyActivity : Activity(), ZoneSure.Geree {
         val d = OkGarde.decider(bas, cleFocus(f), vueBas != null && vueBas === f)
         when (d) {
             OkGarde.Decision.NORMAL -> return false
-            OkGarde.Decision.IGNORER -> { Log.w(TAG_PARTY, OkGarde.journal(d, bas, cleFocus(f))); return true }
-            OkGarde.Decision.REJOUER -> { Log.i(TAG_PARTY, OkGarde.journal(d, bas, cleFocus(f))); f?.performClick(); return true }
+            OkGarde.Decision.IGNORER -> { Journal.w(TAG_PARTY, OkGarde.journal(d, bas, cleFocus(f))); return true }
+            OkGarde.Decision.REJOUER -> { Journal.i(TAG_PARTY, OkGarde.journal(d, bas, cleFocus(f))); f?.performClick(); return true }
         }
     }
 
@@ -1077,7 +1076,7 @@ class PartyActivity : Activity(), ZoneSure.Geree {
         val choix = ArrayList<Pair<String, () -> Unit>>()
         val decide = e.piloter || e.ici
         if (decide) choix.add(getString(R.string.partyecran_jouer_maintenant) to {
-            Log.i(TAG_PARTY, "jouer_element rang ${rangFile(ligneDe(t.id))} « ${t.titre} » (${t.id})")
+            Journal.i(TAG_PARTY, "jouer_element rang ${rangFile(ligneDe(t.id))} « ${t.titre} » (${t.id})")
             commande("jouer_element", JSONObject().put("element", t.id))
         })
         choix.add(getString(R.string.choixmusique_jouer_ensuite) to { placer(t, true) })
@@ -1445,7 +1444,7 @@ class PartyActivity : Activity(), ZoneSure.Geree {
         // 1.93.06.1 (l'auteur, 19/10) : un rafraîchissement ne doit jamais déplacer le focus ; s'il le fait, le journal le dit.
         val voulu = focusAvantLigne ?: focusAvant
         if (voulu != null && deplace.isEmpty() && cleFocus(cible) != voulu && !(cible === lecture && voulu in setOf(getString(R.string.vuewidget_pause), getString(R.string.vuewidget_lecture))))
-            Log.w(TAG_PARTY, "focus déplacé par le rafraîchissement (écran n° $constructions) : « $voulu » → « ${cleFocus(cible)} »")
+            Journal.w(TAG_PARTY, "focus déplacé par le rafraîchissement (écran n° $constructions) : « $voulu » → « ${cleFocus(cible)} »")
         cible.post {
             cible.requestFocus()
             if (deplace.isNotEmpty() && cible.tag == "file:$deplace") cible.animate().scaleX(1.03f).scaleY(1.03f).translationZ(px(14f).toFloat()).setDuration(1).start()

@@ -4,7 +4,6 @@ package org.soprez.vision
 import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -83,7 +82,7 @@ class SendspinClient(
         override fun hashPoignee() = transport?.hashPoignee ?: ByteArray(0)
         override fun pin(pin: String?) = publier(etat.copy(pin = pin))
         override fun evenement(e: String, detail: String?) {
-            Log.i(TAG, "appairage : $e${detail?.let { " ($it)" } ?: ""}")
+            Journal.i(TAG, "appairage : $e${detail?.let { " ($it)" } ?: ""}")
             publier(etat.copy(appairage = e))
         }
         override fun echecs() = identite.echecsPin
@@ -114,7 +113,7 @@ class SendspinClient(
 
     /** Une commande de lecture (rôle controller) : play, pause, stop, next, previous, seek… */
     fun commande(c: String, extra: Map<String, Any?> = emptyMap()) = h.post {
-        if (c in VOLUME_INTERDIT) { Log.i(TAG, "commande « $c » refusée : la télé gère le volume"); return@post }
+        if (c in VOLUME_INTERDIT) { Journal.i(TAG, "commande « $c » refusée : la télé gère le volume"); return@post }
         val t = transport ?: return@post
         if (!t.pret) return@post
         t.envoyer(linkedMapOf("type" to "client/command", "payload" to linkedMapOf("controller" to (linkedMapOf<String, Any?>("command" to c) + extra))))
@@ -127,7 +126,7 @@ class SendspinClient(
         val t = SendspinTransport(identite, object : SendspinTransport.Sortie {
             override fun texte(t: String) { journal?.invoke("→ $t"); ws?.send(t) }
             override fun binaire(b: ByteArray) { ws?.send(b.toByteString()) }
-            override fun fermer(raison: String) { Log.i(TAG, "liaison fermée : $raison"); ws?.close(1000, null); ws = null; perdu() }
+            override fun fermer(raison: String) { Journal.i(TAG, "liaison fermée : $raison"); ws?.close(1000, null); ws = null; perdu() }
             override fun poignee(info: SendspinTransport.Info) {
                 // Nouvelle poignée (connexion, ou re-poignée après un appairage) : tout repart de l'activation.
                 appairage.remettre(); active = false; h.removeCallbacks(tic); h.removeCallbacks(etatPeriodique)
@@ -136,7 +135,7 @@ class SendspinClient(
             override fun controle(type: String, charge: Map<String, Any?>) { this@SendspinClient.controle(type, charge) }
             override fun role(b: ByteArray) { this@SendspinClient.role(b) }
         })
-        t.trace = { Log.d(TAG, it) }
+        t.trace = { Journal.d(TAG, it) }
         transport = t
         active = false
         horloge.remettre()
@@ -152,7 +151,7 @@ class SendspinClient(
             }
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) { h.post { if (ws === webSocket) { ws = null; perdu() } } }
             override fun onFailure(webSocket: WebSocket, e: Throwable, response: Response?) {
-                h.post { if (ws === webSocket) { Log.i(TAG, "liaison impossible : ${e.message}"); ws = null; perdu() } }
+                h.post { if (ws === webSocket) { Journal.i(TAG, "liaison impossible : ${e.message}"); ws = null; perdu() } }
             }
         })
     }
@@ -187,7 +186,7 @@ class SendspinClient(
 
     private fun controle(type: String, p: Map<String, Any?>) {
         val t = transport ?: return
-        if (type != "server/time") Log.d(TAG, "← $type ${if (type == "server/activate") p else ""}")
+        if (type != "server/time") Journal.d(TAG, "← $type ${if (type == "server/activate") p else ""}")
         when (type) {
             "server/hello" -> t.envoyer(hello())
             "server/activate" -> {
@@ -205,7 +204,7 @@ class SendspinClient(
             "server/pair-finalize" -> appairage.pairFinalize()
             "pair/abort" -> appairage.abandonServeur(p["reason"] as? String ?: "")
             "server/time" -> {
-                Log.v(TAG, "server/time rtt=${(recuA - n(p["client_transmitted"])) / 1000} ms")
+                android.util.Log.v(TAG, "server/time rtt=${(recuA - n(p["client_transmitted"])) / 1000} ms")
                 val avant = horloge.synchro
                 horloge.serveurTime(n(p["client_transmitted"]), n(p["server_received"]), n(p["server_transmitted"]), recuA)
                 if (!avant && horloge.synchro) { etatClient(); publier(etat.copy(disponible = true)) }
@@ -220,7 +219,7 @@ class SendspinClient(
             "server/command" -> commandeServeur(p)
             "server/state" -> serverState(p)
             "group/update" -> {
-                Log.d(TAG, "groupe : ${p["playback_state"]}")
+                Journal.d(TAG, "groupe : ${p["playback_state"]}")
                 publier(etat.copy(groupe = p["group_name"] as? String ?: etat.groupe, etatGroupe = p["playback_state"] as? String ?: etat.etatGroupe,
                     lit = (p["playback_state"] as? String ?: etat.etatGroupe) == "playing"))
                 repriseApresCoupure(p["playback_state"] as? String)
@@ -240,7 +239,7 @@ class SendspinClient(
             // n'a changé entre-temps (personne n'a relancé ni choisi autre chose).
             h.postDelayed({
                 if (etat.connecte && etat.etatGroupe == "stopped") {
-                    Log.i(TAG, "lecture relancée après une coupure de $coupure s (MA l'avait arrêtée au retour)")
+                    Journal.i(TAG, "lecture relancée après une coupure de $coupure s (MA l'avait arrêtée au retour)")
                     commande("play")
                 }
             }, SendspinReprise.DELAI_RELANCE_MS)
@@ -264,7 +263,7 @@ class SendspinClient(
             val t = transport ?: return
             if (!t.pret) return
             if ((maintenantUs() - dernierRecu) / 1000 > SILENCE_MAX_MS) {
-                Log.i(TAG, "plus rien du serveur depuis ${SILENCE_MAX_MS / 1000} s : reconnexion"); ws?.cancel(); ws = null; perdu(); return
+                Journal.i(TAG, "plus rien du serveur depuis ${SILENCE_MAX_MS / 1000} s : reconnexion"); ws?.cancel(); ws = null; perdu(); return
             }
             t.envoyer(linkedMapOf("type" to "client/time", "payload" to linkedMapOf("client_transmitted" to maintenantUs())))
             h.postDelayed(this, horloge.intervalleMs())
@@ -307,7 +306,7 @@ class SendspinClient(
     private fun commandeServeur(p: Map<String, Any?>) {
         val c = p["player"] as? Map<*, *> ?: return
         when (c["command"]) {
-            "volume", "mute" -> Log.i(TAG, "commande de volume ignorée (${c["command"]}) : la télé gère le son")
+            "volume", "mute" -> Journal.i(TAG, "commande de volume ignorée (${c["command"]}) : la télé gère le son")
             "set_static_delay" -> (c["static_delay_ms"] as? Number)?.let { retardMs = it.toInt().coerceIn(0, 5_000) }
         }
         etatClient()
@@ -320,7 +319,7 @@ class SendspinClient(
             val f = SendspinSortie.Format(pl["codec"] as? String ?: "pcm", (pl["sample_rate"] as? Number)?.toInt() ?: 48_000,
                 (pl["channels"] as? Number)?.toInt() ?: 2, (pl["bit_depth"] as? Number)?.toInt() ?: 16,
                 (pl["codec_header"] as? String)?.let { SendspinNoise.deB64(it) })
-            Log.i(TAG, "flux : ${f.codec} ${f.debit} Hz, ${f.canaux} canaux, ${f.bits} bits")
+            Journal.i(TAG, "flux : ${f.codec} ${f.debit} Hz, ${f.canaux} canaux, ${f.bits} bits")
             sortie.demarrer(f)
             publier(etat.copy(lit = true, codec = f.codec))
         }
@@ -329,7 +328,7 @@ class SendspinClient(
     private fun serverState(p: Map<String, Any?>) {
         ((p["metadata"] as? Map<*, *>)?.get("progress") as? Map<*, *>)?.let { pr ->
             val ts = n((p["metadata"] as Map<*, *>)["timestamp"])
-            Log.d(TAG, "progression : ${pr["track_progress"]} ms, vitesse ${pr["playback_speed"]}, horodatée ${(horloge.versLocal(ts) - maintenantUs()) / 1000} ms par rapport à maintenant")
+            Journal.d(TAG, "progression : ${pr["track_progress"]} ms, vitesse ${pr["playback_speed"]}, horodatée ${(horloge.versLocal(ts) - maintenantUs()) / 1000} ms par rapport à maintenant")
         }
         publier(etatServeur(etat, p, { horloge.versLocal(it) }))
     }

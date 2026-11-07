@@ -129,7 +129,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        android.util.Log.i("VisionAccueil", "onCreate (${if (savedInstanceState == null) "démarrage" else "recréation"})")
+        Journal.i("VisionAccueil", "onCreate (${if (savedInstanceState == null) "démarrage" else "recréation"})")
         cfg = Config(this)
         theme = Local.themeEffectif(this, Palette.LANCEUR)
         profilConnu = getSharedPreferences(PREFS, MODE_PRIVATE).getString("profil", "") ?: ""
@@ -179,7 +179,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
     }
 
     override fun onDestroy() {
-        android.util.Log.i("VisionAccueil", "onDestroy (changement de configuration : $isChangingConfigurations)")
+        Journal.i("VisionAccueil", "onDestroy (changement de configuration : $isChangingConfigurations)")
         Paquets.desabonner(surPaquet)
         super.onDestroy()
     }
@@ -192,7 +192,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
      */
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
-        android.util.Log.i("VisionAccueil", "onConfigurationChanged (sans recréation)")
+        Journal.i("VisionAccueil", "onConfigurationChanged (sans recréation)")
         theme = Local.themeEffectif(this, Palette.LANCEUR)
         barres()
         demanderReconstruction()
@@ -453,7 +453,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         if (ev.action == KeyEvent.ACTION_DOWN) {
             if (ev.repeatCount == 0) {
                 okCleBas = cleVue(f); okVueBas = f
-                android.util.Log.i("VisionAccueil", "OK ↓ sur « ${okCleBas ?: "rien"} » (accueil n° $constructions)")
+                Journal.i("VisionAccueil", "OK ↓ sur « ${okCleBas ?: "rien"} » (accueil n° $constructions)")
             }
             return false
         }
@@ -462,8 +462,8 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         val d = OkGarde.decider(bas, cleVue(f), vueBas != null && vueBas === f)
         when (d) {
             OkGarde.Decision.NORMAL -> return false
-            OkGarde.Decision.IGNORER -> { okRetenu = null; android.util.Log.w("VisionAccueil", OkGarde.journal(d, bas, cleVue(f))); return true }
-            OkGarde.Decision.REJOUER -> { okRetenu = null; android.util.Log.i("VisionAccueil", OkGarde.journal(d, bas, cleVue(f))); f?.performClick(); return true }
+            OkGarde.Decision.IGNORER -> { okRetenu = null; Journal.w("VisionAccueil", OkGarde.journal(d, bas, cleVue(f))); return true }
+            OkGarde.Decision.REJOUER -> { okRetenu = null; Journal.i("VisionAccueil", OkGarde.journal(d, bas, cleVue(f))); f?.performClick(); return true }
         }
     }
 
@@ -559,7 +559,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
     private fun entrerModification(cle: String?) {
         if (!tele) return
         modeTele.entrer(); annulerEtape = null; bandeauMontre = false
-        android.util.Log.i("VisionAccueil", "modification de l'accueil")
+        Journal.i("VisionAccueil", "modification de l'accueil")
         construire()
         cle?.let { k -> racine.post { cadreVue(k)?.requestFocus() } }
         armerSortieModif()
@@ -789,7 +789,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
 
     /** Ouvre une appli ; fermée par les règles, elle montre pourquoi (et comment demander) au lieu de s'ouvrir. */
     private fun ouvrir(pkg: String) {
-        android.util.Log.i("VisionAccueil", "ouvre $pkg (focus : « ${cleVue(currentFocus ?: racine.findFocus()) ?: "rien"} »)")
+        Journal.i("VisionAccueil", "ouvre $pkg (focus : « ${cleVue(currentFocus ?: racine.findFocus()) ?: "rien"} »)")
         val raison = Etat.doitBloquer(this, pkg)
         if (raison != null) BlockActivity.afficher(this, raison, pkg) else Accueil.lancer(this, pkg)
     }
@@ -1095,7 +1095,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
         if (empreinteApps.isNotEmpty()) {
             val av = empreinteApps.split('|'); val ap = nouvelle.split('|')
             val parts = ap.indices.filter { it >= av.size || av[it] != ap[it] }
-            android.util.Log.i("VisionAccueil", "accueil rebâti (n° $constructions) ; parties changées : ${if (parts.isEmpty()) "aucune (action de l'utilisateur)" else parts.joinToString()}")
+            Journal.i("VisionAccueil", "accueil rebâti (n° $constructions) ; parties changées : ${if (parts.isEmpty()) "aucune (action de l'utilisateur)" else parts.joinToString()}")
         }
         empreinteApps = nouvelle
         panneau = null
@@ -3147,7 +3147,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
                     val profilChange = p.isNotEmpty() && p != profilConnu
                     if (profilChange) { profilConnu = p; getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString("profil", p).apply() }
                     main.post { if (profilChange && !tele) demanderReconstruction() else appliquerDonnees() }
-                } catch (e: Exception) { android.util.Log.w("Vision", "Accueil : relevé /veille raté (${e.javaClass.simpleName})") }
+                } catch (e: Exception) { Journal.w("Vision", "Accueil : relevé /veille raté (${e.javaClass.simpleName})") }
                 try { Thread.sleep(60_000) } catch (_: InterruptedException) { break }
             }
         }.also { it.isDaemon = true; it.start() }
@@ -3227,7 +3227,7 @@ class LanceurActivity : Activity(), ZoneSure.Geree {
                     }
                     ancienneImage?.drawable?.let { d -> n.findViewWithTag<ImageView>("cam_img")?.setImageDrawable(d) }
                     remplacementsWidgets++
-                    android.util.Log.d("Vision", "widget ${p.code} redessiné (contenu changé)")
+                    Journal.d("Vision", "widget ${p.code} redessiné (contenu changé)")
                     g.removeViewAt(i); g.addView(n, i)
                 }
             }

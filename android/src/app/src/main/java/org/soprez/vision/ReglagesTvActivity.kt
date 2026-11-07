@@ -717,6 +717,8 @@ class ReglagesTvActivity : Activity(), ZoneSure.Geree {
         val prete = MiseAJour.disponible.isNotEmpty() || MiseAJour.apkPret()
         contenu.addView(ligne(getString(R.string.reglagestv_version_court),
             getString(if (prete) R.string.setup_version_maj_prete else R.string.setup_version_a_jour, BuildConfigCompat.version(this)), "version") { detailVersion() })
+        // 1.94 : « Signaler un problème » (réservé aux responsables, l'écran le vérifie).
+        contenu.addView(ligne(getString(R.string.signaler_titre), if (Signalement.enCours) getString(R.string.signaler_en_cours) else getString(R.string.reglagestv_ouvrir_fleche), "signaler") { SignalerActivity.ouvrir(this) })
         if (prete) contenu.addView(ligne(
             if (MiseAJour.disponible.isNotEmpty()) getString(R.string.setup_maj_prete_version, MiseAJour.disponible) else getString(R.string.setup_maj_prete),
             MiseAJour.etat.ifEmpty { getString(R.string.setup_maj_un_geste) }, "maj_installer") {

@@ -227,13 +227,13 @@ object FocusMusique {
             val entree = SourcesTele.estEntree(app, pkg, classe)
             val joue = LecteurMusique.etat == "lecture"
             if ("$pkg/$classe" != dernierPlan && (joue || pauseParSource))
-                android.util.Log.i("VisionFocus", "premier plan : $pkg/$classe (entrée de la télé : ${if (entree) "oui" else "non"})")
+                Journal.i("VisionFocus", "premier plan : $pkg/$classe (entrée de la télé : ${if (entree) "oui" else "non"})")
             dernierPlan = "$pkg/$classe"
             if (entree == dansSource) return@post
             dansSource = entree
             when (decisionSource(mode(app), applis(app), reprise(app), entree, pauseParSource, joue)) {
-                Action.PAUSE -> { m.pauseFocus(); pauseParSource = true; android.util.Log.i("VisionFocus", "pause : entrée de la télé ($pkg)") }
-                Action.REPRENDRE -> { pauseParSource = false; m.repriseFocus(); android.util.Log.i("VisionFocus", "reprise : retour de l'entrée de la télé") }
+                Action.PAUSE -> { m.pauseFocus(); pauseParSource = true; Journal.i("VisionFocus", "pause : entrée de la télé ($pkg)") }
+                Action.REPRENDRE -> { pauseParSource = false; m.repriseFocus(); Journal.i("VisionFocus", "reprise : retour de l'entrée de la télé") }
                 else -> if (!entree) pauseParSource = false
             }
         }

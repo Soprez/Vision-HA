@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="signaler_titre">Probleem melden</string>
+    <string name="signaler_raison">Probleem melden</string>
+    <string name="signaler_intro">Herhaal de stappen die misgaan. Maximaal 10 minuten bewaart Vision zijn logboek en enkele schermafbeeldingen. Adressen, namen, sites en geheimen worden vóór het voorbeeld verwijderd. Niets verlaat het apparaat zonder „Verzenden“. Een melding wordt 90 dagen op soprez.org bewaard en kan hier worden gewist.</string>
+    <string name="signaler_commencer">Opname starten</string>
+    <string name="signaler_terminer">Afronden</string>
+    <string name="signaler_en_cours">Opname bezig</string>
+    <string name="signaler_en_cours_aide">Herhaal de stappen en tik dan op Afronden.</string>
+    <string name="signaler_pastille">● Opname · Afronden</string>
+    <string name="signaler_pastille_tele">● Opname · OK ingedrukt houden om af te ronden</string>
+    <string name="signaler_sans_captures">Schermopname is geweigerd: alleen de logboeken en het apparaatoverzicht worden vastgelegd.</string>
+    <string name="signaler_capture_prise">Schermafbeelding gemaakt</string>
+    <string name="signaler_capture_impossible">Schermafbeelding niet mogelijk</string>
+    <string name="signaler_preparation">Voorbeeld voorbereiden…</string>
+    <string name="signaler_apercu_journaux">Logboeken: %1$d regels · %2$d vervangingen</string>
+    <string name="signaler_apercu_captures">Schermafbeeldingen worden niet bewerkt: verwijder wat privé is.</string>
+    <string name="signaler_retirer">✕ Verwijderen</string>
+    <string name="signaler_description_indice">Wat er gebeurde (optioneel, 500 tekens)</string>
+    <string name="signaler_voir">Bekijk wat er wordt verzonden</string>
+    <string name="signaler_envoyer">Verzenden</string>
+    <string name="signaler_jeter">Weggooien</string>
+    <string name="signaler_envoi">Verzenden…</string>
+    <string name="signaler_echec">Verzenden mislukt. Er is niets online bewaard; probeer opnieuw.</string>
+    <string name="signaler_envoye">Verzonden. Referentie: %1$s. %2$d dagen bewaard.</string>
+    <string name="signaler_effacer">Deze melding verwijderen (%1$s)</string>
+    <string name="signaler_efface">Melding verwijderd</string>
+    <string name="signaler_efface_echec">Verwijderen mislukt; probeer later opnieuw.</string>
+    <string name="signaler_reserve">Alleen voor %1$s.</string>
+    <string name="signaler_fermer">Sluiten</string>
+</resources>

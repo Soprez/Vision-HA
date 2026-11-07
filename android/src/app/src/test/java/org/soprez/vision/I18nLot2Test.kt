@@ -129,6 +129,11 @@ class I18nLot2Test {
 
     /** Exceptions justifiées : (fichier, littéral). */
     private val exceptions = setOf(
+        // 1.94 « Signaler un problème » : le protocole multipart (en-têtes HTTP), jamais affiché.
+        "Net.kt" to "multipart/form-data; boundary=\$limite",
+        "Net.kt" to "--\$limite\\r\\nContent-Disposition: form-data; name=\\\"\$k\\\"\\r\\n\\r\\n",
+        "Net.kt" to "--\$limite\\r\\nContent-Disposition: form-data; name=\\\"\$nomChamp\\\"; filename=\\\"\$nomFichier\\\"\\r\\n",
+        "Net.kt" to "Content-Type: application/zip\\r\\n\\r\\n",
         // Fichiers entiers de messages techniques, jamais affichés (Json.objet() les avale ; Erreur sert au débogage).
         "Json.kt" to "*",
         // Marqueur interne passé dans l'Intent (BlockActivity.RAISON_REGLAGE) : TextesBlocage écrit le titre affiché.
@@ -219,7 +224,7 @@ class I18nLot2Test {
             }
             for ((no, t) in littéraux(src)) {
                 val l = lignes[no - 1]
-                if (no in sautees || Regex("""\bLog\.[diwev]\(""").containsMatchIn(l) || l.trimStart().startsWith("@")) continue
+                if (no in sautees || Regex("""\b(?:Log|Journal)\.[diwev]\(""").containsMatchIn(l) || l.trimStart().startsWith("@")) continue
                 if (!suspect(t) || t.trim() in nomsPropres || (nom to t) in exceptions) continue
                 fautes += "$nom:$no : « $t »"
             }

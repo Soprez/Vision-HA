@@ -127,6 +127,57 @@ object Net {
         } catch (e: Exception) { derniereErreur = e.javaClass.simpleName + (e.message?.let { " $it" } ?: ""); null } finally { c.disconnect() }
     }
 
+    /**
+     * « Signaler un problème » : un envoi multipart (champs texte + un fichier) vers soprez.org, en flux (le zip n'est
+     * jamais chargé en mémoire). Lève une IOException si le site refuse ou ne répond pas ; rend le JSON de la réponse.
+     */
+    fun postMultipart(ctx: Context, url: String, champs: Map<String, String>, nomChamp: String, nomFichier: String, fichier: java.io.File,
+                      delaiMs: Int = 30000): JSONObject {
+        val limite = "----vision" + java.util.UUID.randomUUID().toString().replace("-", "")
+        val c = URL(url).openConnection() as HttpURLConnection
+        if (c is HttpsURLConnection) c.sslSocketFactory = fabrique(ctx)
+        c.connectTimeout = delaiMs
+        c.readTimeout = delaiMs
+        c.requestMethod = "POST"
+        c.doOutput = true
+        c.setChunkedStreamingMode(16 * 1024)
+        c.setRequestProperty("Content-Type", "multipart/form-data; boundary=$limite")
+        c.setRequestProperty("User-Agent", "Vision-Android/" + BuildConfigCompat.version(ctx))
+        try {
+            c.outputStream.buffered().use { sortie ->
+                fun ecrire(t: String) = sortie.write(t.toByteArray(Charsets.UTF_8))
+                for ((k, v) in champs) {
+                    ecrire("--$limite\r\nContent-Disposition: form-data; name=\"$k\"\r\n\r\n"); ecrire(v); ecrire("\r\n")
+                }
+                ecrire("--$limite\r\nContent-Disposition: form-data; name=\"$nomChamp\"; filename=\"$nomFichier\"\r\n" +
+                    "Content-Type: application/zip\r\n\r\n")
+                fichier.inputStream().use { it.copyTo(sortie) }
+                ecrire("\r\n--$limite--\r\n")
+            }
+            val code = c.responseCode
+            val texte = (if (code in 200..299) c.inputStream else c.errorStream)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
+            val json = try { JSONObject(texte) } catch (_: Exception) { JSONObject() }
+            if (code !in 200..299) throw Echec(code, json.optString("error", "HTTP $code"), json)
+            return json
+        } finally { c.disconnect() }
+    }
+
+    /** Un POST sans corps (demande d'effacement d'un signalement, lien signé) : lève une IOException si le site refuse. */
+    fun postVide(ctx: Context, url: String, delaiMs: Int = 15000) {
+        val c = URL(url).openConnection() as HttpURLConnection
+        if (c is HttpsURLConnection) c.sslSocketFactory = fabrique(ctx)
+        c.connectTimeout = delaiMs
+        c.readTimeout = delaiMs
+        c.requestMethod = "POST"
+        c.doOutput = true
+        c.setFixedLengthStreamingMode(0)
+        c.setRequestProperty("User-Agent", "Vision-Android/" + BuildConfigCompat.version(ctx))
+        try {
+            val code = c.responseCode
+            if (code !in 200..299) throw Echec(code, "HTTP $code")
+        } finally { c.disconnect() }
+    }
+
     /** La fabrique TLS de l'application (racines du système + Let's Encrypt embarqué), pour les autres clients HTTP. */
     fun fabriqueSsl(ctx: Context): SSLSocketFactory = fabrique(ctx)
 
