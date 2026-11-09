@@ -23,8 +23,28 @@ ETATS = ("bloque", "limite", "ouvert")
 _ORDRE = {e: i for i, e in enumerate(ETATS)}
 
 
+PAS_LIGNES = 200   # lignes construites entre deux reprises de la boucle d'événements
+
+
 def _jeu(hass: HomeAssistant, coord) -> dict[str, Any]:
-    """Toutes les lignes, triées (les fermées d'abord), et les listes de choix des filtres."""
+    """Toutes les lignes, d'un seul tenant (essais, appelants hors de la boucle)."""
+    gen = _jeu_en_tranches(hass, coord)
+    try:
+        while True:
+            next(gen)
+    except StopIteration as fin:
+        return fin.value
+
+
+async def async_preparer(hass: HomeAssistant, coord) -> None:
+    """2.5.12.25 (revue de HACS) : construit le jeu par tranches et le range dans le cache de 10 s, avant que `lire` (synchrone,
+    qui ne fait alors que filtrer et découper) ne le relise. À appeler, attendu, avant toute `lire` sur la boucle."""
+    await coord.store.async_memo(("ensemble",), 10.0, lambda: _jeu_en_tranches(hass, coord))
+
+
+def _jeu_en_tranches(hass: HomeAssistant, coord):
+    """Générateur : toutes les lignes, triées (les fermées d'abord), et les listes de choix des filtres.
+    Fait `yield` tous les PAS_LIGNES lignes ; RETOURNE le jeu."""
     from . import parent
     from .store import _nom_app
 
@@ -72,6 +92,8 @@ def _jeu(hass: HomeAssistant, coord) -> dict[str, Any]:
                     "pc": pc["id"], "appareil": nom_pc, "personne": cle_personne, "prenom": prenom, "genre": genre,
                     "nom": nom, "libelle": libelle or nom, "etat": etat, "categories": list(posees),
                 }
+                if len(logiciels) % PAS_LIGNES == PAS_LIGNES - 1:
+                    yield
                 if motif:
                     ligne["motif"] = motif
                 if etat == "limite":
@@ -81,6 +103,7 @@ def _jeu(hass: HomeAssistant, coord) -> dict[str, Any]:
     logiciels.sort(key=lambda r: (_ORDRE[r["etat"]], r["prenom"].lower(), r["appareil"].lower(), r["libelle"].lower()))
 
     limites_lignes: list[dict[str, Any]] = []
+    yield
     for cle_personne, pc in sources.items():
         for lim in parent._limites(store, pc):
             posees = store.etiquettes_de("apps", lim["nom"])
@@ -125,7 +148,7 @@ def _entier(valeur: Any, defaut: int) -> int:
 
 def lire(hass: HomeAssistant, coord, corps: dict[str, Any]) -> dict[str, Any]:
     """Une tranche de la vue demandée, avec le total, le nombre de lignes par état et les choix des filtres."""
-    jeu = coord.store._memo(("ensemble",), 10.0, lambda: _jeu(hass, coord))
+    jeu = coord.store._memo(("ensemble",), 10.0, lambda: _jeu(hass, coord))  # prêt dans le cache si `async_preparer` a précédé
     vue = "limites" if corps.get("vue") == "limites" else "logiciels"
     brut = corps.get("filtres") if isinstance(corps.get("filtres"), dict) else {}
     f = {k: str(brut.get(k) or "").strip() for k in ("personne", "appareil", "categorie", "etat", "q")}

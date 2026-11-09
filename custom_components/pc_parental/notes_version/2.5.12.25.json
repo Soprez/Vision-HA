@@ -1,0 +1,45 @@
+{
+  "version": "2.5.12.25",
+  "date": "2026-11-09",
+  "points": [
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "L'écran Autorisations se construit par tranches : Home Assistant reste fluide, même avec 300 logiciels.",
+        "en": "The Permissions screen is built in slices: Home Assistant stays smooth, even with 300 apps.",
+        "de": "Der Berechtigungen-Bildschirm wird in Teilschritten aufgebaut: Home Assistant bleibt flüssig, auch bei 300 Apps.",
+        "es": "La pantalla de Autorizaciones se construye por tramos: Home Assistant sigue fluido, incluso con 300 apps.",
+        "it": "La schermata Autorizzazioni si costruisce a tranche: Home Assistant resta fluido, anche con 300 app.",
+        "nl": "Het scherm Toestemmingen wordt in delen opgebouwd: Home Assistant blijft vlot, zelfs met 300 apps."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "La vue d'ensemble se construit aussi par tranches, sans bloquer Home Assistant.",
+        "en": "The overview is also built in slices, without blocking Home Assistant.",
+        "de": "Auch die Gesamtübersicht wird in Teilschritten aufgebaut, ohne Home Assistant zu blockieren.",
+        "es": "La vista general también se construye por tramos, sin bloquear Home Assistant.",
+        "it": "Anche la vista d'insieme si costruisce a tranche, senza bloccare Home Assistant.",
+        "nl": "Ook het overzicht wordt in delen opgebouwd, zonder Home Assistant te blokkeren."
+      }
+    },
+    {
+      "cibles": [
+        "ha"
+      ],
+      "texte": {
+        "fr": "L'envoi d'un GIF ou d'une image ne lit plus le disque sur la boucle de Home Assistant.",
+        "en": "Sending a GIF or an image no longer reads the disk on Home Assistant's event loop.",
+        "de": "Das Senden eines GIFs oder Bildes liest die Festplatte nicht mehr in der Ereignisschleife von Home Assistant.",
+        "es": "Enviar un GIF o una imagen ya no lee el disco en el bucle de eventos de Home Assistant.",
+        "it": "L'invio di una GIF o di un'immagine non legge più il disco nel ciclo di eventi di Home Assistant.",
+        "nl": "Het versturen van een GIF of afbeelding leest de schijf niet meer in de gebeurtenislus van Home Assistant."
+      }
+    }
+  ]
+}

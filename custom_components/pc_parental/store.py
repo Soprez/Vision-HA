@@ -1651,6 +1651,46 @@ class PcStore:
             memos.clear()
         return r
 
+    async def async_memo(self, cle, ttl, fabrique):
+        """Comme `_memo`, mais pour un calcul lourd : `fabrique()` rend un GÉNÉRATEUR qui fait `yield` de temps en temps (la
+        boucle d'événements reprend la main) et RETOURNE le résultat. 2.5.12.25 (revue de HACS) : les lectures de l'écran
+        Autorisations et de la vue d'ensemble évaluaient jusqu'à des milliers de statuts d'un seul tenant. Les appels
+        simultanés se partagent un seul calcul ; une écriture pendant le calcul le fait refaire (jamais de résultat périmé
+        rangé) ; le résultat est gardé `ttl` secondes et oublié à chaque écriture, comme `_memo`."""
+        memos = getattr(self, "_memos", None)
+        if memos is None:
+            memos = {}
+            self._memos = memos
+        v = memos.get(cle)
+        if v is not None and time.monotonic() - v[0] < ttl:
+            return v[1]
+        en_cours = self.__dict__.setdefault("_memos_en_cours", {})
+        jeton = self._effectif_jeton()
+        tache = en_cours.get((cle, jeton))
+        if tache is None:
+            tache = asyncio.ensure_future(self._memo_en_tranches(cle, fabrique))
+            en_cours[(cle, jeton)] = tache
+            tache.add_done_callback(lambda _t, k=(cle, jeton): en_cours.pop(k, None))
+        return await asyncio.shield(tache)
+
+    async def _memo_en_tranches(self, cle, fabrique):
+        resultat = None
+        for _ in range(3):
+            jeton = self._effectif_jeton()
+            gen = fabrique()
+            try:
+                while True:
+                    next(gen)
+                    await asyncio.sleep(0)
+            except StopIteration as fin:
+                resultat = fin.value
+            if self._effectif_jeton() == jeton:
+                memos = getattr(self, "_memos", None)
+                if memos is not None:
+                    memos[cle] = (time.monotonic(), resultat)
+                return resultat
+        return resultat  # écrit pendant les trois essais : rendu tel quel, non gardé
+
     def catalogue_maison(self, genre: str) -> list[str]:
         return list(self._memo(("catalogue", genre), 5.0, lambda: self._catalogue_maison_calc(genre)))
 

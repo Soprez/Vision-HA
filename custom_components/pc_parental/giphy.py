@@ -292,7 +292,8 @@ class Giphy:
                 raise textes.Erreur("giphy.indisponible") from err
             gardee = await self.hass.async_add_executor_job(self.cache.ecrire, f"gif:{ident}", anime, ".webp")
             await self.hass.async_add_executor_job(self.cache.ecrire, f"gif-fixe:{ident}", fixe, ".webp")
-        return {"chemin": gardee, "mime": "image/webp", "type": "image", "octets": os.path.getsize(gardee)}
+        octets = await self.hass.async_add_executor_job(os.path.getsize, gardee)  # 2.5.12.25 : hors de la boucle
+        return {"chemin": gardee, "mime": "image/webp", "type": "image", "octets": octets}
 
 
 def _lire(chemin: str) -> bytes:
@@ -340,7 +341,8 @@ async def image_par_url(hass: HomeAssistant, url: str, dossier: str, fetch: Fetc
         except images.ImageRefusee as err:
             raise textes.Erreur("images.refusee") from err
         gardee = await hass.async_add_executor_job(cache.ecrire, f"url:{url}", webp, ".webp")
-    return {"chemin": gardee, "mime": "image/webp", "type": "image", "octets": os.path.getsize(gardee)}
+    octets = await hass.async_add_executor_job(os.path.getsize, gardee)  # 2.5.12.25 : la taille se lit hors de la boucle
+    return {"chemin": gardee, "mime": "image/webp", "type": "image", "octets": octets}
 
 
 def dossier_cache(hass: HomeAssistant) -> str:

@@ -89,8 +89,8 @@ def test_pas_de_disque_dans_les_coroutines():
     # Un appel passé EN ARGUMENT de async_add_executor_job (`hass.async_add_executor_job(os.path.isfile, x)`) n'est pas un
     # appel : c'est une référence, que ce balayage ne signale donc pas.
     fautes = []
-    for f in ("messages.py", "veille_plus.py"):
-        fautes += _appels_dans_coroutines(RACINE / f)
+    for f in sorted(RACINE.rglob("*.py")):  # 2.5.12.25 : tout le paquet, plus seulement deux fichiers
+        fautes += _appels_dans_coroutines(f)
     assert not fautes, fautes
 
 

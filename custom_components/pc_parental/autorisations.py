@@ -206,26 +206,36 @@ def _blocages_pour_tous(hass, coord, pcs) -> list[dict[str, Any]]:
     return sortie
 
 
-def lire(hass: HomeAssistant, coord, corps: dict[str, Any]) -> dict[str, Any]:
-    """GET /autorisations?personne=&appareil=  (la carte relit toutes les 30 s : le calcul est gardé 10 s)."""
+PAS_EVALUATIONS = 2   # logiciels évalués entre deux reprises de la boucle (chacun : une cinquantaine de statuts au plus)
+
+
+def _preparer(hass: HomeAssistant, coord, corps: dict[str, Any]):
+    """(clé du relevé, fabrique du générateur de calcul) pour une lecture de l'écran."""
     personne = str(corps.get("personne") or "").strip()
     appareil = str(corps.get("appareil") or "").strip()
     langue = textes.ha(hass)
     pcs, personne, appareil = _portee_cible(coord, personne, appareil)
     store = coord.store
 
-    def calcul() -> dict[str, Any]:
+    def calcul():
+        """Générateur : rend la main (`yield`) tous les PAS_EVALUATIONS logiciels et tous les 100 sites, et RETOURNE le relevé."""
         lg = langue
         vues = {n for pc in pcs for a in store._siens(pc) for n in (a.get("apps_vues") or {})}
         apps = sorted({_nom_app(n) for n in vues if _nom_app(n)}, key=str.lower)[:MAX_APPLIS]
-        applis = [_etat_logiciel(hass, coord, pcs, a, lg) for a in apps]
+        applis = []
+        for i, a in enumerate(apps):
+            applis.append(_etat_logiciel(hass, coord, pcs, a, lg))
+            if i % PAS_EVALUATIONS == PAS_EVALUATIONS - 1:
+                yield
         ordre = {"rouge": 0, "orange": 1, "vert": 2}
         applis.sort(key=lambda a: (ordre[a["badge"]], a["libelle"].lower()))
         rattaches = {s["domaine"] for a in applis for s in a["sites"]}
         ailleurs = store.logiciel_des_sites()
         seuls = []
         for pc in pcs:
-            for site in sorted(pc.get("sites_vus") or {}):
+            for n_site, site in enumerate(sorted(pc.get("sites_vus") or {})):
+                if n_site % 100 == 99:
+                    yield
                 if site in rattaches or site in ailleurs or store.est_banni(site) or any(site == x["domaine"] for x in seuls):
                     continue
                 if site.count(".") > 1:
@@ -265,7 +275,29 @@ def lire(hass: HomeAssistant, coord, corps: dict[str, Any]) -> dict[str, Any]:
             "journal": journal_gestes.recents(hass, 20),
         }
 
-    return store._memo(("autorisations", personne, appareil, langue), 10.0, calcul)
+    return ("autorisations", personne, appareil, langue), calcul
+
+
+def _piloter(gen):
+    """Mène un générateur de calcul jusqu'au bout, d'un seul tenant (essais et chemins hors de la boucle) → son résultat."""
+    try:
+        while True:
+            next(gen)
+    except StopIteration as fin:
+        return fin.value
+
+
+def lire(hass: HomeAssistant, coord, corps: dict[str, Any]) -> dict[str, Any]:
+    """Le relevé d'un seul tenant : pour les essais et les appelants qui ne sont pas sur la boucle. Une vue HTTP appelle `async_lire`."""
+    cle, calcul = _preparer(hass, coord, corps)
+    return coord.store._memo(cle, 10.0, lambda: _piloter(calcul()))
+
+
+async def async_lire(hass: HomeAssistant, coord, corps: dict[str, Any]) -> dict[str, Any]:
+    """GET /autorisations?personne=&appareil=  (la carte relit toutes les 30 s : le calcul est gardé 10 s). 2.5.12.25 (revue
+    de HACS) : par tranches, la boucle d'événements reprend la main entre deux séries d'évaluations (jusqu'à 300 logiciels)."""
+    cle, calcul = _preparer(hass, coord, corps)
+    return await coord.store.async_memo(cle, 10.0, calcul)
 
 
 # ----------------------------------------------------------------------------- Gestes
@@ -463,7 +495,7 @@ class PcParentalAutorisationsView(HomeAssistantView):
         if not _autorise(self.hass, coord, request):
             return self.json({"ok": False, "error": "admin"}, status_code=403)
         try:
-            return self.json(lire(self.hass, coord, {k: request.query.get(k, "") for k in ("personne", "appareil")}))
+            return self.json(await async_lire(self.hass, coord, {k: request.query.get(k, "") for k in ("personne", "appareil")}))
         except Refus as r:
             return self.json({"ok": False, "error": r.code}, status_code=r.statut)
 
