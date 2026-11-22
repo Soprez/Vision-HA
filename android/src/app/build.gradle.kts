@@ -127,7 +127,7 @@ dependencies {
     implementation("com.google.zxing:core:3.5.4")
     // La caméra, seulement pour scanner le QR de Home Assistant (sans services Google).
     implementation("androidx.camera:camera-camera2:1.3.4")
-    implementation("androidx.camera:camera-lifecycle:1.3.4")
+    implementation("androidx.camera:camera-lifecycle:1.7.0")
     implementation("androidx.camera:camera-view:1.3.4")
     implementation("androidx.lifecycle:lifecycle-runtime:2.6.2")
     // Client Sendspin natif (lecteur de Music Assistant) : WebSocket, et X25519 / ChaCha20-Poly1305 / SHA-512 de Noise
